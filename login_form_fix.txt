@@ -1,0 +1,71 @@
+<Animated.View style={[styles.header, {height: this._headerHeight}]}>
+          <View
+            style={{
+              flexDirection: 'row',
+              zIndex: 999,
+            }}>
+            <Image
+              style={{marginLeft: 5, width: 25, height: 25}}
+              resizeMode="contain"
+              source={require('../../../images/person.png')}
+            />
+
+            <View
+              style={{
+                flex: 1,
+                borderBottomWidth: 0.3,
+                borderColor: '#d6d7da',
+                paddingRight: 0,
+                marginLeft: 10,
+              }}>
+              <RNPickerSelect
+                onValueChange={(selectedValue) => {
+                  this._onChangeService(selectedValue);
+                }}
+                items={this.state.listServiceSettings}
+                value={this.state.service}
+                style={{
+                  iconContainer: {
+                    top: 12,
+                    right: 0,
+                  },
+                  inputAndroid: {
+                    color: '#000000',
+                    paddingRight: 30,
+                    paddingVertical: 12,
+                  },
+                  inputIOS: {
+                    color: '#000000',
+                    paddingRight: 30,
+                    paddingVertical: 12,
+                  },
+                  placeholder: {
+                    color: '#999999',
+                  },
+                }}
+                placeholder={{
+                  label: 'เลือก',
+                  value: null,
+                }}
+                useNativeAndroidPickerStyle={false}
+                textInputProps={{underlineColor: 'yellow'}}
+                Icon={() => (
+                  <AntDesign
+                    name="down"
+                    size={20}
+                    color={MainTheme.colorPrimary}
+                    style={{marginTop: 2}}
+                  />
+                )}
+              />
+            </View>
+          </View>
+
+          <View style={styles.settingSection}>
+            <MaterialIcons
+              name="settings"
+              size={30}
+              color={MainTheme.colorSecondary}
+              onPress={() => onSettingPress?.()}
+            />
+          </View>

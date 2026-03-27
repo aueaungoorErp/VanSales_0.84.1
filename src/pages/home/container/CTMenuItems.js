@@ -1,0 +1,157 @@
+import React from 'react';
+import {
+  Alert,
+  Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { homeMenuButtonGroup } from '../../../constant/lov';
+import { strings } from '../../../locales/i18n';
+import Navigator from '../../../services/Navigator';
+import Request from '../../../utils/Request';
+import {
+  getLoginGuID,
+  getUserToken,
+  removeUserToken,
+} from '../../../utils/Token';
+import MenuItems from '../presenter/MenuItems';
+
+class CTMenuItems extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      userToken: null,
+      loginGUID: null,
+    };
+    this._getUserToken();
+    this._getLoginGuID();
+  }
+
+  _onPress = async (item) => {
+    if (item.methodType === 'new-page') {
+
+      Navigator.navigate(item.screen);
+    } else if (item.methodType === 'function') {
+      if (item.methodName === 'logout') {
+        this._confirmAlertDialog(item);
+      }
+    }
+  };
+
+  _getUserToken = async () => {
+    const userToken = await getUserToken();
+
+    if (userToken) {
+      await this.setState((oldState) => {
+        return {
+          userToken: userToken,
+        };
+      });
+    }
+  };
+
+  _getLoginGuID = async () => {
+    const loginGUID = await getLoginGuID();
+    console.log('loginGUID ', loginGUID);
+    if (loginGUID) {
+      await this.setState((oldState) => {
+        return {
+          loginGUID: loginGUID,
+        };
+      });
+    }
+  };
+
+  _confirmAlertDialog = (item) =>
+    Alert.alert(
+      strings('announce.title_msg'),
+      strings('announce.logout_msg'),
+      [
+        { text: strings('announce.cancel'), onPress: () => { }, style: 'cancel' },
+        { text: strings('announce.confirm'), onPress: () => this._logout(item) },
+      ],
+      { cancelable: false },
+    );
+
+  _logout = async (item) => {
+    const isRemove = await removeUserToken();
+    Request.removeAllHeaders();
+    isRemove ? Navigator.navigate(item.screen) : null;
+  };
+
+  _renderItem = ({ item }) => {
+    return (
+      <View style={styles.itemShell}>
+        <TouchableOpacity onPress={() => this._onPress(item)} style={styles.touchable}>
+          <Image
+            style={styles.image}
+            resizeMode="contain"
+            source={item.imgSrc}
+          />
+          <Text
+            style={styles.title}
+            numberOfLines={2}
+            allowFontScaling={false}>
+            {item.title}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  _checkVanConfigBalance = () => {
+    result = 2;
+    this.state.userToken &&
+      this.state.userToken.VANCONFIG &&
+      this.state.userToken.VANCONFIG.VANCNF_NEED_BAL
+      ? (result = this.state.userToken.VANCONFIG.VANCNF_NEED_BAL)
+      : (result = 2);
+
+    return result;
+  };
+
+  render() {
+    let homeMenu = homeMenuButtonGroup;
+    const itemDimension = Dimensions.get('window').width > 450 ? 170 : 130;
+    // this._checkVanConfigBalance() == 1 ? homeMenu = homeMenuButtonGroup.filter((value, index) => value.screen != 'Stock') : null
+    return (
+      <MenuItems
+        itemDimension={itemDimension}
+        homeMenu={homeMenu}
+        renderItem={this._renderItem}
+      />
+    );
+  }
+}
+
+export default CTMenuItems;
+
+const styles = StyleSheet.create({
+  itemShell: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  touchable: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  image: {
+    width: 96,
+    height: 96,
+    alignSelf: 'center',
+    marginBottom: 8,
+  },
+  title: {
+    textAlign: 'center',
+    fontSize: hp('2%'),
+    color: '#444444',
+  },
+});

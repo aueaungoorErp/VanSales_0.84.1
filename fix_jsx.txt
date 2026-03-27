@@ -1,0 +1,7 @@
+</Text>
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+
+        <View style={styles.body}>

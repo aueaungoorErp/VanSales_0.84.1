@@ -1,0 +1,253 @@
+import React, { Component } from 'react'
+import { View, Text, StyleSheet, Dimensions, TextInput } from 'react-native'
+import { Picker } from '@react-native-picker/picker'
+import { Button } from 'react-native-elements'
+import moment from 'moment'
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
+import { MainTheme, monthItems } from '../../constant/lov'
+import IOverlay from '../../component/modal/IOverlay'
+import { generateYearForPicker, generatedayForPicker, getMonthNumberFromMonthName } from '../../utils/Date'
+import { resolveVectorIconComponent } from '../../utils/iconFactory'
+
+const Item = ({ style, children }) => (
+    <View style={[{ flexDirection: 'row', alignItems: 'center' }, style]}>{children}</View>
+)
+
+const Input = ({ style, ...props }) => (
+    <TextInput
+        {...props}
+        style={[{ flex: 1, color: '#000000', paddingVertical: 8, paddingHorizontal: 0 }, style]}
+    />
+)
+
+const Icon = ({ type, name, style, size, color, onPress }) => {
+    const IconComponent = resolveVectorIconComponent(type, resolveVectorIconComponent('AntDesign'))
+    return (
+        <IconComponent
+            name={name}
+            size={size ?? style?.fontSize ?? 20}
+            color={color ?? style?.color ?? MainTheme.colorPrimary}
+            style={style}
+            onPress={onPress}
+        />
+    )
+}
+
+
+const _fontSize = Dimensions.get('window').width > 450 ? 18 : 13
+// let _monthSelectItems = _generateMonthSelectItems
+
+const _flexLayout = Dimensions.get('window').width > 360 ? [ 0.3, 0.35, 0.35 ] : [ 0.3, 0.35, 0.35 ]
+
+class IDatePicker extends Component {
+
+    constructor(props) {
+        super(props)
+
+        this.state = {
+            dateNo: [],
+            date: null,
+            month: null,
+            year: null,
+            visible: false
+        }
+    }
+
+    componentDidMount = (props) => {
+        this._setBeginState()
+    }
+
+    _setBeginState = () => {
+        const { value } = this.props
+        const date = parseInt(moment(value, 'DD/MM/YYYY').format('DD'))
+        const month = parseInt(moment(value, 'DD/MM/YYYY').format('MM')) - 1
+        const year = parseInt(moment(value, 'DD/MM/YYYY').format('YYYY'))
+
+        this._setState('dateNo', generatedayForPicker(month, year))
+        this._setState('date', date)
+        this._setState('month', month)
+        this._setState('year', year)
+    }
+
+    _setState = async (key, value) => {
+        await this.setState(oldState => {
+            return {
+                [key]: value
+            }
+        })
+    }
+
+    _onDateChange = (value) => {
+        console.log('_onDateChange', value)
+        this._setState('date', value)
+    }
+    
+    _onMonthChange = async (value) => {
+        await this._setState('month', getMonthNumberFromMonthName(this._monthSelectItems, value))
+        await this._setState('dateNo', generatedayForPicker(this.state.month, this.state.year))
+        await this._setState('date', this.state.date)
+        console.log('_onMonthChange', this.state.dateNo.length, this.state.date)
+    }
+
+    _onYearChange = async (value) => {
+        await this._setState('year', value)
+        await this._setState('dateNo', generatedayForPicker(this.state.month, this.state.year))
+    }
+    
+    _onConfirm = () => {
+        const date = this.state.date > 9 ? this.state.date : '0' + this.state.date
+        const month = this.state.month + 1 > 9 ? this.state.month + 1 : '0' + (this.state.month + 1)
+        if (this.props.onConfirm) { this.props.onConfirm(date + '/' + month + '/' + this.state.year) }
+        this._setState('visible', false)
+    }
+
+    _onCancel = () => {
+        this._setBeginState()
+        this._setState('visible', false)
+    }
+
+    _generateMonthSelectItems = () => {
+        if (Dimensions.get('window').width > 460) return monthItems.thaiMonthNames
+        else return monthItems.thaimonthNamesShort
+    }
+
+    _generateOverlayStyle = () => {
+        if (Dimensions.get('window').width > 460) return { width: '100%' }
+        else return { width: '100%', borderWidth: 1, paddingLeft: 0, paddingRight: 0 }
+    }
+
+    _monthSelectItems = this._generateMonthSelectItems()
+
+    render() {
+        const { label, value, disabled, hideBorder } = this.props
+
+        return(
+            <View>
+                <Item style={{ borderBottomColor: '#d6d7da', borderBottomWidth: hideBorder ? 0 : 0.5 }}>
+                    {
+                        label ? 
+                            <Text style={{ fontSize: hp('1.7%') }} allowFontScaling={false} > {label} </Text>
+                        : null
+                    }
+                    
+                    <Input editable={false} value={value} style={{ fontSize: hp('1.7%') }} allowFontScaling={false} />
+                    <Icon active name='calendar' type='FontAwesome' style={{ color: MainTheme.colorTertiary }} onPress={() => disabled === undefined || disabled === false ? this._setState('visible', true) : null} />
+                </Item>
+
+                <IOverlay 
+                    closeOnTouchOutside={true}
+                    visible={this.state.visible}
+                    containerStyle={this._generateOverlayStyle()}
+                    onClose={() => {
+                        this._setState('visible', false)
+                    }}
+                    childrenWrapperStyle={{ backgroundColor: 'transparent' }} >
+                        <View style={{ width: '100%'  }}>
+
+                            <View style={{ flexDirection: 'row', backgroundColor: '#F3F3EF' }} >
+                                <Item style={{ flex: _flexLayout[0], borderWidth: 1, marginLeft: 5, marginRight: 5 }}>
+                                    <Picker
+                                        style={{ width: undefined }}
+                                        selectedValue={this.state.date}
+                                        onValueChange={value => this._onDateChange(value)} >
+                                            {
+                                                _date = this.state.dateNo.map((item, index) => {
+                                                    return <Picker.Item key={index} label={item.toString()} value={item} />
+                                                })
+                                            }
+                                    </Picker>
+                                </Item>
+
+                                <Item style={{ flex: _flexLayout[1], borderWidth: 1, marginLeft: 5, marginRight: 5 }}>
+                                    <Picker
+                                        style={{ width: undefined }}
+                                        selectedValue={this._monthSelectItems[this.state.month]}
+                                        onValueChange={value => this._onMonthChange(value)} >
+                                            {
+                                                 
+                                                _monthItems = this._monthSelectItems.map((item, index) => {
+                                                    return <Picker.Item key={index} label={item.toString()} value={item} />
+                                                })
+                                            }
+                                    </Picker>
+                                </Item>
+
+                                <Item style={{ flex: _flexLayout[2], borderWidth: 1, marginLeft: 5, marginRight: 5 }}>
+                                    <Picker
+                                        style={{ width: undefined }}
+                                        selectedValue={this.state.year}
+                                        onValueChange={value => this._onYearChange(value)} >
+                                            {
+                                                _yearItems = generateYearForPicker().map((item, index) => {
+                                                    return <Picker.Item key={index} label={item.toString()} value={item} />
+                                                })
+                                            }
+                                    </Picker>
+                                </Item>
+                            </View>
+
+                            <View style={iButtonGroupCustomStyles.container}>
+                                <Button
+                                    title={'ยืนยัน'}
+                                    buttonStyle={
+                                        {
+                                            backgroundColor: MainTheme.colorPrimary, 
+                                            height: 50, 
+                                            borderRadius: 0, 
+                                            borderColor: "#E5E4E2", 
+                                            borderWidth: 0.3
+                                        }
+                                    }
+                                    containerStyle={{flex: 1}}
+                                    titleStyle={{color: MainTheme.colorSecondary}}
+                                    onPress={() => { this._onConfirm() }} />
+
+                                <Button
+                                    title={'ยกเลิก'}
+                                    buttonStyle={
+                                        {
+                                            backgroundColor: MainTheme.colorSecondary, 
+                                            height: 50, 
+                                            borderRadius: 0, 
+                                            borderColor: "#E5E4E2", 
+                                            borderWidth: 0.3
+                                        }
+                                    }
+                                    containerStyle={{flex: 1}}
+                                    titleStyle={{color: '#000000'}}
+                                    onPress={() => { this._onCancel() }} />
+                            </View>
+                        </View>
+                </IOverlay>
+            </View>
+        )
+    }
+}
+
+export default IDatePicker
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        borderBottomWidth: 0,
+        backgroundColor: '#F3F3EF',
+        borderColor: '#d6d7da',
+        flexDirection: 'row'
+    },
+    inputSection: {
+        flex: 1,
+        paddingHorizontal: 5
+    },
+    pickerContainer: {
+        flex: 0.8
+    }
+})
+
+const iButtonGroupCustomStyles = StyleSheet.create({
+    container: {
+        flex: null,
+        height: 60, 
+        flexDirection: 'row',
+        justifyContent: null
+    }
+})

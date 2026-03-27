@@ -1,0 +1,38 @@
+import React, { Component } from 'react'
+import SearchForm from '../../pages/campaign/SearchForm'
+
+class CTSearchForm extends Component {
+    _isMounted = false
+
+    constructor(props) {
+        super(props)
+
+        this.state = {
+        }
+    }
+
+    componentDidMount = (props) => {
+        this._isMounted = true
+    }
+    
+    componentWillUnmount = (props) => {
+        this._isMounted = false
+    }
+
+    _setState = async (key, value) => {
+        this._isMounted && 
+        await this.setState(oldState => {
+            return {
+                [key]: value
+            }
+        })
+    }
+    
+    render() {
+        return (
+            <SearchForm />
+        )
+    }
+}
+
+export default CTSearchForm

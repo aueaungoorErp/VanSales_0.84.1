@@ -1,0 +1,8 @@
+<View style={styles.settingSection}>
+            <MaterialIcons
+              name="settings"
+              size={30}
+              color={MainTheme.colorSecondary}
+              onPress={() => onSettingPress?.()}
+            />
+          </View>

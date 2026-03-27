@@ -1,0 +1,1 @@
+export const APP_SET_STATE = 'APP_SET_STATE'

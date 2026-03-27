@@ -1,0 +1,727 @@
+import React from 'react'
+import { View, Text, Dimensions } from 'react-native'
+import { ListItem } from 'react-native-elements'
+import moment from 'moment'
+import { MainTheme } from '../constant/lov'
+
+export const salesOrderByCategory = {
+    header: () => {
+
+        return (
+            // Dimensions.get('window').width > 450 ? 
+                <ListItem
+                    title={
+                        <View style={{flexDirection: 'row'}} >
+                            {/* <Text style={{flex: 1, color: MainTheme.colorSecondary}} >รหัส</Text> */}
+                            <Text style={{flex: 1, color: MainTheme.colorSecondary}} >ประเภทสินค้า</Text>
+                            <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorSecondary}} >จำนวนรวม</Text>
+                            <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorSecondary}} >ยอดขาย</Text>
+                        </View>
+                    }
+                    containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+                    titleNumberOfLines={1} /> 
+            // :
+            //     <ListItem
+            //         title={
+            //             <View style={{flexDirection: 'row'}} >
+            //                 {/* <Text style={{width: 100, color: MainTheme.colorSecondary}} >รหัส</Text> */}
+            //                 <Text style={{width: 150, color: MainTheme.colorSecondary}} >ประเภทสินค้า</Text>
+            //                 <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorSecondary}} >จำนวนรวม</Text>
+            //                 <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorSecondary}} >ยอดขาย</Text>
+            //             </View>
+            //         }
+            //         containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+            //         titleNumberOfLines={1} />
+        )
+    },
+    renderItem: ({ item }) => {
+        return (
+            // Dimensions.get('window').width > 450 ? 
+                <ListItem
+                    title={
+                        <View >
+                            {/* <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorSeptenary, padding: 15}} >
+                                <Text style={{flex: 1, color: MainTheme.colorQuaternary}} >
+                                    วันที่ { moment(item.GROUP_DATE).add(543, 'years').format('DD/MM/YYYY') }
+                                </Text>
+                                <Text style={{flex: 1}} >วันที่ { moment(item.GROUP_DATE).add(543, 'years').format('DD/MM/YYYY') }</Text>
+                                <Text style={{flex: 1}} ></Text>
+                                <Text style={{flex: 1}} ></Text>
+                            </View> */}
+                        
+                            {
+                                item.ITEMS.map((row, i) => 
+                                    <View style={{flexDirection: 'row', padding: 15}} key={i} >
+                                        {/* <Text style={{flex: 1}}>{row.ICCAT_CODE}</Text> */}
+                                        <Text style={{flex: 1}}>{row.ICCAT_NAME}</Text>
+                                        <Text style={{flex: 1, textAlign: 'right'}}>{row.SKUQTY}</Text>
+                                        <Text style={{flex: 1, textAlign: 'right'}}>{row.SKUAMT}</Text>
+                                    </View>
+                                )
+                            }    
+
+                            {/* <View style={{flexDirection: 'row', backgroundColor: '#E5E4E2', padding: 15}} >
+                                <Text style={{flex: 1}} >รวมวันที่ { moment(item.GROUP_DATE).add(543, 'years').format('DD/MM/YYYY') }</Text>
+                                <Text style={{flex: 1}} >{item.GROUP_COUNT} รายการ</Text>
+                                <Text style={{flex: 1, textAlign: 'right'}} >{item.GROUP_SUM_QTY}</Text>
+                                <Text style={{flex: 1, textAlign: 'right'}} >{item.GROUP_SUM_AMT}</Text>
+                            </View> */}
+                        </View>
+                    }
+                    containerStyle={{padding: 0}}
+                    bottomDivider
+                    titleNumberOfLines={1} /> 
+            // : 
+            // <ListItem
+            //     title={
+            //         <View >
+            //             <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorSeptenary, padding: 15}} >
+            //                 <Text style={{width: 100, color: MainTheme.colorQuaternary}} >
+            //                     { moment(item.GROUP_DATE).add(543, 'years').format('DD/MM/YYYY') }
+            //                 </Text>
+            //                 <Text style={{width: 150}} ></Text>
+            //                 <Text style={{width: 100}} ></Text>
+            //                 <Text style={{width: 100}} ></Text>
+            //             </View>
+                        
+            //             {
+            //                 item.ITEMS.map((row, i) => 
+            //                     <View style={{flexDirection: 'row', padding: 15}} key={i} >
+            //                         <Text style={{width: 100}}>{row.ICCAT_CODE}</Text>
+            //                         <Text style={{width: 150}}>{row.ICCAT_NAME}</Text>
+            //                         <Text style={{width: 100, textAlign: 'right'}}>{row.SKUQTY}</Text>
+            //                         <Text style={{width: 100, textAlign: 'right'}}>{row.SKUAMT}</Text>
+            //                     </View>
+            //                 )
+            //             }    
+
+            //             <View style={{flexDirection: 'row', backgroundColor: '#E5E4E2', padding: 15}} >
+            //                 <Text style={{width: 100}} ></Text>
+            //                 <Text style={{width: 150}} >{item.GROUP_COUNT} รายการ</Text>
+            //                 <Text style={{width: 100, textAlign: 'right'}} >{item.GROUP_SUM_QTY}</Text>
+            //                 <Text style={{width: 100, textAlign: 'right'}} >{item.GROUP_SUM_AMT}</Text>
+            //             </View>
+            //         </View>
+            //     }
+            //     containerStyle={{padding: 0}}
+            //     bottomDivider
+            //     titleNumberOfLines={1} /> 
+        )
+    },
+    footer: (item) => {
+        return (
+            // Dimensions.get('window').width > 450 ? 
+                <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorThirteendary, padding: 15}} >
+                    <Text style={{flex: 1, color: MainTheme.colorFourteendary}}>รวมทั้งสิ้น</Text>
+                    {/* <Text style={{flex: 1, color: MainTheme.colorFourteendary}}>{ item.SUM_COUNT} รายการ</Text> */}
+                    <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_QTY }</Text>
+                    <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_AMT }</Text>
+                </View>
+            // :
+            //     <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorThirteendary, padding: 15}} >
+            //         <Text style={{width: 100, color: MainTheme.colorFourteendary}}>รวมทั้งสิ้น</Text>
+            //         <Text style={{width: 150, color: MainTheme.colorFourteendary}}>{ item.SUM_COUNT} รายการ</Text>
+            //         <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_QTY }</Text>
+            //         <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_AMT }</Text>
+            //     </View>
+        )
+    },
+    horizontalScreen: 'none',
+    footerSummary: true
+}
+
+
+export const salesOrderByProduct = {
+    header: () => {
+        return (
+            <ListItem
+                title={
+                    Dimensions.get('window').width > 450 ? 
+                        <View style={{flexDirection: 'row'}} >
+                            <Text style={{flex: 1, color: MainTheme.colorSecondary}}>ชื่อสินค้า</Text>
+                            <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorSecondary}}>จำนวนขาย</Text>
+                            <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorSecondary}}>จำนวนแถม</Text>
+                            <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorSecondary}}>ยอดขาย</Text>
+                        </View>
+                    :
+                        <View style={{flexDirection: 'row'}} >
+                            <Text style={{width: 200, color: MainTheme.colorSecondary}}>ชื่อสินค้า</Text>
+                            <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorSecondary}}>จำนวนขาย</Text>
+                            <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorSecondary}}>จำนวนแถม</Text>
+                            <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorSecondary}}>ยอดขาย</Text>
+                        </View>
+                }
+                containerStyle={{ backgroundColor: MainTheme.colorQuinary }}
+                titleNumberOfLines={1} /> 
+        )
+    },
+    renderItem: ({ item }) => {
+        return (
+            <ListItem
+                title={
+                    Dimensions.get('window').width > 450 ? 
+                        <View>
+                            {/* <View style={{ flexDirection: 'row', backgroundColor: MainTheme.colorSeptenary, padding: 15 }} >
+                                <Text style={{flex: 1, color: MainTheme.colorQuaternary}}>
+                                    วันที่ { moment(item.GROUP_DATE).add(543, 'years').format('DD/MM/YYYY') }
+                                </Text>
+                            </View> */}
+                        
+                            {
+                                item.ITEMS.map((row, i) => 
+                                    <View style={{flexDirection: 'row', padding: 15}} key={i} >
+                                        <Text style={{flex: 1}}>{row.SKU_NAME}</Text>
+                                        <Text style={{flex: 1, textAlign: 'right'}}>{ row.SKUSELLQTY }</Text>
+                                        <Text style={{flex: 1, textAlign: 'right'}}>{ row.SKUFREEQTY }</Text>
+                                        <Text style={{flex: 1, textAlign: 'right'}}>{ row.SKUAMT }</Text>
+                                    </View>
+                                )
+                            }    
+
+                            {/* <View style={{flexDirection: 'row', backgroundColor: '#E5E4E2', padding: 15}} >
+                                <Text style={{flex: 1}} >รวมวันที่ { moment(item.GROUP_DATE).add(543, 'years').format('DD/MM/YYYY') }</Text>
+                                <Text style={{flex: 1, textAlign: 'right'}} >{ item.GROUP_COUNT }</Text>
+                                <Text style={{flex: 1, textAlign: 'right'}} >{ item.GROUP_SUM_QTY }</Text>
+                                <Text style={{flex: 1, textAlign: 'right'}} >{ item.GROUP_SUM_AMT }</Text>
+                            </View> */}
+                        </View>
+                    :
+                        <View>
+                            {/* <View style={{ flexDirection: 'row', backgroundColor: MainTheme.colorSeptenary, padding: 15 }} >
+                                <Text style={{width: 650, color: MainTheme.colorQuaternary}}>
+                                    วันที่ { moment(item.GROUP_DATE).add(543, 'years').format('DD/MM/YYYY') }
+                                </Text>
+                            </View> */}
+                        
+                            {
+                                item.ITEMS.map((row, i) => 
+                                    <View style={{flexDirection: 'row', padding: 15}} key={i} >
+                                        <Text style={{width: 200}}>{row.SKU_NAME}</Text>
+                                        <Text style={{width: 150, textAlign: 'right'}}>{ row.SKUSELLQTY }</Text>
+                                        <Text style={{width: 150, textAlign: 'right'}}>{ row.SKUFREEQTY }</Text>
+                                        <Text style={{width: 150, textAlign: 'right'}}>{ row.SKUAMT }</Text>
+                                    </View>
+                                )
+                            }    
+
+                            {/* <View style={{flexDirection: 'row', backgroundColor: '#E5E4E2', padding: 15}} >
+                                <Text style={{width: 200}} >รวมวันที่ { moment(item.GROUP_DATE).add(543, 'years').format('DD/MM/YYYY') }</Text>
+                                <Text style={{width: 150, textAlign: 'right'}} >{ item.GROUP_COUNT }</Text>
+                                <Text style={{width: 150, textAlign: 'right'}} >{ item.GROUP_SUM_QTY }</Text>
+                                <Text style={{width: 150, textAlign: 'right'}} >{ item.GROUP_SUM_AMT }</Text>
+                            </View> */}
+                        </View>
+                }
+                containerStyle={{padding: 0}}
+                // bottomDivider
+                titleNumberOfLines={1} /> 
+        )
+    },
+    footer: (item) => {
+        return (
+            Dimensions.get('window').width > 450 ? 
+                <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorThirteendary, padding: 15}} >
+                    <Text style={{flex: 1, color: MainTheme.colorFourteendary}}>รวมทั้งสิ้น</Text>
+                    <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_QTY}</Text>
+                    <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_COUNT }</Text>
+                    <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_AMT }</Text>
+                </View>
+                :
+                <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorThirteendary, padding: 15}} >
+                    <Text style={{width: 200, color: MainTheme.colorFourteendary}}>รวมทั้งสิ้น</Text>
+                    <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_QTY}</Text>
+                    <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_COUNT }</Text>
+                    <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_AMT }</Text>
+                </View>
+        )
+    },
+    horizontalScreen: 'phone',
+    footerSummary: true
+}
+
+export const salesOrderByArline = {
+    header: () => {
+        return (
+            <ListItem
+                title={
+                    <View style={{flexDirection: 'row'}} >
+                        <Text style={{flex: 1, color: MainTheme.colorSecondary}}>สายลูกค้า</Text>
+                        <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorSecondary}}>จำนวนรวม</Text>
+                        <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorSecondary}}>ยอดรวม</Text>
+                    </View>
+                }
+                containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+                titleNumberOfLines={1} />
+        )
+    },
+    renderItem: ({ item }) => {
+        return (
+            <ListItem
+                title={
+                    <View>
+                        <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorSeptenary, padding: 15}} >
+                            <Text style={{flex: 1, color: MainTheme.colorQuaternary}}>
+                                { moment(item.GROUP_DATE).add(543, 'years').format('DD/MM/YYYY') }
+                            </Text>
+                            <Text style={{flex: 1}} ></Text>
+                            <Text style={{flex: 1}} ></Text>
+                        </View>
+                       
+                        {
+                            item.ITEMS.map((row, i) => 
+                                <View style={{flexDirection: 'row', padding: 15}} key={i} >
+                                    <Text style={{flex: 1}}>{row.ARL_NAME}</Text>
+                                    <Text style={{flex: 1, textAlign: 'right'}}>{row.SKUSELLQTY}</Text>
+                                    <Text style={{flex: 1, textAlign: 'right'}}>{row.SKUAMT}</Text>
+                                </View>
+                            )
+                        }    
+
+                        <View style={{flexDirection: 'row', backgroundColor: '#E5E4E2', padding: 15}} >
+                            <Text style={{flex: 1}}></Text>
+                            <Text style={{flex: 1, textAlign: 'right'}}>{item.GROUP_SUM_QTY}</Text>
+                            <Text style={{flex: 1, textAlign: 'right'}}>{item.GROUP_SUM_AMT}</Text>
+                        </View>
+
+
+                    </View>
+                }
+                containerStyle={{padding: 0}}
+                bottomDivider
+                titleNumberOfLines={1} /> 
+        )
+    },
+    footer: (item) => {
+        return (
+            <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorThirteendary, padding: 15}} >
+                <Text style={{flex: 1, color: MainTheme.colorFourteendary}}>รวมทั้งสิ้น</Text>
+                <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_QTY }</Text>
+                <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_AMT }</Text>
+            </View>
+        )
+    },
+    horizontalScreen: 'none',
+    footerSummary: true
+}
+
+export const salesOrderByDocType = {
+    header: () => {
+        return (
+            <ListItem
+                title={
+                    <View style={{ flexDirection: 'row' }} >
+                        <Text style={{flex: 1, color: MainTheme.colorSecondary}} >ประเภทเอกสาร</Text>
+                        <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorSecondary}} >จำนวนบิล</Text>
+                        <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorSecondary}} >ยอดขาย</Text>
+                    </View>
+                }
+                containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+                titleNumberOfLines={1} />
+        )
+    },
+    renderItem: ({ item }) => {
+        return (
+            <ListItem
+                title={
+                    <View>
+                        <View style={{ flexDirection: 'row', backgroundColor: MainTheme.colorSeptenary, padding: 15 }} >
+                            <Text style={{flex: 1, color: MainTheme.colorQuaternary}}>
+                                { moment(item.GROUP_DATE).add(543, 'years').format('DD/MM/YYYY') }
+                            </Text>
+                            <Text style={{flex: 1}} ></Text>
+                            <Text style={{flex: 1}} ></Text>
+                        </View>
+                       
+                        {
+                            item.ITEMS.map((row, i) => 
+                                <View style={{ flexDirection: 'row', padding: 15 }} key={i} >
+                                    <Text style={{flex: 1}}> {row.DOCGROUP}</Text>
+                                    <Text style={{flex: 1, textAlign: 'right'}}> {row.DOCOUNT}</Text>
+                                    <Text style={{flex: 1, textAlign: 'right'}}> {row.SKUAMT}</Text>
+                                </View>
+                            )
+                        }    
+
+                        <View style={{flexDirection: 'row', backgroundColor: '#E5E4E2', padding: 15}} >
+                            <Text style={{flex: 1}} ></Text>
+                            <Text style={{flex: 1, textAlign: 'right'}}>{item.GROUP_SUMDOCOUNT}</Text>
+                            <Text style={{flex: 1, textAlign: 'right'}}>{item.GROUP_SUM_AMT}</Text>
+                        </View>
+                    </View>
+                }
+                containerStyle={{padding: 0}}
+                bottomDivider
+                titleNumberOfLines={1} /> 
+        )
+    },
+    footer: (item) => {
+        return (
+            <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorThirteendary, padding: 15}} >
+                <Text style={{flex: 1, color: MainTheme.colorFourteendary}}>รวมทั้งสิ้น</Text>
+                <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_QTY }</Text>
+                <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{ item.SUM_AMT }</Text>
+            </View>
+        )
+    },
+    horizontalScreen: 'none',
+    footerSummary: true
+}
+
+export const salesOrderByPmt = {
+    header: () => {
+        return (
+            <ListItem
+                title={
+                    <View style={{flexDirection: 'row'}} >
+                        <Text style={{flex: 1, color: MainTheme.colorSecondary}} >ประเภทชำระ</Text>
+                        <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorSecondary}} >ยอดขาย</Text>
+                    </View>
+                }
+                containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+                titleNumberOfLines={1} />
+        )
+    },
+    renderItem: ({ item }) => {
+        return (
+            <ListItem
+                title={
+                    <View>
+                        <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorSeptenary, padding: 15}} >
+                            <Text style={{flex: 1, color: MainTheme.colorQuaternary}}>
+                                { moment(item.GROUP_DATE).add(543, 'years').format('DD/MM/YYYY') }
+                            </Text>
+                            <Text style={{flex: 1}} ></Text>
+                            <Text style={{flex: 1}} ></Text>
+                        </View>
+                       
+                        {
+                            item.ITEMS.map((row, i) => 
+                                <View style={{flexDirection: 'row', padding: 15}} key={i} >
+                                    <Text style={{flex: 1}}> {row.PMT_NAME}</Text>
+                                    <Text style={{flex: 1, textAlign: 'right'}}> {row.PMTAMT}</Text>
+                                </View>
+                            )
+                        }    
+
+                        <View style={{flexDirection: 'row', backgroundColor: '#E5E4E2', padding: 15}} >
+                            <Text style={{flex: 1}} > </Text>
+                            <Text style={{flex: 1, textAlign: 'right'}} >{item.GROUP_AMT}</Text>
+                        </View>
+                    </View>
+                }
+                containerStyle={{padding: 0}}
+                bottomDivider
+                titleNumberOfLines={1} /> 
+        )
+    },
+    footer: (item) => {
+        return (
+            <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorThirteendary, padding: 15}} >
+                <Text style={{flex: 1, color: MainTheme.colorFourteendary}}>รวมทั้งสิ้น {item.SUM_COUNT} รายการ</Text>
+                <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{item.SUM_AMT}</Text>
+            </View>
+        )
+    },
+    horizontalScreen: 'none',
+    footerSummary: true
+}
+
+export const documentItems = {
+    header: () => {
+        return (
+            <ListItem
+                title={
+                    <View style={{flexDirection: 'row'}} >
+                        <Text style={{width: 100, color: MainTheme.colorSecondary}}>วันที่</Text>
+                        <Text style={{width: 150, color: MainTheme.colorSecondary}}>เลขที่</Text>
+                        <Text style={{width: 200, color: MainTheme.colorSecondary}}>ชื่อลูกค้า</Text>
+                        <Text style={{width: 100, color: MainTheme.colorSecondary}}>เอกสาร</Text>
+                        <Text style={{width: 100, color: MainTheme.colorSecondary}}>ชำระ</Text>
+                        <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorSecondary}}>รายการ</Text>
+                        <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorSecondary}}>ชิ้น</Text>
+                        <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorSecondary}}>ยอดก่อนลด</Text>
+                        <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorSecondary}}>ส่วนลด</Text>
+                        <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorSecondary}}>ยอดขาย</Text>
+                    </View>
+                }
+                containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+                titleNumberOfLines={1} />
+        )
+    },
+    renderItem: ({ item }) => {
+        return (
+            <ListItem
+                title={
+                    <View style={{flexDirection: 'row', padding: 15}} >
+                        <Text style={{width: 100}}>
+                            {moment(item.DI_DATE).add(543, 'years').format('DD/MM/YYYY')}
+                        </Text>
+                        <Text style={{width: 150}}>{item.DI_REF}</Text>
+                        <Text style={{width: 200}}>{item.AR_NAME}</Text>
+                        <Text style={{width: 100}}>{item.DOCGROUP}</Text>
+                        <Text style={{width: 100}}>{item.PAYNAME}</Text>
+                        <Text style={{width: 100, textAlign: 'right'}}>{item.TRH_N_ITEMS}</Text>
+                        <Text style={{width: 100, textAlign: 'right'}}>{item.TRH_N_QTY}</Text>
+                        <Text style={{width: 100, textAlign: 'right'}}>{item.ARD_G_KEYIN}</Text>
+                        <Text style={{width: 100, textAlign: 'right'}}>{item.ARD_TDSC_KEYINV}</Text>
+                        <Text style={{width: 100, textAlign: 'right'}}>{item.ARD_A_AMT}</Text>
+                    </View>
+                }
+                containerStyle={{padding: 0}}
+                bottomDivider
+                titleNumberOfLines={1} /> 
+        )
+    },
+    footer: (item) => {
+        return (
+            <View style={{ flexDirection: 'row', backgroundColor: MainTheme.colorThirteendary, padding: 15 }} >
+                <Text style={{width: 100, color: MainTheme.colorFourteendary}}>รวมทั้งสิ้น</Text>
+                <Text style={{width: 150}}></Text>
+                <Text style={{width: 200}}></Text>
+                <Text style={{width: 100}}></Text>
+                <Text style={{width: 100}}></Text>
+                <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorFourteendary}}>{item.SUM_COUNT}</Text>
+                <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorFourteendary}}>{item.SUM_QTY}</Text>
+                <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorFourteendary}}>{item.SUM_ARD_A_AMT}</Text>
+                <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorFourteendary}}>{item.SUM_ARD_TDSC_KEYINV}</Text>
+                <Text style={{width: 100, textAlign: 'right', color: MainTheme.colorFourteendary}}>{item.SUM_AMT}</Text>
+            </View>
+        )
+    },
+    horizontalScreen: 'both',
+    footerSummary: true
+}
+
+export const performanceByArlineItem = {
+    header: () => {
+        return (
+            <ListItem
+                title={
+                    <View style={{flexDirection: 'row'}} >
+                        <Text style={{width: 150, color: MainTheme.colorSecondary}}>สายลูกค้า</Text>
+                        <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorSecondary}}>จำนวน</Text>
+                        <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorSecondary}}>ขาย</Text>
+                        <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorSecondary}}>เยี่ยม</Text>
+                        <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorSecondary}}>สำราจ</Text>
+                    </View>
+                }
+                containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+                titleNumberOfLines={1} />
+        )
+    },
+    renderItem: ({ item }) => {
+        return (
+            <ListItem
+                title={
+                    <View style={{flexDirection: 'row', padding: 15}}>
+                        <Text style={{width: 150}}>{item.ARL_NAME}</Text>
+                        <Text style={{width: 150, textAlign: 'right'}}>{item.COUNTAR}</Text>
+                        <Text style={{width: 150, textAlign: 'right'}}>{item.COUNTSELLBOOK}</Text>
+                        <Text style={{width: 150, textAlign: 'right'}}>{item.COUNTVISIT}</Text>
+                        <Text style={{width: 150, textAlign: 'right'}}>{item.COUNTSURVEY}</Text>
+                    </View>
+                }
+                containerStyle={{padding: 0}}
+                bottomDivider
+                titleNumberOfLines={1} /> 
+        )
+    },
+    footer: (displayType, item) => {
+        return (
+            <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorThirteendary, padding: 15}} >
+                <Text style={{width: 150}}></Text>
+                <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorFourteendary}}>{displayType === 0 ? item.SUM_COUNTAR : item.SUM_COUNTAR_PERCENT}</Text>
+                <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorFourteendary}}>{displayType === 0 ? item.SUM_COUNTSELLBOOK : item.SUM_COUNTSELLBOOK_PERCENT}</Text>
+                <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorFourteendary}}>{displayType === 0 ? item.SUM_COUNTSURVEY : item.SUM_COUNTSURVEY_PERCENT}</Text>
+                <Text style={{width: 150, textAlign: 'right', color: MainTheme.colorFourteendary}}>{displayType === 0 ? item.SUM_COUNTVISIT : item.SUM_COUNTVISIT_PERCENT}</Text>
+            </View>
+        )
+    },
+    horizontalScreen: 'both',
+    footerSummary: true
+}
+
+export const peformanceByProductCategory = {
+    header: () => {
+        return (
+            <ListItem
+                title={
+                    <View style={{flexDirection: 'row'}} >
+                        <Text style={{flex: 1, textAlign: 'center', color: MainTheme.colorSecondary}}>หมวดสินค้า</Text>
+                        <Text style={{flex: 1, textAlign: 'center', color: MainTheme.colorSecondary}}>รายการทั้งหมด</Text>
+                        <Text style={{flex: 1, textAlign: 'center', color: MainTheme.colorSecondary}}>รายการขาย</Text>
+                    </View>
+                }
+                containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+                titleNumberOfLines={1} />
+        )
+    },
+    renderItem: ({ item }) => {
+        return (
+            <ListItem
+                title={
+                    <View style={{flexDirection: 'row', paddingVertical: 15}} >
+                        <Text style={{flex: 1}}>{item.ICDEPT_THAIDESC}</Text>
+                        <Text style={{flex: 1, textAlign: 'right'}}>{item.COUNTSKU}</Text>
+                        <Text style={{flex: 1, textAlign: 'right'}}>{item.COUNTSKM}</Text>
+                    </View>
+                }
+                containerStyle={{paddingVertical: 0}}
+                bottomDivider
+                titleNumberOfLines={1} /> 
+        )
+    },
+    footer: (displayType, item) => {
+        return (
+            <View>
+
+                <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorThirteendary, paddingVertical: 15, paddingHorizontal: 5}} >
+                    <Text style={{flex: 1}}></Text>
+                    <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{displayType === 0 ? item.SUM_COUNTSKU : item.SUM_COUNTSKU_PERCENT}</Text>
+                    <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{displayType === 0 ? item.SUM_COUNTSKM : item.SUM_COUNTSKM_PERCENT}</Text>
+                </View>
+            </View>
+        )
+    },
+    horizontalScroll: false
+}
+
+export const salesOrderBySaleman = {
+    renderItem: (item) => {
+        return (
+            <View style={{ flex: 1}}>
+                <View style={{
+                    paddingLeft: 15,
+                    flexDirection: 'row',
+                    backgroundColor: MainTheme.searchHeaderListItems,
+                    height: 50,
+                    alignItems: 'center'
+                    }} >
+
+                    <Text> ชื่อพนักงาน { } </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
+                    <Text style={{flex: 0.5, fontSize: 18}}>บิลขายเริ่มต้น</Text>
+                    <Text style={{flex: 0.5, textAlign: 'right', fontSize: 18}}> {item && item.F_TIME ? item.F_TIME : null} </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
+                    <Text style={{flex: 0.5, fontSize: 18}}>บิลขายสุดท้าย</Text>
+                    <Text style={{flex: 0.5, textAlign: 'right', fontSize: 18}}> {item && item.E_TIME ? item.E_TIME : null} </Text>
+                </View>
+
+                <View style={{ borderTopWidth: 1, marginHorizontal: 5 }}></View>
+
+                <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
+                    <Text style={{flex: 0.5, fontSize: 18}}>ยอดขายรวม</Text>
+                    <Text style={{flex: 0.5, textAlign: 'right', fontSize: 18}}> {item && item.SUM_AMT ? item.SUM_AMT : null} </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
+                    <Text style={{flex: 0.5, fontSize: 18}}>จำนวนชิ้นรวม</Text>
+                    <Text style={{flex: 0.5, textAlign: 'right', fontSize: 18}}> {item && item.SUM_QTY ? item.SUM_QTY : null} </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
+                    <Text style={{flex: 0.5, fontSize: 18}}>จำนวนรายการขาย</Text>
+                    <Text style={{flex: 0.5, textAlign: 'right', fontSize: 18}}> {item && item.SUM_PCS ? item.SUM_PCS : null} </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
+                    <Text style={{flex: 0.5, fontSize: 18}}>จำนวนบิลรวม</Text>
+                    <Text style={{flex: 0.5, textAlign: 'right', fontSize: 18}}> {item && item.COUNT_DOC ? item.COUNT_DOC : null} </Text>
+                </View>
+
+                <View style={{ borderTopWidth: 1, marginHorizontal: 5 }}></View>
+
+                <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
+                    <Text style={{flex: 0.5, fontSize: 18}}>ยอดขายเฉลี่ยต่อบิล</Text>
+                    <Text style={{flex: 0.5, textAlign: 'right', fontSize: 18}}> {item && item.AVG_AMT ? item.AVG_AMT : null} </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
+                    <Text style={{flex: 0.5, fontSize: 18}}>จำนวนชิ้นต่อบิล</Text>
+                    <Text style={{flex: 0.5, textAlign: 'right', fontSize: 18}}> {item && item.AVG_QTY ? item.AVG_QTY : null} </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
+                    <Text style={{flex: 0.5, fontSize: 18}}>รายการขายต่อบิล</Text>
+                    <Text style={{flex: 0.5, textAlign: 'right', fontSize: 18}}> {item && item.AVG_PCS ? item.AVG_PCS : null} </Text>
+                </View>
+
+                <View style={{ borderTopWidth: 1, marginHorizontal: 5 }}></View>
+            </View>
+        )
+    }
+}
+
+export const stockBalanceByWL = {
+    header: () => {
+        return (
+            <ListItem
+                title={
+                    <View style={{flexDirection: 'row', paddingLeft: 5}} >
+                        <Text style={{flex: 1, textAlign: 'center', color: MainTheme.colorSecondary}}>รหัสสินค้า</Text>
+                        <Text style={{flex: 1, textAlign: 'center', color: MainTheme.colorSecondary}}>ชื่อสินค้า</Text>
+                        <Text style={{flex: 1, textAlign: 'center', color: MainTheme.colorSecondary}}>หน่วย</Text>
+                        <Text style={{flex: 1, textAlign: 'center', color: MainTheme.colorSecondary}}>จำนวนคงเหลือ</Text>
+                        <Text style={{flex: 1, textAlign: 'center', color: MainTheme.colorSecondary}}>จำนวนค้างส่ง</Text>
+                    </View>
+                }
+                containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+                titleNumberOfLines={1} />
+        )
+    },
+    renderItem: ({ item }) => {
+        return (
+            <ListItem
+                title={
+                    <View>
+                        <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorSeptenary, paddingVertical: 15, paddingHorizontal: 5}} >
+                            <Text style={{flex: 1, color: MainTheme.colorQuaternary}}>
+                                { item.WL_NAME }
+                            </Text>
+
+                        </View>
+
+                        {
+                            item.ITEMS.map((row, i) => 
+                                <View style={{flexDirection: 'row', paddingVertical: 15, paddingHorizontal: 5}} key={i} >
+                                    <Text style={{flex: 1}}>{ row.SKU_CODE }</Text>
+                                    <Text style={{flex: 1}}>{ row.SKU_NAME }</Text>
+                                    <Text style={{flex: 1, textAlign: 'right'}}>{ row.UTQ_NAME }</Text>
+                                    <Text style={{flex: 1, textAlign: 'right'}}>{ row.WL_QTY }</Text>
+                                    <Text style={{flex: 1, textAlign: 'right'}}>{ row.TRD_NX_QTY }</Text>
+                                </View>
+                            )
+                        }    
+
+                        <View style={{flexDirection: 'row', backgroundColor: '#E5E4E2', paddingVertical: 15, paddingHorizontal: 5}} >
+                            <Text style={{flex: 1}}></Text>
+                            <Text style={{flex: 1}}> รวม </Text>
+                            <Text style={{flex: 1}}></Text>
+                            <Text style={{flex: 1, textAlign: 'right'}}>{ item.SUM_WL_QTY }</Text>
+                            <Text style={{flex: 1, textAlign: 'right'}}>{ item.SUM_TRD_NX_QTY }</Text>
+                        </View>
+                    </View>
+                }
+                containerStyle={{padding: 0}}
+                bottomDivider
+                titleNumberOfLines={1} /> 
+        )
+    },
+    footer: (item) => {
+        return (
+            <View>
+                <View style={{flexDirection: 'row', backgroundColor: MainTheme.colorThirteendary, paddingVertical: 15, paddingHorizontal: 5}} >
+                    <Text style={{flex: 1, color: MainTheme.colorFourteendary}}></Text>
+                    <Text style={{flex: 1, color: MainTheme.colorFourteendary}} >{item.GROUP_COUNT} รวมทั้งสิ้น </Text>
+                    <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{item.SUM_ALL_WL_QTY} รายการ</Text>
+                    <Text style={{flex: 1, textAlign: 'right', color: MainTheme.colorFourteendary}}>{item.SUM_ALL_TRD_NX_QTY}</Text>
+                </View>
+            </View>
+        )
+    },
+    horizontalScroll: false
+}

@@ -1,0 +1,431 @@
+import React from 'react';
+import { PermissionsAndroid, Platform } from 'react-native';
+import { connect } from 'react-redux';
+import { getArPricetab } from '../../../action/customer';
+import { searchCustomerTypeList } from '../../../action/customer-type';
+import {
+    getMasterDataBankAccounts,
+    getMasterDataProvinces,
+    getMasterDataWareLocations,
+    searchMasterDataBankFileList,
+} from '../../../action/masterData';
+import { searchProductCateGoryList } from '../../../action/product-category';
+import {
+    getVanConfig,
+    getVanConfigV3,
+    readCompanyInfoV3,
+    systemCheck2
+} from '../../../action/setting';
+import { registerV3 } from '../../../action/user';
+import Navigate from '../../../services/Navigator';
+import Request from '../../../utils/Request';
+import {
+    getListServiceSetting,
+    getLoginInfo,
+    getSettingConfig,
+    getUserToken,
+    setLoginGuID,
+    setUserToken
+} from '../../../utils/Token';
+import Form from '../presenter/Form';
+
+class CTForm extends React.Component {
+  _isMounted = false;
+  _animateMovingConfig = {
+    toValue: 1,
+    duration: 1000,
+    // easing: Easing.linear
+  };
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      titleProgress: 'กำลังโหลด',
+      vanMoving: null,
+      errorMessage: null,
+      progress: 0.0,
+    };
+    // this.animatedValue = new Animated.Value(0)
+    // this.animatedMoveOnValue = new Animated.Value(0)
+  }
+
+  _checkPermission = async () => {
+    permissions = [
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+      PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+    ];
+
+    if (Platform.OS === 'android') {
+      await PermissionsAndroid.requestMultiple(permissions);
+    }
+  };
+
+  componentDidMount() {
+    this._isMounted = true;
+
+    this._checkPermission();
+    this._prepareData();
+    // this._animate()
+    // this.animateMoveOn()
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
+  // _animate = () => {
+  //     this.animatedValue.setValue(0)
+  //     Animated.timing(
+  //       this.animatedValue,
+  //       {
+  //         toValue: 1,
+  //         duration: 2000,
+  //         easing: Easing.linear
+  //       }
+  //     ).start(() => this._animate())
+  // }
+
+  // _animateMoveOn = async (fnc) => {
+  //     this.animatedMoveOnValue.setValue(0)
+  //     Animated.timing(
+  //       this.animatedMoveOnValue,
+  //       {
+  //         toValue: 1,
+  //         duration: 2000,
+  //         easing: Easing.linear
+  //       }
+  //     ).start(() => fnc ? fnc() : null)
+  // }
+
+  _prepareData = async () => {
+    const userToken = await getUserToken();
+    const setting = await getSettingConfig();
+    if (setting && setting.baseUrl) {
+      Request.setBaseUrl(setting.baseUrl);
+      Request.setHeaders({
+        vanCNFMachine: setting.vanCNFMachine
+      });
+    }
+
+    if (userToken) {
+      setTimeout(async () => {
+        Request.setHeaders({
+          userToken: userToken.USER_TOKEN
+        });
+        await this._getVanConfig(setting ? setting.vanCNFMachine : null);
+      }, 1000);
+    } else {
+      console.log('_prepareData debug3');
+      Navigate.navigate('Auth');
+    }
+  };
+
+  _getVanConfigV3 = async (BPAPUS_GUID, VANCNF_MACHINE) => {
+    try {
+      console.log('_getVanConfigV3');
+      const response = await this.props.getVanConfigV3(VANCNF_MACHINE);
+
+      // console.log('_getVanConfigV3 ResponseData ', response);
+      if (response) {
+        const response2 = await this.props.readCompanyInfoV3(BPAPUS_GUID, 0);
+        let responseData2 = JSON.parse(response2.ResponseData);
+        if (
+          response2.ResponseCode == 200 &&
+          responseData2.RECORD_COUNT != '0'
+        ) {
+          const userToken = await getUserToken();
+          //console.log('P_getVanConfigV3 userToken ', userToken);
+          await setUserToken({
+            ...userToken,
+            VANCONFIG: response,
+            COMPANYINFO: responseData2.READCOMPANYINFO[0],
+          });
+
+          await this._setState('progress', 0.2);
+          //Navigate.navigate('Home');
+        }
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+  _getVanConfig = async (vanCNFMachine) => {
+    try {
+      console.log('_getVanConfig: ',vanCNFMachine)
+      const setting = await getListServiceSetting();
+      const loginInfo = await getLoginInfo();
+
+      if (loginInfo === null) {
+        Navigate.navigate('Auth');
+        return;
+      };
+
+      if (!setting || !setting[0]) {
+        this._echoError('ไม่พบการตั้งค่าเซิร์ฟเวอร์');
+        return;
+      }
+
+      await this.props.systemCheck2({
+        baseUrl: setting[0].webURL,
+        vanCNFMachine: setting[0].number,
+        USER_CODE: loginInfo.USER_CODE,
+        USER_PASSWORD: loginInfo.USER_PASSWORD
+      });
+
+      const response2 = await this.props.registerV3(
+        loginInfo.USER_CODE,
+        loginInfo.USER_PASSWORD,
+      );
+
+      const { ResponseData, ResponseCode } = response2;
+      if (ResponseCode == 200) {
+        await this._setState(
+          'titleProgress',
+          'กำลังโหลดข้อมูลการตั้งค่าหน่วยรถ',
+        );
+        await this._setState('progress', 0.1);
+
+        let responseData = JSON.parse(ResponseData);
+
+        await setLoginGuID(responseData.BPAPUS_GUID);
+        await this._getVanConfigV3(responseData.BPAPUS_GUID, vanCNFMachine);
+        await this._searchCustomerTypeList();
+        await this._setState('titleProgress', 'กำลังโหลดข้อมูลการตั้งค่าหน่วยรถ');
+        await this._searchMasterDataBankFileList(responseData.BPAPUS_GUID);
+        await this._setState('titleProgress','กำลังโหลดข้อมูลการตั้งค่า ข้อมูลธนาคาร');
+      } else {
+        //console.log(ResponseCode + ResponseData);
+        this._echoError(ResponseCode + ResponseData);
+      }
+    } catch (error) {
+      console.log(error);
+      this._echoError(error);
+    }
+  };
+
+  _searchMasterDataBankFileList = async (GUID) => {
+    try {
+
+      // console.log("GUID >>>>> " , GUID);
+      await this.props.searchMasterDataBankFileList(GUID);
+      await this._setState('titleProgress', 'กำลังโหลดการตั้งค่าธนาคาร');
+      await this._setState('progress', 0.3);
+      // console.log("GUID >>>>> " , 2);
+      //this._getMasterDataBankAccounts();
+      // console.log("GUID >>>>> " , 3);
+      // await this._setVanMovingState(35, 70)
+      // this.animatedMoveOnValue.setValue(0)
+
+      // Animated.timing(
+      //   this.animatedMoveOnValue,
+      //   this._animateMovingConfig
+      // ).start(() => this._getMasterDataBankAccounts())
+    } catch (error) {
+      console.log(error);
+      this._echoError(error);
+    }
+  };
+
+  _getMasterDataBankAccounts = async () => {
+    try {
+      await this.props.getMasterDataBankAccounts();
+      await this._setState('titleProgress', 'กำลังโหลดการตั้งค่าธนาคาร');
+      await this._searchCustomerTypeList();
+      await this._setState('progress', 0.4);
+
+      // await this._setVanMovingState(70, 100)
+
+      // this.animatedMoveOnValue.setValue(0)
+
+      // Animated.timing(
+      //   this.animatedMoveOnValue,
+      //   this._animateMovingConfig
+      // ).start(() => this._searchCustomerTypeList())
+    } catch (error) {
+      console.log(error);
+      this._echoError(error);
+    }
+  };
+
+  _searchCustomerTypeList = async () => {
+    try {
+      const userToken = await getUserToken();
+      //console.log('userToken _searchCustomerTypeList', userToken);
+      await this.props.searchCustomerTypeList(
+        userToken.VANCONFIG.VANCNF_ENABLE_ALLAR,
+      );
+      await this._setState('titleProgress', 'กำลังโหลดการตั้งค่าลูกค้า');
+      await this._setState('progress', 0.3);
+      await this._searchProductCateGoryList();
+
+      // await this._setVanMovingState(100, 175)
+
+      // this.animatedMoveOnValue.setValue(0)
+
+      // Animated.timing(
+      //   this.animatedMoveOnValue,
+      //   this._animateMovingConfig
+      // ).start(() => this._searchProductCateGoryList())
+    } catch (error) {
+      console.log(error);
+      this._echoError(error);
+    }
+  };
+
+  _searchProductCateGoryList = async () => {
+    try {
+      const userToken = await getUserToken();
+      await this.props.searchProductCateGoryList(
+        userToken.VANCONFIG.VANCNF_ENABLE_ALLIC,
+      );
+      await this.props.getArPricetab();
+      await this._setState('titleProgress', 'กำลังโหลดการตั้งค่าสินค้า');
+      await this._setState('progress', 0.5);
+      this._getMasterDataProvinces();
+
+      // await this._setVanMovingState(175, 220)
+
+      // this.animatedMoveOnValue.setValue(0)
+
+      // Animated.timing(
+      //   this.animatedMoveOnValue,
+      //   this._animateMovingConfig
+      // ).start(() => this._getMasterDataProvinces())
+    } catch (error) {
+      console.log(error);
+      this._echoError(error);
+    }
+  };
+
+  _getMasterDataProvinces = async () => {
+    try {
+      //console.log('_getMasterDataProvinces');
+      await this._setState('progress', 0.8);
+      await this.props.getMasterDataProvinces();
+      await this._setState('titleProgress', 'กำลังโหลดการตั้งค่าจังหวัด');
+      await this._setState('progress', 1);
+      Navigate.navigate('Main');
+      //this._getMasterDataWareLocations();
+
+      // await this._setVanMovingState(220, 270)
+
+      // this.animatedMoveOnValue.setValue(0)
+
+      // Animated.timing(
+      //   this.animatedMoveOnValue,
+      //   this._animateMovingConfig
+      // ).start(() => this._getMasterDataWareLocations())
+    } catch (error) {
+      console.log(error);
+      this._echoError(error);
+    }
+  };
+
+  _getMasterDataWareLocations = async () => {
+    try {
+      console.log('_getMasterDataWareLocations1 ');
+      await this.props.getMasterDataWareLocations();
+      console.log('_getMasterDataWareLocations2 ');
+      await this._setState('titleProgress', 'กำลังโหลดการตั้งค่าจุดรับสินค้า');
+      await this._setState('progress', 1);
+      // await this._setVanMovingState(270, 310)
+
+      // this.animatedMoveOnValue.setValue(0)
+
+      // Animated.timing(
+      //   this.animatedMoveOnValue,
+      //   this._animateMovingConfig
+      // ).start(() => Navigate.navigate('Home'))
+      Navigate.navigate('Main');
+    } catch (error) {
+      console.log(error);
+      this._echoError(error);
+      // this._echoError()
+    }
+  };
+
+  _setVanMovingState = async (start, end) => {
+    const animate = this.animatedMoveOnValue.interpolate({
+      inputRange: [0, 1],
+      outputRange: [start, end],
+    });
+
+    await this._setState('vanMoving', animate);
+  };
+
+  _setState = async (key, value) => {
+    this._isMounted &&
+      (await this.setState((oldState) => {
+        return {
+          [key]: value,
+        };
+      }));
+  };
+
+  _echoError = async (error) => {
+    const msg = error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : error != null
+          ? String(error)
+          : null;
+    await this._setState(
+      'errorMessage',
+      msg ? msg : 'ไม่สามารถเชื่อมต่อระบบได้',
+    );
+  };
+
+  _refresh = async () => {
+    await this._setState('progress', 0.0);
+    await this._setState('errorMessage', null);
+    this._prepareData();
+  };
+
+  _goToScreen = () => {
+    Navigate.navigate('Auth');
+  };
+
+  render() {
+    return (
+      <Form
+        progress={this.state.progress}
+        titleProgress={this.state.titleProgress}
+        // movingUpDown={movingUpDown}
+        // vanMoving={this.state.vanMoving}
+        errorMessage={this.state.errorMessage}
+        refresh={this._refresh}
+        goToScreen={this._goToScreen}
+      />
+    );
+  }
+}
+
+const mapStateToProps = (state) => ({});
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    getVanConfig: () => dispatch(getVanConfig()),
+    getVanConfigV3: (VANCNF_MACHINE) =>
+      dispatch(getVanConfigV3(VANCNF_MACHINE)),
+    readCompanyInfoV3: (GUID, CMPNY_CODE) =>
+      dispatch(readCompanyInfoV3(GUID, CMPNY_CODE)),
+    systemCheck2: (data) => dispatch(systemCheck2(data)),
+    searchMasterDataBankFileList: (GUID) =>
+      dispatch(searchMasterDataBankFileList(GUID)),
+    searchCustomerTypeList: (vanCNFEnabledAllar) =>
+      dispatch(searchCustomerTypeList(vanCNFEnabledAllar)),
+    searchProductCateGoryList: (vanCNFEnabledAllic) =>
+      dispatch(searchProductCateGoryList(vanCNFEnabledAllic)),
+    getMasterDataProvinces: () => dispatch(getMasterDataProvinces()),
+    getMasterDataBankAccounts: () => dispatch(getMasterDataBankAccounts()),
+    getMasterDataWareLocations: () => dispatch(getMasterDataWareLocations()),
+    registerV3: (username, password) =>
+      dispatch(registerV3(username, password)),
+    getArPricetab: () => dispatch(getArPricetab()),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(CTForm);
