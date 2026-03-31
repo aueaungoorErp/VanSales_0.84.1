@@ -1,93 +1,108 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
+import React, { Component } from 'react';
+import { PERMISSIONS, requestMultiple, RESULTS } from 'react-native-permissions';
+import { connect } from 'react-redux';
 import {
   intialState,
   intialStateConfig,
-  setState,
-  setModel,
   setItemList,
+  setModel,
   setModelList,
   setPrintingType as setPrintingTypeAction,
+  setState,
 } from '../../../action/bluetooth';
-import {check, checkMultiple, PERMISSIONS, RESULTS,request , requestMultiple} from 'react-native-permissions';
 
-import Form from '../presenter/Form';
-import {BluetoothFinder, BplusPrinting} from '../../../module';
 import {
-  removeBluetoothToken,
   getUserToken,
+  removeBluetoothToken,
   setPrintingType,
 } from '../../../../src/utils/Token';
+import { BluetoothFinder, BplusPrinting } from '../../../module';
+import Form from '../presenter/Form';
 
 class CTForm extends Component {
   constructor(props) {
     super(props);
 
-    this._getModelPrinters();
-    this._getBluetoothList();
+    this._requestPermissionsAndInit();
   }
 
+  _requestPermissionsAndInit = async () => {
+    try {
+      const statuses = await requestMultiple([
+        PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
+        PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
+      ]);
+      console.log('Bluetooth permissions:', JSON.stringify(statuses));
+
+      this._getModelPrinters();
+
+      const connectStatus = statuses[PERMISSIONS.ANDROID.BLUETOOTH_CONNECT];
+      const scanStatus = statuses[PERMISSIONS.ANDROID.BLUETOOTH_SCAN];
+
+      if (connectStatus === RESULTS.GRANTED || connectStatus === RESULTS.UNAVAILABLE) {
+        this._fetchBluetoothList();
+      } else {
+        console.warn('BLUETOOTH_CONNECT permission denied:', connectStatus);
+      }
+    } catch (err) {
+      console.warn('Error requesting bluetooth permissions:', err);
+      this._getModelPrinters();
+    }
+  };
+
   _getModelPrinters = () => {
-    console.log('_getModelPrinters');
+    console.log('_getModelPrinters called');
+    console.log('BplusPrinting module:', BplusPrinting);
+    console.log('BluetoothFinder module:', BluetoothFinder);
+    if (!BplusPrinting) {
+      console.warn('BplusPrinting native module is not available');
+      return;
+    }
     BplusPrinting.getModelPrinters((result) => {
+      console.log('getModelPrinters result:', JSON.stringify(result));
       this.props.setModelList(result.modelList);
     });
   };
 
+  _fetchBluetoothList = () => {
+    if (!BluetoothFinder) {
+      console.warn('BluetoothFinder native module is not available');
+      return;
+    }
+    console.log('Calling BluetoothFinder.getBluetoothList...');
+    BluetoothFinder.getBluetoothList((result) => {
+      console.log('BluetoothFinder result:', JSON.stringify(result));
+      if (result && result.bluetoothList) {
+        this.props.setItemList(result.bluetoothList);
+      } else {
+        console.warn('No bluetoothList in result:', result);
+      }
+    });
+  };
 
-  _getBluetoothList = () => {
+  _getBluetoothList = async () => {
     console.log('_getBluetoothList');
+    if (!BluetoothFinder) {
+      console.warn('BluetoothFinder native module is not available');
+      return;
+    }
 
-    check(PERMISSIONS.ANDROID.BLUETOOTH_CONNECT)
-      .then((result) => {
-        switch (result) {
-          case RESULTS.DENIED:
-            request(PERMISSIONS.ANDROID.BLUETOOTH_CONNECT).then((result2) => {
-              BluetoothFinder.getBluetoothList((result) => {
-                this.props.setItemList(result.bluetoothList);
-              });
-            });
-            break;
-          case RESULTS.UNAVAILABLE:
-            BluetoothFinder.getBluetoothList((result) => {
-              this.props.setItemList(result.bluetoothList);
-            });
-            break;
-          case RESULTS.GRANTED:
-            BluetoothFinder.getBluetoothList((result) => {
-              this.props.setItemList(result.bluetoothList);
-            });
-            break;
-          default:
-            break;
-        };
-      })
+    try {
+      const statuses = await requestMultiple([
+        PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
+        PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
+      ]);
 
-
-    check(PERMISSIONS.ANDROID.BLUETOOTH_SCAN)
-      .then((resultagain) => {
-        switch (resultagain) {
-          case RESULTS.DENIED:
-            request(PERMISSIONS.ANDROID.BLUETOOTH_SCAN).then((result3) => {
-              BluetoothFinder.getBluetoothList((result) => {
-                this.props.setItemList(result.bluetoothList);
-              });
-            });
-            break;
-          case RESULTS.UNAVAILABLE:
-            BluetoothFinder.getBluetoothList((result) => {
-              this.props.setItemList(result.bluetoothList);
-            });
-            break;
-          case RESULTS.GRANTED:
-            BluetoothFinder.getBluetoothList((result) => {
-              this.props.setItemList(result.bluetoothList);
-            });
-            break;
-          default:
-            break;
-        };
-      })
+      const connectStatus = statuses[PERMISSIONS.ANDROID.BLUETOOTH_CONNECT];
+      if (connectStatus === RESULTS.GRANTED || connectStatus === RESULTS.UNAVAILABLE) {
+        this._fetchBluetoothList();
+      } else {
+        console.warn('BLUETOOTH_CONNECT permission denied:', connectStatus);
+        alert('กรุณาอนุญาต Bluetooth permission ในตั้งค่า');
+      }
+    } catch (err) {
+      console.warn('Error requesting bluetooth permissions:', err);
+    }
   };
 
   _connect = () => {
@@ -117,15 +132,15 @@ class CTForm extends Component {
     );
 
     if (this.props.bluetooth.model == 1) {
-      BplusPrinting.connect(0, this.props.bluetooth.item.address, 1);
+      BplusPrinting && BplusPrinting.connect(0, this.props.bluetooth.item.address, 1);
     } else {
-      BplusPrinting.connect(this.props.bluetooth.model, this.props.bluetooth.item.address, 1, );
+      BplusPrinting && BplusPrinting.connect(this.props.bluetooth.model, this.props.bluetooth.item.address, 1, );
     }
 
   };
 
   _disConnect = () => {
-    BplusPrinting.disConnect();
+    BplusPrinting && BplusPrinting.disConnect();
   };
 
   _testPrinter = async () => {
@@ -138,7 +153,7 @@ class CTForm extends Component {
     };
 
     //console.log('newVanCNF ', newVanCNF);
-    BplusPrinting.testPrinter(userToken.VANCONFIG);
+    BplusPrinting && BplusPrinting.testPrinter(userToken.VANCONFIG);
   };
 
   _clearAll = () => {

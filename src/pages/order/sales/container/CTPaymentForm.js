@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Keyboard } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Keyboard, TouchableOpacity, Text } from 'react-native';
 import moment from 'moment';
 import { paymentButtonGroup } from '../../../../constant/lov';
 import Navigator from '../../../../services/Navigator';
@@ -663,31 +662,19 @@ class CTPaymentForm extends Component {
   };
 
   _renderItem = (item, key) => (
-    <Button
-      key={key}
-      large
-      buttonStyle={item.buttonStyle}
-      title={item.title}
-      titleStyle={item.titleStyle}
-      onPress={() => {
+    <TouchableOpacity key={key} style={[item.buttonStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {
         this._onPress(item);
-      }}
-      disabled={item.title === 'ตกลง' ? this.state.buttonDisabled : false}
-    />
+      }} disabled={item.title === 'ตกลง' ? this.state.buttonDisabled : false} activeOpacity={0.7}>
+              <Text style={item.titleStyle}>{item.title}</Text>
+            </TouchableOpacity>
   );
 
   _renderItemRemainOption = (item, key) => (
-    <Button
-      key={key}
-      large
-      buttonStyle={item.buttonStyle}
-      title={item.title}
-      titleStyle={item.titleStyle}
-      onPress={() => {
+    <TouchableOpacity key={key} style={[item.buttonStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {
         this._onPressRemainOption(item);
-      }}
-      disabled={item.title === 'ตกลง' ? this.state.buttonDisabled : false}
-    />
+      }} disabled={item.title === 'ตกลง' ? this.state.buttonDisabled : false} activeOpacity={0.7}>
+              <Text style={item.titleStyle}>{item.title}</Text>
+            </TouchableOpacity>
   );
 
 

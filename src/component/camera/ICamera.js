@@ -1,6 +1,5 @@
 // import React, { Component } from 'react'
 // import { View, Text, TouchableOpacity, StyleSheet, Image, BackHandler } from 'react-native'
-// import { Icon } from 'react-native-elements'
 // import { RNCamera } from 'react-native-camera'
 // import { MainTheme } from '../../constant/lov'
 // import BarcodeFinder from './IBarcodeFinder'

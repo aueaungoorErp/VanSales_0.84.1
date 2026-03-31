@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Text, View } from 'react-native';
-import { ListItem } from 'react-native-elements';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { connect } from 'react-redux';
@@ -16,6 +15,7 @@ import {
 } from '../../../action/customer';
 import { setCustomerType } from '../../../action/customer-type';
 import { setInitialState as setMileInitialState } from '../../../action/mile';
+import { ListItem } from '../../../component/elements';
 import { mainDivider, MainTheme } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';

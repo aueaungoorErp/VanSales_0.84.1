@@ -19,12 +19,12 @@ const androidCardInterpolator = Platform.OS === 'android'
   : undefined;
 
 const mainScreenOptions = {
-  header: () => <MainHeader />,
+  header: ({ route }) => <MainHeader route={route} />,
   cardStyleInterpolator: androidCardInterpolator,
 };
 
 const loginScreenOptions = {
-  header: () => <LoginHeader />,
+  header: ({ route }) => <LoginHeader route={route} />,
   cardStyleInterpolator: androidCardInterpolator,
 };
 

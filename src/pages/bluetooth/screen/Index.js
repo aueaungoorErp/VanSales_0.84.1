@@ -1,7 +1,5 @@
 import React, { Component } from 'react'
-import { View, StyleSheet } from 'react-native'
-
-import { mainContainer } from '../../../constant/lov'
+import { StyleSheet, View } from 'react-native'
 
 import CTForm from '../container/CTForm'
 import CTListItems from '../container/CTListItems'
@@ -25,5 +23,8 @@ class Index extends Component {
 export default Index
 
 const styles = StyleSheet.create({
-    container: mainContainer
+    container: {
+        flex: 1,
+        backgroundColor: '#F4F6F8',
+    },
 })

@@ -1,12 +1,12 @@
 //import React from 'react';
 import React, { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Button, CheckBox } from 'react-native-elements';
 import RNPickerSelect from 'react-native-picker-select';
 import QRCode from 'react-native-qrcode-svg';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import IButtonGroupCustom from '../../../../component/button/IButtonGroupCustom';
+import { Button, CheckBox } from '../../../../component/elements';
 import IDatePicker from '../../../../component/input/IDatePicker';
 import ILoading from '../../../../component/loading/ILoading';
 import ITextWithErrorMessage from '../../../../component/text/ITextWithErrorMessage';

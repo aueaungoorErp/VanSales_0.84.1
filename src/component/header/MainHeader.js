@@ -1,28 +1,20 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
+import { MainTheme } from '../../constant/lov'
 import LeftSideHeader from "./LeftSideHeader"
 import RightSideHeader from "./RightSideHeader"
-import { MainTheme } from '../../constant/lov'
-import Navigator from '../../services/Navigator'
 
-class MainHeader extends React.Component {
-  constructor(props) {
-    super(props)
+const MainHeader = (props) => {
+  const title = props.route?.params?.title || null
 
-    const { routes, index } = Navigator.getCurrentRoute()
-    this._title = routes[index].params && routes[index].params.title ? routes[index].params.title : null
-  }
-
-  render() {
-    return (
-        <View style={styles.container}>
-          <LeftSideHeader />
-          <Text style={styles.title} allowFontScaling={false} >{ this._title }</Text>
-          <RightSideHeader />
-        </View>
-    )
-  }
+  return (
+    <View style={styles.container}>
+      <LeftSideHeader />
+      <Text style={styles.title} allowFontScaling={false}>{title}</Text>
+      <RightSideHeader />
+    </View>
+  )
 }
 
 export default MainHeader

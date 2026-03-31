@@ -1,6 +1,5 @@
 import React from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
-// import { Icon } from 'react-native-elements'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { mainContainer, MainTheme } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';

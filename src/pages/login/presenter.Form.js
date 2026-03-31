@@ -1,17 +1,17 @@
 import _ from 'lodash';
-import React, { Component } from 'react';
+import { Component } from 'react';
 import {
   Animated,
   Dimensions,
   Image,
   Keyboard,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { CheckBox } from 'react-native-elements';
 import RNPickerSelect from 'react-native-picker-select';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -309,186 +309,34 @@ class Form extends Component {
         <Animated.View style={[styles.header, {height: this._headerHeight}]}>
           <View
             style={{
-              flexDirection: 'row',
-              zIndex: 999,
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
             }}>
-            <Image
-              style={{marginLeft: 5, width: 25, height: 25}}
-              resizeMode="contain"
-              source={require('../../../images/person.png')}
-            />
-
-            <View
+            <Text
               style={{
-                flex: 1,
-                borderBottomWidth: 0.3,
-                borderColor: '#d6d7da',
-                paddingRight: 0,
-                marginLeft: 10,
+                textAlign: 'center',
+                fontSize: 35,
+                color: MainTheme.colorSecondary,
               }}>
-              <RNPickerSelect
-                onValueChange={(selectedValue) => {
-                  this._onChangeService(selectedValue);
-                }}
-                items={this.state.listServiceSettings}
-                value={this.state.service}
-                style={{
-                  iconContainer: {
-                    top: 12,
-                    right: 0,
-                  },
-                  inputAndroid: {
-                    color: '#000000',
-                    paddingRight: 30,
-                    paddingVertical: 12,
-                  },
-                  inputIOS: {
-                    color: '#000000',
-                    paddingRight: 30,
-                    paddingVertical: 12,
-                  },
-                  placeholder: {
-                    color: '#999999',
-                  },
-                }}
-                placeholder={{
-                  label: '���͡',
-                  value: null,
-                }}
-                useNativeAndroidPickerStyle={false}
-                textInputProps={{underlineColor: 'yellow'}}
-                Icon={() => (
-                  <AntDesign
-                    name="down"
-                    size={20}
-                    color={MainTheme.colorPrimary}
-                    style={{marginTop: 2}}
-                  />
-                )}
-              />
-            </View>
-          </View>
-
-          <View
-            style={{
-              marginTop: 20,
-              borderWidth: 1,
-              borderColor: MainTheme.colorTertiary,
-              borderRadius: 25,
-              flexDirection: 'row',
-              alignItems: 'center',
-              minHeight: 50,
-              paddingHorizontal: 10,
-            }}>
-            <Image
-              style={{marginLeft: 5, width: 25, height: 25}}
-              resizeMode="contain"
-              source={require('../../../images/person.png')}
-            />
-
-            <Input
-              flex={1}
-              borderWidth={0}
-              backgroundColor="transparent"
-              placeholder={strings('login.username')}
-              placeholderTextColor={MainTheme.placeholerTextInput}
-              value={username}
-              autoCapitalize="characters"
-              style={{fontSize: hp('1.7%')}}
-              onChangeText={(text) => {
-                setUserName?.(text.trim());
-              }}
-            />
-          </View>
-
-          <View
-            style={{
-              marginTop: 20,
-              borderWidth: 1,
-              borderColor: MainTheme.colorTertiary,
-              borderRadius: 25,
-              flexDirection: 'row',
-              alignItems: 'center',
-              minHeight: 50,
-              paddingHorizontal: 10,
-            }}>
-            <Image
-              style={{marginLeft: 5, width: 25, height: 25}}
-              resizeMode="contain"
-              source={require('../../../images/lock.png')}
-            />
-
-            <Input
-              flex={1}
-              borderWidth={0}
-              backgroundColor="transparent"
-              placeholder={strings('login.password')}
-              secureTextEntry={this.state.isShow}
-              placeholderTextColor={MainTheme.placeholerTextInput}
-              value={password}
-              style={{fontSize: hp('1.7%')}}
-              onChangeText={this._handleChangePassword}
-            />
-
-            <MaterialIcons
-              name={this.state.isShow ? 'visibility-off' : 'visibility'}
-              size={26}
-              color={MainTheme.colorTertiary}
-              onPress={this._toggleShow}
-              style={{marginRight: 5}}
-            />
-          </View>
-
-          <View
-            style={{
-              alignSelf: 'center',
-              marginTop: 20,
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}>
-            <CheckBox
-              checked={!!isRememberPassword}
-              onPress={() => {
-                toggleRememberPassword?.();
-              }}
-              containerStyle={{padding: 0, margin: 0, marginRight: 8}}
-            />
-            <Text style={{alignSelf: 'flex-end'}}>
-              {strings('login.rememberPassword')}
+              {strings('login.title1')}
             </Text>
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
-                <Text
-                  style={{
-                    textAlign: 'center',
-                    fontSize: 35,
-                    color: MainTheme.colorSecondary,
-                  }}>
-                  {strings('login.title1')}
-                </Text>
-                <Text
-                  style={{
-                    textAlign: 'center',
-                    fontSize: 23,
-                    color: MainTheme.colorSecondary,
-                  }}>
-                  {strings('login.title2')}
-                </Text>
-                <Text
-                  style={{
-                    textAlign: 'center',
-                    fontSize: 23,
-                    color: MainTheme.colorSecondary,
-                  }}>
-                  {strings('login.title3', {version: APP_VERSION})}
-                </Text>
-              </View>
-            </View>
-          </View>
+            <Text
+              style={{
+                textAlign: 'center',
+                fontSize: 23,
+                color: MainTheme.colorSecondary,
+              }}>
+              {strings('login.title2')}
+            </Text>
+            <Text
+              style={{
+                textAlign: 'center',
+                fontSize: 23,
+                color: MainTheme.colorSecondary,
+              }}>
+              {strings('login.title3', {version: APP_VERSION})}
+            </Text>
           </View>
         </Animated.View>
 
@@ -640,13 +488,13 @@ class Form extends Component {
                 flexDirection: 'row',
                 alignItems: 'center',
               }}>
-              <CheckBox
-                checked={!!isRememberPassword}
+              <Pressable
                 onPress={() => {
                   toggleRememberPassword?.();
                 }}
-                containerStyle={{padding: 0, margin: 0, marginRight: 8}}
-              />
+                style={{padding: 0, margin: 0, marginRight: 8}}>
+                <AntDesign name={isRememberPassword ? 'checksquare' : 'checksquareo'} size={22} color={isRememberPassword ? MainTheme.colorTertiary : '#ccc'} />
+              </Pressable>
               <Text style={{alignSelf: 'flex-end'}}>
                 {strings('login.rememberPassword')}
               </Text>

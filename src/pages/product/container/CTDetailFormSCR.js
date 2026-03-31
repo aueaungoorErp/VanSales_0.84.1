@@ -1,19 +1,19 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {View, Text} from 'react-native';
-import {ListItem} from 'react-native-elements';
-import DetailFormSCR from '../presenter/DetailFormSCR';
-import {MainTheme} from '../../../constant/lov';
-import {discountFormat, numberOnly} from '../../../utils/Culculate';
+import React, { Component } from 'react';
+import { Text, View } from 'react-native';
+import { connect } from 'react-redux';
 import {
-  setInitialState,
-  addOrEditSCRChooseItems,
-  setDisabledButton,
-  searchProductBySkuAlt,
-  setProductListItems,
+    addOrEditSCRChooseItems,
+    searchProductBySkuAlt,
+    setDisabledButton,
+    setInitialState,
+    setProductListItems,
 } from '../../../action/product';
+import { ListItem } from '../../../component/elements';
 import IPatternSCRListItem from '../../../component/list-item/IPatternSCRListItem';
-import {convertOrderItemsToProductItems} from '../../../utils/Order';
+import { MainTheme } from '../../../constant/lov';
+import { discountFormat, numberOnly } from '../../../utils/Culculate';
+import { convertOrderItemsToProductItems } from '../../../utils/Order';
+import DetailFormSCR from '../presenter/DetailFormSCR';
 
 class CTDetailFormSCR extends Component {
   _isMounted = false;

@@ -1,12 +1,12 @@
 import React from 'react'
-import { StyleSheet, Dimensions, View, Button, Text, Image, TouchableHighlight, ImageBackground } from 'react-native'
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
+import RNFS from 'react-native-fs'
 import Pdf from 'react-native-pdf'
 import RNPrint from 'react-native-print'
-import RNFS from 'react-native-fs'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 
-import { Icon } from 'react-native-elements'
-import Share from 'react-native-share';
+import Share from 'react-native-share'
 
 
 class IPDFPreview extends React.Component {
@@ -21,88 +21,39 @@ class IPDFPreview extends React.Component {
     }
 
     loadAndSharePDF = () => async () => {
-        const filePath = this.props.params.source;
-        // const url ="https://www.soc.go.th/wp-content/uploads/2019/03/Test-pdf-1.pdf"
-        //const url =  this.props.params.source;
+        try {
+            const source = this.props.params.source;
+            // ดึงชื่อไฟล์จาก source เช่น bundle-assets://pdf/1.pdf -> 1.pdf
+            const fileName = source.split('/').pop();
+            // ใช้ path ใน assets เช่น pdf/1.pdf
+            const assetPath = source.replace('bundle-assets://', '');
 
-        // กำหนดตำแหน่งไดเรกทอรีใหม่
-        const directoryPath = `${RNFS.ExternalStorageDirectoryPath}/Documents/bplus_vansales/`;
+            // คัดลอกจาก bundle assets ไปยัง cache directory (ไม่ต้องขอ permission)
+            const cachePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+            await RNFS.copyFileAssets(assetPath, cachePath);
 
-        //await Share.share({ url });
-
-        // ตรวจสอบและสร้างไดเรกทอรีใหม่
-        const directoryExists = await RNFS.exists(directoryPath);
-        if (!directoryExists) {
-            await RNFS.mkdir(directoryPath);
+            // แชร์ไฟล์ PDF
+            await Share.open({
+                title: fileName,
+                url: `file://${cachePath}`,
+                type: 'application/pdf',
+                showAppsToView: true,
+            });
+        } catch (error) {
+            if (error && error.message !== 'User did not share') {
+                console.log('Share error:', error);
+            }
         }
-
-        // กำหนดตำแหน่งของไฟล์ PDF
-        const oldFilePath = this.props.params.source;
-        const fileName = oldFilePath.split('/').pop();
-        const newFilePath = `${directoryPath}${fileName}`;
-
-        // คัดลอกไฟล์ PDF ไปยังไดเรกทอรีใหม่
-        await RNFS.copyFile(oldFilePath, newFilePath);
-
-        // แชร์ไฟล์ PDF
-        const url = `file://${newFilePath}`;
-
-        Share.open({
-            message: fileName,
-            url: url,
-            showAppsToView: true
-        })
-
-        // await Share.share({
-        //     title: 'Some Title',
-        //     // Android
-        //     message: url,
-        //     //ios
-        //     url: url,
-        //     type: 'application/pdf',
-        //     failOnCancel: true,
-        // }, { dialogTitle: "Android Title" })
-        //     .then(({ action, activityType }) => {
-        //         if (action === Share.sharedAction)
-        //             console.log('Share was successful');
-        //         else
-        //             console.log('Share was dismissed');
-        //     })
-        //     .catch(err => console.log(err))
-
-        //         ตอนนี้ไฟล์ pdf บันทึกไปที่ path  file:///storage/emulated/0/Android/data/com.bplusvansales/files/Documents/
-
-        // ฉันต้องการเปลี่ยนตำแหน่งไปบันทึกที่ file:///storage/emulated/0/Documents/bplus_vansales/ แทน 
-
-
-        //  await Share.share({
-        //                 //title: "This is my report ",
-        //                 //message: "Message:",
-        //                 url: url,
-        //                 //subject: "Report",
-        //                  mimeType: 'application/pdf',
-        //     title: 'Pdf'
-        //             })
     }
 
 
     render() {
-        // const source = { uri: 'bundle-assets://pdf/thereactnativebook-sample.pdf', cache: this.props.params.cache }
-        // console.log('this.props.params.source', this.props.params.source)
         return (
-            <View style={styles.container} >
-
-                <Text> {"\n"} </Text>
-
-
+            <View style={styles.container}>
                 <Pdf
                     source={{ uri: this.props.params.source }}
-                    onLoadComplete={(numberOfPages, filePath) => {
-                        // console.log(`number of pages: ${numberOfPages}`)
-                    }}
-                    onPageChanged={(page, numberOfPages) => {
-                        // console.log(`current page: ${page}`)
-                    }}
+                    onLoadComplete={(numberOfPages, filePath) => {}}
+                    onPageChanged={(page, numberOfPages) => {}}
                     onError={(error) => {
                         console.log(error)
                     }}
@@ -110,24 +61,12 @@ class IPDFPreview extends React.Component {
                     scale={2.5}
                 />
 
-                <TouchableHighlight onPress={this.loadAndSharePDF()}  >
-                    <View style={{ flexDirection: "row", justifyContent: "center" }}>
-                        <Text style={{ fontSize: 18 }}> {"Share File"} </Text>
-                        <Image source={require('../../../src/images/share.png')}
-                            style={
-                                {
-                                    width: 22,
-                                    height: 22,
-                                    alignSelf: 'center',
-                                    marginHorizontal: 5,
-                                }
-                            }
-                        />
-
-
-                    </View>
-                </TouchableHighlight>
-                <Text> {"\n"} </Text>
+                <View style={styles.bottomBar}>
+                    <TouchableOpacity style={styles.shareButton} onPress={this.loadAndSharePDF()} activeOpacity={0.7}>
+                        <AntDesign name="sharealt" size={20} color="#fff" />
+                        <Text style={styles.shareText} allowFontScaling={false}>แชร์ไฟล์</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         )
     }
@@ -136,19 +75,39 @@ class IPDFPreview extends React.Component {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        marginTop: 20,
+        backgroundColor: '#F4F6F8',
     },
     pdf: {
         flex: 1,
-        width: Dimensions.get('window').width * 200,
-        height: Dimensions.get('window').height * 200,
-        marginTop: -30,
+        width: Dimensions.get('window').width,
+        height: Dimensions.get('window').height,
     },
-    button: {
-        marginLeft: 30,
-    }
+    bottomBar: {
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        backgroundColor: '#fff',
+        borderTopWidth: 1,
+        borderTopColor: '#E0E4E8',
+    },
+    shareButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#47BA8F',
+        paddingVertical: 12,
+        borderRadius: 10,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.15,
+        shadowRadius: 3,
+    },
+    shareText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+        marginLeft: 8,
+    },
 })
 
 export default IPDFPreview

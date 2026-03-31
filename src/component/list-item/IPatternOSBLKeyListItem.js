@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import React from 'react'
 import { Text, TextInput, View } from 'react-native'
-import { ListItem } from 'react-native-elements'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import { MainTheme, mainDivider } from '../../constant/lov'
 
@@ -36,8 +35,7 @@ class IPatternOSBLKeyListItem extends React.Component {
         const { item, index, setVPDPay } = this.props
 
         return (
-            <ListItem
-                title={
+            <View style={[{ backgroundColor: MainTheme.colorSecondary, paddingVertical: 8, paddingHorizontal: 10, borderBottomWidth: 1, borderBottomColor: '#e1e8ee' }, mainDivider]}>
                     <View style={{flexDirection: 'row'}} >
                         <Text style={{ flex: 1, marginLeft: 5, alignSelf: 'center', fontSize: hp('1.7%') }} allowFontScaling={false} >{item.VPD_DIREF}</Text>
                         <Text style={{ flex: 1, marginLeft: 5, alignSelf: 'center', textAlign: 'right', fontSize: hp('1.7%') }} allowFontScaling={false} >{item.VPD_OUTSTANDING.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Text>
@@ -57,10 +55,7 @@ class IPatternOSBLKeyListItem extends React.Component {
                                  />
                         </Item>
                     </View>
-                }
-                containerStyle={[{ backgroundColor: MainTheme.colorSecondary }, mainDivider]}
-                bottomDivider
-                titleNumberOfLines={1} /> 
+            </View>
         )
     }
 }

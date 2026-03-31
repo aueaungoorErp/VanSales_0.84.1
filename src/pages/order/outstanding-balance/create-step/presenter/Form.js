@@ -1,7 +1,7 @@
 import React from 'react'
 import { ScrollView, StyleSheet, TextInput, View } from 'react-native'
-import { CheckBox } from 'react-native-elements'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
+import { CheckBox } from '../../../../../component/elements'
 import IPatternChequePaymentItem from '../../../../../component/item/IPatternChequePaymentItem'
 import { MainTheme } from '../../../../../constant/lov'
 

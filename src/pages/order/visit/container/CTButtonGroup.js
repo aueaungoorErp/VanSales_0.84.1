@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { Alert } from 'react-native'
-import { Button } from 'react-native-elements'
+import { Alert, TouchableOpacity, Text } from 'react-native'
 import ButtonGroup from '../presenter/ButtonGroup'
 import { visitFormButtonGroup } from '../../../../constant/lov'
 import Navigator from '../../../../services/Navigator'
@@ -59,14 +58,9 @@ class CTButtonGroup extends Component {
     )
 
     _renderItem = (item, key) => (
-        <Button
-            key={key}
-            buttonStyle={item.buttonStyle}
-            containerStyle={item.containerStyle}
-            titleStyle={item.titleStyle}
-            title={item.title}
-            disabled={this.state.buttonDisabled}
-            onPress={() => {this._onPress(item)}} />
+        <TouchableOpacity key={key} style={[item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {this._onPress(item)}} disabled={this.state.buttonDisabled} activeOpacity={0.7}>
+              <Text style={item.titleStyle}>{item.title}</Text>
+            </TouchableOpacity>
     )
 
     _onPress = async (item) => {

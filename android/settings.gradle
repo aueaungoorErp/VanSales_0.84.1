@@ -3,6 +3,16 @@ plugins { id("com.facebook.react.settings") }
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
 rootProject.name = 'bplusvansales'
 include ':app'
+
+include ':bplus-bluetooth-finder-library'
+project(':bplus-bluetooth-finder-library').projectDir = new File('bplus-bluetooth-finder-library')
+
+include ':bplus-printer-library'
+project(':bplus-printer-library').projectDir = new File('bplus-printer-library')
+
+include ':bplus-printing-library'
+project(':bplus-printing-library').projectDir = new File('bplus-printing-library')
+
 includeBuild('../node_modules/@react-native/gradle-plugin')
  include ':react-native-vector-icons'
 project(':react-native-vector-icons').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-vector-icons/android')

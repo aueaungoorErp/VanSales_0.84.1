@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import {Button} from 'react-native-elements';
 import Navigator from '../../../services/Navigator';
 import DetailForm from '../presenter/DetailForm';
 import {productDetailFormButtonGroup, MainTheme} from '../../../constant/lov';
@@ -79,18 +78,11 @@ class CTDetailForm extends Component {
        
 
     return ( <>
-      <Button
-        key={key}
-        buttonStyle={ item.methodName === 'process' && this.state.submitDisabled == true ? greentStyle : item.buttonStyle}
-        containerStyle={item.containerStyle}
-        titleStyle={item.methodName === 'process'  && this.state.submitDisabled == true ?  {titleStyle: {color: MainTheme.colorSecondary}} :item.titleStyle}
-        title={item.title}
-        disabledStyle={{backgroundColor: MainTheme.colorNonary}}
-        disabled={item.methodName === 'confirm' ? this.state.submitDisabled : this.state.disabledButton }
-        onPress={() => {
+      <TouchableOpacity key={key} style={[ item.methodName === 'process' && this.state.submitDisabled == true ? greentStyle : item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, item.methodName === 'confirm' ? this.state.submitDisabled : this.state.disabledButton  ? {backgroundColor: MainTheme.colorNonary} : null]} onPress={() => {
           this._onPress(item);
-        }}
-      />
+        }} disabled={item.methodName === 'confirm' ? this.state.submitDisabled : this.state.disabledButton } activeOpacity={0.7}>
+              <Text style={item.methodName === 'process'  && this.state.submitDisabled == true ?  {titleStyle: {color: MainTheme.colorSecondary}} :item.titleStyle}>{item.title}</Text>
+            </TouchableOpacity>
    </> );   
   };
 

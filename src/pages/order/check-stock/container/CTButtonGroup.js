@@ -1,15 +1,6 @@
 import React, { Component } from 'react';
-import {
-  Alert,
-  Keyboard,
-  PermissionsAndroid,
-  Platform,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
+import { Alert, Keyboard, PermissionsAndroid, Platform, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import Dialog from 'react-native-dialog';
-import { Button } from 'react-native-elements';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import { connect } from 'react-redux';
 import {
@@ -208,34 +199,16 @@ class CTButtonGroup extends Component {
 
 
     return (
-      <Button
-        key={key}
-        buttonStyle={item.methodName === 'process' && this.state.submitDisabled == true ? greentStyle : item.buttonStyle}
-
-        //  buttonStyle={item.buttonStyle}
-        containerStyle={item.containerStyle}
-        titleStyle={item.methodName === 'process' && this.state.submitDisabled == true ? { titleStyle: { color: MainTheme.colorSecondary } } : item.titleStyle}
-
-        //titleStyle={[item.titleStyle, {fontSize: hp('1.7%')}]}
-        title={
+      <TouchableOpacity key={key} style={[item.methodName === 'process' && this.state.submitDisabled == true ? greentStyle : item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, disabled ? { backgroundColor: MainTheme.colorNonary } : null]} onPress={() => {
+          this._onPress(item);
+        }} disabled={disabled} activeOpacity={0.7}>
+              <Text style={item.methodName === 'process' && this.state.submitDisabled == true ? { titleStyle: { color: MainTheme.colorSecondary } } : item.titleStyle}>{
           item.title === 'พิมพ์' &&
             this.props.bluetooth.printingType !== 'BLUETOOTH'
             ? item.subTitle
             : item.title
-        }
-        disabledStyle={{ backgroundColor: MainTheme.colorNonary }}
-        disabled={disabled}
-
-        // disabled={item.methodName === 'confirm' ?
-        // this.props.screen === 'Index' ? false :        
-
-        //  this.state.submitDisabled : this.state.disabledButton }
-        // disabled={this.props.screen === 'Summary' ? this.state.submitDisabled : this.state.disabledButton }
-
-        onPress={() => {
-          this._onPress(item);
-        }}
-      />
+        }</Text>
+            </TouchableOpacity>
     );
   };
 

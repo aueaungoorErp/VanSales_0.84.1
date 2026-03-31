@@ -1,41 +1,22 @@
-import React, {useState, useEffect} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  TextInput,
-  Dimensions,
-  Text,
-  Platform,
-  Image,
-  ImageBackground,
-  ActivityIndicator,
-  Alert,
-  StatusBar,
-  KeyboardAvoidingView,
-  BackHandler,
-  ScrollView,
-  TouchableNativeFeedback,
-  TouchableOpacity,
-  Modal,
-  Pressable,
+    Alert,
+    Dimensions,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
-import ITextInputWithLabel from '../../../component/input/ITextInputWithLabel';
-import ITextWithLabel from '../../../component/text/ITextWithLabel';
-import ILoading from '../../../component/loading/ILoading';
-import {MainTheme, mainDivider} from '../../../constant/lov';
-import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
-import ListItems from '../presenter/ListItems';
-import {ListItem, Icon} from 'react-native-elements';
+import { useDispatch, useSelector } from 'react-redux';
 import {
-  setInitialState,
-  getReportName,
-  GetPrintReport,
-  getPrintStatus,
-  downloadReport,
-  setErrorMessage,
+    GetPrintReport,
+    downloadReport,
+    getPrintStatus,
+    getReportName
 } from '../../../action/report';
-import {useSelector, useDispatch} from 'react-redux';
+import { ListItem } from '../../../component/elements';
+import { mainDivider } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
+import ListItems from '../presenter/ListItems';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 const Detail = (props) => {

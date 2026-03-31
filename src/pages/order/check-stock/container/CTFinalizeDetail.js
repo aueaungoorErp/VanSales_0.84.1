@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Alert, Keyboard } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Alert, Keyboard, TouchableOpacity, Text } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import moment from 'moment';
 import { BluetoothPrinter, BluetoothFinder } from '../../../../module';
@@ -1344,25 +1343,11 @@ class CTFinalizeDetail extends Component {
 
 
     return (<>
-      <Button
-        key={key}
-        buttonStyle={item.methodName === 'process' && this.state.submitDisabled == true ? greentStyle : item.buttonStyle}
-        containerStyle={item.containerStyle}
-        titleStyle={item.methodName === 'process' && this.state.submitDisabled == true ? { titleStyle: { color: MainTheme.colorSecondary } } : item.titleStyle}
-        title={item.title}
-        disabledStyle={{ backgroundColor: MainTheme.colorNonary }}
-        disabled={item.methodName === 'confirm' ? this.state.submitDisabled : this.state.disabledButton}
-        //isabled={item.methodName === 'confirm' ? false :  }
-        //disabled={item.methodName === 'confirm' ? this.state.disabledButton : false }
-
-
-        //disabled={item.title === 'ตกลง' ? this.state.submitDisabled : false}
-        //disabled={this.state.buttonDisabled}
-        onPress={() => {
+      <TouchableOpacity key={key} style={[item.methodName === 'process' && this.state.submitDisabled == true ? greentStyle : item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, item.methodName === 'confirm' ? this.state.submitDisabled : this.state.disabledButton ? { backgroundColor: MainTheme.colorNonary } : null]} onPress={() => {
           this._onPress(item);
-        }}
-
-      />
+        }} disabled={item.methodName === 'confirm' ? this.state.submitDisabled : this.state.disabledButton} activeOpacity={0.7}>
+              <Text style={item.methodName === 'process' && this.state.submitDisabled == true ? { titleStyle: { color: MainTheme.colorSecondary } } : item.titleStyle}>{item.title}</Text>
+            </TouchableOpacity>
     </>);
   };
 

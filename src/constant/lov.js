@@ -1244,7 +1244,7 @@ export const settingListItems = [
   {
     title: strings('setting.web_service'),
     iconStyle: { color: MainTheme.colorPrimary },
-    iconName: 'cloudserver',
+    iconName: 'server',
     iconType: 'ant-design',
     size: 50,
     methodType: null,

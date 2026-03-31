@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import React from 'react';
 import { Text, TextInput, View } from 'react-native';
-import { ListItem } from 'react-native-elements';
 import { mainDivider } from '../../constant/lov';
 
 const Item = ({children, style}) => <View style={style}>{children}</View>;
@@ -64,8 +63,7 @@ class IPatternSCRListItem extends React.Component {
       setItemDiscount,
     } = this.props;
     return (
-      <ListItem
-        title={
+      <View style={[{paddingVertical: 8, paddingHorizontal: 10}, mainDivider]}>
           <View
             style={{
               flexDirection: 'row',
@@ -153,11 +151,7 @@ class IPatternSCRListItem extends React.Component {
             </Item>
             <Text style={{width: 80, marginLeft: 5}}>{item.GOODS_CODE}</Text>
           </View>
-        }
-        titleNumberOfLines={1}
-        hideChevron
-        containerStyle={mainDivider}
-      />
+      </View>
     );
   }
 }

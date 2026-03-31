@@ -1,24 +1,24 @@
 ﻿import React, { Component } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { ListItem } from 'react-native-elements';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { connect } from 'react-redux';
 import {
-    getDropPointListItems,
-    setInitialState
+  getDropPointListItems,
+  setInitialState
 } from '../../../../action/drop-point';
 import {
-    setInitialState as orderSetInitialState,
-    setHeader,
+  setInitialState as orderSetInitialState,
+  setHeader,
 } from '../../../../action/order';
+import { ListItem } from '../../../../component/elements';
 import { MainTheme, mainDivider } from '../../../../constant/lov';
 import {
-    ORDER_TYPE_TRANSFER
+  ORDER_TYPE_TRANSFER
 } from '../../../../constant/orderTypes';
 import Navigator from '../../../../services/Navigator';
 import {
-    generateHeaderStockTransferV3
+  generateHeaderStockTransferV3
 } from '../../../../utils/Order';
 import { getUserToken } from '../../../../utils/Token';
 import ListItems from '../../presenter/drop-point/ListItems';

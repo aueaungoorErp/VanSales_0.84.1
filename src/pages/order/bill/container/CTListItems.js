@@ -1,7 +1,6 @@
 import moment from 'moment';
 import React, { Component } from 'react';
 import { Alert, PermissionsAndroid, Platform, Text, View } from 'react-native';
-import { Icon, ListItem } from 'react-native-elements';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
@@ -19,6 +18,7 @@ import {
   setInitialState,
   setOrderItems,
 } from '../../../../action/order';
+import { Icon, ListItem } from '../../../../component/elements';
 import { MainTheme, mainDivider } from '../../../../constant/lov';
 import { printReceipt } from '../../../../constant/printing-pdf-lov';
 import { BluetoothFinder, BplusPrinting } from '../../../../module';

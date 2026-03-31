@@ -4,7 +4,7 @@
 // import QRCode from 'react-native-qrcode-svg';
 // import useCountDown from 'react-countdown-hook';
 // import Navigator from '../../services/Navigator';
-// import {Button, ThemeProvider} from 'react-native-elements';
+// import {Button, ThemeProvider} from '../../component/elements';
 // import {postinvoice, getPaymentStatus} from '../../action/ktb-payment';
 
 // const logoFromFile = require('../../images/krungthai_logo.jpg');
@@ -204,10 +204,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, BackHandler, Text, View } from 'react-native';
-import { Button, ThemeProvider } from 'react-native-elements';
 import QRCode from 'react-native-qrcode-svg';
 import { connect } from 'react-redux';
 import { getPaymentStatus, postinvoice } from '../../action/ktb-payment';
+import { Button, ThemeProvider } from '../../component/elements';
 import Navigator from '../../services/Navigator';
 
 const logoFromFile = require('../../images/krungthai_logo.jpg');

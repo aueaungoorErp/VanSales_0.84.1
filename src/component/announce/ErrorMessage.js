@@ -1,6 +1,5 @@
 import React from 'react'
-import { StyleSheet, Text, View } from 'react-native'
-import { Button, Icon } from 'react-native-elements'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import { MainTheme } from '../../constant/lov'
 
@@ -9,35 +8,22 @@ const ErrorMessage = (props) => {
     const _message = 'Data not found'
 
     const IconProcess = () => {
-        if(!iconType){
-            return (
-                <Icon 
-                    name={iconName ? iconName : 'search1'} 
-                    color={iconColor ? iconColor : '#463E3F'} 
-                    size={iconSize ? iconSize : 120}
-                    type={type || 'antdesign'} />
-            )
-        } else {
-            return ( 
-                <AntDesign 
-                    name={iconName ? iconName : 'search1'} 
-                    color={iconColor ? iconColor : '#463E3F'} 
-                    size={iconSize ? iconSize : 120} />
-            )
-        }
-
+        return ( 
+            <AntDesign 
+                name={iconName ? iconName : 'search1'} 
+                color={iconColor ? iconColor : '#463E3F'} 
+                size={iconSize ? iconSize : 120} />
+        )
     }
 
     const _buttonPressRender = () => {
         return (
-            <Button
-                title={buttonTitle}
-                titleStyle={{ color: '#463E3F', fontSize: 12 }}
+            <TouchableOpacity
                 onPress={ () => onButtonPress ? onButtonPress() : null }
-                buttonStyle={{ backgroundColor: MainTheme.colorSecondary, marginTop: 10, borderColor: MainTheme.colorPrimary, borderRadius: 5 }}
-                type='outline'
-                containerStyle={{}}
-            />
+                style={{ backgroundColor: MainTheme.colorSecondary, marginTop: 10, borderColor: MainTheme.colorPrimary, borderRadius: 5, borderWidth: 1, paddingHorizontal: 16, paddingVertical: 8 }}
+                activeOpacity={0.7}>
+                <Text style={{ color: '#463E3F', fontSize: 12 }}>{buttonTitle}</Text>
+            </TouchableOpacity>
         )
     }
 

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button } from 'react-native-elements';
+import { Text, TouchableOpacity } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { API_ENDPOINT_V3 } from '../../../../appConfig';
@@ -63,16 +63,15 @@ class CTSetting extends Component {
     });
 
   _renderItem = (item, key) => (
-    <Button
+    <TouchableOpacity
       key={key}
-      large
-      buttonStyle={item.buttonStyle}
-      title={item.title}
-      titleStyle={[item.titleStyle, {fontSize: hp('1.7%')}]}
+      style={[{paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, alignItems: 'center', justifyContent: 'center'}, item.buttonStyle]}
       onPress={() => {
         this._onPress(item);
       }}
-    />
+      activeOpacity={0.7}>
+      <Text style={[item.titleStyle, {fontSize: hp('1.7%')}]}>{item.title}</Text>
+    </TouchableOpacity>
   );
 
   _onPress = async (item) => {

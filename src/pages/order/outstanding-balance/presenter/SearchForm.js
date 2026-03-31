@@ -1,6 +1,6 @@
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
-import { Icon } from 'react-native-elements'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import IDatePicker from '../../../../component/input/IDatePicker'
 import { MainTheme } from '../../../../constant/lov'
 
@@ -25,11 +25,10 @@ const SearchForm = (props) => {
                             onConfirm={(value) => {setState ? setState('dateTo', value) : null}} />
                     </View>
                     <View style={[styles.sectionInline, {flex: 0.1}]}>
-                        <Icon
+                        <AntDesign
                             name='search1' 
                             color={MainTheme.colorPrimary}
                             size={30} 
-                            type={'antdesign'}
                             onPress={() => onSearch ? onSearch() : null} />
 
                     </View>

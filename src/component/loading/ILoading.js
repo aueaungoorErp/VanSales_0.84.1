@@ -1,6 +1,5 @@
 import React from 'react'
-import { View, Image, StyleSheet } from 'react-native'
-import { Text } from 'react-native-elements'
+import { Image, StyleSheet, Text, View } from 'react-native'
 
 const ILoading = (props) => {
     const { isLoading, message, style } = props

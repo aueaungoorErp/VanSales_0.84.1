@@ -1,25 +1,15 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { MainTheme } from '../../constant/lov'
-import Navigator from '../../services/Navigator'
 
-class LoginHeader extends React.Component {
+const LoginHeader = (props) => {
+  const title = props.route?.params?.title || null
 
-  constructor(props) {
-    super(props)
-
-    const { routes, index } = Navigator.getCurrentRoute()
-    this._title = routes[index].params && routes[index].params.title ? routes[index].params.title : null
-  }
-
-  render() {
-
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>{ this._title }</Text>
-      </View>
-    )
-  }
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>{title}</Text>
+    </View>
+  )
 }
 
 export default LoginHeader

@@ -1,6 +1,5 @@
-import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
-import { Icon } from 'react-native-elements'
+import { StyleSheet, Text, View } from 'react-native'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import { MainTheme } from "../../constant/lov"
 
 const ITextWithIcon = (props) => {
@@ -8,12 +7,11 @@ const ITextWithIcon = (props) => {
 
     const renderDom = (
         <View style={[styles.container, style && style.container ? style.container : null]} > 
-            <Icon 
-                name={iconName} 
-                type={iconType}
+            <AntDesign 
+                name={iconName || 'infocirlceo'} 
                 size={iconSize ? iconSize : 20}
                 color={MainTheme.colorPrimary} 
-                iconStyle={[styles.iconStyle, style && style.iconStyle ? style.iconStyle : null]} />
+                style={[styles.iconStyle, style && style.iconStyle ? style.iconStyle : null]} />
 
             <Text style={[styles.textStyle, style && style.textStyle ? style.textStyle : null]}>{value}</Text>
         </View>

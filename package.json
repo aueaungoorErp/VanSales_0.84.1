@@ -46,7 +46,6 @@
     "react-native-blob-util": "^0.24.7",
     "react-native-device-info": "^15.0.2",
     "react-native-dialog": "^9.3.0",
-    "react-native-elements": "^3.4.3",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.30.0",
     "react-native-html-to-pdf": "^1.3.0",
@@ -109,7 +108,7 @@
       "<rootDir>/jest.setup.js"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!(react-native|@react-native|react-redux|@react-native-community|react-navigation|react-native-vector-icons|react-native-gesture-handler|react-native-screens|react-native-safe-area-view|react-native-safe-area-context|react-native-pdf|react-native-blob-util|react-native-maps|react-native-svg|react-native-camera|react-native-elements|react-native-share|react-native-print|react-native-fs|react-native-qrcode-svg|react-native-progress|rn-sliding-up-panel|react-native-swiper|react-native-snackbar-component|react-native-toggle-calendar|react-native-dialog|react-native-simple-dialogs|react-native-modal-selector|react-native-picker-select|react-native-super-grid|react-native-responsive-screen)/)"
+      "node_modules/(?!(react-native|@react-native|react-redux|@react-native-community|react-navigation|react-native-vector-icons|react-native-gesture-handler|react-native-screens|react-native-safe-area-view|react-native-safe-area-context|react-native-pdf|react-native-blob-util|react-native-maps|react-native-svg|react-native-camera|react-native-share|react-native-print|react-native-fs|react-native-qrcode-svg|react-native-progress|rn-sliding-up-panel|react-native-swiper|react-native-snackbar-component|react-native-toggle-calendar|react-native-dialog|react-native-simple-dialogs|react-native-modal-selector|react-native-picker-select|react-native-super-grid|react-native-responsive-screen)/)"
     ]
   }
 }

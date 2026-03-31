@@ -1,10 +1,14 @@
 import React from 'react';
-import {View, Text, Dimensions, ScrollView} from 'react-native';
-import {ListItem} from 'react-native-elements';
-import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
-import {MainTheme, mainDivider} from '../constant/lov';
-import {BPAPUS_DT_PROPERTIES} from '../constant/bPlusApi';
-import {decimal2digitWithCommas} from '../utils/FormatUtil';
+import { Dimensions, ScrollView, Text, View } from 'react-native';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { MainTheme, mainDivider } from '../constant/lov';
+import { decimal2digitWithCommas } from '../utils/FormatUtil';
+
+const ListItem = ({title, containerStyle, bottomDivider}) => (
+  <View style={[{paddingVertical: 8, paddingHorizontal: 10}, containerStyle, bottomDivider && {borderBottomWidth: 1, borderBottomColor: '#e1e8ee'}]}>
+    {title}
+  </View>
+);
 const fontDefault = '1.7%';
 // report #1
 export const salesOrderByCategory = {

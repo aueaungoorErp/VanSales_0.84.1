@@ -1,7 +1,6 @@
 ﻿import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { Alert } from 'react-native'
-import { Button } from 'react-native-elements'
+import { Alert, TouchableOpacity, Text } from 'react-native'
 import Navigator from '../../../services/Navigator'
 import ButtonGroupSCR from '../presenter/ButtonGroupSCR'
 import { productDetailFormButtonGroup, MainTheme } from '../../../constant/lov'
@@ -141,15 +140,9 @@ class CTDetailFormSCR extends Component {
 
     _renderItem = (item, key) => {
         return (
-            <Button
-                key={key}
-                buttonStyle={item.buttonStyle}
-                containerStyle={item.containerStyle}
-                titleStyle={item.titleStyle}
-                title={item.title}
-                disabledStyle={{backgroundColor: MainTheme.colorNonary}}
-                disabled={item.methodName === 'confirm' ? this.props.product.disabledButton : this.state.disabledButton}
-                onPress={() => {this._onPress(item)}} />
+            <TouchableOpacity key={key} style={[item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, item.methodName === 'confirm' ? this.props.product.disabledButton : this.state.disabledButton ? {backgroundColor: MainTheme.colorNonary} : null]} onPress={() => {this._onPress(item)}} disabled={item.methodName === 'confirm' ? this.props.product.disabledButton : this.state.disabledButton} activeOpacity={0.7}>
+              <Text style={item.titleStyle}>{item.title}</Text>
+            </TouchableOpacity>
         )
     }
 

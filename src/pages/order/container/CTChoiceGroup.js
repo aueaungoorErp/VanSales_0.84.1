@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Image, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Text } from 'react-native-elements';
+import { Alert, Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { setHeader, setInitialState } from '../../../action/order';

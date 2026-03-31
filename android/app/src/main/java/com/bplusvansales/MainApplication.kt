@@ -7,6 +7,9 @@ import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.oblador.vectoricons.VectorIconsPackage
+import com.bplus.bluetooth.finder.library.core.BluetoothFinderPackage
+import com.bplus.printer.library.core.BplusPrinterPackage
+import com.bplus.printing.library.core.BplusPrintingPackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -18,6 +21,9 @@ class MainApplication : Application(), ReactApplication {
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // add(MyReactNativePackage()),
           add(VectorIconsPackage())
+          add(BluetoothFinderPackage())
+          add(BplusPrinterPackage())
+          add(BplusPrintingPackage())
         },
     )
   }

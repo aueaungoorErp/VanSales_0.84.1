@@ -1,6 +1,5 @@
 import React from 'react'
-import { Alert, Image, PermissionsAndroid, Platform, Text, View } from 'react-native'
-import { ListItem } from 'react-native-elements'
+import { Alert, Image, PermissionsAndroid, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import { connect } from 'react-redux'
@@ -18,7 +17,7 @@ import {
 } from '../../../utils/Token'
 import ListItems from '../presenter/ListItems'
 
-
+import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons'
 class CTListItems extends React.Component {
 
     constructor(props) {
@@ -60,16 +59,10 @@ class CTListItems extends React.Component {
 
     _header = () => {
         return (
-            <ListItem
-                title={
-                    <View style={{flexDirection: 'column'}}>
-                        <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>การตั้งค่า</Text>
-                    </View>
-                }
-                containerStyle={{backgroundColor: MainTheme.colorSeptenary}}
-                leftIcon={{name: 'settings', type: 'material', iconStyle: {color: MainTheme.colorPrimary}, size: 30}}
-                bottomDivider >
-            </ListItem>
+            <View style={itemStyles.headerContainer}>
+                <AntDesign name="setting" size={24} color={MainTheme.colorPrimary} />
+                <Text style={itemStyles.headerText} allowFontScaling={false}>การตั้งค่า</Text>
+            </View>
         )
     }
 
@@ -83,81 +76,67 @@ class CTListItems extends React.Component {
         }
     }
 
-    _renderDefaultPattern =  (item) => {
-
+    _renderDefaultPattern = (item) => {
         return (
-            <ListItem
-                title={
-                    <View style={{flexDirection: 'column'}}>
-                        <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>{item.title} { item.iconName === 'cloudserver' && this.state.config ? this.state.config.baseUrl : null }</Text>
-                    </View>
-                }
-                leftIcon={
-                    {
-                        name: item.iconName, 
-                        type: item.iconType, 
-                        iconStyle: item.iconStyle, 
-                        size: item.iconSize
-                    }
-                }
-                onPress={() => this._onPress(item)}>
-            </ListItem>
+            <TouchableOpacity style={itemStyles.row} onPress={() => this._onPress(item)} activeOpacity={0.6}>
+                <View style={itemStyles.iconContainer}>
+                    {item.iconName ===  'server' ?<MaterialDesignIcons name={item.iconName} color={MainTheme.colorPrimary} size={22} /> : <AntDesign name={item.iconName} size={22} color={MainTheme.colorPrimary} />  }
+                   
+                </View>
+                <View style={itemStyles.textContainer}>
+                    <Text style={itemStyles.title} allowFontScaling={false}>
+                        {item.title} {item.iconName === 'cloudserver' && this.state.config ? this.state.config.baseUrl : null}
+                    </Text>
+                </View>
+                <AntDesign name="right" size={14} color="#ccc" />
+            </TouchableOpacity>
         )
     }
 
     _renderImagePattern = (item) => {
         return (
-            <ListItem
-                title={
-                    <View style={{flexDirection: 'column'}}>
-                        <Text style={{ fontSize: hp('2%') }} allowFontScaling={false} >{item.title} { item.iconName === 'cloudserver' && this.state.config ? this.state.config.baseUrl : null }</Text>
-                    </View>
-                }
-                leftIcon={
-                    <Image
-                        style={item.iconStyle}
-                        resizeMode='contain'
-                        source={item.imgSrc} />
-                }
-                onPress={() => this._onPress(item)}>
-            </ListItem>
+            <TouchableOpacity style={itemStyles.row} onPress={() => this._onPress(item)} activeOpacity={0.6}>
+                <View style={itemStyles.iconContainer}>
+                    {item.imgSrc ? (
+                        <Image style={{width: 28, height: 28}} resizeMode='contain' source={item.imgSrc} />
+                    ) : (
+                        <AntDesign name={item.iconName} size={22} color={MainTheme.colorPrimary} />
+                    )}
+                </View>
+                <View style={itemStyles.textContainer}>
+                    <Text style={itemStyles.title} allowFontScaling={false}>{item.title}</Text>
+                </View>
+                <AntDesign name="right" size={14} color="#ccc" />
+            </TouchableOpacity>
         )
     }
 
     _renderCustomPattern = (item) => {
+        const isPDF = this.props.bluetooth.printingType === 'PDF'
+        const isConnected = this.props.bluetooth && this.props.bluetooth.state === 'connected'
+
         return (
-            <ListItem
-                title={
-                    <View style={{flexDirection: 'column'}}>
-                        
-                        <Text style={{ fontSize: hp('2%') }} allowFontScaling={false} >{this.props.bluetooth.printingType === 'PDF' ? 'PDF' : item.title} { item.iconName === 'cloudserver' && this.state.config ? this.state.config.baseUrl : null }</Text>
-                    </View>
-                }
-                leftIcon={
-                    this.props.bluetooth.printingType === 'PDF' ?
-                    <AntDesign
-                        name='pdffile1'
-                        color={MainTheme.colorPrimary}
-                        size={24}
-                        style={{
-                            width: 30, 
-                            height: 30, 
-                            alignSelf: 'center'
-                        }} />
-                        :
-                        <Image
-                            style={item.iconStyle}
-                            resizeMode='contain'
-                            source={this.props.bluetooth && this.props.bluetooth.state === 'connected' ? item.imgSrc : item.subImgSrc} />
-                }
-                onPress={() => this._onPress(item)}>
-            </ListItem>
+            <TouchableOpacity style={itemStyles.row} onPress={() => this._onPress(item)} activeOpacity={0.6}>
+                <View style={itemStyles.iconContainer}>
+                    {isPDF ? (
+                        <AntDesign name='pdffile1' color={MainTheme.colorPrimary} size={22} />
+                    ) : (
+                        <Image style={{width: 25, height: 25}} resizeMode='contain' source={isConnected ? item.imgSrc : item.subImgSrc} />
+                    )}
+                </View>
+                <View style={itemStyles.textContainer}>
+                    <Text style={itemStyles.title} allowFontScaling={false}>{isPDF ? 'PDF' : item.title}</Text>
+                    <Text style={[itemStyles.subtitle, {color: isConnected ? MainTheme.colorPrimary : '#E74C3C'}]}>
+                        {isPDF ? 'พิมพ์เป็น PDF' : isConnected ? 'เชื่อมต่อแล้ว' : 'ไม่ได้เชื่อมต่อ'}
+                    </Text>
+                </View>
+                <AntDesign name="right" size={14} color="#ccc" />
+            </TouchableOpacity>
         )
     }
 
     _onPress = async (item) => {
         if (item.methodType === 'new-page') {
-            // console.log('item', item.params)
             Navigator.navigate(item.screen, item.params)
         } else if (item.methodType === 'function') {
             if (item.methodName === 'logout') {
@@ -207,6 +186,55 @@ class CTListItems extends React.Component {
         )
     }
 }
+
+const itemStyles = StyleSheet.create({
+    headerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: MainTheme.colorSeptenary,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E0E4E8',
+    },
+    headerText: {
+        fontSize: hp('2.2%'),
+        fontWeight: '600',
+        color: '#333',
+        marginLeft: 12,
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
+    },
+    iconContainer: {
+        width: 36,
+        height: 36,
+        borderRadius: 8,
+        backgroundColor: '#F0FAF5',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 14,
+    },
+    textContainer: {
+        flex: 1,
+        flexDirection: 'column',
+    },
+    title: {
+        fontSize: hp('1.8%'),
+        color: '#333',
+        fontWeight: '500',
+    },
+    subtitle: {
+        fontSize: hp('1.4%'),
+        marginTop: 2,
+    },
+})
 
 const mapStateToProps = (state) => ({
     bluetooth: state.bluetooth

@@ -1,7 +1,6 @@
 ﻿import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -266,13 +265,12 @@ const SettingForm = (props) => {
 
         {service && (
           <View style={iButtonGroupCustomStyles.panel}>
-            <Button
-              large
-              buttonStyle={styles.editButton}
-              title="แก้ไขเซอร์วิส"
-              titleStyle={styles.editButtonTitle}
+            <TouchableOpacity
+              style={styles.editButton}
               onPress={_onEdit}
-            />
+              activeOpacity={0.7}>
+              <Text style={styles.editButtonTitle}>แก้ไขเซอร์วิส</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>

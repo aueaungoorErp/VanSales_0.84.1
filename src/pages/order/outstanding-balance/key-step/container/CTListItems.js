@@ -1,13 +1,13 @@
 import React from 'react'
-import { connect } from 'react-redux'
-import { View, Text } from 'react-native'
-import { ListItem } from 'react-native-elements'
+import { Text, View } from 'react-native'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
-import ListItems from '../presenter/ListItems'
-import { MainTheme } from '../../../../../constant/lov'
+import { connect } from 'react-redux'
 import { setPrePocessListItems } from '../../../../../action/outstanding-balance'
+import { ListItem } from '../../../../../component/elements'
 import IPatternOSBLKeyListItem from '../../../../../component/list-item/IPatternOSBLKeyListItem'
+import { MainTheme } from '../../../../../constant/lov'
 import { customCheckChar } from '../../../../../utils/FormatUtil'
+import ListItems from '../presenter/ListItems'
 
 class CTListItems extends React.Component {
     _isMounted = false

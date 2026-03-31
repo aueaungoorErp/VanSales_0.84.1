@@ -1,6 +1,5 @@
 import React from 'react'
-import { StyleSheet, View } from 'react-native'
-import { Avatar } from 'react-native-elements'
+import { Image, StyleSheet, View } from 'react-native'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import { MainTheme } from '../../constant/lov'
 
@@ -10,24 +9,16 @@ const IUpload = (props) => {
     return (
         <View style={styles.container}>
             <View>
-                {
-                    photo ? 
-                        <Avatar
-                            size='xlarge'
-                            rounded
+                <View style={styles.avatarContainer}>
+                    {photo ? (
+                        <Image
                             source={{uri: photo}}
-                            icon={{name: 'picture', type: 'antdesign'}}
-                            onPress={() => console.log('Works!')}
-                            activeOpacity={0.7} />
-                        :
-                        <Avatar
-                            size='xlarge'
-                            rounded
-                            icon={{name: 'picture', type: 'antdesign'}}
-                            onPress={() => console.log('Works!')}
-                            activeOpacity={0.7} />
-
-                }
+                            style={styles.avatarImage}
+                        />
+                    ) : (
+                        <AntDesign name='picture' size={50} color='#bbb' />
+                    )}
+                </View>
 
                 <View style={styles.takePhotoSection} >
                     <View style={{width: 40, height: 40, justifyContent: 'center', alignItems: 'center'}}>
@@ -49,6 +40,20 @@ const styles = StyleSheet.create({
     container: {
         alignItems: 'center'
     },
+    avatarContainer: {
+        width: 150,
+        height: 150,
+        borderRadius: 75,
+        backgroundColor: '#F2F3F4',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
+    },
+    avatarImage: {
+        width: 150,
+        height: 150,
+        borderRadius: 75,
+    },
     takePhotoSection: {
         justifyContent: 'center', alignItems: 'center',
         width: 45, 
@@ -58,6 +63,5 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-end',
         borderRadius: 45/2,
         backgroundColor: '#F2F3F4'
-        
     }
 })

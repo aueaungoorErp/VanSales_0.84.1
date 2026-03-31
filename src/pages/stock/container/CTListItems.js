@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Image, Text, View } from 'react-native';
-import { Icon, ListItem } from 'react-native-elements';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { Icon, ListItem } from '../../../component/elements';
 import { mainDivider, MainTheme, storeChoiceListItems } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';

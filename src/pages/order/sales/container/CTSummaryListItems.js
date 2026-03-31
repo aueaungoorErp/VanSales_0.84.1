@@ -1,8 +1,8 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import { ListItem } from 'react-native-elements';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
+import { ListItem } from '../../../../component/elements';
 import { MainTheme, mainDivider } from '../../../../constant/lov';
 import Navigator from '../../../../services/Navigator';
 import SummaryListItems from '../presenter/SummaryListItems';

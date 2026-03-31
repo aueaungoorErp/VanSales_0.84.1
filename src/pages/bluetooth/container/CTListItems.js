@@ -1,10 +1,9 @@
 import React from 'react'
-import { connect } from 'react-redux'
-import { View, Text } from 'react-native'
-import { ListItem, Button } from 'react-native-elements'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
-import { MainTheme } from '../../../constant/lov'
+import { connect } from 'react-redux'
 import { setItem } from '../../../action/bluetooth'
+import { MainTheme } from '../../../constant/lov'
 import ListItems from '../presenter/ListItems'
 
 const CTListItem = (props) => {
@@ -14,26 +13,22 @@ const CTListItem = (props) => {
 	}
 	
 	const _renderItem = ({ item }) => (
-        <ListItem
-            title={
+        <View style={{paddingVertical: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: '#e1e8ee'}}>
             <View style={{flex: 1, flexDirection: 'row'}}>
                 <View style={{flex: 1, flexDirection: 'column'}}>
                     <Text style={{ fontSize: hp('1.7%') }} allowFontScaling={false} >{item.name}</Text>
                     <Text style={{ fontSize: hp('1.7%') }} allowFontScaling={false} >{item.address}</Text>
                 </View>
                 <View style={{flex: 1, flexDirection: 'column', alignItems: 'flex-end'}}>
-                    <Button
-                        buttonStyle={{ backgroundColor: MainTheme.colorPrimary, borderRadius: 3, paddingHorizontal: 10 }}
-                        title='เลือก'
-                        titleStyle={{ fontSize: hp('1.7%') }}
-                        onPress={() => {_onChooseBluetooth(item)}} />
+                    <TouchableOpacity
+                        style={{ backgroundColor: MainTheme.colorPrimary, borderRadius: 3, paddingHorizontal: 10, paddingVertical: 8 }}
+                        onPress={() => {_onChooseBluetooth(item)}}
+                        activeOpacity={0.7}>
+                        <Text style={{ fontSize: hp('1.7%'), color: '#fff' }}>เลือก</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
-            }
-            titleNumberOfLines={1}
-            leftIcon={{ name: 'bluetooth', type: 'foundation', color: MainTheme.colorPrimary }}
-            hideChevron
-            bottomDivider />
+        </View>
     )
 
 	return (

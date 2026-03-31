@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import React, { Component } from 'react'
 import { Alert, Text, TextInput, View } from 'react-native'
-import { ListItem } from 'react-native-elements'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import { mainDivider, MainTheme } from '../../constant/lov'
@@ -71,15 +70,13 @@ class IPatternStockListItem extends Component {
         const { item, index, setStockBalance } = this.props
     
         return (
-            <ListItem
-                title={
+            <View style={[{paddingVertical: 8, paddingHorizontal: 10}, mainDivider, {borderBottomWidth: 1, borderBottomColor: '#e1e8ee'}]}>
                     <View style={{flexDirection: 'row'}} >
                         <Text style={{ width: 150, marginLeft: 5, marginTop: 10, fontSize: hp('1.7%') }} allowFontScaling={false} >{item.VTRD_NAMES}</Text>
                         <Text style={{ width: 100, marginLeft: 5, marginTop: 10, textAlign: 'right', fontSize: hp('1.7%') }} allowFontScaling={false} >{item.VTRD_UTQ_NAME}</Text>
                         <Text style={{ width: 100, marginLeft: 5, marginTop: 10, textAlign: 'right', fontSize: hp('1.7%') }} allowFontScaling={false} >{item.VTRD_QTY}</Text>
                         <Item regular style={{ width: 100, marginLeft: 5, textAlign: 'right'}} >
                             <Input 
-                                // style={{ textAlign: 'right', fontSize: hp('1.5%') }}
                                 style={{ fontSize: hp('1.3%'), textAlign: 'right', height: 35, paddingBottom: 8 }}
                                 value={
                                     this.state.item !== undefined && 
@@ -102,11 +99,7 @@ class IPatternStockListItem extends Component {
                                 onPress={() => this._removeAlertDialog(index)} />
                         </View>
                     </View>
-                }
-                titleNumberOfLines={1}
-                hideChevron
-                containerStyle={mainDivider}
-                bottomDivider />
+            </View>
         )
         
     }

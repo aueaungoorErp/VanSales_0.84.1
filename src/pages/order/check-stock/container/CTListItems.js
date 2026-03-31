@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Alert, Dimensions, Text, View } from 'react-native';
-import { Icon, ListItem } from 'react-native-elements';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
+import { Icon, ListItem } from '../../../../component/elements';
 import Navigator from '../../../../services/Navigator';
 
 import {

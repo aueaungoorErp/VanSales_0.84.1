@@ -1,24 +1,24 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {Image, View, Text} from 'react-native';
-import {ListItem, Icon} from 'react-native-elements';
-import ListItems from '../presenter/ListItems';
-import Navigator from '../../../services/Navigator';
-import {MainTheme, mainDivider} from '../../../constant/lov';
+import React, { Component } from 'react';
+import { Image, Text, View } from 'react-native';
+import { connect } from 'react-redux';
 import {
-  setInitialState,
-  campaignTypeSearchList,
-  setItem as setcampaignTypeItem,
-} from '../../../action/campaign-type';
+    campaignFindByCondition,
+    setErrorMessage,
+} from '../../../action/campaign';
 import {
-  setInitialState as setInitialCampaignARCPGNTypeState,
-  campaignARCPGNTypeSearchList,
-  setItem,
+    campaignARCPGNTypeSearchList,
+    setInitialState as setInitialCampaignARCPGNTypeState,
+    setItem,
 } from '../../../action/campaign-arcpgn-type';
 import {
-  campaignFindByCondition,
-  setErrorMessage,
-} from '../../../action/campaign';
+    campaignTypeSearchList,
+    setInitialState,
+    setItem as setcampaignTypeItem,
+} from '../../../action/campaign-type';
+import { ListItem } from '../../../component/elements';
+import { MainTheme, mainDivider } from '../../../constant/lov';
+import Navigator from '../../../services/Navigator';
+import ListItems from '../presenter/ListItems';
 
 class CTListItems extends Component {
   _isMounted = false;

@@ -1,15 +1,6 @@
 ﻿import _, { isNull } from 'lodash';
 import React, { useState } from 'react';
-import {
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { Button } from 'react-native-elements';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, View, TouchableOpacity } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import * as appConfig from '../../../appConfig';
@@ -335,9 +326,7 @@ const ServiceSetting = (props) => {
   };
 
   const _toggleShow = async () => {
-    //console.log("this.state.isShow ",this.state.isShow);
     await setisShow(!isShow);
-    // await this.setState({isShow: !this.state.isShow});
   };
 
 
@@ -371,7 +360,6 @@ const ServiceSetting = (props) => {
       this.props.setIsLoading(true);
       this.props.setErrorMessage(null);
       this.setState({ successMessage: null });
-      console.log('sas');
       const response = await this.props.systemCheck(config);
 
       const { ResponseData, RESPONSE_DATETIME } = response;
@@ -382,14 +370,7 @@ const ServiceSetting = (props) => {
           successMessage: strings('login_setting.connect_success'),
           canLogin: true,
         });
-        // }
-        // }
       } else {
-        // config.SALESMAN = '';
-        // config.VANCONFIG = '';
-        // await setSettingConfig(config);
-        console.log('EEEEEEEEEE11111');
-        //this.props.setErrorMessage(response.ResponseCode + response.ReasonString);
         this.setState({ canLogin: false });
       }
     }
@@ -541,47 +522,31 @@ const ServiceSetting = (props) => {
         </View>
 
         <View style={iButtonGroupCustomStyles.container}>
-          <Button
-            large
-            buttonStyle={styles.primaryButton}
-            title={`บันทึกและเชื่อมต่อ`}
-            titleStyle={{ color: MainTheme.colorSecondary, fontSize: hp('1.7%') }}
-            onPress={() => {
+          <TouchableOpacity style={[styles.primaryButton, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {
               mode === 'add' ? _onSave() : _onEdit();
-            }}
-          />
+            }} activeOpacity={0.7}>
+              <Text style={{ color: MainTheme.colorSecondary, fontSize: hp('1.7%') }}>{`บันทึกและเชื่อมต่อ`}</Text>
+            </TouchableOpacity>
 
           {mode === 'add' && (
-            <Button
-              large
-              buttonStyle={styles.secondaryButton}
-              title={`ล้าง`}
-              titleStyle={{ color: MainTheme.colorPrimary, fontSize: hp('1.7%') }}
-              onPress={() => {
+            <TouchableOpacity style={[styles.secondaryButton, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {
                 _onReset();
-              }}
-            />
+              }} activeOpacity={0.7}>
+              <Text style={{ color: MainTheme.colorPrimary, fontSize: hp('1.7%') }}>{`ล้าง`}</Text>
+            </TouchableOpacity>
           )}
           {mode === 'edit' && (
-            <Button
-              large
-              buttonStyle={styles.secondaryButton}
-              title={`ลบ`}
-              titleStyle={{ color: MainTheme.colorPrimary, fontSize: hp('1.7%') }}
-              onPress={() => {
+            <TouchableOpacity style={[styles.secondaryButton, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {
                 _onDelete();
-              }}
-            />
+              }} activeOpacity={0.7}>
+              <Text style={{ color: MainTheme.colorPrimary, fontSize: hp('1.7%') }}>{`ลบ`}</Text>
+            </TouchableOpacity>
           )}
-          <Button
-            large
-            buttonStyle={styles.secondaryButton}
-            title={`ย้อนกลับ`}
-            titleStyle={{ color: MainTheme.colorPrimary, fontSize: hp('1.7%') }}
-            onPress={() => {
+          <TouchableOpacity style={[styles.secondaryButton, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {
               _onBack();
-            }}
-          />
+            }} activeOpacity={0.7}>
+              <Text style={{ color: MainTheme.colorPrimary, fontSize: hp('1.7%') }}>{`ย้อนกลับ`}</Text>
+            </TouchableOpacity>
         </View>
 
       </ScrollView>

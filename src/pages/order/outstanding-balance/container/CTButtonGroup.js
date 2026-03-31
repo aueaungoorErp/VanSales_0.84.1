@@ -1,7 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { Alert, Keyboard, } from 'react-native'
-import { Button } from 'react-native-elements'
+import { Alert, Keyboard, TouchableOpacity, Text } from 'react-native'
 import ButtonGroup from '../presenter/ButtonGroup'
 import { 
     orderOutStandingPreProcessButtonGroup, 
@@ -414,17 +413,7 @@ class CTButtonGroup extends React.Component {
 
   _renderItem = (item, key) => {
     return (
-      <Button
-        key={key}
-        buttonStyle={item.buttonStyle}
-        containerStyle={item.containerStyle}
-        titleStyle={item.titleStyle}
-        title={item.title}
-        disabledStyle={{backgroundColor: MainTheme.colorNonary}}
-        onPress={() => {
-          this._onPress(item);
-        }}
-        disabled={
+      <TouchableOpacity key={key} style={[item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, 
           item.title === 'พิมพ์ใบเสร็จ' &&
           this.state.userToken !== null &&
           this.state.userToken.VANCONFIG !== null &&
@@ -433,8 +422,20 @@ class CTButtonGroup extends React.Component {
           this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 3
             ? true
             : false
-        }
-      />
+         ? {backgroundColor: MainTheme.colorNonary} : null]} onPress={() => {
+          this._onPress(item);
+        }} disabled={
+          item.title === 'พิมพ์ใบเสร็จ' &&
+          this.state.userToken !== null &&
+          this.state.userToken.VANCONFIG !== null &&
+          this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== null &&
+          this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 2 &&
+          this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 3
+            ? true
+            : false
+        } activeOpacity={0.7}>
+              <Text style={item.titleStyle}>{item.title}</Text>
+            </TouchableOpacity>
     );
   };
 

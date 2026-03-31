@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, PermissionsAndroid, Platform } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Alert, PermissionsAndroid, Platform, Text, TouchableOpacity } from 'react-native';
 import RNFS from 'react-native-fs';
 import { generatePDF } from 'react-native-html-to-pdf';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -215,12 +214,10 @@ class CTSummaryButtonGroup extends Component {
     //     this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 3,
     // );
     return (
-      <Button
-        key={key}
-        buttonStyle={item.buttonStyle}
-        containerStyle={item.containerStyle}
-        titleStyle={[item.titleStyle, { fontSize: hp('1.8%') }]}
-        title={
+      <TouchableOpacity key={key} style={[item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {
+          this._onPress(item);
+        }} activeOpacity={0.7}>
+              <Text style={[item.titleStyle, { fontSize: hp('1.8%') }]}>{
           printType === 'transfer' && key == 0
             ? this.props.bluetooth.printingType !== 'BLUETOOTH'
               ? item.subTitle2
@@ -229,20 +226,8 @@ class CTSummaryButtonGroup extends Component {
               this.props.bluetooth.printingType !== 'BLUETOOTH'
               ? item.subTitle2
               : item.title
-        }
-        onPress={() => {
-          this._onPress(item);
-        }}
-      // disabled={
-      //   item.title === 'พิมพ์ใบเสร็จ' &&
-      //   this.state.userToken !== null &&
-      //   this.state.userToken.VANCONFIG !== null &&
-      //   this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== null &&
-      //   this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 2 &&
-      //   this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 3 ? false
-      //     : true
-      // }
-      />
+        }</Text>
+            </TouchableOpacity>
     );
   };
 

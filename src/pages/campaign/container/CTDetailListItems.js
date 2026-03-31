@@ -1,10 +1,10 @@
 import React from 'react'
-import { connect } from 'react-redux'
-import { View, Text } from 'react-native'
-import { ListItem } from 'react-native-elements'
-import DetailListItems from '../presenter/DetailListItems'
-import { MainTheme, mainDivider } from '../../../constant/lov'
+import { Text, View } from 'react-native'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
+import { connect } from 'react-redux'
+import { ListItem } from '../../../component/elements'
+import { MainTheme, mainDivider } from '../../../constant/lov'
+import DetailListItems from '../presenter/DetailListItems'
 
 class CTDetailListItems extends React.Component {
     _isMounted = false

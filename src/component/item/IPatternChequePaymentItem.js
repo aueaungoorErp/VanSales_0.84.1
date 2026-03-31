@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import React from 'react'
-import { StyleSheet, TextInput, View } from 'react-native'
-import { CheckBox } from 'react-native-elements'
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import RNPickerSelect from 'react-native-picker-select'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import AntDesign from 'react-native-vector-icons/AntDesign'
@@ -41,13 +40,17 @@ class IPatternChequePaymentItem extends React.Component {
             <View style={{ flex: 1}}>
                 <Item style={styles.checkBoxSection}>
                     <Item style={{flex: 0.3, borderBottomWidth: 0}}>
-                        <CheckBox 
-                            title={title} 
-                            textStyle={{ fontSize: hp('1.7%') }}
-                            checked={checkedItems.cheques[index].checked}
-                            checkedColor={MainTheme.colorTertiary}
-                            containerStyle={styles.checkBoxStyle}
-                            onPress={() => { setCreateCheckedItemsCheque ? setCreateCheckedItemsCheque(index, 'checked', !checkedItems.cheques[index].checked) : null }} /> 
+                        <TouchableOpacity 
+                            style={styles.checkBoxStyle}
+                            onPress={() => { setCreateCheckedItemsCheque ? setCreateCheckedItemsCheque(index, 'checked', !checkedItems.cheques[index].checked) : null }}
+                            activeOpacity={0.7}>
+                            <AntDesign 
+                                name={checkedItems.cheques[index].checked ? 'checksquare' : 'checksquareo'} 
+                                size={20} 
+                                color={checkedItems.cheques[index].checked ? MainTheme.colorTertiary : '#ccc'} 
+                                style={{marginRight: 8}} />
+                            <Text style={{ fontSize: hp('1.7%') }}>{title}</Text>
+                        </TouchableOpacity>
                     </Item>
 
                     <View style={{flex: 0.7, borderBottomWidth: 0.3, borderColor: '#d6d7da', paddingRight: 0}}>
@@ -138,8 +141,10 @@ const styles = StyleSheet.create({
     },
     checkBoxStyle: { 
         flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
         backgroundColor: MainTheme.colorSecondary, 
-        borderWidth: 0,  
+        paddingVertical: 4,
         marginRight: 0
     },
     inputSection: {

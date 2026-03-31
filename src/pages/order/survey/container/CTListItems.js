@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 import { connect } from 'react-redux'
-import { View, Text, StyleSheet } from 'react-native'
-import { ListItem, CheckBox } from 'react-native-elements'
-import ListItems from '../presenter/ListItems'
 import { getMasterDataSurveyForm } from '../../../../action/masterData'
-import { MainTheme, mainDivider } from '../../../../constant/lov'
 import { setVdiAns } from '../../../../action/order'
+import { CheckBox, ListItem } from '../../../../component/elements'
+import { MainTheme, mainDivider } from '../../../../constant/lov'
+import ListItems from '../presenter/ListItems'
 
 class CTListItems extends Component {
 

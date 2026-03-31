@@ -1,14 +1,12 @@
 import React from 'react'
 
-import Navigator from '../../../services/Navigator'
 import IPDFPreview from '../../../component/pdf/IPDFPreview'
 
 const Index = (props) => {
-    const { routes, index } = Navigator.getCurrentRoute()
-    const { params } = routes[index]
+    const { route } = props
     
     return (
-        <IPDFPreview params={ params } />
+        <IPDFPreview params={ route.params } />
     )
 }
 

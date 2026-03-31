@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, StyleSheet } from 'react-native';
-import { Button, Text } from 'react-native-elements';
+import { Alert, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { connect } from 'react-redux';
 import {
   addProduct,
@@ -92,21 +91,14 @@ class CTButtonGroup extends Component {
         : false;
 
     return (
-      <Button
-        key={key}
-        buttonStyle={item.buttonStyle}
-        containerStyle={item.containerStyle}
-        titleStyle={item.titleStyle}
-        title={item.title}
-        disabledStyle={{
+      <TouchableOpacity key={key} style={[item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, disabled ? {
           backgroundColor: MainTheme.colorNonary,
           borderRadius: 0,
-        }}
-        disabled={disabled}
-        onPress={() => {
+        } : null]} onPress={() => {
           this._onPress(item);
-        }}
-      />
+        }} disabled={disabled} activeOpacity={0.7}>
+              <Text style={item.titleStyle}>{item.title}</Text>
+            </TouchableOpacity>
     );
   };
 

@@ -1,12 +1,9 @@
 import React from 'react';
-import {View, Text, StyleSheet, Platform} from 'react-native';
-import {CheckBox} from 'react-native-elements';
-import {Button} from 'react-native-elements';
-import {MainTheme} from '../../../constant/lov';
-import ITextInputWithLabel from '../../../component/input/ITextInputWithLabel';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import IPickerSelectWithLabel from '../../../component/input/IPickerSelectWithLabel';
-import {ProgressDialog, ConfirmDialog} from 'react-native-simple-dialogs';
-import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
+import { BluetoothModels, MainTheme } from '../../../constant/lov';
 
 const Form = (props) => {
   const {
@@ -21,166 +18,151 @@ const Form = (props) => {
     printingType,
     setPrintingType,
   } = props;
-  console.log('BLUTOOTH2');
+
+  const isConnected = bluetooth.state === 'connected';
+
   return (
     <View style={styles.container}>
-      <CheckBox
-        title="PDF"
-        checked={printingType !== 'BLUETOOTH'}
-        checkedColor={MainTheme.colorTertiary}
-        containerStyle={{
-          backgroundColor: MainTheme.colorSecondary,
-          borderWidth: 0,
-          paddingLeft: 0,
-        }}
-        onPress={() => setPrintingType('PDF')}
-      />
-      <CheckBox
-        title="Printer"
-        checked={printingType === 'BLUETOOTH'}
-        checkedColor={MainTheme.colorTertiary}
-        containerStyle={{
-          backgroundColor: MainTheme.colorSecondary,
-          borderWidth: 0,
-          paddingLeft: 0,
-        }}
-        onPress={() => setPrintingType('BLUETOOTH')}
-      />
+      {/* Print Mode Selection */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <AntDesign name="printer" size={16} color={MainTheme.colorSecondary} />
+          <Text style={styles.cardHeaderText}>เลือกรูปแบบการพิมพ์</Text>
+        </View>
+        <View style={styles.cardBody}>
+          <View style={styles.modeRow}>
+            <TouchableOpacity style={styles.checkboxContainer} onPress={() => setPrintingType('PDF')} activeOpacity={0.7}>
+              <AntDesign name={printingType !== 'BLUETOOTH' ? 'checksquare' : 'checksquareo'} size={20} color={printingType !== 'BLUETOOTH' ? MainTheme.colorTertiary : '#ccc'} style={{marginRight: 8}} />
+              <Text style={styles.checkboxText}>PDF</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.checkboxContainer} onPress={() => setPrintingType('BLUETOOTH')} activeOpacity={0.7}>
+              <AntDesign name={printingType === 'BLUETOOTH' ? 'checksquare' : 'checksquareo'} size={20} color={printingType === 'BLUETOOTH' ? MainTheme.colorTertiary : '#ccc'} style={{marginRight: 8}} />
+              <Text style={styles.checkboxText}>Printer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
 
       {printingType === 'BLUETOOTH' ? (
         <View>
-          <View style={{padding: 5}}>
-            <ITextInputWithLabel
-              label="ชื่อบลูทูธ"
-              value={bluetooth.item.name}
-              editable={false}
-            />
-            <ITextInputWithLabel
-              label="แอดแดรส"
-              value={bluetooth.item.address}
-              editable={false}
-            />
+          {/* Device Info Card */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <AntDesign name="scan1" size={16} color={MainTheme.colorSecondary} />
+              <Text style={styles.cardHeaderText}>ข้อมูลอุปกรณ์</Text>
+            </View>
+            <View style={styles.cardBody}>
+              <View style={styles.fieldRow}>
+                <View style={styles.fieldLabel}>
+                  <AntDesign name="mobile1" size={14} color={MainTheme.colorQuaternary} />
+                  <Text style={styles.fieldLabelText}>ชื่อบลูทูธ</Text>
+                </View>
+                <View style={styles.fieldValue}>
+                  <Text style={styles.fieldValueText}>
+                    {bluetooth.item.name || '-'}
+                  </Text>
+                </View>
+              </View>
 
-            <IPickerSelectWithLabel
-              label="ปริ้นเตอร์"
-              items={bluetooth.modelItems}
-              selectedValue={bluetooth.model}
-              placeholder="เลือก"
-              disabled={bluetooth.state === 'connected'}
-              onValueChange={(model) => {
-                setModel(model);
-              }}
-            />
+              <View style={styles.fieldRow}>
+                <View style={styles.fieldLabel}>
+                  <AntDesign name="wifi" size={14} color={MainTheme.colorQuaternary} />
+                  <Text style={styles.fieldLabelText}>แอดเดรส</Text>
+                </View>
+                <View style={styles.fieldValue}>
+                  <Text style={styles.fieldValueText}>
+                    {bluetooth.item.address || '-'}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Status indicator */}
+              <View style={styles.statusRow}>
+                <AntDesign
+                  name={isConnected ? 'checkcircle' : 'closecircle'}
+                  size={14}
+                  color={isConnected ? MainTheme.colorSuccess : MainTheme.colorDanger}
+                />
+                <Text style={[
+                  styles.statusText,
+                  {color: isConnected ? MainTheme.colorTertiary : '#999'}
+                ]}>
+                  {isConnected ? 'เชื่อมต่อแล้ว' : 'ยังไม่ได้เชื่อมต่อ'}
+                </Text>
+              </View>
+            </View>
           </View>
 
-          <View style={iButtonGroupCustomStyles.container}>
-            <Button
-              title={'เชื่อมต่อ'}
-              buttonStyle={{
-                backgroundColor: MainTheme.colorQuaternary,
-                height: 60,
-                borderRadius: 0,
-                borderColor: MainTheme.colorQuaternary,
-                borderRightWidth: 0.3,
-                elevation: 0,
-              }}
-              containerStyle={{flex: 1}}
-              titleStyle={{
-                color: MainTheme.colorSecondary,
-                fontSize: hp('1.4%'),
-              }}
-              disabledStyle={{
-                backgroundColor: MainTheme.colorNonary,
-                borderRadius: 0,
-              }}
-              onPress={() => {
-                connect();
-              }}
-              disabled={bluetooth.state === 'connected'}
-            />
+          {/* Printer Model Card */}
+          <View style={[styles.card , ]}>
+            <View style={styles.cardHeader}>
+              <AntDesign name="setting" size={16} color={MainTheme.colorSecondary} />
+              <Text style={styles.cardHeaderText}>เลือกรุ่นปริ้นเตอร์</Text>
+            </View>
+            <View style={[styles.cardBody, {paddingVertical: 4 , flexDirection: 'row', alignItems: 'center' , gap: 20 , borderWidth:1}]}>
+              <Text style={{ color: '#555'}}>เลือก</Text>
+              <IPickerSelectWithLabel
+                items={bluetooth.modelItems && bluetooth.modelItems.length > 0 ? bluetooth.modelItems : BluetoothModels.items}
+                selectedValue={bluetooth.model}
+                enabled={!isConnected}
+                onValueChange={(model) => {
+                  setModel(model);
+                }}
+              />
+            </View>
+          </View>
 
-            <Button
-              title={'ยกเลิก'}
-              buttonStyle={{
-                backgroundColor: MainTheme.colorSeptenary,
-                height: 60,
-                borderRadius: 0,
-                borderColor: MainTheme.colorQuaternary,
-                borderRightWidth: 0.3,
-                elevation: 0,
-              }}
-              containerStyle={{flex: 1}}
-              titleStyle={{color: MainTheme.colorSenary, fontSize: hp('1.4%')}}
-              disabledStyle={{
-                backgroundColor: MainTheme.colorNonary,
-                borderRadius: 0,
-              }}
-              onPress={() => {
-                disConnect();
-              }}
-              disabled={bluetooth.state !== 'connected'}
-            />
-
-            <Button
-              title={'พิมพ์'}
-              buttonStyle={{
-                backgroundColor: MainTheme.colorSeptenary,
-                height: 60,
-                borderRadius: 0,
-                borderColor: MainTheme.colorQuaternary,
-                borderRightWidth: 0.3,
-                elevation: 0,
-              }}
-              containerStyle={{flex: 1}}
-              titleStyle={{color: MainTheme.colorSenary, fontSize: hp('1.4%')}}
-              onPress={() => {
-                testPrinter();
-              }}
-              disabled={bluetooth.state !== 'connected'}
-              disabledStyle={{
-                backgroundColor: MainTheme.colorNonary,
-                borderRadius: 0,
-              }}
-            />
-
-            <Button
-              title={'รีเฟรช'}
-              buttonStyle={{
-                backgroundColor: MainTheme.colorSeptenary,
-                height: 60,
-                borderRadius: 0,
-                borderColor: MainTheme.colorQuaternary,
-                borderRightWidth: 0.3,
-                elevation: 0,
-              }}
-              containerStyle={{flex: 1}}
-              titleStyle={{color: MainTheme.colorSenary, fontSize: hp('1.4%')}}
-              onPress={() => {
-                getBluetoothList();
-              }}
-            />
-
-            <Button
-              title={'ล้าง'}
-              buttonStyle={{
-                backgroundColor: MainTheme.colorSeptenary,
-                height: 60,
-                borderRadius: 0,
-                borderColor: MainTheme.colorQuaternary,
-                borderRightWidth: 0.3,
-                elevation: 0,
-              }}
-              containerStyle={{flex: 1}}
-              titleStyle={{color: MainTheme.colorSenary, fontSize: hp('1.4%')}}
-              disabled={bluetooth.state === 'connected'}
-              disabledStyle={{
-                backgroundColor: MainTheme.colorNonary,
-                borderRadius: 0,
-              }}
-              onPress={() => {
-                clearAll();
-              }}
-            />
+          {/* Action Buttons */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <AntDesign name="appstore-o" size={16} color={MainTheme.colorSecondary} />
+              <Text style={styles.cardHeaderText}>การจัดการ</Text>
+            </View>
+            <View style={styles.cardBody}>
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  style={[styles.actionBtn, {backgroundColor: isConnected ? MainTheme.colorNonary : MainTheme.colorPrimary}, styles.actionBtnContainer]}
+                  onPress={() => connect()}
+                  disabled={isConnected}
+                  activeOpacity={0.7}>
+                  <AntDesign name="link" size={18} color="#fff" style={{marginRight: 8}} />
+                  <Text style={styles.actionBtnTitle}>เชื่อมต่อ</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionBtn, {backgroundColor: !isConnected ? MainTheme.colorNonary : '#E74C3C'}, styles.actionBtnContainer]}
+                  onPress={() => disConnect()}
+                  disabled={!isConnected}
+                  activeOpacity={0.7}>
+                  <AntDesign name="disconnect" size={18} color="#fff" style={{marginRight: 8}} />
+                  <Text style={styles.actionBtnTitle}>ยกเลิก</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  style={[styles.actionBtn, {backgroundColor: !isConnected ? MainTheme.colorNonary : '#3498DB'}, styles.actionBtnContainer]}
+                  onPress={() => testPrinter()}
+                  disabled={!isConnected}
+                  activeOpacity={0.7}>
+                  <AntDesign name="printer" size={18} color="#fff" style={{marginRight: 8}} />
+                  <Text style={styles.actionBtnTitle}>ทดสอบพิมพ์</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionBtn, {backgroundColor: '#F39C12'}, styles.actionBtnContainer]}
+                  onPress={() => getBluetoothList()}
+                  activeOpacity={0.7}>
+                  <AntDesign name="sync" size={18} color="#fff" style={{marginRight: 8}} />
+                  <Text style={styles.actionBtnTitle}>รีเฟรช</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                style={[styles.actionBtn, {backgroundColor: isConnected ? MainTheme.colorNonary : '#fff', borderWidth: 1, borderColor: '#E74C3C'}, {marginTop: 8}]}
+                onPress={() => clearAll()}
+                disabled={isConnected}
+                activeOpacity={0.7}>
+                <AntDesign name="delete" size={18} color="#E74C3C" style={{marginRight: 8}} />
+                <Text style={[styles.actionBtnTitle, {color: '#E74C3C'}]}>ล้างข้อมูลทั้งหมด</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <ProgressDialog
@@ -193,7 +175,6 @@ const Form = (props) => {
           <ConfirmDialog
             title="เกิดข้อผิดพลาด"
             visible={bluetooth.state === 'connect failed'}
-            // onTouchOutside={() => setState(null)}
             positiveButton={{
               title: 'ตกลง',
               titleStyle: {color: '#000000'},
@@ -207,46 +188,148 @@ const Form = (props) => {
           </ConfirmDialog>
         </View>
       ) : null}
-
-      {/* <Overlay 
-                visible={
-                    bluetooth.state === 'connecting'|| 
-                    bluetooth.state === 'connect failed'
-                }
-                closeOnTouchOutside 
-                animationType="zoomIn"
-                containerStyle={{backgroundColor: 'rgba(37, 8, 10, 0.78)'}}
-                childrenWrapperStyle={{backgroundColor: '#eee'}}
-                animationDuration={500}
-                onClose={() => {
-                    setState(null)
-                }}>
-                <Text>{bluetooth.state}</Text>
-            </Overlay> */}
     </View>
   );
 };
 
 export default Form;
+
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    backgroundColor: MainTheme.colorSecondary,
+    backgroundColor: '#F4F6F8',
   },
-  iconGroupContainer: {
-    height: 60,
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginHorizontal: 12,
+    marginTop: 12,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+    overflow: 'hidden',
+    
+  },
+  cardHeader: {
     flexDirection: 'row',
-    padding: 5,
-    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    backgroundColor: MainTheme.colorPrimary,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  cardHeaderText: {
+    color: MainTheme.colorSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  cardBody: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  modeRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    paddingLeft: 0,
+    paddingVertical: 4,
+    marginLeft: 0,
+    marginRight: 16,
+  },
+  checkboxText: {
+    fontSize: 14,
+    fontWeight: '400',
+  },
+  fieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  fieldLabel: {
+    flex: 0.35,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  fieldLabelText: {
+    fontSize: 13,
+    color: '#555',
+    fontWeight: '500',
+    marginLeft: 6,
+  },
+  fieldValue: {
+    flex: 0.65,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E4E8',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  fieldValueText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    paddingTop: 8,
+  },
+  statusText: {
+    fontSize: 13,
+    marginLeft: 6,
+    fontWeight: '500',
+  },
+  buttonCard: {
+    flexDirection: 'row',
+    marginHorizontal: 12,
+    marginTop: 12,
+    gap: 8,
+  },
+  buttonContainer: {
+    flex: 1,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 8,
+  },
+  actionBtnContainer: {
+    flex: 1,
+  },
+  actionBtn: {
+    height: 50,
+    borderRadius: 12,
+    elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionBtnTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  actionButton: {
+    height: 48,
+    borderRadius: 10,
+    elevation: 2,
+  },
+  buttonTitle: {
+    color: MainTheme.colorSecondary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  disabledButton: {
+    backgroundColor: MainTheme.colorNonary,
+    borderRadius: 10,
   },
 });
 
-const iButtonGroupCustomStyles = StyleSheet.create({
-  container: {
-    flex: null,
-    height: 60,
-    flexDirection: 'row',
-    justifyContent: null,
-  },
-});

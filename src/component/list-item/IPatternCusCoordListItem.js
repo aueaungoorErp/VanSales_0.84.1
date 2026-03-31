@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import React from 'react'
 import { Image, Text, TouchableOpacity, View } from 'react-native'
-import { ListItem } from 'react-native-elements'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import { MainTheme } from '../../constant/lov'
 
@@ -48,8 +47,7 @@ class IPatternCusCoordListItem extends React.Component {
         const { item, index, goToCoordinate, goToGoogleMaps, goToOrder } = this.props
 
         return (
-            <ListItem
-                title={
+            <View style={{backgroundColor: MainTheme.colorSecondary, paddingVertical: 8, paddingHorizontal: 10, borderBottomWidth: 1, borderBottomColor: '#e1e8ee'}}>
                     <View style={{flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
                         <View style={{ flex: 0.35 }}>
                             <Text style={{ marginLeft: 5}}>{item.AR_CODE}</Text>
@@ -99,10 +97,7 @@ class IPatternCusCoordListItem extends React.Component {
                             
                         </View>
                     </View>
-                }
-                bottomDivider
-                containerStyle={{backgroundColor: MainTheme.colorSecondary}}
-                titleNumberOfLines={1} /> 
+            </View>
         )
     }
 }

@@ -1,23 +1,23 @@
 import React, { Component } from 'react';
 import { Alert, Dimensions, Text, View } from 'react-native';
-import { Icon, ListItem } from 'react-native-elements';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import {
-    calculateOrderProductSummary,
-    editProduct,
-    getProductListItemsFromLastBillByArCode,
-    pushSwipeList,
-    removeAllSwipeList,
-    removeProductItem,
-    setSwipeCurrent,
+  calculateOrderProductSummary,
+  editProduct,
+  getProductListItemsFromLastBillByArCode,
+  pushSwipeList,
+  removeAllSwipeList,
+  removeProductItem,
+  setSwipeCurrent,
 } from '../../../action/order';
 import { setGoodsCodeCriteria, setProduct } from '../../../action/product';
+import { Icon, ListItem } from '../../../component/elements';
 import { mainDivider, MainTheme, MOBILE5INCH } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
 import {
-    convertOrderItemToProductItem,
-    convertProductItemToOrderItem,
+  convertOrderItemToProductItem,
+  convertProductItemToOrderItem,
 } from '../../../utils/Order';
 import { getLoginGuID, getUserToken } from '../../../utils/Token';
 import ListItems from '../presenter/ListItems';

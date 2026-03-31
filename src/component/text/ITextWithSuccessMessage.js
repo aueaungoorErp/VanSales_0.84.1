@@ -1,6 +1,5 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Text } from 'react-native-elements'
+import { StyleSheet, Text, View } from 'react-native'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import { MainTheme } from '../../constant/lov'
 

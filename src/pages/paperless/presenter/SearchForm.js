@@ -1,9 +1,7 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
-import { Icon } from 'react-native-elements'
+import { StyleSheet, Text, View } from 'react-native'
+import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs'
 import IDatePicker from '../../../component/input/IDatePicker'
-import { MainTheme } from '../../../constant/lov'
-import { ProgressDialog, ConfirmDialog } from 'react-native-simple-dialogs'
 
 const SearchForm = (props) => {
     const { 

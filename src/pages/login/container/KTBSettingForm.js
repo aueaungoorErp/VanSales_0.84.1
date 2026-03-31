@@ -1,18 +1,18 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {Button} from 'react-native-elements';
-import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
-import KTBSettingForm from '../presenter/KTBSettingForm';
+import { Component } from 'react';
+import { Text, TouchableOpacity } from 'react-native';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { connect } from 'react-redux';
+import * as appConfig from '../../../../appConfig';
+import { checkStatusService } from '../../../action/ktb-payment';
+import { settingConfigButtonGroup } from '../../../constant/lov';
+import { strings } from '../../../locales/i18n';
+import Navigator from '../../../services/Navigator';
 import {
-  setKTBSettingConfig,
   getKTBSettingConfig,
   removeKTBSettingConfig,
+  setKTBSettingConfig,
 } from '../../../utils/Token';
-import {settingConfigButtonGroup} from '../../../constant/lov';
-import Navigator from '../../../services/Navigator';
-import {checkStatusService} from '../../../action/ktb-payment';
-import {strings} from '../../../locales/i18n';
-import * as appConfig from '../../../../appConfig';
+import KTBSettingForm from '../presenter/KTBSettingForm';
 
 class KTBSetting extends Component {
   constructor(props) {
@@ -31,16 +31,15 @@ class KTBSetting extends Component {
   }
 
   _renderItem = (item, key) => (
-    <Button
+    <TouchableOpacity
       key={key}
-      large
-      buttonStyle={item.buttonStyle}
-      title={item.title}
-      titleStyle={[item.titleStyle, {fontSize: hp('1.7%')}]}
+      style={[{paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, alignItems: 'center', justifyContent: 'center'}, item.buttonStyle]}
       onPress={() => {
         this._onPress(item);
       }}
-    />
+      activeOpacity={0.7}>
+      <Text style={[item.titleStyle, {fontSize: hp('1.7%')}]}>{item.title}</Text>
+    </TouchableOpacity>
   );
 
   _onPress = async (item) => {

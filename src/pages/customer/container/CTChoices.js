@@ -1,11 +1,11 @@
-import React, {Component} from 'react';
-import {View, Text, Image} from 'react-native';
-import {ListItem, Icon} from 'react-native-elements';
-import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
-import {customerChoices, MainTheme, mainDivider} from '../../../constant/lov';
+import React, { Component } from 'react';
+import { Image, Text, View } from 'react-native';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { getUserToken } from '../../../../src/utils/Token';
+import { ListItem } from '../../../component/elements';
+import { customerChoices, mainDivider, MainTheme } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
 import Choices from '../presenter/Choices';
-import {getUserToken} from '../../../../src/utils/Token';
 
 class CTChoices extends Component {
   _isMounted = false;

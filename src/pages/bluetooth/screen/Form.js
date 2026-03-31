@@ -1,10 +1,8 @@
-import React from 'react'
-import { View, Text, StyleSheet, Platform } from 'react-native'
-import { Button } from 'react-native-elements'
-import { MainTheme } from '../../constant/'
-import ITextInputWithLabel from '../../component/input/ITextInputWithLabel'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs'
 import IPickerSelectWithLabel from '../../component/input/IPickerSelectWithLabel'
-import { ProgressDialog, ConfirmDialog } from 'react-native-simple-dialogs'
+import ITextInputWithLabel from '../../component/input/ITextInputWithLabel'
+import { MainTheme } from '../../constant/'
 
 const Form = (props) => {
     const { bluetooth, setModel, getBluetoothList, connect, disConnect, testPrinter, clearAll, setState } = props
@@ -25,93 +23,44 @@ const Form = (props) => {
             </View>
             <View style={iButtonGroupCustomStyles.container}>
 
-                <Button
-                    title={'เชื่อมต่อ'}
-                    buttonStyle={
-                        {
-                            backgroundColor: MainTheme.colorQuaternary, 
-                            height: 60, 
-                            borderRadius: 0, 
-                            borderColor: MainTheme.colorQuaternary,
-                            borderRightWidth: 0.3,
-                            elevation: 0
-                        }
-                    }
-                    containerStyle={{flex: 1}}
-                    titleStyle={{color: MainTheme.colorSecondary}}
-                    disabledStyle={{ backgroundColor: MainTheme.colorNonary, borderRadius: 0 }}
+                <TouchableOpacity
+                    style={[{flex: 1, height: 60, justifyContent: 'center', alignItems: 'center', backgroundColor: MainTheme.colorQuaternary, borderRightWidth: 0.3, borderColor: MainTheme.colorQuaternary}, bluetooth.state === 'connected' && {backgroundColor: MainTheme.colorNonary}]}
                     onPress={() => { connect() }}
-                    disabled={bluetooth.state === 'connected'} />
+                    disabled={bluetooth.state === 'connected'}
+                    activeOpacity={0.7}>
+                    <Text style={{color: MainTheme.colorSecondary}}>เชื่อมต่อ</Text>
+                </TouchableOpacity>
 
-                <Button
-                    title={'ยกเลิก'}
-                    buttonStyle={
-                        {
-                            backgroundColor: MainTheme.colorSeptenary, 
-                            height: 60, 
-                            borderRadius: 0, 
-                            borderColor: MainTheme.colorQuaternary,
-                            borderRightWidth: 0.3,
-                            elevation: 0
-                        }
-                    }
-                    containerStyle={{flex: 1}}
-                    titleStyle={{color: MainTheme.colorSenary}}
-                    disabledStyle={{ backgroundColor: MainTheme.colorNonary, borderRadius: 0 }}
+                <TouchableOpacity
+                    style={[{flex: 1, height: 60, justifyContent: 'center', alignItems: 'center', backgroundColor: MainTheme.colorSeptenary, borderRightWidth: 0.3, borderColor: MainTheme.colorQuaternary}, bluetooth.state !== 'connected' && {backgroundColor: MainTheme.colorNonary}]}
                     onPress={() => { disConnect() }}
-                    disabled={bluetooth.state !== 'connected'} />
+                    disabled={bluetooth.state !== 'connected'}
+                    activeOpacity={0.7}>
+                    <Text style={{color: MainTheme.colorSenary}}>ยกเลิก</Text>
+                </TouchableOpacity>
 
-                <Button
-                    title={'พิมพ์'}
-                    buttonStyle={
-                        {
-                            backgroundColor: MainTheme.colorSeptenary, 
-                            height: 60, 
-                            borderRadius: 0, 
-                            borderColor: MainTheme.colorQuaternary,
-                            borderRightWidth: 0.3,
-                            elevation: 0
-                        }
-                    }
-                    containerStyle={{flex: 1}}
-                    titleStyle={{color: MainTheme.colorSenary}}
+                <TouchableOpacity
+                    style={[{flex: 1, height: 60, justifyContent: 'center', alignItems: 'center', backgroundColor: MainTheme.colorSeptenary, borderRightWidth: 0.3, borderColor: MainTheme.colorQuaternary}, bluetooth.state !== 'connected' && {backgroundColor: MainTheme.colorNonary}]}
                     onPress={() => { testPrinter() }}
                     disabled={bluetooth.state !== 'connected'}
-                    disabledStyle={{ backgroundColor: MainTheme.colorNonary, borderRadius: 0 }} />
+                    activeOpacity={0.7}>
+                    <Text style={{color: MainTheme.colorSenary}}>พิมพ์</Text>
+                </TouchableOpacity>
 
-                <Button
-                    title={'รีเฟรช'}
-                    buttonStyle={
-                        {
-                            backgroundColor: MainTheme.colorSeptenary, 
-                            height: 60, 
-                            borderRadius: 0, 
-                            borderColor: MainTheme.colorQuaternary,
-                            borderRightWidth: 0.3,
-                            elevation: 0
-                        }
-                    }
-                    containerStyle={{flex: 1}}
-                    titleStyle={{color: MainTheme.colorSenary}}
-                    onPress={() => { getBluetoothList() }} />
+                <TouchableOpacity
+                    style={{flex: 1, height: 60, justifyContent: 'center', alignItems: 'center', backgroundColor: MainTheme.colorSeptenary, borderRightWidth: 0.3, borderColor: MainTheme.colorQuaternary}}
+                    onPress={() => { getBluetoothList() }}
+                    activeOpacity={0.7}>
+                    <Text style={{color: MainTheme.colorSenary}}>รีเฟรช</Text>
+                </TouchableOpacity>
 
-                <Button
-                    title={'ล้าง'}
-                    buttonStyle={
-                        {
-                            backgroundColor: MainTheme.colorSeptenary, 
-                            height: 60, 
-                            borderRadius: 0, 
-                            borderColor: MainTheme.colorQuaternary,
-                            borderRightWidth: 0.3,
-                            elevation: 0
-                        }
-                    }
-                    containerStyle={{flex: 1}}
-                    titleStyle={{color: MainTheme.colorSenary}}
+                <TouchableOpacity
+                    style={[{flex: 1, height: 60, justifyContent: 'center', alignItems: 'center', backgroundColor: MainTheme.colorSeptenary, borderRightWidth: 0.3, borderColor: MainTheme.colorQuaternary}, bluetooth.state === 'connected' && {backgroundColor: MainTheme.colorNonary}]}
                     disabled={bluetooth.state === 'connected'}
-                    disabledStyle={{ backgroundColor: MainTheme.colorNonary, borderRadius: 0 }}
-                    onPress={() => { clearAll() }} />
+                    onPress={() => { clearAll() }}
+                    activeOpacity={0.7}>
+                    <Text style={{color: MainTheme.colorSenary}}>ล้าง</Text>
+                </TouchableOpacity>
 
             </View> 
    

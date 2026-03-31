@@ -1,7 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { Alert } from 'react-native'
-import { Button } from 'react-native-elements'
+import { Alert, TouchableOpacity, Text } from 'react-native'
 import ButtonGroup from '../presenter/ButtonGroup'
 import { surveyFormButtonGroup, MainTheme } from '../../../../constant/lov'
 import Navigator from '../../../../services/Navigator'
@@ -11,15 +10,9 @@ import { genenrateDocServeyToServer } from '../../../../utils/Order'
 const CTButtonGroup = (props) => {
 
     const _renderItem = (item, key) => (
-        <Button
-            key={key}
-            buttonStyle={item.buttonStyle}
-            containerStyle={item.containerStyle}
-            titleStyle={item.titleStyle}
-            title={item.title}
-            onPress={() => {_onPress(item)}}
-            disabled={props.masterData.SVF.item.SVF_QUESTIONS.length <= 0 && item.title === 'ยืนยัน'  ? true : false }
-            disabledStyle={{ backgroundColor: MainTheme.colorNonary, borderRadius: 0 }} />
+        <TouchableOpacity key={key} style={[item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, props.masterData.SVF.item.SVF_QUESTIONS.length <= 0 && item.title === 'ยืนยัน'  ? true : false  ? { backgroundColor: MainTheme.colorNonary, borderRadius: 0 } : null]} onPress={() => {_onPress(item)}} disabled={props.masterData.SVF.item.SVF_QUESTIONS.length <= 0 && item.title === 'ยืนยัน'  ? true : false } activeOpacity={0.7}>
+              <Text style={item.titleStyle}>{item.title}</Text>
+            </TouchableOpacity>
     )
 
     const _onPress = (item) => {

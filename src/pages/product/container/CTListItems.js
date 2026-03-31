@@ -1,19 +1,19 @@
 import React, { Component } from 'react';
 import { Text, View } from 'react-native';
-import { ListItem } from 'react-native-elements';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
+import { ListItem } from '../../../component/elements';
 import ListItems from '../presenter/ListItems';
 
 import {
-  clearProductList,
-  searchProductBySkuAlt,
-  searchProductList,
-  setError,
-  setGoodsCodeCriteria,
-  setKeyword,
-  setModal,
-  setProduct,
+    clearProductList,
+    searchProductBySkuAlt,
+    searchProductList,
+    setError,
+    setGoodsCodeCriteria,
+    setKeyword,
+    setModal,
+    setProduct,
 } from '../../../action/product';
 import { mainDivider } from '../../../constant/lov';
 import Navigate from '../../../services/Navigator';
