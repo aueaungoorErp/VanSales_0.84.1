@@ -1,8 +1,8 @@
 import React from 'react'
-import { ScrollView, View, Text } from 'react-native'
+import { ScrollView, Text, View } from 'react-native'
 import SnackBar from 'react-native-snackbar-component'
-import IList from '../../../../component/list/IList'
 import ErrorMessage from '../../../../component/announce/ErrorMessage'
+import IList from '../../../../component/list/IList'
 import IOverlay from '../../../../component/modal/IOverlay'
 
 const ListItems = (props) => {
@@ -55,8 +55,8 @@ const ListItems = (props) => {
                 actionHandler={()=> actionHandler ? actionHandler() : null} 
                 actionText="close" />
             
-            <ErrorMessage isDisplaying={isNotFound} iconName='account-search' iconType='MaterialCommunityIcons' />
-            <ErrorMessage isDisplaying={isError} message='Network not available' iconName='account-search' iconType='MaterialCommunityIcons' />
+            <ErrorMessage isDisplaying={isNotFound} iconName='search1' iconType='AntDesign' />
+            <ErrorMessage isDisplaying={isError} message='Network not available' iconName='search1' iconType='AntDesign' />
         </View>
     )
 

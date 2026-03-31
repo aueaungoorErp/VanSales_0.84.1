@@ -15,8 +15,13 @@ import Navigator from '../../../services/Navigator';
 import Request from '../../../utils/Request';
 import {
   getLoginGuID,
+  getSettingConfig,
   getUserToken,
+  removeLoginGuID,
+  removeLoginInfo,
   removeUserToken,
+  setAccessTimeToken,
+  setSettingConfig,
 } from '../../../utils/Token';
 import MenuItems from '../presenter/MenuItems';
 
@@ -78,9 +83,24 @@ class CTMenuItems extends React.Component {
     );
 
   _logout = async (item) => {
-    const isRemove = await removeUserToken();
+    const settingConfig = await getSettingConfig();
+
+    await removeUserToken();
+    await removeLoginInfo();
+    await removeLoginGuID();
+    await setAccessTimeToken('0');
+
+    if (settingConfig) {
+      await setSettingConfig({
+        ...settingConfig,
+        USER_CODE: null,
+        USER_PASSWORD: null,
+        SALESMAN: null,
+      });
+    }
+
     Request.removeAllHeaders();
-    isRemove ? Navigator.navigate(item.screen) : null;
+    Navigator.reset(item.screen || 'Auth', { screen: 'Login' });
   };
 
   _renderItem = ({ item }) => {

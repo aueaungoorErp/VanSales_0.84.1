@@ -1,26 +1,24 @@
+import moment from 'moment';
 import qs from 'qs';
-import {
-  customerSearchListApi,
-  findCustomerByIdApi,
-  createTempCusApi,
-  searchCustomerNearByApi,
-  closeCustomerAccountApi,
-  customerSkipApi,
-  getArPricetabApi,
-  customerSearchListV3Api,
-  executiveV3Api,
-  readErpV3Api,
-  updateErpV3Api,
-  NewArFileV3Api,
-  getARL_KEY99,
-  getARLV3Api,
-  customerSearchArLineListV3Api,
-  getCustArprbKEYApi,
-} from '../api/customer';
 import * as appConfig from '../../appConfig';
+import {
+    closeCustomerAccountApi,
+    customerSearchArLineListV3Api,
+    customerSearchListApi,
+    customerSearchListV3Api,
+    customerSkipApi,
+    executiveV3Api,
+    getARL_KEY99,
+    getARLV3Api,
+    getArPricetabApi,
+    getCustArprbKEYApi,
+    NewArFileV3Api,
+    readErpV3Api,
+    searchCustomerNearByApi,
+    updateErpV3Api
+} from '../api/customer';
 import * as types from '../constant/customer';
 import { getLoginGuID, getUserToken } from '../utils/Token';
-import moment from 'moment';
 export const setInitialState = () => (dispatch) => {
   dispatch({ type: types.CUSTOMER_SET_INITIAL_STATE });
 };
@@ -148,6 +146,7 @@ export const searchCustomerList = (nextPage) => async (dispatch, getState) => {
   let customer = await getState().customer;
   const customerType = await getState().customerType;
   const { VANCONFIG } = await getUserToken();
+  const arLimit = Number(VANCONFIG?.VANCNF_AR_LIMIT);
 
   const criteria = {
     ARCAT_KEY: customerType.item,
@@ -170,7 +169,7 @@ export const searchCustomerList = (nextPage) => async (dispatch, getState) => {
         let RECORD_COUNT, OFFSET, FETCH, additionalData;
         //  const { RECORD_COUNT, OFFSET, FETCH, Vans0104 } = responseData;
 
-        if (VANCONFIG.VANCNF_AR_LIMIT === 2) {
+        if (arLimit === 2) {
           ({ RECORD_COUNT, OFFSET, FETCH, Vans0107: additionalData } = responseData);
         } else {
           ({ RECORD_COUNT, OFFSET, FETCH, Vans0104: additionalData } = responseData);
@@ -275,8 +274,8 @@ export const searchCustomerList = (nextPage) => async (dispatch, getState) => {
           }
         } else {
           dispatch({
-            type: types.CUSTOMER_SEARCH_LIST_FAIL,
-            payload: 'Data Not Found',
+            type: types.CUSTOMER_SEARCH_LIST_SUCCESS,
+            payload: [],
           });
         }
       }
@@ -387,7 +386,9 @@ export const getCustomerNextDestination = (AR_CODE) => (dispatch) => {
     var wsFunction = '';
     var wsorderby = '';
 
-    if (VANCONFIG.VANCNF_AR_LIMIT === 2) {
+    const arLimit = Number(VANCONFIG?.VANCNF_AR_LIMIT);
+
+    if (arLimit === 2) {
       wsFunction = 'Vans0107'
       wsorderby = ' ORDER BY VANRT_KEY ASC ';
     } else {
@@ -418,7 +419,7 @@ export const getCustomerNextDestination = (AR_CODE) => (dispatch) => {
 
         let RECORD_COUNT, OFFSET, FETCH, additionalData;
 
-        if (VANCONFIG.VANCNF_AR_LIMIT === 2) {
+        if (arLimit === 2) {
           ({ RECORD_COUNT, OFFSET, FETCH, Vans0107: additionalData } = responseData);
         } else {
           ({ RECORD_COUNT, OFFSET, FETCH, Vans0104: additionalData } = responseData);
@@ -737,7 +738,9 @@ export const getARCustomerLine = () => (dispatch) => {
     var wsFunction = '';
     var wsorderby = '';
 
-    if (VANCONFIG.VANCNF_AR_LIMIT === 2) {
+    const arLimit = Number(VANCONFIG?.VANCNF_AR_LIMIT);
+
+    if (arLimit === 2) {
       wsFunction = 'Vans0107'
       wsorderby = ' ORDER BY VANRT_KEY ASC ';
     } else {
@@ -766,7 +769,7 @@ export const getARCustomerLine = () => (dispatch) => {
         let responseData = JSON.parse(ResponseData);
         let RECORD_COUNT, OFFSET, FETCH, additionalData;
 
-        if (VANCONFIG.VANCNF_AR_LIMIT === 2) {
+        if (arLimit === 2) {
           ({ RECORD_COUNT, OFFSET, FETCH, Vans0107: additionalData } = responseData);
         } else {
           ({ RECORD_COUNT, OFFSET, FETCH, Vans0104: additionalData } = responseData);

@@ -1,25 +1,25 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {View, Text, Alert, Dimensions} from 'react-native';
-import {ListItem, Icon} from 'react-native-elements';
-import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
-import Navigator from '../../../services/Navigator';
-import {MainTheme, MOBILE5INCH, mainDivider} from '../../../constant/lov';
+import React, { Component } from 'react';
+import { Alert, Dimensions, Text, View } from 'react-native';
+import { Icon, ListItem } from 'react-native-elements';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { connect } from 'react-redux';
 import {
-  setSwipeCurrent,
-  pushSwipeList,
-  removeProductItem,
-  removeAllSwipeList,
-  calculateOrderProductSummary,
-  editProduct,
-  getProductListItemsFromLastBillByArCode,
+    calculateOrderProductSummary,
+    editProduct,
+    getProductListItemsFromLastBillByArCode,
+    pushSwipeList,
+    removeAllSwipeList,
+    removeProductItem,
+    setSwipeCurrent,
 } from '../../../action/order';
-import {setProduct, setGoodsCodeCriteria} from '../../../action/product';
+import { setGoodsCodeCriteria, setProduct } from '../../../action/product';
+import { mainDivider, MainTheme, MOBILE5INCH } from '../../../constant/lov';
+import Navigator from '../../../services/Navigator';
 import {
-  convertProductItemToOrderItem,
-  convertOrderItemToProductItem,
+    convertOrderItemToProductItem,
+    convertProductItemToOrderItem,
 } from '../../../utils/Order';
-import {getUserToken, getLoginGuID} from '../../../utils/Token';
+import { getLoginGuID, getUserToken } from '../../../utils/Token';
 import ListItems from '../presenter/ListItems';
 
 class CTListItems extends Component {
@@ -118,7 +118,10 @@ class CTListItems extends Component {
     // console.log('_renderItem5INCH item ', item);
     return (
       <ListItem
-        title={
+        containerStyle={mainDivider}
+        bottomDivider
+      >
+        <ListItem.Content key="content">
           <View style={{flex: 1}}>
             <View style={{flex: 1, flexDirection: 'row'}}>
               <View style={{flex: 0.5}}>
@@ -213,7 +216,7 @@ class CTListItems extends Component {
                   <Icon
                     name="pencil"
                     color={MainTheme.colorPrimary}
-                    size={30}
+                    size={36}
                     type={'font-awesome'}
                     onPress={() => {
                       this._editProductItem(item, index);
@@ -223,7 +226,7 @@ class CTListItems extends Component {
                   <Icon
                     name="trash-o"
                     color={MainTheme.colorPrimary}
-                    size={30}
+                    size={36}
                     type={'font-awesome'}
                     onPress={() => {
                       this._removeAlertDialog(index);
@@ -233,13 +236,8 @@ class CTListItems extends Component {
               </View>
             </View>
           </View>
-        }
-        titleNumberOfLines={1}
-        leftIcon={{name: item.icon, type: item.type}}
-        hideChevron
-        containerStyle={mainDivider}
-        bottomDivider
-      />
+        </ListItem.Content>
+      </ListItem>
     );
   };
 
@@ -247,7 +245,10 @@ class CTListItems extends Component {
     console.log('<ListItem >>> ',item);
     return (
       <ListItem
-        title={
+        containerStyle={mainDivider}
+        bottomDivider
+      >
+        <ListItem.Content key="content">
           <View style={{flex: 1, flexDirection: 'row'}}>
             <View style={{flex: 0.4}}>
               {/* <Text> {item.ICDEPT_THAIDESC} </Text> */}
@@ -384,7 +385,7 @@ class CTListItems extends Component {
               <Icon
                 name="pencil"
                 color={MainTheme.colorPrimary}
-                size={30}
+                size={36}
                 type={'font-awesome'}
                 onPress={() => {
                   this._editProductItem(item, index);
@@ -394,7 +395,7 @@ class CTListItems extends Component {
               <Icon
                 name="trash-o"
                 color={MainTheme.colorPrimary}
-                size={30}
+                size={36}
                 type={'font-awesome'}
                 onPress={() => {
                   this._removeAlertDialog(index);
@@ -402,13 +403,8 @@ class CTListItems extends Component {
               />
             </View>
           </View>
-        }
-        titleNumberOfLines={1}
-        leftIcon={{name: item.icon, type: item.type}}
-        hideChevron
-        containerStyle={mainDivider}
-        bottomDivider
-      />
+        </ListItem.Content>
+      </ListItem>
     );
   };
 

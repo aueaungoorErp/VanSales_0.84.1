@@ -1,18 +1,9 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import ISearchBar from '../../../component/input/ISearchBar';
 import { MainTheme } from '../../../constant/lov';
-import { resolveVectorIconComponent } from '../../../utils/iconFactory';
-
-const Icon = ({type, ...props}) => {
-  const IconComponent = resolveVectorIconComponent(
-    type,
-    resolveVectorIconComponent('AntDesign'),
-  );
-
-  return <IconComponent {...props} />;
-};
 
 const SearchForm = (props) => {
   const {
@@ -58,18 +49,19 @@ const SearchForm = (props) => {
               },
               inputAndroid: {
                 color: '#000000',
+                paddingRight: 30,
               },
             }}
             value={type}
             placeholder={{}}
-            textInputProps={{underlineColorAndroid: 'cyan', underlineColor: 'yellow'}}
+            useNativeAndroidPickerStyle={false}
+            textInputProps={{underlineColorAndroid: 'transparent'}}
             Icon={() => {
               return (
-                <Icon
+                <AntDesign
                   name="down"
-                  type="AntDesign"
-                  size={25}
-                  style={{color: MainTheme.colorPrimary}}
+                  size={28}
+                  color={MainTheme.colorPrimary}
                 />
               );
             }}
@@ -105,10 +97,10 @@ const SearchForm = (props) => {
               onSearch ? onSearch() : null;
             }}
             style={{flex: 0.1, height: 35, marginTop: 5}}>
-            <Icon
+            <AntDesign
               name="search1"
-              type="AntDesign"
-              style={{color: MainTheme.colorQuaternary}}
+              size={26}
+              color={MainTheme.colorQuaternary}
             />
           </TouchableOpacity>
         ) : null}
@@ -118,28 +110,15 @@ const SearchForm = (props) => {
             onRefresh ? onRefresh() : null;
           }}
           style={{flex: 0.1, height: 35, marginTop: 5}}>
-          <Icon
-            name="cycle"
-            type="Entypo"
-            style={{color: MainTheme.colorTertiary}}
+          <AntDesign
+            name="sync"
+            size={26}
+            color={MainTheme.colorTertiary}
           />
         </TouchableOpacity>
 
         {
-          //</View>userToken.VANCONFIG.VANCNF_AR_LIMIT == 1 ? (
-
-          // <TouchableOpacity
-          //   onPress={() => {
-          //     navigateTo ? navigateTo('CustomerRouteMap') : null;
-          //   }}
-          //   style={{flex: 0.1, height: 35, marginTop: 5}}>
-          //   <Icon
-          //     name="radar"
-          //     type="MaterialCommunityIcons"
-          //     style={{color: MainTheme.colorTertiary}}
-          //   />
-          // </TouchableOpacity>
-       //) : null
+         
         }
         {userToken.VANCONFIG.VANCNF_AR_LIMIT == 2 ? (
           <TouchableOpacity
@@ -147,10 +126,10 @@ const SearchForm = (props) => {
               navigateTo ? navigateTo('CustomerDestination') : null;
             }}
             style={{flex: 0.1, height: 35, marginTop: 5}}>
-            <Icon
-              name="routes"
-              type="MaterialCommunityIcons"
-              style={{color: MainTheme.colorTertiary}}
+            <AntDesign
+              name="sync"
+              size={26}
+              color={MainTheme.colorTertiary}
             />
           </TouchableOpacity>
         ) : null}
@@ -159,12 +138,12 @@ const SearchForm = (props) => {
           <TouchableOpacity
             onPress={() => { navigateTo ? navigateTo('CustomerRouteMapLine') : null }}
             style={{ flex: 0.1, height: 35, marginTop: 5 }} >
-            <Icon name='flow-branch' type='Entypo' style={{ color: MainTheme.colorTertiary }} />
+            <AntDesign name='fork' size={26} color={MainTheme.colorTertiary} />
           </TouchableOpacity>
         ) :  <TouchableOpacity
             onPress={() => { navigateTo ? navigateTo('CustomerRouteMapLine2') : null }}
             style={{ flex: 0.1, height: 35, marginTop: 5 }} >
-            <Icon name='flow-branch' type='Entypo' style={{ color: MainTheme.colorTertiary }} />
+            <AntDesign name='fork' size={26} color={MainTheme.colorTertiary} />
           </TouchableOpacity> }
      
      </View>

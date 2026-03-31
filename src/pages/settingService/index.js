@@ -1,10 +1,18 @@
 ﻿import _, { isNull } from 'lodash';
 import React, { useState } from 'react';
-import { Alert, Image, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Button, Icon } from 'react-native-elements';
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { Button } from 'react-native-elements';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import * as appConfig from '../../../app';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import * as appConfig from '../../../appConfig';
 import { systemCheckApi2 } from '../../api/setting';
 import ILoading from '../../component/loading/ILoading';
 import ITextWithErrorMessage from '../../component/text/ITextWithErrorMessage';
@@ -14,6 +22,7 @@ import Navigator from '../../services/Navigator';
 import { getListServiceSetting, saveListServiceSetting } from '../../utils/Token';
 
 let listServiceSetting = [];
+const DEFAULT_SERVICE_URL = appConfig.API_ENDPOINT_V3;
 
 const createLocalId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
@@ -43,16 +52,16 @@ const ServiceSetting = (props) => {
 
 
   const mode = service;
-  const [webURL, setWebURL] = useState(_webURL || appConfig.API_ENDPOINT_V3);
+  const [webURL, setWebURL] = useState(_webURL || DEFAULT_SERVICE_URL);
 
-  const [USER_CODE, setuser_code] = useState(_user_code || null);
-  const [USER_PASSWORD, setuser_password] = useState(_user_password || null);
+  const [USER_CODE, setuser_code] = useState(_user_code || '');
+  const [USER_PASSWORD, setuser_password] = useState(_user_password || '');
 
 
-  const [serviceName, setServiceName] = useState(_serviceName || null);
+  const [serviceName, setServiceName] = useState(_serviceName || '');
   const [errorMessage, setErrorMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [number, setNumber] = useState(_number || null);
+  const [number, setNumber] = useState(_number || '');
   const [listServiceSettings, setList] = useState(listServiceSetting);
 
   const [isShow, setisShow] = useState(true);
@@ -63,6 +72,12 @@ const ServiceSetting = (props) => {
 
     if (isNull(serviceName) || serviceName == '') {
       setErrorMessage('กรุณาระบุ' + strings('login_setting.web_servicename'))
+      validate = false
+    } else if (isNull(webURL) || webURL == '') {
+      setErrorMessage('กรุณาระบุ' + strings('login_setting.web_serviceurl'))
+      validate = false
+    } else if (isNull(number) || number == '') {
+      setErrorMessage('กรุณาระบุ' + strings('login_setting.van_machine'))
       validate = false
     } else if (isNull(USER_CODE) || USER_CODE == '') {
       setErrorMessage('กรุณาระบุ' + strings('login_setting.user_code'))
@@ -267,11 +282,11 @@ const ServiceSetting = (props) => {
   };
 
   const _onReset = () => {
-    setWebURL(null);
-    setServiceName(null);
-    setNumber(null);
-    setuser_code(null);
-    setuser_password(null);
+    setWebURL(DEFAULT_SERVICE_URL);
+    setServiceName('');
+    setNumber('');
+    setuser_code('');
+    setuser_password('');
     setErrorMessage('');
   };
 
@@ -390,191 +405,145 @@ const ServiceSetting = (props) => {
 
 
   return (
-    <View>
+    <View style={styles.screen}>
       <View style={styles.titleSection}>
-        <Icon
-          name="settings"
-          type="material"
+        <AntDesign
+          name="setting"
           color={MainTheme.colorQuaternary}
           size={30}
         />
 
         <Text
-          style={{ color: MainTheme.colorQuaternary, fontSize: hp('2.5%') }}
+          style={styles.title}
           allowFontScaling={false}>
-          {' '}
-          {`${mode === 'add' ? 'เพิ่ม' : 'แก้ไข'}เว็ปเซอร์วิส`}{' '}
+          {`${mode === 'add' ? 'เพิ่ม' : 'แก้ไข'}เว็ปเซอร์วิส`}
         </Text>
       </View>
 
-      <View style={styles.form}>
-
-
-
-
-
-
-
-        <View style={styles.itemInlineLabel}>
-          {
-            //<Label style={{fontSize: hp('1.7%')}}>{`ชื่อเว็ปเซอร์วิส`}</Label>
-          }
-          <Text style={[styles.label, { width: 125 }]}> 
-            {strings('login_setting.web_servicename')} :
+      <ScrollView
+        style={styles.form}
+        contentContainerStyle={styles.formContent}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.heroCard}>
+          <Text style={styles.heroTitle}>ตั้งค่าการเชื่อมต่อหน่วยรถ</Text>
+          <Text style={styles.heroText}>
+            กรอก URL, หน่วยรถ และข้อมูลผู้ใช้ให้ครบถ้วนก่อนบันทึก ระบบจะใช้ค่าเริ่มต้นจาก API_ENDPOINT_V3 ให้อัตโนมัติ
           </Text>
-
-
-          <TextInput
-            style={styles.input}
-            placeholder={strings('login_setting.web_servicename')}
-            placeholderTextColor={MainTheme.placeholerTextInput}
-            value={toInputValue(serviceName)}
-            underlineColorAndroid="transparent"
-            onChangeText={(value) => {
-              setServiceName(value);
-            }}
-          />
-
-          {
-            //  <TouchableOpacity style={{ marginLeft: 4 }} onPress={() =>                          
-            // {
-            //   Navigator.navigate('OrderCheckStockImageItems', {
-            //     takePicture: async (data) => {
-            //       await this.props.addStockImageItem(data.uri);
-            //       Navigator.back();
-            //     },
-            //   });
-            // }
-            // }>
-
-            // {
-            //  // <TouchableOpacity style={{ marginLeft: 4 }} onPress={() => Navigator.navigate('ScanScreen', { route: 'EditBase' })}>
-            // }
-            //               <FontAwesome
-            //                 name="qrcode"
-            //                 size={25}
-            //                 color={MainTheme.colorTertiary}
-            //               />
-            //  </TouchableOpacity>
-          }
-          <Text>{'   '}</Text>
         </View>
 
-        <View style={styles.itemInlineLabel}>
-          <Text style={styles.label}>
-            {strings('login_setting.web_serviceurl')} :
-          </Text>
-          <TextInput
-            multiline={true}
-            style={[styles.input, styles.multilineInput]}
-            value={toInputValue(webURL)}
-            underlineColorAndroid="transparent"
-            onChangeText={(value) => {
-              setWebURL(value);
-            }}
-          />
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>ข้อมูลเซอร์วิส</Text>
 
+          <View style={styles.fieldBlock}>
+            <Text style={styles.label}>{strings('login_setting.web_servicename')}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder={strings('login_setting.web_servicename')}
+              placeholderTextColor={MainTheme.placeholerTextInput}
+              value={toInputValue(serviceName)}
+              underlineColorAndroid="transparent"
+              onChangeText={(value) => {
+                setServiceName(value);
+              }}
+            />
+          </View>
 
+          <View style={styles.fieldBlock}>
+            <Text style={styles.label}>{strings('login_setting.web_serviceurl')}</Text>
+            <TextInput
+              multiline={true}
+              style={[styles.input, styles.multilineInput]}
+              value={toInputValue(webURL)}
+              underlineColorAndroid="transparent"
+              placeholder={DEFAULT_SERVICE_URL}
+              placeholderTextColor={MainTheme.placeholerTextInput}
+              onChangeText={(value) => {
+                setWebURL(value);
+              }}
+            />
+          </View>
 
+          <View style={styles.fieldBlock}>
+            <Text style={styles.label}>{strings('login_setting.van_machine')}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder={strings('login_setting.van_machine')}
+              placeholderTextColor={MainTheme.placeholerTextInput}
+              value={toInputValue(number)}
+              underlineColorAndroid="transparent"
+              onChangeText={(value) => {
+                setNumber(value);
+              }}
+            />
+          </View>
         </View>
 
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>ข้อมูลผู้ใช้งาน</Text>
 
-        <View style={styles.itemInlineLabel}>
-          <Text style={[styles.label, { width: 100 }]}> 
-            {strings('login_setting.user_code')} :
-          </Text>
-          <Image
-            style={{ height: 20, width: 20 }}
-            resizeMode={'contain'}
-            source={require('../../images/person.png')}
+          <View style={styles.fieldBlock}>
+            <Text style={styles.label}>{strings('login_setting.user_code')}</Text>
+            <View style={styles.iconInputRow}>
+              <Image
+                style={styles.leadingIcon}
+                resizeMode={'contain'}
+                source={require('../../images/person.png')}
+              />
+              <TextInput
+                placeholder={strings('login.user_code')}
+                placeholderTextColor={MainTheme.placeholerTextInput}
+                value={toInputValue(USER_CODE)}
+                autoCapitalize={'characters'}
+                style={styles.iconInput}
+                underlineColorAndroid="transparent"
+                onChangeText={(value) => {
+                  setuser_code ? setuser_code(value.trim()) : null;
+                }}
+              />
+            </View>
+          </View>
 
-          />
-
-          <TextInput
-            placeholder={strings('login.user_code')}
-            placeholderTextColor={MainTheme.placeholerTextInput}
-            value={toInputValue(USER_CODE)}
-            autoCapitalize={'characters'}
-            style={styles.input}
-            underlineColorAndroid="transparent"
-            onChangeText={(value) => {
-              setuser_code ? setuser_code(value.trim()) : null;
-              //setuser_code ? setuser_code('BUSINES') : null;
-
-            }}
-          />
+          <View style={styles.fieldBlock}>
+            <Text style={styles.label}>{strings('login_setting.user_password')}</Text>
+            <View style={styles.iconInputRow}>
+              <Image
+                style={styles.leadingIcon}
+                resizeMode={'contain'}
+                source={require('../../images/lock.png')}
+              />
+              <TextInput
+                placeholder={strings('login.user_password')}
+                secureTextEntry={isShow}
+                placeholderTextColor={MainTheme.placeholerTextInput}
+                value={toInputValue(USER_PASSWORD)}
+                autoCapitalize={'characters'}
+                style={styles.iconInput}
+                underlineColorAndroid="transparent"
+                onChangeText={(value) => {
+                  setuser_password ? setuser_password(value) : null;
+                }}
+              />
+              <AntDesign
+                name={isShow ? 'eyeo' : 'eye'}
+                size={22}
+                onPress={async () => {
+                  await _toggleShow();
+                }}
+                style={styles.trailingIcon}
+              />
+            </View>
+          </View>
         </View>
 
-        <View style={styles.itemInlineLabel}>
-          <Text style={[styles.label, { width: 100 }]}> 
-            {strings('login_setting.user_password')} :
-          </Text>
-          <Image
-            style={{ height: 20, width: 20 }}
-            resizeMode={'contain'}
-            source={require('../../images/lock.png')}
-
-          />
-
-
-          <TextInput
-            placeholder={strings('login.user_password')}
-            secureTextEntry={isShow}
-            placeholderTextColor={MainTheme.placeholerTextInput}
-            value={toInputValue(USER_PASSWORD)}
-            autoCapitalize={'characters'}
-            style={styles.input}
-            underlineColorAndroid="transparent"
-            //onChangeText={_handleChangePassword()}
-            onChangeText={(value) => {
-              setuser_password ? setuser_password(value) : null;
-
-            }}
-          />
-          <Ionicons
-            name={isShow ? 'eye-off' : 'eye'}
-            size={25}
-            onPress={async () => {
-              await _toggleShow();
-            }}
-            style={{ color: MainTheme.colorTertiary }}
-          />
-        </View>
-
-
-        <View style={styles.itemInlineLabel}>
-          <Text style={[styles.label, { width: 110 }]}> 
-            {strings('login_setting.van_machine')} :
-          </Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder={strings('login_setting.van_machine')}
-            placeholderTextColor={MainTheme.placeholerTextInput}
-            value={toInputValue(number)}
-            underlineColorAndroid="transparent"
-            onChangeText={(value) => {
-              setNumber(value);
-            }}
-          />
-        </View>
-
-
-        <View style={styles.MessageBox}>
+        <View style={styles.messageBox}>
           <ITextWithErrorMessage message={errorMessage} />
           <ILoading isLoading={isLoading} />
         </View>
 
-
         <View style={iButtonGroupCustomStyles.container}>
           <Button
             large
-            buttonStyle={{
-              backgroundColor: MainTheme.colorPrimary,
-              width: 150,
-              elevation: 0,
-              borderColor: MainTheme.colorPrimary,
-            }}
+            buttonStyle={styles.primaryButton}
             title={`บันทึกและเชื่อมต่อ`}
             titleStyle={{ color: MainTheme.colorSecondary, fontSize: hp('1.7%') }}
             onPress={() => {
@@ -585,13 +554,7 @@ const ServiceSetting = (props) => {
           {mode === 'add' && (
             <Button
               large
-              buttonStyle={{
-                backgroundColor: MainTheme.colorSecondary,
-                width: 100,
-                elevation: 0,
-                borderWidth: 0.5,
-                borderColor: MainTheme.colorButtonBorder,
-              }}
+              buttonStyle={styles.secondaryButton}
               title={`ล้าง`}
               titleStyle={{ color: MainTheme.colorPrimary, fontSize: hp('1.7%') }}
               onPress={() => {
@@ -602,13 +565,7 @@ const ServiceSetting = (props) => {
           {mode === 'edit' && (
             <Button
               large
-              buttonStyle={{
-                backgroundColor: MainTheme.colorSecondary,
-                width: 100,
-                elevation: 0,
-                borderWidth: 0.5,
-                borderColor: MainTheme.colorButtonBorder,
-              }}
+              buttonStyle={styles.secondaryButton}
               title={`ลบ`}
               titleStyle={{ color: MainTheme.colorPrimary, fontSize: hp('1.7%') }}
               onPress={() => {
@@ -618,13 +575,7 @@ const ServiceSetting = (props) => {
           )}
           <Button
             large
-            buttonStyle={{
-              backgroundColor: MainTheme.colorSecondary,
-              width: 100,
-              elevation: 0,
-              borderWidth: 0.5,
-              borderColor: MainTheme.colorButtonBorder,
-            }}
+            buttonStyle={styles.secondaryButton}
             title={`ย้อนกลับ`}
             titleStyle={{ color: MainTheme.colorPrimary, fontSize: hp('1.7%') }}
             onPress={() => {
@@ -633,8 +584,7 @@ const ServiceSetting = (props) => {
           />
         </View>
 
-
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -642,8 +592,16 @@ const ServiceSetting = (props) => {
 export default ServiceSetting;
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#F4FAF6',
+  },
   form: {
     width: '100%',
+  },
+  formContent: {
+    padding: 14,
+    paddingBottom: 28,
   },
   titleSection: {
     paddingLeft: 15,
@@ -652,45 +610,129 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     height: 50,
     alignItems: 'center',
+    backgroundColor: MainTheme.colorSecondary,
   },
-  bodySection: {},
-  itemInlineLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 0.5,
-    borderColor: '#d6d7da',
-    minHeight: 44,
+  title: {
+    color: MainTheme.colorQuaternary,
+    fontSize: hp('2.5%'),
+    marginLeft: 8,
+  },
+  heroCard: {
+    backgroundColor: '#E8F5EC',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#D3E9D9',
+  },
+  heroTitle: {
+    color: MainTheme.colorQuaternary,
+    fontSize: hp('2.2%'),
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  heroText: {
+    color: '#4C6656',
+    fontSize: hp('1.7%'),
+    lineHeight: 22,
+  },
+  sectionCard: {
+    backgroundColor: MainTheme.colorSecondary,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8E4',
+  },
+  sectionTitle: {
+    color: MainTheme.colorQuaternary,
+    fontSize: hp('2%'),
+    fontWeight: '700',
+    marginBottom: 14,
+  },
+  fieldBlock: {
+    marginBottom: 14,
   },
   label: {
     fontSize: hp('1.7%'),
-    color: '#000000',
+    color: MainTheme.colorQuaternary,
+    marginBottom: 8,
   },
   input: {
-    flex: 1,
+    width: '100%',
     fontSize: hp('1.7%'),
-    paddingVertical: 10,
-    paddingHorizontal: 0,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     color: '#000000',
+    backgroundColor: '#F9FCFA',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D6E2D9',
   },
   multilineInput: {
-    minHeight: 80,
+    minHeight: 96,
     textAlignVertical: 'top',
   },
-  MessageBox: {
+  helperText: {
+    marginTop: 6,
+    color: '#708070',
+    fontSize: hp('1.5%'),
+  },
+  iconInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FCFA',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D6E2D9',
+    paddingHorizontal: 12,
+  },
+  leadingIcon: {
+    height: 20,
+    width: 20,
+    marginRight: 10,
+  },
+  iconInput: {
+    flex: 1,
+    fontSize: hp('1.7%'),
+    paddingVertical: 12,
+    color: '#000000',
+  },
+  trailingIcon: {
+    color: MainTheme.colorTertiary,
+    marginLeft: 8,
+  },
+  messageBox: {
     alignContent: 'center',
-    marginTop: 15,
-    height: 30,
+    minHeight: 30,
+    marginBottom: 8,
+  },
+  primaryButton: {
+    backgroundColor: MainTheme.colorPrimary,
+    width: 150,
+    elevation: 0,
+    borderColor: MainTheme.colorPrimary,
+    borderRadius: 12,
+  },
+  secondaryButton: {
+    backgroundColor: MainTheme.colorSecondary,
+    width: 100,
+    elevation: 0,
+    borderWidth: 1,
+    borderColor: MainTheme.colorButtonBorder,
+    borderRadius: 12,
   },
 });
 
 const iButtonGroupCustomStyles = StyleSheet.create({
   container: {
     flex: null,
-    height: 60,
     flexDirection: 'row',
-    padding: 5,
+    paddingVertical: 5,
     justifyContent: 'space-evenly',
-    marginTop: 10,
+    marginTop: 4,
+    flexWrap: 'wrap',
+    rowGap: 10,
   },
   panel: {
     flex: 1,

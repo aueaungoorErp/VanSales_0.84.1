@@ -1,37 +1,37 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Icon } from 'react-native-elements'
-import { MainTheme } from '../../../../constant/lov'
+import { StyleSheet, View } from 'react-native'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import IDatePicker from '../../../../component/input/IDatePicker'
+import { MainTheme } from '../../../../constant/lov'
 
 const SearchForm = (props) => {
     const { dateFrom, dateTo, onSearch, dialogMessage, setState } = props
 
     return (
         <View style={styles.container}>
-            <View style={{flexDirection: 'row'}}>
+            <View style={styles.row}>
                 <View style={styles.sectionInline}>
-                    <View style={{flex: 0.45, marginHorizontal: 5}}>
+                    <View style={styles.dateField}>
                         <IDatePicker
                             label='จาก'
                             value={dateFrom}
                             onDateChange={(value) => { setState ? setState('dateFrom', value) : null }} />
                     </View>
 
-                    <View style={{flex: 0.45, marginHorizontal: 5}}>
+                    <View style={styles.dateField}>
                         <IDatePicker
                             label='ถึง'
                             value={dateTo}
                             onDateChange={(value) => {setState ? setState('dateTo', value) : null}} />
                     </View>
-                    <View style={[styles.sectionInline, {flex: 0.1}]}>
-                        <Icon
-                            name='ios-search' 
-                            color={MainTheme.colorPrimary}
-                            size={30} 
-                            type={'ionicon'}
-                            onPress={() => onSearch ? onSearch() : null} />
 
+                    <View style={styles.searchButtonWrap}>
+                        <AntDesign
+                            name='search1'
+                            color={MainTheme.colorSecondary}
+                            size={20}
+                            onPress={() => onSearch ? onSearch() : null}
+                            style={styles.searchIcon} />
                     </View>
                 </View>
             </View>
@@ -47,12 +47,34 @@ const styles = StyleSheet.create({
         marginTop: 5,
         marginBottom: 20,
     },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+    },
     sectionInline: {
         flex: 1,
-        height: 30, 
         flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center'
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+    },
+    dateField: {
+        flex: 0.45,
+        marginHorizontal: 5,
+        justifyContent: 'flex-end',
+    },
+    searchButtonWrap: {
+        flex: 0.1,
+        minHeight: 38,
+        marginLeft: 4,
+        borderRadius: 12,
+        backgroundColor: MainTheme.colorPrimary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 8,
+    },
+    searchIcon: {
+        textAlign: 'center',
     },
     dateIcon: {
         position: 'absolute',

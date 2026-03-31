@@ -1,26 +1,26 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {View, ScrollView, Dimensions} from 'react-native';
-import {Icon} from 'react-native-elements';
-import IList from '../../../component/list/IList';
+import React, { Component } from 'react';
+import { Dimensions, ScrollView, View } from 'react-native';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import { connect } from 'react-redux';
 import ErrorMessage from '../../../component/announce/ErrorMessage';
-import Navigator from '../../../services/Navigator';
-import {MainTheme} from '../../../constant/lov';
 import IButtonGroup from '../../../component/button/IButtonGroup';
-import {getUserToken} from '../../../utils/Token';
+import IList from '../../../component/list/IList';
+import { MainTheme } from '../../../constant/lov';
+import Navigator from '../../../services/Navigator';
+import { getUserToken } from '../../../utils/Token';
 
 import {
-  salesOrderByProduct,
-  salesOrderByCategory,
-  salesOrderByArline,
-  salesOrderByDocType,
-  salesOrderByPmt,
-  documentItems,
-  documentItemsDetails,
-  performanceByArlineItem,
-  peformanceByProductCategory,
-  salesOrderBySaleman,
-  stockBalanceByWL,
+    documentItems,
+    documentItemsDetails,
+    peformanceByProductCategory,
+    performanceByArlineItem,
+    salesOrderByArline,
+    salesOrderByCategory,
+    salesOrderByDocType,
+    salesOrderByPmt,
+    salesOrderByProduct,
+    salesOrderBySaleman,
+    stockBalanceByWL,
 } from '../../../constant/report-lov';
 
 class CTListItems extends Component {
@@ -103,25 +103,25 @@ class CTListItems extends Component {
   };
 
   _listButton = () => (
-    <Icon
-      name="counter"
-      type="material-community"
+    <AntDesign
+      name="calculator"
       color={
         this.state.selectedIndex == 0
           ? MainTheme.colorSecondary
           : MainTheme.colorPrimary
       }
+      size={24}
     />
   );
   _gridButton = () => (
-    <Icon
-      name="percent"
-      type="material-community"
+    <AntDesign
+      name="percentage"
       color={
         this.state.selectedIndex == 1
           ? MainTheme.colorSecondary
           : MainTheme.colorPrimary
       }
+      size={24}
     />
   );
 
@@ -467,7 +467,7 @@ class CTListItems extends Component {
           isDisplaying={this.props.report.errorMessage}
           message={this.props.report.errorMessage}
           iconName="warning"
-          type="font-awesome"
+          type="antdesign"
         />
       </View>
     );

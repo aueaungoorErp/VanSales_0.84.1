@@ -1,36 +1,35 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {View, Text, Alert, PermissionsAndroid, Platform} from 'react-native';
 import moment from 'moment';
-import {ListItem, Icon} from 'react-native-elements';
+import React, { Component } from 'react';
+import { Alert, PermissionsAndroid, Platform, Text, View } from 'react-native';
+import { Icon, ListItem } from 'react-native-elements';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
-import {printReceipt} from '../../../../constant/printing-pdf-lov';
-import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
-import ListItems from '../presenter/ListItems';
-import {MainTheme, mainDivider} from '../../../../constant/lov';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { connect } from 'react-redux';
 import {
   billClearListItems,
   billSearchListItems,
   setError,
 } from '../../../../action/bill';
 import {
+  addProduct,
   loadOrderFileByById,
   orderCancel,
   orderUpdate,
-  setInitialState,
   setHeader,
+  setInitialState,
   setOrderItems,
-  addProduct,
 } from '../../../../action/order';
-import {BplusPrinting, BluetoothFinder} from '../../../../module';
+import { MainTheme, mainDivider } from '../../../../constant/lov';
+import { printReceipt } from '../../../../constant/printing-pdf-lov';
+import { BluetoothFinder, BplusPrinting } from '../../../../module';
 import Navigator from '../../../../services/Navigator';
-import {calculateOrderProductProcessedSummary} from '../../../../utils/Culculate';
-import {getUserToken} from '../../../../utils/Token';
+import { calculateOrderProductProcessedSummary } from '../../../../utils/Culculate';
 import {
-  generateHeaderForUpdate,
   convertProductItemLastBillToOrderItem,
-  convertProductItemToOrderItem,
+  generateHeaderForUpdate
 } from '../../../../utils/Order';
+import { getUserToken } from '../../../../utils/Token';
+import ListItems from '../presenter/ListItems';
 
 class CTListItems extends Component {
   _isMounted = false;
@@ -548,7 +547,7 @@ class CTListItems extends Component {
                   <Icon
                     name="edit"
                     size={20}
-                    type={'entypo'}
+                    type={'antdesign'}
                     color={MainTheme.colorPrimary}
                     underlayColor="transparent"
                     onPress={() => this._orderUpdate(item)}
@@ -556,53 +555,8 @@ class CTListItems extends Component {
                 </View>
               ) : null}
 
-              {/* {this._showPrinterIcon(item) &&
-              this.props.bluetooth.printingType === 'BLUETOOTH' ? (
-                <View style={{marginRight: 15}}>
-                  <Icon
-                    name={'printer'}
-                    size={20}
-                    type={'simple-line-icon'}
-                    color={MainTheme.colorPrimary}
-                    underlayColor="transparent"
-                    onPress={() => this._printConfirmDialog(item)}
-                  />
-                </View>
-              ) : (
-                <View style={{marginRight: 15}}>
-                  <Icon
-                    name={'file-pdf'}
-                    size={20}
-                    type={'material-community'}
-                    color={MainTheme.colorPrimary}
-                    underlayColor="transparent"
-                    onPress={() => this._printConfirmDialog(item)}
-                  />
-                </View>
-              )} */}
-
-              {
-              //   item.DOCINFO?.DI_ACTIVE == 0 &&
-              // //   item.CAN_EDIT == true &&
-              // item.DOCINFO?.DT_PROPERTIES != 348 &&
-              // item.DOCINFO?.DT_PROPERTIES != 349 &&
-              // this.state.userToken &&
-              // this.state.userToken.VANCONFIG ? ( // &&
-              //   // this.state.userToken.VANCONFIG.VANCNF_DOC_CANCEL &&
-              //   // this.state.userToken.VANCONFIG.VANCNF_DOC_CANCEL == 2
-              //   <View style={{marginRight: 15}}>
-              //     <Icon
-              //       name="cancel"
-              //       size={20}
-              //       type={'materialIcons'}
-              //       color={MainTheme.colorPrimary}
-              //       underlayColor="transparent"
-              //       onPress={() => this._removeConfirmDialog(item)}
-              //       style={{marginRight: 15}}
-              //     />
-              //   </View>
-              // ) : null
-              }
+             
+              
             </View>
           </View>
         }

@@ -1,10 +1,9 @@
 import React from 'react'
-import { ScrollView, View, Text } from 'react-native'
-import IList from '../../../../component/list/IList'
-import ErrorMessage from '../../../../component/announce/ErrorMessage'
+import { ScrollView, Text, View } from 'react-native'
+import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs'
 import SnackBar from 'react-native-snackbar-component'
-import IOverlay from '../../../../component/modal/IOverlay'
-import { ProgressDialog, ConfirmDialog } from 'react-native-simple-dialogs'
+import ErrorMessage from '../../../../component/announce/ErrorMessage'
+import IList from '../../../../component/list/IList'
 
 const ListItems = (props) => {
     const { 
@@ -87,8 +86,8 @@ const ListItems = (props) => {
                 actionHandler={()=> actionHandler ? actionHandler() : null} 
                 actionText="close" />
             
-            <ErrorMessage isDisplaying={isNotFound} iconName='account-search' iconType='MaterialCommunityIcons' />
-            <ErrorMessage isDisplaying={isError} message='Network not available' iconName='account-search' iconType='MaterialCommunityIcons' />
+            <ErrorMessage isDisplaying={isNotFound} iconName='search1' iconType='AntDesign' />
+            <ErrorMessage isDisplaying={isError} message='Network not available' iconName='search1' iconType='AntDesign' />
         </View>
     )
 

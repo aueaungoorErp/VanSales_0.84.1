@@ -7,12 +7,16 @@ import { BackHandler } from 'react-native';
  * Returns the result to control whether the default back behaviour is prevented.
  */
 class AndroidBackHandler extends Component {
+  _subscription = null;
+
   componentDidMount() {
-    BackHandler.addEventListener('hardwareBackPress', this._handleBack);
+    this._subscription = BackHandler.addEventListener('hardwareBackPress', this._handleBack);
   }
 
   componentWillUnmount() {
-    BackHandler.removeEventListener('hardwareBackPress', this._handleBack);
+    if (this._subscription) {
+      this._subscription.remove();
+    }
   }
 
   _handleBack = () => {

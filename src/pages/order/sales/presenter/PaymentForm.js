@@ -5,13 +5,13 @@ import { Button, CheckBox } from 'react-native-elements';
 import RNPickerSelect from 'react-native-picker-select';
 import QRCode from 'react-native-qrcode-svg';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import IButtonGroupCustom from '../../../../component/button/IButtonGroupCustom';
 import IDatePicker from '../../../../component/input/IDatePicker';
 import ILoading from '../../../../component/loading/ILoading';
 import ITextWithErrorMessage from '../../../../component/text/ITextWithErrorMessage';
 import ITextWithSuccessMessage from '../../../../component/text/ITextWithSuccessMessage';
 import { MainTheme } from '../../../../constant/lov';
-import { resolveVectorIconComponent } from '../../../../utils/iconFactory';
 
 const Container = ({children}) => <View style={{flex: 1}}>{children}</View>;
 const Content = ({children}) => <ScrollView>{children}</ScrollView>;
@@ -28,22 +28,6 @@ const Input = ({style, ...props}) => (
     ]}
   />
 );
-
-const Icon = ({type, name, style, size, color, onPress}) => {
-  const IconComponent = resolveVectorIconComponent(
-    type,
-    resolveVectorIconComponent('AntDesign'),
-  );
-  return (
-    <IconComponent
-      name={name}
-      size={size ?? style?.fontSize ?? 20}
-      color={color ?? style?.color ?? MainTheme.colorPrimary}
-      style={style}
-      onPress={onPress}
-    />
-  );
-};
 
 
 
@@ -578,10 +562,10 @@ const PaymentForm = (props) => {
     <Container>
       <Content>
         <Item style={styles.titleSection}>
-          <Icon
-            name="payment"
-            type="MaterialIcons"
-            style={{ color: MainTheme.colorSenary }}
+          <AntDesign
+            name="pay-circle-o1"
+            color={MainTheme.colorSenary}
+            size={20}
           />
 
           <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>
@@ -779,10 +763,9 @@ const PaymentForm = (props) => {
                       textInputProps={{ underlineColorAndroid: 'cyan', underlineColor: 'yellow' }}
                       useNativeAndroidPickerStyle={false}
                       Icon={() => {
-                        return <Icon
+                        return <AntDesign
                           name='down'
-                          type='AntDesign'
-                          size={20} style={{ color: MainTheme.colorPrimary, marginTop: 5 }} />
+                          size={20} color={MainTheme.colorPrimary} style={{marginTop: 5}} />
                       }} />
 
 
@@ -864,10 +847,9 @@ const PaymentForm = (props) => {
                   textInputProps={{ underlineColorAndroid: 'cyan', underlineColor: 'yellow' }}
                   useNativeAndroidPickerStyle={false}
                   Icon={() => {
-                    return <Icon
+                    return <AntDesign
                       name='down'
-                      type='AntDesign'
-                      size={20} style={{ color: MainTheme.colorPrimary, marginTop: 5 }} />
+                      size={20} color={MainTheme.colorPrimary} style={{marginTop: 5}} />
                   }} />
               </Form>
             </Item>
@@ -990,10 +972,9 @@ const PaymentForm = (props) => {
                       textInputProps={{ underlineColorAndroid: 'cyan', underlineColor: 'yellow' }}
                       useNativeAndroidPickerStyle={false}
                       Icon={() => {
-                        return <Icon
+                        return <AntDesign
                           name='down'
-                          type='AntDesign'
-                          size={20} style={{ color: MainTheme.colorPrimary, marginTop: 5 }} />
+                          size={20} color={MainTheme.colorPrimary} style={{marginTop: 5}} />
                       }} />
                   </Form>
                 </Item>
@@ -1087,10 +1068,9 @@ const PaymentForm = (props) => {
                             textInputProps={{ underlineColorAndroid: 'cyan', underlineColor: 'yellow' }}
                             useNativeAndroidPickerStyle={false}
                             Icon={() => {
-                              return <Icon
+                              return <AntDesign
                                 name='down'
-                                type='AntDesign'
-                                size={20} style={{ color: MainTheme.colorPrimary, marginTop: 5 }} />
+                                size={20} color={MainTheme.colorPrimary} style={{marginTop: 5}} />
                             }}
                           />
                         </Form>

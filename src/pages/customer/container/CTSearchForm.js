@@ -1,16 +1,16 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import SearchForm from '../presenter/SearchForm';
 import {
-  searchCustomerList,
-  setKeyword,
   clearCustomerList,
-  setInitialState,
+  searchCustomerList,
   searchCustomerNextDestination,
+  setInitialState,
+  setKeyword,
 } from '../../../action/customer';
 import { setCustomerType } from '../../../action/customer-type';
-import { getUserToken } from '../../../utils/Token';
 import Navigator from '../../../services/Navigator';
+import { getUserToken } from '../../../utils/Token';
+import SearchForm from '../presenter/SearchForm';
 
 class CTSearchForm extends Component {
   _isMounted = false;
@@ -28,17 +28,14 @@ class CTSearchForm extends Component {
         },
       },
     };
-
-    this._getUserToken();
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this._isMounted = true;
-    console.log('this.state.userToken.', this.state.userToken);
+    await this._getUserToken();
     this.props.setInitialState();
-    this.props.clearCustomerList();
-    this._onRefresh();
-    this._onSearch();
+    await this.props.clearCustomerList();
+    await this._loadInitialCustomers();
   }
 
   componentWillUnmount() {
@@ -52,9 +49,27 @@ class CTSearchForm extends Component {
     }
   };
 
+  _loadInitialCustomers = async () => {
+    const userToken = await getUserToken();
+
+    if (userToken) {
+      await this._setState('userToken', userToken);
+    }
+
+    if (userToken?.VANCONFIG?.VANCNF_AR_LIMIT != 2) {
+      await this.props.setKeyword(
+        this.state.textSearch ? this.state.textSearch.trim() : null,
+      );
+      await this.props.searchCustomerList(false);
+      return;
+    }
+
+    await this.props.searchCustomerNextDestination();
+  };
+
   _onRefresh = async () => {
     const userToken = await getUserToken();
-    this.props.customerType.item = {};
+    await this.props.setCustomerType({ ARCAT_KEY: null, ARCAT_NAME: null });
 
     if (userToken) {
       //console.log('userToken 2', userToken);
@@ -94,25 +109,16 @@ class CTSearchForm extends Component {
 
   _onSearch = async () => {
     await this._getUserToken();
-    console.log('_onSearch', !this.props.customer.isLoading);
 
     if (!this.props.customer.isLoading) {
       if (this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT != 2) {
-        console.log(
-          ' this.props.customerType.listItems ',
-          this.props.customerType.listItems,
-        );
         if (
           this.props.customerType.listItems &&
           this.props.customerType.listItems.length > 0
         ) {
-          console.log(" this.state.ARCAT_KEY=>>>>>>>> ", this.state.ARCAT_KEY);
           let type = this.props.customerType.listItems.find((v) => {
-            console.log(' this.state.ARCAT_KEY ', this.state.ARCAT_KEY);
-            console.log(' v.ARCAT_KEY', v.ARCAT_KEY);
             return this.state.ARCAT_KEY == v.ARCAT_KEY;
           });
-          console.log(" type=>>>>>>>> ", type);
           type ? null : (type = { ARCAT_KEY: null, ARCAT_NAME: null });
 
           await this.props.setCustomerType(type);
@@ -120,12 +126,17 @@ class CTSearchForm extends Component {
           await this.props.setKeyword(
             this.state.textSearch ? this.state.textSearch.trim() : null,
           );
-          console.log('ตรวจสอบตรงนี้ >> 1');
           await this.props.searchCustomerList();
+        } else {
+          await this.props.clearCustomerList();
+          await this.props.setKeyword(
+            this.state.textSearch ? this.state.textSearch.trim() : null,
+          );
+          await this.props.searchCustomerList(false);
         }
       } else {
         await this.props.clearCustomerList();
-        //await this.props.searchCustomerNextDestination();
+        await this.props.searchCustomerNextDestination();
       }
     }
   };
@@ -179,22 +190,22 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => {
   return {
     setInitialState: () => {
-      dispatch(setInitialState());
+      return dispatch(setInitialState());
     },
     setKeyword: (criteria) => {
-      dispatch(setKeyword(criteria));
+      return dispatch(setKeyword(criteria));
     },
-    searchCustomerList: () => {
-      dispatch(searchCustomerList());
+    searchCustomerList: (nextPage) => {
+      return dispatch(searchCustomerList(nextPage));
     },
     clearCustomerList: () => {
-      dispatch(clearCustomerList());
+      return dispatch(clearCustomerList());
     },
     setCustomerType: (value) => {
-      dispatch(setCustomerType(value));
+      return dispatch(setCustomerType(value));
     },
     searchCustomerNextDestination: () => {
-      dispatch(searchCustomerNextDestination());
+      return dispatch(searchCustomerNextDestination());
     },
   };
 };

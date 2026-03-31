@@ -1,32 +1,27 @@
-﻿import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import {ListItem, Icon} from 'react-native-elements';
-import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
-import ListItems from '../../presenter/drop-point/ListItems';
-import {MainTheme, mainDivider} from '../../../../constant/lov';
-import { 
-  ORDER_TYPE_SALE, 
-  ORDER_TYPE_RETURN, 
-  ORDER_TYPE_BOOKING, 
-  ORDER_TYPE_QUOTATION, 
-  ORDER_TYPE_TRANSFER, 
-  ORDER_TYPE_PAYMENT 
-} from '../../../../constant/orderTypes';
-import { 
-  setInitialState,
-  getDropPointListItems
+﻿import React, { Component } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ListItem } from 'react-native-elements';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import { connect } from 'react-redux';
+import {
+    getDropPointListItems,
+    setInitialState
 } from '../../../../action/drop-point';
-import Navigator from '../../../../services/Navigator';
-import {getUserToken} from '../../../../utils/Token';
 import {
-  setInitialState as orderSetInitialState,
-  setHeader,
+    setInitialState as orderSetInitialState,
+    setHeader,
 } from '../../../../action/order';
+import { MainTheme, mainDivider } from '../../../../constant/lov';
 import {
-  generateHeaderStockTransfer,
-  generateHeaderStockTransferV3,
+    ORDER_TYPE_TRANSFER
+} from '../../../../constant/orderTypes';
+import Navigator from '../../../../services/Navigator';
+import {
+    generateHeaderStockTransferV3
 } from '../../../../utils/Order';
+import { getUserToken } from '../../../../utils/Token';
+import ListItems from '../../presenter/drop-point/ListItems';
 
 class CTListItems extends Component {
   _isMounted = false;
@@ -199,8 +194,17 @@ class CTListItems extends Component {
                 true : false: (item.WL_KEY === this.state.vanVANCNF_WL && this.state.vanVANCNF_WL === this.state.transferfrom) ?
                 true : false
             }
-        title=
-        {
+        onPress={() => {
+          this.props.actionType === 'transfer' ||
+          this.props.actionType === 'transferGoods'
+            ? this._onPress(item)
+            : null;
+        }}
+        containerStyle={mainDivider}
+        bottomDivider
+      >
+        {item.icon ? <Icon name={item.icon} type={item.type} /> : null}
+        <ListItem.Content>
           <View style={{flex: 1, flexDirection: 'column',}}>
             <Text style = 
              {[
@@ -244,19 +248,8 @@ class CTListItems extends Component {
             ) : null
             }
           </View>
-        }
-        titleNumberOfLines={1}
-        leftIcon={{name: item.icon, type: item.type}}
-        hideChevron
-        onPress={() => {
-          this.props.actionType === 'transfer' ||
-          this.props.actionType === 'transferGoods'
-            ? this._onPress(item)
-            : null;
-        }}
-        containerStyle={mainDivider}
-        bottomDivider
-      />
+        </ListItem.Content>
+      </ListItem>
     );
   };
 
@@ -334,25 +327,25 @@ class CTListItems extends Component {
   };
 
   _listButton = () => (
-    <Icon
-      name="th-list"
-      type="font-awesome"
+    <AntDesign
+      name="bars"
       color={
         this.state.selectedIndex == 0
           ? MainTheme.colorSecondary
           : MainTheme.colorPrimary
       }
+      size={24}
     />
   );
   _gridButton = () => (
-    <Icon
-      name="th"
-      type="font-awesome"
+    <AntDesign
+      name="appstore-o"
       color={
         this.state.selectedIndex == 1
           ? MainTheme.colorSecondary
           : MainTheme.colorPrimary
       }
+      size={24}
     />
   );
 

@@ -1,22 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Swiper from 'react-native-swiper';
+import { StyleSheet, Text, View } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import Swiper from 'react-native-swiper';
 import { MainTheme } from '../../../constant/lov';
-import { toBuddhistYear } from '../../../utils/Date';
 import { strings } from '../../../locales/i18n';
+import { toBuddhistYear } from '../../../utils/Date';
 const Detail = (props) => {
-  const { customer } = props;
+  const { customer = {} } = props;
   const {
-    INFO,
-    AR_SUMMARY,
+    INFO = {},
+    AR_SUMMARY = {},
     CUS_ADDB,
     LST_VISIT_DOC,
     LST_BILL_DOC,
     CUS_PAY_INF,
     CREDIT_LIM,
   } = customer;
-  console.log('CUSTOMER ', customer);
   return (
     <View style={styles.container}>
       <Swiper
@@ -55,10 +54,10 @@ const Detail = (props) => {
         }>
         <View style={styles.slide1}>
           <Text style={styles.content} allowFontScaling={false}>
-            {INFO.AR_CODE}
+            {INFO.AR_CODE || '-'}
           </Text>
           <Text style={styles.content} allowFontScaling={false}>
-            {INFO.AR_NAME}
+            {INFO.AR_NAME || '-'}
           </Text>
           <Text style={styles.content} allowFontScaling={false}>
             {strings('customer.label_address1')}
@@ -69,6 +68,7 @@ const Detail = (props) => {
             {INFO.ADDB_DISTRICT ? INFO.ADDB_DISTRICT + ' \n' : null}
             {INFO.ADDB_PROVINCE ? INFO.ADDB_PROVINCE + ' \n' : null}
             {INFO.ADDB_POST ? INFO.ADDB_POST + ' ' : null}
+            {!INFO.ADDB_ADDB_1 && !INFO.ADDB_ADDB_2 && !INFO.ADDB_ADDB_3 && !INFO.ADDB_SUB_DISTRICT && !INFO.ADDB_DISTRICT && !INFO.ADDB_PROVINCE && !INFO.ADDB_POST ? ' - ' : null}
           </Text>
         </View>
 

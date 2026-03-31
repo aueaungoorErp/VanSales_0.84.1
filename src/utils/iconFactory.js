@@ -28,7 +28,7 @@ const ICON_COMPONENTS = {
     materialIcons: MaterialIcons,
 }
 
-export const resolveVectorIconComponent = (type, fallback = MaterialIcons) => {
+export const resolveVectorIconComponent = (type, fallback = AntDesign) => {
     if (!type) {
         return fallback
     }

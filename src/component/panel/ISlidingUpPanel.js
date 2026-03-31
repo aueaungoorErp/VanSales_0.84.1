@@ -1,8 +1,8 @@
-import React, { Component} from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import { Icon } from 'react-native-elements'
-import { MainTheme } from '../../constant/lov'
+import { Component } from 'react'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import SlidingUpPanel from 'rn-sliding-up-panel'
+import { MainTheme } from '../../constant/lov'
 
 class ISlidingUpPanel extends Component {
     _isMounted = false
@@ -11,8 +11,8 @@ class ISlidingUpPanel extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            arrow: 'angle-double-up',
-            toggle: 'arrow-up'
+            arrow: 'upcircleo',
+            toggle: 'arrowup'
         }
     }
 
@@ -26,23 +26,23 @@ class ISlidingUpPanel extends Component {
 
     _onMomentumDragEnd = (position) => {
         if ( position > this.props.draggableRange.top * 0.3) {
-            this._setState('arrow', 'angle-double-down')
-            this._setState('toggle', 'arrow-down')
+            this._setState('arrow', 'downcircleo')
+            this._setState('toggle', 'arrowdown')
         } else {
-            this._setState('arrow', 'angle-double-up')
-            this._setState('toggle', 'arrow-up')
+            this._setState('arrow', 'upcircleo')
+            this._setState('toggle', 'arrowup')
         }
     }
 
     _onTogglePress = () => {
-        if (this.state.arrow === 'angle-double-up') {
+        if (this.state.arrow === 'upcircleo') {
             this._panel.show()
-            this._setState('arrow', 'angle-double-down')
-            this._setState('toggle', 'arrow-down')
+            this._setState('arrow', 'downcircleo')
+            this._setState('toggle', 'arrowdown')
         } else {
             this._panel.hide()
-            this._setState('arrow', 'angle-double-up')
-            this._setState('toggle', 'arrow-up')
+            this._setState('arrow', 'upcircleo')
+            this._setState('toggle', 'arrowup')
         }
     }
 
@@ -63,9 +63,8 @@ class ISlidingUpPanel extends Component {
                 <TouchableOpacity
                     style={styles.toggleButton}
                     onPress={() => {this._onTogglePress()}} >
-                    <Icon
+                    <AntDesign
                         name={this.state.toggle}
-                        type='font-awesome'
                         color='#517fa4'
                         size={40} />
                 </TouchableOpacity>
@@ -86,9 +85,8 @@ class ISlidingUpPanel extends Component {
                         <TouchableOpacity 
                             style={styles.toggleTap}
                             onPress={() => {this._onTogglePress()}} >
-                            <Icon
+                            <AntDesign
                                 name={this.state.arrow}
-                                type='font-awesome'
                                 color='#517fa4'
                                 size={40}/>
                         </TouchableOpacity>

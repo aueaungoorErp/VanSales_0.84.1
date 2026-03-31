@@ -1,8 +1,7 @@
 import React from 'react'
-import { View, TouchableOpacity, StyleSheet } from 'react-native'
-import Icon from 'react-native-vector-icons/MaterialIcons'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import Icon from 'react-native-vector-icons/AntDesign'
 import Navigator from '../../services/Navigator'
-import { MainTheme } from '../../constant/lov'
 
 const LeftSideHeader = (props) => {
     const { onSettingPress } = props
@@ -17,7 +16,7 @@ const LeftSideHeader = (props) => {
                 onPress={_onSettingPress}
                 style={styles.touchable}>
                 <Icon 
-                    name="settings" 
+                    name="setting" 
                     size={24} 
                     color="#FFFFFF" />
             </TouchableOpacity>

@@ -1,7 +1,7 @@
 import React from 'react'
 import { View } from 'react-native'
-import IList from '../../../../component/list/IList'
 import ErrorMessage from '../../../../component/announce/ErrorMessage'
+import IList from '../../../../component/list/IList'
 
 const ListItems = (props) => {
     const { listItems, renderItem, header, refreshing, onRefresh, errorMessage } = props
@@ -23,7 +23,7 @@ const ListItems = (props) => {
                 !errorMessage ? _renderList() : null
             }
             
-            <ErrorMessage isDisplaying={errorMessage} message={errorMessage} iconName='warning' type='font-awesome' />
+            <ErrorMessage isDisplaying={errorMessage} message={errorMessage} iconName='warning' type='antdesign' />
         </View>
     )
 }

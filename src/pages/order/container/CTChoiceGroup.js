@@ -1,14 +1,14 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {View, TouchableOpacity, Linking, Image, Alert} from 'react-native';
-import {ListItem, Text} from 'react-native-elements';
-import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
-import ChoiceGroup from '../presenter/ChoiceGroup';
+import React, { Component } from 'react';
+import { Alert, Image, Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from 'react-native-elements';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { connect } from 'react-redux';
+import { setHeader, setInitialState } from '../../../action/order';
+import { MainTheme, orderChoiceButtonGroup } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
-import {orderChoiceButtonGroup} from '../../../constant/lov';
-import {setInitialState, setHeader} from '../../../action/order';
-import {generateHeader} from '../../../utils/Order';
-import {getUserToken} from '../../../utils/Token';
+import { generateHeader } from '../../../utils/Order';
+import { getUserToken } from '../../../utils/Token';
+import ChoiceGroup from '../presenter/ChoiceGroup';
 
 class CTChoiceGroup extends Component {
   _isMounted = false;
@@ -18,11 +18,11 @@ class CTChoiceGroup extends Component {
     this.state = {
       userToken: null,
     };
-    this._getUserToken();
   }
 
   componentDidMount = (props) => {
     this._isMounted = true;
+    this._getUserToken();
   };
 
   componentWillUnmount() {
@@ -34,38 +34,26 @@ class CTChoiceGroup extends Component {
 
     if (userToken) {
       this._isMounted &&
-        (await this.setState((oldState) => {
-          return {
-            userToken: userToken,
-          };
-        }));
+        this.setState({
+          userToken,
+        });
     }
   };
 
   _renderItem = ({item}) => {
     return (
-      <ListItem
-        title={
-          <View
-            style={{
-              flex: 1,
-              flexDirection: 'column',
-              justifyContent: 'center',
-            }}>
-            <TouchableOpacity onPress={() => this._onPress(item)}>
-              <Image
-                style={{width: 100, height: 100, alignSelf: 'center'}}
-                resizeMode="contain"
-                source={item.imgSrc}
-              />
-              <Text style={{textAlign: 'center', fontSize: hp('1.7%')}}>
-                {item.title}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        }
-        titleNumberOfLines={1}
-      />
+      <View style={styles.card}>
+        <TouchableOpacity onPress={() => this._onPress(item)} style={styles.touchable}>
+          <Image
+            style={styles.image}
+            resizeMode="contain"
+            source={item.imgSrc}
+          />
+          <Text style={styles.title} numberOfLines={2}>
+            {item.title}
+          </Text>
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -188,3 +176,34 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(CTChoiceGroup);
+
+const styles = StyleSheet.create({
+  card: {
+    flex: 1,
+    minHeight: 170,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E4E7EC',
+    overflow: 'hidden',
+  },
+  touchable: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
+    width: 112,
+    height: 112,
+    marginBottom: 8,
+  },
+  title: {
+    textAlign: 'center',
+    fontSize: hp('1.95%'),
+    lineHeight: hp('2.4%'),
+    color: MainTheme.colorPrimary,
+    fontWeight: 'bold',
+  },
+});

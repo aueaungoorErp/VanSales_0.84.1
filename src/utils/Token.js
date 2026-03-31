@@ -313,6 +313,14 @@ export const getLoginGuID = async () => {
   }
 };
 
+export const removeLoginGuID = async () => {
+  try {
+    return await removeData('@LoginGuID');
+  } catch (e) {
+    return false;
+  }
+};
+
 export const setLoginInfo = async (obj) => {
   try {
     return await storeData('@LoginInfo', JSON.stringify(obj));

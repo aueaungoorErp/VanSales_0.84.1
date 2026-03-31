@@ -1,11 +1,11 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import IList from '../../../../component/list/IList'
-import IGrid from '../../../../component/grid/IGrid'
-import IButtonGroup from '../../../../component/button/IButtonGroup'
-import { MainTheme } from '../../../../constant/lov'
-import ErrorMessage from '../../../../component/announce/ErrorMessage'
+import { StyleSheet, View } from 'react-native'
 import { ProgressDialog } from 'react-native-simple-dialogs'
+import ErrorMessage from '../../../../component/announce/ErrorMessage'
+import IButtonGroup from '../../../../component/button/IButtonGroup'
+import IGrid from '../../../../component/grid/IGrid'
+import IList from '../../../../component/list/IList'
+import { MainTheme } from '../../../../constant/lov'
 
 const ListItems = (props) => {
     const { 
@@ -64,7 +64,7 @@ const ListItems = (props) => {
             {
                 !errorMessage ? _renderItem() : null
             }
-            <ErrorMessage isDisplaying={errorMessage} message={errorMessage} iconName='warning' type='font-awesome' />
+            <ErrorMessage isDisplaying={errorMessage} message={errorMessage} iconName='warning' type='antdesign' />
 
             <ProgressDialog
                 visible={isLoading}

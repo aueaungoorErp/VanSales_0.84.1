@@ -2,7 +2,7 @@ import { Picker } from '@react-native-picker/picker';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 
 const Item = ({children, style}) => <View style={style}>{children}</View>;
 
@@ -22,7 +22,7 @@ const IPickerSelectWithLabel = (props) => {
                         style={styles.picker}
                         itemStyle={{ fontSize : 8, color : 'blue' }}
                         enabled={enabled}
-                        iosIcon={<Ionicons name='ios-arrow-down-outline' size={20} color="#000000" />}
+                        iosIcon={<AntDesign name='down' size={20} color="#000000" />}
                         placeholderStyle={{ color: "#bfc6ea" }}
                         placeholderIconColor="#007aff"
                         selectedValue={selectedValue}

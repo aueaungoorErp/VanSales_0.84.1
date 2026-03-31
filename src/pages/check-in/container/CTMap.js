@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
-import { connect } from 'react-redux'
 import { StyleSheet } from 'react-native'
+import { connect } from 'react-redux'
 import { getCurrentPosition } from '../../../action/geolocation'
-import IMap from '../../../component/map/IMap' 
+import IMap from '../../../component/map/IMap'
 
 const styles = StyleSheet.create({
     mapContainer: {
@@ -11,16 +11,22 @@ const styles = StyleSheet.create({
     }
 }) 
 
+const DEFAULT_LAT = 13.7563;  // Bangkok default
+const DEFAULT_LNG = 100.5018;
+
 class CTMap extends Component {
     constructor(props) {
         super(props)
 
         this._isMounted = false
 
+        const lat = this.props.geolocation.position.latitude != null ? this.props.geolocation.position.latitude * 1 : DEFAULT_LAT;
+        const lng = this.props.geolocation.position.longitude != null ? this.props.geolocation.position.longitude * 1 : DEFAULT_LNG;
+
         this.state = {
             region: {
-                latitude: this.props.geolocation.position.latitude * 1,
-                longitude: this.props.geolocation.position.longitude * 1,
+                latitude: lat,
+                longitude: lng,
                 latitudeDelta: 0.04864195044303443,
                 longitudeDelta: 0.040142817690068
             },
@@ -29,8 +35,8 @@ class CTMap extends Component {
                     title: 'ตำแหน่งของคุณ',
                     // description: 'ตำแหน่งของคุณ',
                     coordinate: {
-                        latitude: this.props.geolocation.position.latitude * 1, 
-                        longitude: this.props.geolocation.position.longitude * 1
+                        latitude: lat, 
+                        longitude: lng
                     },
                     currentLocation: true
                 }
@@ -48,12 +54,16 @@ class CTMap extends Component {
     }
 
     componentDidUpdate = (prevProps) => {
-        if (prevProps.geolocation.position.latitude !== this.props.geolocation.position.latitude ||
-            prevProps.geolocation.position.longitude !== this.props.geolocation.position.longitude) {
+        const prevLat = prevProps.geolocation.position.latitude;
+        const prevLng = prevProps.geolocation.position.longitude;
+        const curLat = this.props.geolocation.position.latitude;
+        const curLng = this.props.geolocation.position.longitude;
+
+        if (curLat != null && curLng != null && (prevLat !== curLat || prevLng !== curLng)) {
             let markers = this.state.markers
             markers[0].coordinate = {
-                latitude: this.props.geolocation.position.latitude * 1,
-                longitude: this.props.geolocation.position.longitude * 1
+                latitude: curLat * 1,
+                longitude: curLng * 1
             }
                     
             this._isMounted && 
@@ -61,8 +71,8 @@ class CTMap extends Component {
                 return {
                     region: {
                         ...this.state.region,
-                        latitude: this.props.geolocation.position.latitude * 1,
-                        longitude: this.props.geolocation.position.longitude * 1
+                        latitude: curLat * 1,
+                        longitude: curLng * 1
                     },
                     markers: markers
                 }
@@ -73,10 +83,14 @@ class CTMap extends Component {
     _getCurrentPosition = async () => {
         try {
             await this.props.getCurrentPosition()
+            const lat = this.props.geolocation.position.latitude;
+            const lng = this.props.geolocation.position.longitude;
+            if (lat == null || lng == null) return;
+
             let markers = this.state.markers
             markers[0].coordinate = {
-                latitude: this.props.geolocation.position.latitude * 1,
-                longitude: this.props.geolocation.position.longitude * 1
+                latitude: lat * 1,
+                longitude: lng * 1
             }
             
             this._isMounted && 
@@ -84,8 +98,8 @@ class CTMap extends Component {
                 return {
                     region: {
                         ...this.state.region,
-                        latitude: this.props.geolocation.position.latitude * 1,
-                        longitude: this.props.geolocation.position.longitude * 1
+                        latitude: lat * 1,
+                        longitude: lng * 1
                     },
                     markers: markers
                 }

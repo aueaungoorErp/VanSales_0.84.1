@@ -1,6 +1,6 @@
 import React from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
-import Ionicons from 'react-native-vector-icons/Ionicons'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import IUpload from '../../../component/upload/IUpload'
 
 const Item = ({ children, style }) => <View style={style}>{children}</View>
@@ -25,10 +25,10 @@ const Forms = (props) => {
                 photo={photo} 
                 ontakePicturePress={ontakePicturePress} />
 
-            <Item>
-                <Ionicons name='ios-speedometer' size={24} color='#000000' />
+            <Item style={styles.row}>
+                <AntDesign name='dashboard' size={24} color='#2E858E' style={styles.icon} />
                 <Input 
-                    // ref={ (ref) => ref ? ref._root.focus() : null }
+                    style={styles.input}
                     placeholder='เลขไมล์รถ' 
                     placeholderTextColor='#d6d7da' 
                     value={value} 
@@ -48,6 +48,24 @@ const styles = StyleSheet.create({
     container: {
         marginTop: 15,
         padding: 5
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderBottomWidth: 1.2,
+        borderBottomColor: '#C9D9CF',
+        paddingBottom: 8,
+        paddingHorizontal: 6,
+        marginTop: 12,
+    },
+    icon: {
+        marginRight: 12,
+    },
+    input: {
+        flex: 1,
+        fontSize: 18,
+        color: '#1F2A21',
+        paddingVertical: 6,
     }
 })
 

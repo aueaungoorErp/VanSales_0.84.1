@@ -1,10 +1,10 @@
 import React from 'react'
+import { Dimensions, Image, StyleSheet, View } from 'react-native'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import { connect } from 'react-redux'
-import { View, Image, TouchableOpacity, Alert, Dimensions, StyleSheet } from 'react-native'
-import { Icon } from 'react-native-elements'
-import GridImage from '../presenter/GridImage'
-import { MainTheme, mainDivider } from '../../../../constant/lov'
 import { removeStockImageItem } from '../../../../action/order'
+import { MainTheme, mainDivider } from '../../../../constant/lov'
+import GridImage from '../presenter/GridImage'
 
 class CTGridImage extends React.Component {
 
@@ -22,12 +22,11 @@ class CTGridImage extends React.Component {
             <View style={[ styles.itemContainer, mainDivider]}>
                 <Image style={styles.imageStyle} resizeMode="cover" source={{uri: item }} />
                 <View style={styles.removeImageSection}>
-                    <Icon
+                    <AntDesign
                         name='close'
-                        type='font-awesome'
                         color={MainTheme.colorSecondary}
                         size={30}
-                        iconStyle={{marginTop: -3}}
+                        style={{marginTop: -3}}
                         onPress={() => this._onPress(index)} />
                 </View>
             </View>

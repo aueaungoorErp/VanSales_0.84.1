@@ -32,7 +32,7 @@ export const customer = (state = initialState, action) => {
     case types.CUSTOMER_SET_INITIAL_STATE:
       return {...initialState, arPriceTab: state.arPriceTab};
     case types.CUSTOMER_CLEAR_LIST:
-      return {...state, listItems: []};
+      return {...state, listItems: [], isNotFound: false, isError: false};
     case types.CUSTOMER_SET_CRITERIA:
       return {...state, criteria: action.payload};
     case types.CUSTOMER_SET_KEYWORD:
@@ -40,14 +40,18 @@ export const customer = (state = initialState, action) => {
     case types.CUSTOMER_SEARCH_LIST:
       return {...state, isLoading: true, isNotFound: false, isError: false};
     case types.CUSTOMER_SEARCH_LIST_SUCCESS:
+      const incomingItems = Array.isArray(action.payload) ? action.payload : [];
+      const hasExistingItems = state.listItems.length > 0;
+
       return {
         ...state,
         listItems:
-          action.payload && action.payload.length > 0
-            ? state.listItems.concat(action.payload)
+          incomingItems.length > 0
+            ? state.listItems.concat(incomingItems)
             : state.listItems,
         isLoading: false,
-        isNotFound: !action.payload,
+        isNotFound: incomingItems.length === 0 && !hasExistingItems,
+        isError: false,
       };
     case types.CUSTOMER_SEARCH_LIST_FAIL:
       return {...state, isLoading: false, isError: true};

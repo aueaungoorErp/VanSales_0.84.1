@@ -1,9 +1,9 @@
 import React from 'react'
-import { View, Text } from 'react-native'
-import IList from '../../../component/list/IList'
-import ErrorMessage from '../../../component/announce/ErrorMessage'
+import { Text, View } from 'react-native'
+import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs'
 import SnackBar from 'react-native-snackbar-component'
-import { ProgressDialog, ConfirmDialog } from 'react-native-simple-dialogs'
+import ErrorMessage from '../../../component/announce/ErrorMessage'
+import IList from '../../../component/list/IList'
 
 const ListItems = (props) => {
     const { 
@@ -38,8 +38,8 @@ const ListItems = (props) => {
             }
             
             <SnackBar visible={isSnackBarVisible} textMessage="Customer Not Found!" actionHandler={()=> actionHandler ? actionHandler() : null} actionText="close"/>
-            <ErrorMessage isDisplaying={isNotFound} iconName='account-search' iconType='MaterialCommunityIcons' />
-            <ErrorMessage isDisplaying={isError} message='Customer Not Found.' iconName='account-search' iconType='MaterialCommunityIcons' />
+            <ErrorMessage isDisplaying={isNotFound} iconName='search1' iconType='AntDesign' />
+            <ErrorMessage isDisplaying={isError} message='Customer Not Found.' iconName='search1' iconType='AntDesign' />
 
             <ProgressDialog
                 visible={isLoading}

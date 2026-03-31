@@ -1,8 +1,8 @@
+import _ from 'lodash'
 import React from 'react'
 import { Text } from 'react-native'
-import { Icon } from 'react-native-elements'
 import MapView from 'react-native-maps'
-import _ from 'lodash'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 
 class IPatternCurrentMarkerItem extends React.Component {
     _isMounted = false
@@ -48,9 +48,8 @@ class IPatternCurrentMarkerItem extends React.Component {
 
         return (
             <MapView.Marker coordinate={item.coordinate} ref={instance => getMarkersInstance(instance)}>
-                <Icon
-                    name='shield-account'
-                    type='material-community'
+                <AntDesign
+                    name='user'
                     color='#517fa4'
                     size={40} />
                  <MapView.Callout style={{width: 100}}>

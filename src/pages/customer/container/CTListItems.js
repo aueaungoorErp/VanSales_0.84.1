@@ -1,23 +1,25 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {View, Text} from 'react-native';
-import {ListItem, Icon} from 'react-native-elements';
-import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
-import Navigator from '../../../services/Navigator';
-import ListItems from '../presenter/ListItems';
+import React, { Component } from 'react';
+import { Text, View } from 'react-native';
+import { ListItem } from 'react-native-elements';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import { connect } from 'react-redux';
+import { setInitialState as setCheckInInitialState } from '../../../action/check-in';
 import {
-  setInitialState,
-  clearCustomerList,
-  searchCustomerList,
-  setError,
-  findCustomerById,
-  setCustomerInfo,
-  searchCustomerNextDestination,
+    clearCustomerList,
+    findCustomerById,
+    searchCustomerList,
+    searchCustomerNextDestination,
+    setCustomerInfo,
+    setError,
+    setInitialState,
 } from '../../../action/customer';
-import {setInitialState as setMileInitialState} from '../../../action/mile';
-import {setInitialState as setCheckInInitialState} from '../../../action/check-in';
-import {getUserToken} from '../../../utils/Token';
-import {mainDivider, MainTheme} from '../../../constant/lov';
+import { setCustomerType } from '../../../action/customer-type';
+import { setInitialState as setMileInitialState } from '../../../action/mile';
+import { mainDivider, MainTheme } from '../../../constant/lov';
+import Navigator from '../../../services/Navigator';
+import { getUserToken } from '../../../utils/Token';
+import ListItems from '../presenter/ListItems';
 
 
 class CTListItems extends Component {
@@ -25,7 +27,6 @@ class CTListItems extends Component {
 
   constructor(props) {
     super(props);
-    this.props.setInitialState();
 
     this.state = {
       errorMessage: null,
@@ -36,12 +37,11 @@ class CTListItems extends Component {
         },
       },
     };
-
-    this._getUserToken();
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this._isMounted = true;
+    await this._getUserToken();
   }
 
   componentWillUnmount() {
@@ -63,82 +63,11 @@ class CTListItems extends Component {
 
     return (
       <ListItem
-        title={
-          <View style={{flex: 1, flexDirection: 'row'}}>
-            <View style={{flex: 0.1, flexDirection: 'column'}}>
-              {this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT == 2 &&
-              item.LAST_DO ? (
-                <Icon
-                  name="map-marker-check"
-                  type="material-community"
-                  color={MainTheme.colorPrimary}
-                />
-              ) : null}
-              {this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT == 2 &&
-              item.IS_SKIP ? (
-                <Icon
-                  name="skip-next"
-                  type="material-community"
-                  color={MainTheme.colorPrimary}
-                />
-              ) : null}
-            </View>
-            <View style={{flex: 0.9, flexDirection: 'column'}}>
-              {this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT == 2 ? (
-                <Text>{index + 1}</Text>
-              ) : null}
-              <Text style={{fontSize: hp('1.7%')}} allowFontScaling={false}>
-                {item.AR_CODE}
-              </Text>
-              <Text style={{fontSize: hp('1.7%')}} allowFontScaling={false}>
-                {item.AR_NAME}
-              </Text>
-              <Text style={{fontSize: hp('1.7%')}} allowFontScaling={false}>
-                {item.ADDB_ADDB_1 ? item.ADDB_ADDB_1 + ' ' : null}
-                {item.ADDB_ADDB_2 ? item.ADDB_ADDB_2 + ' ' : null}
-                {item.ADDB_ADDB_3 ? item.ADDB_ADDB_3 + ' ' : null}
-                {item.ADDB_SUB_DISTRICT ? item.ADDB_SUB_DISTRICT + ' ' : null}
-                {item.ADDB_DISTRICT ? item.ADDB_DISTRICT + ' ' : null}
-                {item.ADDB_PROVINCE ? item.ADDB_PROVINCE + ' ' : null}
-                {item.ADDB_POST ? item.ADDB_POST + ' ' : null}
-              </Text>
-            </View>
-          </View>
-        }
-        // leftIcon={ {
-        //     name: 'map-marker-check',
-        //     type: 'material-community',
-        //     color: this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT === 2 && item.IS_SKIP ? MainTheme.colorPrimary : MainTheme.colorSecondary }
-        // }
-        rightIcon={{name: 'chevron-right', type: 'material', color: '#666'}}
-        hideChevron
+        key={item.AR_KEY || index}
         containerStyle={mainDivider}
         bottomDivider
-        // onPressIn={async () => {
-        //    const {VANCONFIG} = await getUserToken();
-        //   //  console.log('กดๆๆ1', item.ARPRB_KEY);
-        //   //  console.log('กดๆๆ2', VANCONFIG.VANCNF_ARPRB);
-        //   //  console.log('กดๆๆ3', VANCONFIG.VANCNF_ARPRB_MODE);
-        //   //  console.log('กดๆๆ4', String(item.ARPRB_KEY).trim() !==  String(VANCONFIG.VANCNF_ARPRB).trim());
-        //   //  console.log(typeof item.ARPRB_KEY);
-        //   //  console.log(typeof VANCONFIG.VANCNF_ARPRB);
-
-
-        //    if (VANCONFIG.VANCNF_ARPRB_MODE === 0 && String(item.ARPRB_KEY).trim() !==  String(VANCONFIG.VANCNF_ARPRB).trim()) {
-        //     this._setState('errorMessage', 'ไม่สามารถเลือกลูกหนี้ รายนี้ได้เนื่องจากตารางราคาขายในข้อตกลงหลัก ไม่ตรงเงื่อนไข');
-        //    } else {
-        //      this._onListItemPress(item, index);
-        //    }
-        // }}
         onPress={async () => {
            const {VANCONFIG} = await getUserToken();
-          //  console.log('กดๆๆ1', item.ARPRB_KEY);
-          //  console.log('กดๆๆ2', VANCONFIG.VANCNF_ARPRB);
-          //  console.log('กดๆๆ3', VANCONFIG.VANCNF_ARPRB_MODE);
-          //  console.log('กดๆๆ4', String(item.ARPRB_KEY).trim() !==  String(VANCONFIG.VANCNF_ARPRB).trim());
-          //  console.log(typeof item.ARPRB_KEY);
-          //  console.log(typeof VANCONFIG.VANCNF_ARPRB);
-
 
            if (VANCONFIG.VANCNF_ARPRB_MODE === 0 && String(item.ARPRB_KEY).trim() !==  String(VANCONFIG.VANCNF_ARPRB).trim()) {
             this._setState('errorMessage', 'ไม่สามารถเลือกลูกหนี้ รายนี้ได้เนื่องจากตารางราคาขายในข้อตกลงหลัก ไม่ตรงเงื่อนไข');
@@ -146,7 +75,52 @@ class CTListItems extends Component {
              this._onListItemPress(item, index);
            }
         }}
-      />
+      >
+        <ListItem.Content key="content">
+          <View style={{flex: 1, flexDirection: 'row'}}>
+            <View style={{flex: 0.1, flexDirection: 'column'}}>
+              {this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT == 2 &&
+              item.LAST_DO ? (
+                <AntDesign
+                  name="check"
+                  color={MainTheme.colorPrimary}
+                  size={26}
+                />
+              ) : null}
+              {this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT == 2 &&
+              item.IS_SKIP ? (
+                <AntDesign
+                  name="stepforward"
+                  color={MainTheme.colorPrimary}
+                  size={26}
+                />
+              ) : null}
+            </View>
+            <View style={{flex: 0.9, flexDirection: 'column'}}>
+              {this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT == 2 ? (
+                <Text style={{fontSize: hp('1.9%')}} allowFontScaling={false}>{index + 1}</Text>
+              ) : null}
+              <Text style={{fontSize: hp('1.9%'), fontWeight: 'bold'}} allowFontScaling={false}>
+                {item.AR_CODE || '-'}
+              </Text>
+              <Text style={{fontSize: hp('1.9%')}} allowFontScaling={false}>
+                {item.AR_NAME || '-'}
+              </Text>
+              <Text style={{fontSize: hp('1.8%')}} allowFontScaling={false}>
+                {item.ADDB_ADDB_1 ? item.ADDB_ADDB_1 + ' ' : null}
+                {item.ADDB_ADDB_2 ? item.ADDB_ADDB_2 + ' ' : null}
+                {item.ADDB_ADDB_3 ? item.ADDB_ADDB_3 + ' ' : null}
+                {item.ADDB_SUB_DISTRICT ? item.ADDB_SUB_DISTRICT + ' ' : null}
+                {item.ADDB_DISTRICT ? item.ADDB_DISTRICT + ' ' : null}
+                {item.ADDB_PROVINCE ? item.ADDB_PROVINCE + ' ' : null}
+                {item.ADDB_POST ? item.ADDB_POST + ' ' : null}
+                {!item.ADDB_ADDB_1 && !item.ADDB_ADDB_2 && !item.ADDB_ADDB_3 && !item.ADDB_SUB_DISTRICT && !item.ADDB_DISTRICT && !item.ADDB_PROVINCE && !item.ADDB_POST ? '-' : null}
+              </Text>
+            </View>
+          </View>
+        </ListItem.Content>
+        <ListItem.Chevron key="chevron" color="#666" size={30} />
+      </ListItem>
     );
   };
 
@@ -190,7 +164,7 @@ class CTListItems extends Component {
 
   _onRefresh = async () => {
     await this.props.clearCustomerList();
-    this.props.customerType.item = {};
+    await this.props.setCustomerType({ ARCAT_KEY: null, ARCAT_NAME: null });
 
 
 
@@ -200,7 +174,7 @@ class CTListItems extends Component {
       // console.log('VANCNF_AR_LIMIT0.1.1  ตามสายลูกค้า');
       //     console.log('ตรวจสอบตรงนี้ >> 4');
 
-      await this.props.searchCustomerList();
+      await this.props.searchCustomerList(false);
     } else {
       // console.log('VANCNF_AR_LIMIT0.2.1  ตามสายเดินรถ');
       await this.props.searchCustomerNextDestination();
@@ -287,9 +261,7 @@ const mapDispatchToProps = (dispatch) => {
       dispatch(setCheckInInitialState());
     },
     clearCustomerList: () => dispatch(clearCustomerList()),
-    searchCustomerList: (nextPage) => {
-      dispatch(searchCustomerList(nextPage));
-    },
+    searchCustomerList: (nextPage) => dispatch(searchCustomerList(nextPage)),
     setError: (bool) => {
       dispatch(setError(bool));
     },
@@ -297,6 +269,7 @@ const mapDispatchToProps = (dispatch) => {
     setCustomerInfo: (data) => {
       dispatch(setCustomerInfo(data));
     },
+    setCustomerType: (value) => dispatch(setCustomerType(value)),
     searchCustomerNextDestination: () => {
       dispatch(searchCustomerNextDestination());
     },

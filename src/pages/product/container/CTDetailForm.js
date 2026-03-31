@@ -182,7 +182,7 @@ class CTDetailForm extends Component {
         const {RESULT_DATA, STATUS, ERROR_MESSAGES} = response;
 
         if (STATUS === '00') {
-          this.textInputQtyRef._root.focus();
+          this.textInputQtyRef && this.textInputQtyRef.focus();
         }
       } else {
         this._setErrorMessage('กรุณากรอก รหัสสินค้า');

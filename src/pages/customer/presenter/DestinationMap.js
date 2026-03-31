@@ -3,8 +3,6 @@ import { StyleSheet, Text, View } from 'react-native'
 import MapView from 'react-native-maps'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import IPatternCurrentMarkerItem from '../../../component/item/IPatternCurrentMarkerItem'
 
 const Map = (props) => {

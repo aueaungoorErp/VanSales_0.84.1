@@ -3224,6 +3224,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-vector-icons/material-design-icons@npm:^13.0.0":
+  version: 13.0.0
+  resolution: "@react-native-vector-icons/material-design-icons@npm:13.0.0"
+  dependencies:
+    "@react-native-vector-icons/common": ^13.0.0
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: ade8c10fc2cf786625c336d17722c9bbbee8a90b5c671369308783a136ee1e9e633d38a2908dcafa8f9a439e6a6656bbc74223f0b02d632874c77cd4e6c84654
+  languageName: node
+  linkType: hard
+
 "@react-native/assets-registry@npm:0.84.1":
   version: 0.84.1
   resolution: "@react-native/assets-registry@npm:0.84.1"
@@ -4607,6 +4619,7 @@ __metadata:
     "@react-native-masked-view/masked-view": ^0.3.2
     "@react-native-picker/picker": ^2.11.4
     "@react-native-vector-icons/ant-design": ^13.0.0
+    "@react-native-vector-icons/material-design-icons": ^13.0.0
     "@react-native/babel-preset": 0.84.1
     "@react-native/eslint-config": 0.84.1
     "@react-native/metro-config": 0.84.1

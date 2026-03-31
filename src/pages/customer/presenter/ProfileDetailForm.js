@@ -32,11 +32,7 @@ const ProfileDetailForm = (props) => {
     <View style={{flex: 1}}>
       <ScrollView style={{flex: 1}}>
         <View style={styles.titleSection}>
-          {/* <Icon
-                        name='user-follow'
-                        type='simple-line-icon'
-                        color={MainTheme.colorQuaternary}
-                        size={25} /> */}
+         
           <Image
             style={{width: 35, height: 35, alignSelf: 'center'}}
             resizeMode="contain"

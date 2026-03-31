@@ -1,0 +1,20 @@
+diff --git a/node_modules/@react-native-community/geolocation/package.json b/node_modules/@react-native-community/geolocation/package.json
+index 9ef6b7c..0c78d0f 100644
+--- a/node_modules/@react-native-community/geolocation/package.json
++++ b/node_modules/@react-native-community/geolocation/package.json
+@@ -97,12 +97,5 @@
+         {
+           "project": "tsconfig.build.json"
+         }
+       ]
+     ]
+-  },
+-  "codegenConfig": {
+-    "name": "RNCGeolocationSpec",
+-    "type": "modules",
+-    "jsSrcsDir": "js",
+-    "android": {
+-      "javaPackageName": "com.reactnativecommunity.geolocation"
+-    }
+   }
+ }

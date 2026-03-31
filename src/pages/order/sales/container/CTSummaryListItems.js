@@ -1,11 +1,11 @@
 import React from 'react';
-import {connect} from 'react-redux';
-import {View, Text} from 'react-native';
-import {ListItem} from 'react-native-elements';
-import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
+import { Text, View } from 'react-native';
+import { ListItem } from 'react-native-elements';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { connect } from 'react-redux';
+import { MainTheme, mainDivider } from '../../../../constant/lov';
 import Navigator from '../../../../services/Navigator';
 import SummaryListItems from '../presenter/SummaryListItems';
-import {MainTheme, mainDivider} from '../../../../constant/lov';
 
 const CTSummaryListItems = (props) => {
   const {routes, index} = Navigator.getCurrentRoute();
@@ -13,7 +13,9 @@ const CTSummaryListItems = (props) => {
   // console.log('props.order', props.order);
   const _header = () => (
     <ListItem
-      title={
+      containerStyle={{backgroundColor: MainTheme.colorPrimary}}
+    >
+      <ListItem.Content key="content">
         <View>
           {props.order.header.AR_ORDER_TYPE !== 'โอนย้ายสินค้า' ? (
             <View style={{flexDirection: 'row'}}>
@@ -162,11 +164,8 @@ const CTSummaryListItems = (props) => {
             </View>
           )}
         </View>
-      }
-      containerStyle={{backgroundColor: MainTheme.colorPrimary}}
-      titleNumberOfLines={1}
-      hideChevron
-    />
+      </ListItem.Content>
+    </ListItem>
   );
 
   const _footer = (item) => {
@@ -181,7 +180,9 @@ const CTSummaryListItems = (props) => {
 
     return (
       <ListItem
-        title={
+        containerStyle={{backgroundColor: '#F9F995'}}
+      >
+        <ListItem.Content key="content">
           <View style={{flexDirection: 'row'}}>
             <Text style={{width: 100, marginLeft: 5, hp: '1.6%'}}></Text>
             <Text style={{width: 300, marginLeft: 5, hp: '1.6%'}}></Text>
@@ -247,11 +248,8 @@ const CTSummaryListItems = (props) => {
               {netPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
             </Text>
           </View>
-        }
-        containerStyle={{backgroundColor: '#F9F995'}}
-        titleNumberOfLines={1}
-        hideChevron
-      />
+        </ListItem.Content>
+      </ListItem>
     );
   };
 
@@ -274,7 +272,16 @@ const CTSummaryListItems = (props) => {
     // console.log('_renderItemOrderProductSummaryProcessed', item);
     return (
       <ListItem
-        title={
+        containerStyle={[
+          {
+            backgroundColor:
+              VTRD_AUTO === 1 ? '#AED6F1' : MainTheme.colorSecondary,
+          },
+          mainDivider,
+        ]}
+        bottomDivider
+      >
+        <ListItem.Content key="content">
           <View>
             {props.order.header.AR_ORDER_TYPE !== 'โอนย้ายสินค้า' ? (
               <View style={{flexDirection: 'row'}}>
@@ -434,18 +441,8 @@ const CTSummaryListItems = (props) => {
               </View>
             )}
           </View>
-        }
-        containerStyle={[
-          {
-            backgroundColor:
-              VTRD_AUTO === 1 ? '#AED6F1' : MainTheme.colorSecondary,
-          },
-          mainDivider,
-        ]}
-        bottomDivider
-        titleNumberOfLines={1}
-        hideChevron
-      />
+        </ListItem.Content>
+      </ListItem>
     );
   };
 
@@ -468,7 +465,10 @@ const CTSummaryListItems = (props) => {
     console.log('DSFDSFSD', item);
     return (
       <ListItem
-        title={
+        bottomDivider
+        containerStyle={mainDivider}
+      >
+        <ListItem.Content key="content">
           <View style={{flexDirection: 'row'}}>
             <Text
               style={{width: 100, marginLeft: 5, fontSize: hp('1.6%')}}
@@ -546,12 +546,8 @@ const CTSummaryListItems = (props) => {
                 : 0}
             </Text>
           </View>
-        }
-        bottomDivider
-        titleNumberOfLines={1}
-        containerStyle={mainDivider}
-        hideChevron
-      />
+        </ListItem.Content>
+      </ListItem>
     );
   };
 

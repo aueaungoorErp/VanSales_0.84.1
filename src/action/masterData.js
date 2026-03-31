@@ -1,3 +1,61 @@
+// Stub exports — react-native-sqlite-storage is not installed,
+// so the original implementations are commented out below.
+// These no-op stubs prevent "undefined is not a function" crashes.
+
+export const setInitialState = () => (dispatch) => {
+  return Promise.resolve();
+};
+
+export const clearMasterBankFileList = () => (dispatch) => {
+  return Promise.resolve();
+};
+
+export const searchMasterDataBankFileList = (GUID) => (dispatch) => {
+  return Promise.resolve();
+};
+
+export const searchMasterDataVanVisRList = () => (dispatch) => {
+  return Promise.resolve();
+};
+
+export const getMasterDataSurveyForm = () => (dispatch) => {
+  return Promise.resolve();
+};
+
+export const getMasterDataProvinces = () => (dispatch) => {
+  return Promise.resolve();
+};
+
+export const getMasterDataDistricts = (provinceId) => (dispatch) => {
+  return Promise.resolve();
+};
+
+export const getMasterDataSubDistricts = (districtId) => (dispatch) => {
+  return Promise.resolve();
+};
+
+export const setProvinceListItems = (items) => (dispatch) => {
+  return Promise.resolve();
+};
+
+export const setDistrictListItems = (items) => (dispatch) => {
+  return Promise.resolve();
+};
+
+export const setSubDistrictListItems = (items) => (dispatch) => {
+  return Promise.resolve();
+};
+
+export const getMasterDataBankAccounts = () => (dispatch) => {
+  return Promise.resolve();
+};
+
+export const getMasterDataWareLocations = () => (dispatch) => {
+  return Promise.resolve();
+};
+
+// --- Original commented-out implementations below ---
+
 // import {
 //   searchMasterDataBankFileListApi,
 //   searchMasterDataVanVisRListApi,

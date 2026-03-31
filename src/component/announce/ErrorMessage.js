@@ -1,8 +1,8 @@
 import React from 'react'
-import { View, Text, StyleSheet} from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import { Button, Icon } from 'react-native-elements'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import { MainTheme } from '../../constant/lov'
-import MaterialCommunityIcons from 'react-native-vector-icons/dist/MaterialCommunityIcons'
 
 const ErrorMessage = (props) => {
     const { isDisplaying, message, containerStyle, textStyle, iconName, iconType, iconColor, iconSize, type, onButtonPress, buttonTitle } = props
@@ -12,16 +12,15 @@ const ErrorMessage = (props) => {
         if(!iconType){
             return (
                 <Icon 
-                    name={iconName ? iconName : 'search'} 
+                    name={iconName ? iconName : 'search1'} 
                     color={iconColor ? iconColor : '#463E3F'} 
                     size={iconSize ? iconSize : 120}
-                    type={type} />
+                    type={type || 'antdesign'} />
             )
-        // } else (iconType && iconType == 'MaterialCommunityIcons') {
         } else {
             return ( 
-                <MaterialCommunityIcons 
-                    name={iconName ? iconName : 'search'} 
+                <AntDesign 
+                    name={iconName ? iconName : 'search1'} 
                     color={iconColor ? iconColor : '#463E3F'} 
                     size={iconSize ? iconSize : 120} />
             )

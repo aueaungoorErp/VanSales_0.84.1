@@ -4,10 +4,10 @@ import React, { Component } from 'react'
 import { Dimensions, StyleSheet, Text, TextInput, View } from 'react-native'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import { Calendar } from 'react-native-toggle-calendar'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import IOverlay from '../../component/modal/IOverlay'
 import { MainTheme } from '../../constant/lov'
 import { toBuddhistYear } from '../../utils/Date'
-import { resolveVectorIconComponent } from '../../utils/iconFactory'
 
 const Item = ({ style, children }) => (
     <View style={[{ flexDirection: 'row', alignItems: 'center' }, style]}>{children}</View>
@@ -19,19 +19,6 @@ const Input = ({ style, ...props }) => (
         style={[{ flex: 1, color: '#000000', paddingVertical: 8, paddingHorizontal: 0 }, style]}
     />
 )
-
-const Icon = ({ type, name, style, size, fontSize, color, onPress }) => {
-    const IconComponent = resolveVectorIconComponent(type, resolveVectorIconComponent('AntDesign'))
-    return (
-        <IconComponent
-            name={name}
-            size={size ?? fontSize ?? style?.fontSize ?? 20}
-            color={color ?? style?.color ?? MainTheme.colorPrimary}
-            style={style}
-            onPress={onPress}
-        />
-    )
-}
 
 moment.locale('th')
 
@@ -73,9 +60,9 @@ class IDatePicker extends Component {
         const { addMonth } = props
         return (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 5 }}>
-                <Icon type='AntDesign' name='left' style={{ fontSize: 25, color: MainTheme.colorPrimary }} onPress={() => addMonth(-1)} />
+                <AntDesign name='left' size={25} color={MainTheme.colorPrimary} onPress={() => addMonth(-1)} />
                 <Text style={{ fontSize: 20 }}>{ moment(this.state.current, 'YYYY-MM-DD').add(543, 'years').format(' MMMM YYYY') }</Text>
-                <Icon type='AntDesign' name='right' style={{ fontSize: 25, color: MainTheme.colorPrimary }} onPress={() => addMonth(1)} />
+                <AntDesign name='right' size={25} color={MainTheme.colorPrimary} onPress={() => addMonth(1)} />
             </View>
         )
     }
@@ -98,7 +85,7 @@ class IDatePicker extends Component {
                     }
                     
                     <Input editable={false} value={toBuddhistYear(value)} style={{ fontSize: hp('1.7%') }} allowFontScaling={false} />
-                    <Icon active name='calendar' type='FontAwesome' style={{ color: MainTheme.colorTertiary }} onPress={() => disabled === undefined || disabled === false ? this._setState('visible', true) : null} />
+                    <AntDesign name='calendar' size={20} color={MainTheme.colorTertiary} onPress={() => disabled === undefined || disabled === false ? this._setState('visible', true) : null} />
                 </Item>
 
                 <IOverlay 

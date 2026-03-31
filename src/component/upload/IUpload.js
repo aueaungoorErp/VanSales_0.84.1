@@ -1,6 +1,7 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Avatar, Icon } from 'react-native-elements'
+import { StyleSheet, View } from 'react-native'
+import { Avatar } from 'react-native-elements'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import { MainTheme } from '../../constant/lov'
 
 const IUpload = (props) => {
@@ -15,26 +16,27 @@ const IUpload = (props) => {
                             size='xlarge'
                             rounded
                             source={{uri: photo}}
-                            icon={{name: 'image', type: 'font-awesome'}}
+                            icon={{name: 'picture', type: 'antdesign'}}
                             onPress={() => console.log('Works!')}
                             activeOpacity={0.7} />
                         :
                         <Avatar
                             size='xlarge'
                             rounded
-                            icon={{name: 'image', type: 'font-awesome'}}
+                            icon={{name: 'picture', type: 'antdesign'}}
                             onPress={() => console.log('Works!')}
                             activeOpacity={0.7} />
 
                 }
 
                 <View style={styles.takePhotoSection} >
-                    <Icon
-                        name='camera'
-                        type='font-awesome'
-                        color={MainTheme.colorPrimary}
-                        containerStyle={{width: 40, height: 40, justifyContent: 'center', alignItems: 'center'}}
-                        onPress={() => {ontakePicturePress ? ontakePicturePress() : null}} />
+                    <View style={{width: 40, height: 40, justifyContent: 'center', alignItems: 'center'}}>
+                        <AntDesign
+                            name='camera'
+                            color={MainTheme.colorPrimary}
+                            size={24}
+                            onPress={() => {ontakePicturePress ? ontakePicturePress() : null}} />
+                    </View>
                 </View>
             </View>
         </View>

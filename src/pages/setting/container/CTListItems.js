@@ -1,13 +1,21 @@
 import React from 'react'
-import { connect } from 'react-redux'
-import { View, Text, Alert, Image, PermissionsAndroid, Platform } from 'react-native'
-import { Icon, ListItem } from 'react-native-elements'
+import { Alert, Image, PermissionsAndroid, Platform, Text, View } from 'react-native'
+import { ListItem } from 'react-native-elements'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
-import Navigator from '../../../services/Navigator'
-import { settingListItems, MainTheme } from '../../../constant/lov'
-import { removeUserToken, getSettingConfig } from '../../../utils/Token'
-import Request from '../../../utils/Request'
+import AntDesign from 'react-native-vector-icons/AntDesign'
+import { connect } from 'react-redux'
+import { MainTheme, settingListItems } from '../../../constant/lov'
 import { strings } from '../../../locales/i18n'
+import Navigator from '../../../services/Navigator'
+import Request from '../../../utils/Request'
+import {
+    getSettingConfig,
+    removeLoginGuID,
+    removeLoginInfo,
+    removeUserToken,
+    setAccessTimeToken,
+    setSettingConfig,
+} from '../../../utils/Token'
 import ListItems from '../presenter/ListItems'
 
 
@@ -81,7 +89,7 @@ class CTListItems extends React.Component {
             <ListItem
                 title={
                     <View style={{flexDirection: 'column'}}>
-                        <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>{item.title} { item.iconName === 'server' && this.state.config ? this.state.config.baseUrl : null }</Text>
+                        <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>{item.title} { item.iconName === 'cloudserver' && this.state.config ? this.state.config.baseUrl : null }</Text>
                     </View>
                 }
                 leftIcon={
@@ -102,7 +110,7 @@ class CTListItems extends React.Component {
             <ListItem
                 title={
                     <View style={{flexDirection: 'column'}}>
-                        <Text style={{ fontSize: hp('2%') }} allowFontScaling={false} >{item.title} { item.iconName === 'server' && this.state.config ? this.state.config.baseUrl : null }</Text>
+                        <Text style={{ fontSize: hp('2%') }} allowFontScaling={false} >{item.title} { item.iconName === 'cloudserver' && this.state.config ? this.state.config.baseUrl : null }</Text>
                     </View>
                 }
                 leftIcon={
@@ -122,22 +130,20 @@ class CTListItems extends React.Component {
                 title={
                     <View style={{flexDirection: 'column'}}>
                         
-                        <Text style={{ fontSize: hp('2%') }} allowFontScaling={false} >{this.props.bluetooth.printingType === 'PDF' ? 'PDF' : item.title} { item.iconName === 'server' && this.state.config ? this.state.config.baseUrl : null }</Text>
+                        <Text style={{ fontSize: hp('2%') }} allowFontScaling={false} >{this.props.bluetooth.printingType === 'PDF' ? 'PDF' : item.title} { item.iconName === 'cloudserver' && this.state.config ? this.state.config.baseUrl : null }</Text>
                     </View>
                 }
                 leftIcon={
                     this.props.bluetooth.printingType === 'PDF' ?
-                    <Icon
-                        style={
-                            {
-                                width: 30, 
-                                height: 30, 
-                                alignSelf: 'center'
-                            }
-                        }
+                    <AntDesign
+                        name='pdffile1'
                         color={MainTheme.colorPrimary}
-                        name='file-pdf'
-                        type='material-community' />
+                        size={24}
+                        style={{
+                            width: 30, 
+                            height: 30, 
+                            alignSelf: 'center'
+                        }} />
                         :
                         <Image
                             style={item.iconStyle}
@@ -173,9 +179,24 @@ class CTListItems extends React.Component {
     )
     
     _logout = async (item) => {
-        const isRemove = await removeUserToken()
+        const settingConfig = await getSettingConfig()
+
+        await removeUserToken()
+        await removeLoginInfo()
+        await removeLoginGuID()
+        await setAccessTimeToken('0')
+
+        if (settingConfig) {
+            await setSettingConfig({
+                ...settingConfig,
+                USER_CODE: null,
+                USER_PASSWORD: null,
+                SALESMAN: null,
+            })
+        }
+
         Request.removeAllHeaders()
-        isRemove ? Navigator.navigate(item.screen) : null
+        Navigator.reset(item.screen || 'Auth', { screen: 'Login' })
     }
 
     

@@ -1,13 +1,13 @@
 import React from 'react';
 import { Image, Text, View } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import Navigator from '../../../services/Navigator';
 
 const Icon = ({style, ...props}) => {
   const flattenedStyle = Array.isArray(style) ? Object.assign({}, ...style) : style || {};
   return (
-    <MaterialIcons
+    <AntDesign
       {...props}
       style={style}
       size={flattenedStyle.fontSize || 24}
@@ -55,9 +55,9 @@ const CTListItems = () => {
           <Text>{item.title}</Text>
         </View>
         {expanded ? (
-          <Icon style={{flex: 0.05, fontSize: 18}} name="remove-circle" />
+          <Icon style={{flex: 0.05, fontSize: 18}} name="minuscircleo" />
         ) : (
-          <Icon style={{flex: 0.05, fontSize: 18}} name="add-circle" />
+          <Icon style={{flex: 0.05, fontSize: 18}} name="pluscircleo" />
         )}
       </View>
     );

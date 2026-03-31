@@ -1,6 +1,6 @@
 import React from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
-import Ionicons from 'react-native-vector-icons/Ionicons'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 
 const Item = ({ children, style }) => <View style={style}>{children}</View>
 
@@ -19,17 +19,11 @@ const Forms = (props) => {
 
     return (
         <View style={styles.container}>
-        {
-            // <IUpload 
-            //     rounded={true}
-            //     photo={photo} 
-            //     ontakePicturePress={ontakePicturePress} />
-        }
-
-            <Item>
-                <Ionicons name='ios-speedometer' size={24} color='#000000' />
+        
+            <Item style={styles.row}>
+                <AntDesign name='dashboard' size={24} color='#2E858E' style={styles.icon} />
                 <Input 
-                    // ref={ (ref) => ref ? ref._root.focus() : null }
+                    style={styles.input}
                     placeholder='เลขไมล์รถ' 
                     placeholderTextColor='#d6d7da' 
                     value={value} 
@@ -48,7 +42,26 @@ export default Forms
 const styles = StyleSheet.create({
     container: {
         marginTop: 15,
-        padding: 5
+        padding: 5,
+        flexDirection: 'row',
+    },
+    row : {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        borderBottomWidth: 1.2,
+        borderBottomColor: '#C9D9CF',
+        paddingBottom: 8,
+        paddingHorizontal: 6,
+    },
+    icon: {
+        marginRight: 12,
+    },
+    input: {
+        flex: 1,
+        fontSize: 18,
+        color: '#1F2A21',
+        paddingVertical: 6,
     }
 })
 

@@ -4,33 +4,42 @@ import { connect } from 'react-redux';
 import { getArPricetab } from '../../../action/customer';
 import { searchCustomerTypeList } from '../../../action/customer-type';
 import {
-    getMasterDataBankAccounts,
-    getMasterDataProvinces,
-    getMasterDataWareLocations,
-    searchMasterDataBankFileList,
+  getMasterDataBankAccounts,
+  getMasterDataProvinces,
+  getMasterDataWareLocations,
+  searchMasterDataBankFileList,
 } from '../../../action/masterData';
 import { searchProductCateGoryList } from '../../../action/product-category';
 import {
-    getVanConfig,
-    getVanConfigV3,
-    readCompanyInfoV3,
-    systemCheck2
+  getVanConfig,
+  getVanConfigV3,
+  readCompanyInfoV3,
+  systemCheck2
 } from '../../../action/setting';
 import { registerV3 } from '../../../action/user';
 import Navigate from '../../../services/Navigator';
 import Request from '../../../utils/Request';
 import {
-    getListServiceSetting,
-    getLoginInfo,
-    getSettingConfig,
-    getUserToken,
-    setLoginGuID,
-    setUserToken
+  getLoginInfo,
+  getSettingConfig,
+  getUserToken,
+  removeUserToken,
+  setLoginGuID,
+  setUserToken
 } from '../../../utils/Token';
 import Form from '../presenter/Form';
 
 class CTForm extends React.Component {
   _isMounted = false;
+  _safeJsonParse = (str) => {
+    if (str == null || typeof str !== 'string' || !str.trim()) return null;
+    try {
+      return JSON.parse(str);
+    } catch (e) {
+      return null;
+    }
+  };
+
   _animateMovingConfig = {
     toValue: 1,
     duration: 1000,
@@ -55,6 +64,8 @@ class CTForm extends React.Component {
       PermissionsAndroid.PERMISSIONS.CAMERA,
       PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
       PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
     ];
 
     if (Platform.OS === 'android') {
@@ -67,41 +78,40 @@ class CTForm extends React.Component {
 
     this._checkPermission();
     this._prepareData();
-    // this._animate()
-    // this.animateMoveOn()
+  
   }
 
   componentWillUnmount() {
     this._isMounted = false;
   }
 
-  // _animate = () => {
-  //     this.animatedValue.setValue(0)
-  //     Animated.timing(
-  //       this.animatedValue,
-  //       {
-  //         toValue: 1,
-  //         duration: 2000,
-  //         easing: Easing.linear
-  //       }
-  //     ).start(() => this._animate())
-  // }
 
-  // _animateMoveOn = async (fnc) => {
-  //     this.animatedMoveOnValue.setValue(0)
-  //     Animated.timing(
-  //       this.animatedMoveOnValue,
-  //       {
-  //         toValue: 1,
-  //         duration: 2000,
-  //         easing: Easing.linear
-  //       }
-  //     ).start(() => fnc ? fnc() : null)
-  // }
+  _goToAuth = async () => {
+    await removeUserToken();
+    Navigate.navigate('Auth');
+  };
 
   _prepareData = async () => {
-    const userToken = await getUserToken();
     const setting = await getSettingConfig();
+    const loginInfo = await getLoginInfo();
+    const rememberedLogin = loginInfo?.rememberPassword ? loginInfo : null;
+    const hasSettingConfig = Boolean(
+      setting && setting.baseUrl && setting.vanCNFMachine,
+    );
+
+    if (!hasSettingConfig) {
+      await this._goToAuth();
+      return;
+    }
+
+    const userCode = rememberedLogin?.USER_CODE ?? null;
+    const userPassword = rememberedLogin?.USER_PASSWORD ?? null;
+
+    if (!userCode || !userPassword) {
+      await this._goToAuth();
+      return;
+    }
+
     if (setting && setting.baseUrl) {
       Request.setBaseUrl(setting.baseUrl);
       Request.setHeaders({
@@ -109,17 +119,12 @@ class CTForm extends React.Component {
       });
     }
 
-    if (userToken) {
-      setTimeout(async () => {
-        Request.setHeaders({
-          userToken: userToken.USER_TOKEN
-        });
-        await this._getVanConfig(setting ? setting.vanCNFMachine : null);
-      }, 1000);
-    } else {
-      console.log('_prepareData debug3');
-      Navigate.navigate('Auth');
-    }
+    await this._getVanConfig(setting.vanCNFMachine, {
+      baseUrl: setting.baseUrl,
+      vanCNFMachine: setting.vanCNFMachine,
+      USER_CODE: userCode,
+      USER_PASSWORD: userPassword,
+    });
   };
 
   _getVanConfigV3 = async (BPAPUS_GUID, VANCNF_MACHINE) => {
@@ -130,10 +135,10 @@ class CTForm extends React.Component {
       // console.log('_getVanConfigV3 ResponseData ', response);
       if (response) {
         const response2 = await this.props.readCompanyInfoV3(BPAPUS_GUID, 0);
-        let responseData2 = JSON.parse(response2.ResponseData);
+        const responseData2 = this._safeJsonParse(response2.ResponseData);
         if (
           response2.ResponseCode == 200 &&
-          responseData2.RECORD_COUNT != '0'
+          responseData2 && responseData2.RECORD_COUNT != '0'
         ) {
           const userToken = await getUserToken();
           //console.log('P_getVanConfigV3 userToken ', userToken);
@@ -151,32 +156,49 @@ class CTForm extends React.Component {
       console.log(error.message);
     }
   };
-  _getVanConfig = async (vanCNFMachine) => {
+  _getVanConfig = async (vanCNFMachine, configOverride = null) => {
     try {
       console.log('_getVanConfig: ',vanCNFMachine)
-      const setting = await getListServiceSetting();
+      const setting = await getSettingConfig();
       const loginInfo = await getLoginInfo();
-
-      if (loginInfo === null) {
-        Navigate.navigate('Auth');
-        return;
+      const rememberedLogin = loginInfo?.rememberPassword ? loginInfo : null;
+      const activeConfig = configOverride ?? {
+        baseUrl: setting?.baseUrl,
+        vanCNFMachine: setting?.vanCNFMachine,
+        USER_CODE: rememberedLogin?.USER_CODE ?? null,
+        USER_PASSWORD: rememberedLogin?.USER_PASSWORD ?? null,
       };
 
-      if (!setting || !setting[0]) {
-        this._echoError('ไม่พบการตั้งค่าเซิร์ฟเวอร์');
+      if (
+        !activeConfig.baseUrl ||
+        !activeConfig.vanCNFMachine ||
+        !activeConfig.USER_CODE ||
+        !activeConfig.USER_PASSWORD
+      ) {
+        await this._goToAuth();
+        return;
+      }
+
+      Request.setBaseUrl(activeConfig.baseUrl);
+      Request.setHeaders({
+        vanCNFMachine: activeConfig.vanCNFMachine,
+      });
+
+      if (!setting || !setting.baseUrl || !setting.vanCNFMachine) {
+        await this._goToAuth();
         return;
       }
 
       await this.props.systemCheck2({
-        baseUrl: setting[0].webURL,
-        vanCNFMachine: setting[0].number,
-        USER_CODE: loginInfo.USER_CODE,
-        USER_PASSWORD: loginInfo.USER_PASSWORD
+        baseUrl: activeConfig.baseUrl,
+        vanCNFMachine: activeConfig.vanCNFMachine,
+        USER_CODE: activeConfig.USER_CODE,
+        USER_PASSWORD: activeConfig.USER_PASSWORD
       });
 
       const response2 = await this.props.registerV3(
-        loginInfo.USER_CODE,
-        loginInfo.USER_PASSWORD,
+        activeConfig.USER_CODE,
+        activeConfig.USER_PASSWORD,
       );
 
       const { ResponseData, ResponseCode } = response2;
@@ -187,21 +209,25 @@ class CTForm extends React.Component {
         );
         await this._setState('progress', 0.1);
 
-        let responseData = JSON.parse(ResponseData);
+        const responseData = this._safeJsonParse(ResponseData);
+
+        if (!responseData || !responseData.BPAPUS_GUID) {
+          await this._goToAuth();
+          return;
+        }
 
         await setLoginGuID(responseData.BPAPUS_GUID);
-        await this._getVanConfigV3(responseData.BPAPUS_GUID, vanCNFMachine);
+        await this._getVanConfigV3(responseData.BPAPUS_GUID, activeConfig.vanCNFMachine);
         await this._searchCustomerTypeList();
         await this._setState('titleProgress', 'กำลังโหลดข้อมูลการตั้งค่าหน่วยรถ');
         await this._searchMasterDataBankFileList(responseData.BPAPUS_GUID);
         await this._setState('titleProgress','กำลังโหลดข้อมูลการตั้งค่า ข้อมูลธนาคาร');
       } else {
-        //console.log(ResponseCode + ResponseData);
-        this._echoError(ResponseCode + ResponseData);
+        await this._goToAuth();
       }
     } catch (error) {
       console.log(error);
-      this._echoError(error);
+      await this._goToAuth();
     }
   };
 

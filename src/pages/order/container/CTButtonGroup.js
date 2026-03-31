@@ -1,33 +1,33 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {StyleSheet,Alert} from 'react-native';
-import {Text,Button} from 'react-native-elements';
-import ButtonGroup from '../presenter/ButtonGroup';
-import Navigator from '../../../services/Navigator';
-import {clearProductList, setInitialState} from '../../../action/product';
+import React, { Component } from 'react';
+import { Alert, StyleSheet } from 'react-native';
+import { Button, Text } from 'react-native-elements';
+import { connect } from 'react-redux';
 import {
   addProduct,
   addProducts,
+  calculateOrderProductSummary,
+  getProductListItemsFromLastBillByArCode,
   removeAllProductItems,
   removeAllSwipeList,
   setSwipeCurrent,
-  calculateOrderProductSummary,
-  getProductListItemsFromLastBillByArCode,
 } from '../../../action/order';
+import { setInitialState } from '../../../action/product';
+import { serverReady } from '../../../api/setting';
+import {
+  MainTheme,
+  orderSalesButtonGroup,
+  orderSalesButtonGroupAddSCR,
+  orderSalesButtonGroupEditSCR,
+  orderSalesFooterButtonGroup,
+  orderSalesReturnButtonGroup,
+} from '../../../constant/lov';
+import Navigator from '../../../services/Navigator';
 import {
   convertProductItemToOrderItem,
   convertProductItemToOrderItemSCR,
 } from '../../../utils/Order';
-import {
-  orderSalesReturnButtonGroup,
-  orderSalesButtonGroup,
-  orderSalesFooterButtonGroup,
-  orderSalesButtonGroupAddSCR,
-  orderSalesButtonGroupEditSCR,
-  MainTheme,
-} from '../../../constant/lov';
-import {getUserToken, getLoginGuID,getSettingConfig} from '../../../utils/Token';
-import {serverReady} from '../../../api/setting';
+import { getLoginGuID, getSettingConfig, getUserToken } from '../../../utils/Token';
+import ButtonGroup from '../presenter/ButtonGroup';
 class CTButtonGroup extends Component {
   _isMounted = false;
   _userToken = false;
@@ -273,8 +273,7 @@ class CTButtonGroup extends Component {
       let buttonGroup = null;
       if (
         this.props.order.header.AR_ORDER_TYPE === 'รับคืนสินค้า' ||
-        this.props.order.header.AR_ORDER_TYPE === 'โอนย้ายสินค้า' ||
-        this.props.order.header.AR_ORDER_TYPE === 'ใบเสนอราคา'
+        this.props.order.header.AR_ORDER_TYPE === 'โอนย้ายสินค้า'
       ) {
         buttonGroup = orderSalesReturnButtonGroup;
       } else {

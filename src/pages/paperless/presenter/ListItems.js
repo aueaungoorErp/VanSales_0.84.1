@@ -1,9 +1,9 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import { Text, View } from 'react-native';
+import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs';
 import SnackBar from 'react-native-snackbar-component';
-import {ConfirmDialog, ProgressDialog} from 'react-native-simple-dialogs';
-import IList from '../../../component/list/IList';
 import ErrorMessage from '../../../component/announce/ErrorMessage';
+import IList from '../../../component/list/IList';
 
 const ListItems = (props) => {
   const {
@@ -52,8 +52,8 @@ const ListItems = (props) => {
         buttonTitle={'ลองอีกครั้ง'}
         onButtonPress={onButtonPress}
         message={errorMessage}
-        iconName="account-search"
-        iconType="MaterialCommunityIcons"
+        iconName="search1"
+        iconType="AntDesign"
       />
 
       <ProgressDialog

@@ -1,8 +1,8 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { Icon } from 'react-native-elements'
-import { MainTheme } from '../../../../constant/lov'
 import IDatePicker from '../../../../component/input/IDatePicker'
+import { MainTheme } from '../../../../constant/lov'
 
 const SearchForm = (props) => {
     const { dateFrom, dateTo, onSearch, dialogMessage, setState } = props
@@ -26,10 +26,10 @@ const SearchForm = (props) => {
                     </View>
                     <View style={[styles.sectionInline, {flex: 0.1}]}>
                         <Icon
-                            name='ios-search' 
+                            name='search1' 
                             color={MainTheme.colorPrimary}
                             size={30} 
-                            type={'ionicon'}
+                            type={'antdesign'}
                             onPress={() => onSearch ? onSearch() : null} />
 
                     </View>

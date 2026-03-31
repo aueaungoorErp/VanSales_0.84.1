@@ -3,16 +3,11 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import MapView from 'react-native-maps'
 import RNPickerSelect from 'react-native-picker-select'
 import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import IPatternCurrentMarkerItem from '../../../component/item/IPatternCurrentMarkerItem'
 import IPatternMarkerItem from '../../../component/item/IPatternMarkerItem'
 import IList from '../../../component/list/IList'
 import { MainTheme } from '../../../constant/lov'
-import { resolveVectorIconComponent } from '../../../utils/iconFactory'
-
-const Icon = ({ type, ...props }) => {
-    const IconComponent = resolveVectorIconComponent(type, resolveVectorIconComponent('AntDesign'))
-    return <IconComponent {...props} />
-}
 
 const Map = (props) => {
     const { 
@@ -140,10 +135,9 @@ const Map = (props) => {
                             useNativeAndroidPickerStyle={false}
                             placeholder={{}}
                             Icon={() => {
-                                return <Icon 
+                                return <AntDesign 
                                             name='down' 
-                                            type='AntDesign' 
-                                            size={25} style= {{ color: MainTheme.colorPrimary, marginTop: 10 }} />
+                                            size={25} color={MainTheme.colorPrimary} style={{marginTop: 10}} />
                                         
                             }} />
                     </View>
@@ -164,7 +158,7 @@ const Map = (props) => {
                         <TouchableOpacity 
                             onPress={() => { searchCustomerNearBy ? searchCustomerNearBy() : null}}
                             style={{ flex: 0.1, flexDirection: 'row', height: 35, justifyContent: 'space-around' }} >
-                            <Icon name='search1' type='AntDesign' style={{ color: MainTheme.colorQuaternary, flex: 0.7 }} />
+                            <AntDesign name='search1' size={20} color={MainTheme.colorQuaternary} />
                         </TouchableOpacity>
 
                 </View>

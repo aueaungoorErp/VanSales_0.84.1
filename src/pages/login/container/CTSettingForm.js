@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Button } from 'react-native-elements';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
+import { API_ENDPOINT_V3 } from '../../../../appConfig';
 import {
   getSaleManV3,
   getVanConfigV3,
@@ -29,7 +30,7 @@ class CTSetting extends Component {
 
     this.state = {
       config: {
-        baseUrl: null,
+        baseUrl: API_ENDPOINT_V3,
         vanCNFMachine: null,
         SALESMAN: null,
         VANCONFIG: null,        
@@ -225,7 +226,7 @@ class CTSetting extends Component {
     this.setState((oldState) => {
       return {
         config: {
-          baseUrl: null,
+          baseUrl: API_ENDPOINT_V3,
           vanCNFMachine: null,
           SALESMAN: null,
           VANCONFIG: null,

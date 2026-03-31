@@ -5,8 +5,7 @@ const ChoiceGroup =   (props) => {
 
     const { listItems, renderItem } = props
 
-    const itemDimension = listItems.length > 6 ? 130 : 170
-    console.log(listItems)
+    const itemDimension = listItems.length > 6 ? 150 : 185
     return (
         <IGrid 
             itemDimension={itemDimension}

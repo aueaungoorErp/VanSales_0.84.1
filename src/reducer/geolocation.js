@@ -25,7 +25,7 @@ export const geolocation = (state = initialState, action) => {
                 message: null 
             }
         case types.GEOLOCATION_GET_CURRENT_POSITION_FAIL:
-            return { ...state, isLoading: false, isError: true, message: null }
+            return { ...state, isLoading: false, isError: true, message: action.payload || 'Location request failed' }
         case types.GEOLOCATION_SET_MESSAGE:
             return { ...state, message: action.payload }
         default:

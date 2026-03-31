@@ -1,7 +1,6 @@
 import moment from 'moment'
 import React, { Component } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-import { Icon } from 'react-native-elements'
 import RNPickerSelect from 'react-native-picker-select'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs'
@@ -106,34 +105,30 @@ class IDurationDateSearchForm extends Component {
                             }
                         </View>
                         <View style={[styles.sectionInline, {flex: 0.2}]}>
-                            <Icon
-                                name='ios-search' 
+                            <AntDesign
+                                name='search1' 
                                 color={MainTheme.colorPrimary}
                                 size={30} 
-                                type={'ionicon'}
                                 onPress={() => this.props.onSearch ? this.props.onSearch(this.state.dateFrom, this.state.dateTo) : null} />
 
                             {
                                 this.props.printEnabled ?
                                     this.props.printerType === 'BLUETOOTH' ?
-                                        <Icon
+                                        <AntDesign
                                             name='printer' 
                                             color={MainTheme.colorPrimary}
                                             size={30} 
-                                            type={'simple-line-icon'}
                                             onPress={() => this.props.printerReport ? this.props.printerReport() : null} />
                                         :
-                                        <Icon
-                                            style={
-                                                {
-                                                    width: 30, 
-                                                    height: 30, 
-                                                    alignSelf: 'center'
-                                                }
-                                            }
+                                        <AntDesign
+                                            name='pdffile1'
                                             color={MainTheme.colorPrimary}
-                                            name='file-pdf'
-                                            type='material-community'
+                                            size={30}
+                                            style={{
+                                                width: 30, 
+                                                height: 30, 
+                                                alignSelf: 'center'
+                                            }}
                                             onPress={() => this.props.printPDF ? this.props.printPDF() : null} />
                                     : null
                             }

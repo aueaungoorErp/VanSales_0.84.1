@@ -9,6 +9,19 @@ try {
   geolocationModule = null;
 }
 
+if (geolocationModule && typeof geolocationModule.setRNConfiguration === 'function') {
+  try {
+    geolocationModule.setRNConfiguration({
+      skipPermissionRequests: false,
+      authorizationLevel: 'whenInUse',
+      enableBackgroundLocationUpdates: false,
+      locationProvider: 'auto',
+    });
+  } catch (error) {
+    console.log('setRNConfiguration error:', error);
+  }
+}
+
 const getGeolocationInstance = () => {
   if (geolocationModule?.getCurrentPosition) {
     return geolocationModule;
@@ -44,9 +57,11 @@ export const getCurrentPosition = () => (dispatch) => {
       return;
     }
 
-    geolocation.getCurrentPosition(
-      (position) => {
-        position.coords.latitude.toString(),
+    // Request permission first if available
+    const doGetPosition = () => {
+      // First attempt: high accuracy with 30s timeout
+      geolocation.getCurrentPosition(
+        (position) => {
           dispatch({
             type: types.GEOLOCATION_GET_CURRENT_POSITION_SUCCESS,
             payload: {
@@ -54,17 +69,49 @@ export const getCurrentPosition = () => (dispatch) => {
               longitude: position.coords.longitude.toString(),
             },
           });
-        resolve(position);
-      },
-      (error) => {
-        dispatch({
-          type: types.GEOLOCATION_GET_CURRENT_POSITION_FAIL,
-          payload: error.message,
-        });
-        reject(error.message);
-      },
-      {enableHighAccuracy: false, timeout: 5000, maximumAge: 10000},
-    );
+          resolve(position);
+        },
+        (firstError) => {
+          console.log('geolocation high-accuracy error:', firstError);
+          // Retry: low accuracy with 30s timeout as fallback
+          console.log('Retrying with low accuracy...');
+          geolocation.getCurrentPosition(
+            (position) => {
+              dispatch({
+                type: types.GEOLOCATION_GET_CURRENT_POSITION_SUCCESS,
+                payload: {
+                  latitude: position.coords.latitude.toString(),
+                  longitude: position.coords.longitude.toString(),
+                },
+              });
+              resolve(position);
+            },
+            (secondError) => {
+              console.log('geolocation low-accuracy error:', secondError);
+              dispatch({
+                type: types.GEOLOCATION_GET_CURRENT_POSITION_FAIL,
+                payload: secondError.message || 'ไม่สามารถระบุตำแหน่งได้',
+              });
+              reject(secondError.message);
+            },
+            {enableHighAccuracy: false, timeout: 30000, maximumAge: 60000},
+          );
+        },
+        {enableHighAccuracy: true, timeout: 30000, maximumAge: 10000},
+      );
+    };
+
+    if (typeof geolocation.requestAuthorization === 'function') {
+      geolocation.requestAuthorization(
+        () => doGetPosition(),
+        (error) => {
+          console.log('requestAuthorization error, trying anyway:', error);
+          doGetPosition();
+        }
+      );
+    } else {
+      doGetPosition();
+    }
   });
 };
 

@@ -2,8 +2,6 @@ import { Picker } from '@react-native-picker/picker';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Entypo from 'react-native-vector-icons/Entypo';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ISearchBar from '../../../component/input/ISearchBar';
 import { MainTheme } from '../../../constant/lov';
 
@@ -33,7 +31,6 @@ const SearchForm = (props) => {
         <Item
           style={{
             flex: 1,
-            borderWidth: 1,
             height: 35,
             marginLeft: 5,
             marginRight: 5,
@@ -97,14 +94,14 @@ const SearchForm = (props) => {
             onRefresh ? onRefresh() : null;
           }}
           style={{ flex: 0.1, height: 35 }}>
-          <Entypo name="cycle" size={20} color={MainTheme.colorTertiary} />
+          <AntDesign name="sync" size={20} color={MainTheme.colorTertiary} />
         </TouchableOpacity>
 
         {hasBarcodeScan ? (
           <TouchableOpacity
             onPress={() => (onScanBarcodePress ? onScanBarcodePress() : null)}
             style={{ flex: 0.1, height: 35 }}>
-            <MaterialCommunityIcons name="barcode-scan" size={20} color={MainTheme.colorTertiary} />
+            <AntDesign name="scan1" size={20} color={MainTheme.colorTertiary} />
           </TouchableOpacity>
         ) : null}
       </View>

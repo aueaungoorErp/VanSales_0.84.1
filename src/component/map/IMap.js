@@ -1,7 +1,7 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
-import { Icon } from 'react-native-elements'
-import MapView, { Marker, Callout } from 'react-native-maps'
+import { StyleSheet, Text, View } from 'react-native'
+import MapView, { Callout, Marker } from 'react-native-maps'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 
 const IMap = (props) => {
 
@@ -10,9 +10,8 @@ const IMap = (props) => {
     const _renderCurrentMarker = (marker, index) => {
         return (
             <Marker key={index} coordinate={marker.coordinate}>
-                <Icon
-                    name='shield-account'
-                    type='material-community'
+                <AntDesign
+                    name='user'
                     color='#517fa4'
                     size={40} />
                  <Callout style={{width: 100}}>

@@ -1,60 +1,59 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
 import {
   Alert,
   Keyboard,
-  Platform,
   PermissionsAndroid,
+  Platform,
+  StyleSheet,
   Text,
-  TouchableOpacity,
-  View, StyleSheet
+  View
 } from 'react-native';
-import { Button } from 'react-native-elements';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import ButtonGroup from '../presenter/ButtonGroup';
-import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import Dialog from 'react-native-dialog';
-import { printReceipt2 } from '../../../../constant/printing-pdf-lov';
+import { Button } from 'react-native-elements';
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import { connect } from 'react-redux';
 import {
-  checkStockTopButtonGroup,
-  checkStockButtonGroup,
-  checkStockSummaryButtonGroup,
-  checkStockImageButtonGroup,
-  MainTheme,
-} from '../../../../constant/lov';
-import Navigator from '../../../../services/Navigator';
+  addProduct,
+  addStockImageItem,
+  calculateOrderProductSummary,
+  createQuotation,
+  getProductListItemsFromLastBillByArCode,
+  orderAttachMultipleImages,
+  orderUpdateQuotation,
+  processOrderSale,
+  removeAllProductItems,
+  removeAllStockImageItems,
+  setHeader,
+  setOrderItems,
+  setVDIRemark,
+} from '../../../../action/order';
 import { setInitialState as setProductInitialState } from '../../../../action/product';
-import {
-  getUserToken,
-  getLoginGuID,
-  getSettingConfig,
-} from '../../../../utils/Token';
+import { systemCheck } from '../../../../action/setting';
 import { serverReady } from '../../../../api/setting';
 import {
-  setOrderItems,
-  processOrderSale,
-  createQuotation,
-  setHeader,
-  calculateOrderProductSummary,
-  addStockImageItem,
-  orderUpdateQuotation,
-  removeAllStockImageItems,
-  orderAttachMultipleImages,
-  removeAllProductItems,
-  addProduct,
-  setVDIRemark,
-  getProductListItemsFromLastBillByArCode,
-} from '../../../../action/order';
-import {
-  genenrateOrderForProcessToServer,
-  genenrateOrderForCreateToServer,
-  generateHeader,
-  genenrateOrderForUpdateToServer,
-  genenrateMultipleAttachImageToServer,
-  convertProductItemToOrderItem,
-} from '../../../../utils/Order';
+  checkStockButtonGroup,
+  checkStockImageButtonGroup,
+  checkStockSummaryButtonGroup,
+  checkStockTopButtonGroup,
+  MainTheme,
+} from '../../../../constant/lov';
+import { printReceipt2 } from '../../../../constant/printing-pdf-lov';
 import { BluetoothFinder, BplusPrinting } from '../../../../module';
-import { systemCheck } from '../../../../action/setting';
+import Navigator from '../../../../services/Navigator';
+import {
+  convertProductItemToOrderItem,
+  genenrateMultipleAttachImageToServer,
+  genenrateOrderForCreateToServer,
+  genenrateOrderForProcessToServer,
+  genenrateOrderForUpdateToServer,
+  generateHeader,
+} from '../../../../utils/Order';
+import {
+  getLoginGuID,
+  getSettingConfig,
+  getUserToken,
+} from '../../../../utils/Token';
+import ButtonGroup from '../presenter/ButtonGroup';
 
 class CTButtonGroup extends Component {
   _isMounted = false;
@@ -129,7 +128,7 @@ class CTButtonGroup extends Component {
 
   _setButtonGroup = () => {
     const { routes, index } = Navigator.getCurrentRoute();
-    const { routeName } = routes[index];
+    const routeName = routes[index]?.name || routes[index]?.routeName;
     console.log('routeName >> ', routeName)
     console.log('this.props.position >> ', this.props.position)
 

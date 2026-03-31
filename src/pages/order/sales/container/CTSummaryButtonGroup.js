@@ -1,26 +1,25 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
 import { Alert, PermissionsAndroid, Platform } from 'react-native';
 import { Button } from 'react-native-elements';
+import RNFS from 'react-native-fs';
+import { generatePDF } from 'react-native-html-to-pdf';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import RNHTMLtoPDF from 'react-native-html-to-pdf';
-import { BluetoothFinder, BplusPrinting } from '../../../../module';
-import {
-  printReceipt,
-  printReceipt2,
-} from '../../../../constant/printing-pdf-lov';
-import SummaryButtonGroup from '../presenter/SummaryButtonGroup';
-import { orderSummaryFormButtonGroup } from '../../../../constant/lov';
+import { connect } from 'react-redux';
+import { searchMasterDataVanVisRList } from '../../../../action/masterData';
 import {
   addVisitImageItem,
-  removeAllVisitImageItems,
   createDocVisit,
+  removeAllVisitImageItems,
 } from '../../../../action/order';
-import { searchMasterDataVanVisRList } from '../../../../action/masterData';
-import Navigator from '../../../../services/Navigator';
-import { getUserToken, getSettingConfig } from '../../../../utils/Token';
 import { systemCheck } from '../../../../action/setting';
-import RNFS from 'react-native-fs'
+import { orderSummaryFormButtonGroup } from '../../../../constant/lov';
+import {
+  printReceipt2
+} from '../../../../constant/printing-pdf-lov';
+import { BluetoothFinder, BplusPrinting } from '../../../../module';
+import Navigator from '../../../../services/Navigator';
+import { getSettingConfig, getUserToken } from '../../../../utils/Token';
+import SummaryButtonGroup from '../presenter/SummaryButtonGroup';
 
 class CTSummaryButtonGroup extends Component {
   _isMounted = false;
@@ -62,11 +61,10 @@ class CTSummaryButtonGroup extends Component {
     try {
       console.log('_checkPermission type', type);
       console.log('_checkPermission processResult', processResult);
-      permissions = [PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE];
 
       let granted = PermissionsAndroid.RESULTS.GRANTED;
 
-      if (Platform.OS === 'android') {
+      if (Platform.OS === 'android' && Platform.Version < 33) {
         granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
         );
@@ -173,7 +171,7 @@ class CTSummaryButtonGroup extends Component {
             base64: true
           };
           // alert(html)
-          let file = await RNHTMLtoPDF.convert(options);
+          let file = await generatePDF(options);
           // alert(file)
 
           console.log("filePath3: ", file.filePath.split("/").pop())

@@ -15,8 +15,6 @@ import {
 import RNPickerSelect from 'react-native-picker-select';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Feather from 'react-native-vector-icons/Feather';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 import { getSaleManV3, systemCheck } from '../../../action/setting';
 import ILoading from '../../../component/loading/ILoading';
@@ -354,7 +352,7 @@ class Form extends Component {
         <View style={styles.pickerWrapper}>
           <RNPickerSelect
             onValueChange={(value) => {
-              this._onChangeService(value, null, true);
+              this._onChangeService(value);
             }}
             items={this.state.listServiceSettings}
             value={this.state.service}
@@ -421,8 +419,8 @@ class Form extends Component {
                 onSettingPress?.();
               }}
             >
-              <Feather
-                name="settings"
+              <AntDesign
+                name="setting"
                 color={MainTheme.colorSecondary}
                 size={24}
               />
@@ -490,9 +488,9 @@ class Form extends Component {
                 onChangeText={this._handleChangePassword}
               />
 
-              <Ionicons
+              <AntDesign
                 name={
-                  this.state.isShow ? 'eye-off-outline' : 'eye-outline'
+                  this.state.isShow ? 'eyeo' : 'eye'
                 }
                 size={28}
                 color={MainTheme.colorTertiary}
@@ -515,7 +513,7 @@ class Form extends Component {
                     isRememberPassword ? styles.checkboxBoxChecked : null,
                   ]}>
                   {isRememberPassword ? (
-                    <Ionicons name="checkmark" size={14} color="#ffffff" />
+                    <AntDesign name="check" size={14} color="#ffffff" />
                   ) : null}
                 </View>
               </Pressable>
@@ -525,7 +523,7 @@ class Form extends Component {
               </Text>
             </View>
 
-            <View style={styles.loginButtonWrap}>
+            <View style={[styles.loginButtonWrap ]}>
               <TouchableOpacity
                 style={styles.loginButton}
                 onPress={this._onLogin}
@@ -680,16 +678,20 @@ const styles = StyleSheet.create({
   },
   rememberText: {
     alignSelf: 'flex-end',
+    color: MainTheme.colorQuaternary,
+    fontSize: hp('1.7%'),
+    fontWeight: '600',
   },
   checkboxPressable: {
     marginRight: 10,
+    padding: 2,
   },
   checkboxBox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#666666',
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: MainTheme.colorQuaternary,
     backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
@@ -700,6 +702,7 @@ const styles = StyleSheet.create({
   },
   loginButtonWrap: {
     marginTop: 20,
+    
   },
   loginButton: {
     width: '60%',
@@ -708,6 +711,8 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignSelf: 'center',
     justifyContent: 'center',
+    height: 50,
+    alignItems: 'center',
   },
   loginButtonInner: {
     width: '100%',

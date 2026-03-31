@@ -33,6 +33,11 @@ import {
 } from '../../../action/setting';
 
 class CTForm extends Component {
+  _safeJsonParse = (str) => {
+    if (str == null || typeof str !== 'string' || !str.trim()) return null;
+    try { return JSON.parse(str); } catch (e) { return null; }
+  };
+
   constructor(props) {
     super(props);
 
@@ -173,7 +178,7 @@ class CTForm extends Component {
           USER_PASSWORD,
         });
 
-        const responseData = JSON.parse(response.ResponseData);
+        const responseData = this._safeJsonParse(response.ResponseData);
         if (
           response.ResponseCode == 200 && response.ReasonString == 'Completed'
         ) {
@@ -182,7 +187,11 @@ class CTForm extends Component {
             USER_PASSWORD,
           );
           const { ResponseData } = registerResponse;
-          const registerResponseData = JSON.parse(ResponseData);
+          const registerResponseData = this._safeJsonParse(ResponseData);
+          if (!registerResponseData || !registerResponseData.BPAPUS_GUID) {
+            this._setErrorMessage('ข้อมูลการลงทะเบียนไม่ถูกต้อง');
+            return;
+          }
           const uniqueId = await getDeviceUniqeId();
           const responsemember = await findMemberNameV3Api(
             vanCNFMachine,
@@ -191,7 +200,7 @@ class CTForm extends Component {
           const responseMemberData =
             typeof responsemember?.ResponseData === 'string' &&
             responsemember.ResponseData.trim()
-              ? JSON.parse(responsemember.ResponseData)
+              ? this._safeJsonParse(responsemember.ResponseData)
               : responsemember?.ResponseData;
           const existingMember = Array.isArray(responseMemberData?.Mb000130)
             ? responseMemberData.Mb000130[0]
@@ -220,7 +229,7 @@ class CTForm extends Component {
               );
               if (
                 responseNewmember.ResponseCode == 200 &&
-                JSON.parse(responseNewmember.ResponseData).RECORD_COUNT > 0
+                this._safeJsonParse(responseNewmember.ResponseData)?.RECORD_COUNT > 0
               ) {
               }
             } catch (error) {
@@ -327,10 +336,10 @@ class CTForm extends Component {
       // console.log('getuserToken: ', userToken)
       if (response) {
         const response2 = await this.props.readCompanyInfoV3(BPAPUS_GUID, 0);
-        let responseData2 = JSON.parse(response2.ResponseData);
+        let responseData2 = this._safeJsonParse(response2.ResponseData);
         if (
           response2.ResponseCode == 200 &&
-          responseData2.RECORD_COUNT != '0'
+          responseData2 && responseData2.RECORD_COUNT != '0'
         ) {
           await setUserToken({
             ...(userToken ?? {}),

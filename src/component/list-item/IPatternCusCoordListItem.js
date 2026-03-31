@@ -2,13 +2,8 @@ import _ from 'lodash'
 import React from 'react'
 import { Image, Text, TouchableOpacity, View } from 'react-native'
 import { ListItem } from 'react-native-elements'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import { MainTheme } from '../../constant/lov'
-import { resolveVectorIconComponent } from '../../utils/iconFactory'
-
-const Icon = ({ type, ...props }) => {
-    const IconComponent = resolveVectorIconComponent(type, resolveVectorIconComponent('MaterialCommunityIcons'))
-    return <IconComponent {...props} />
-}
 
 class IPatternCusCoordListItem extends React.Component {
     _isMounted = false
@@ -83,7 +78,7 @@ class IPatternCusCoordListItem extends React.Component {
                                 <TouchableOpacity 
                                     onPress={() => { goToCoordinate(index)} }
                                     style={{flex: 1, height: 35, alignItems: 'center', justifyContent: 'center',marginRight: 1}} >
-                                    <Icon name='radar' type='MaterialCommunityIcons' style={{ color: MainTheme.colorPrimary }} />
+                                    <AntDesign name='scan1' size={20} color={MainTheme.colorPrimary} />
                                 </TouchableOpacity>
                                 : <View style={{ flex: 1}}/>
                             }
@@ -95,7 +90,7 @@ class IPatternCusCoordListItem extends React.Component {
                                     <TouchableOpacity 
                                         onPress={() => { goToGoogleMaps(item)} }
                                         style={{flex: 1, height: 30, alignItems: 'center', justifyContent: 'center'}} >
-                                        <Icon name='location' type='Entypo' style={{ color: MainTheme.colorPrimary }} />
+                                        <AntDesign name='enviromento' size={20} color={MainTheme.colorPrimary} />
                                     </TouchableOpacity>
                                     : <View style={{ flex: 1}}/>
                                 

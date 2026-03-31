@@ -1,7 +1,7 @@
 import React from 'react'
-import { View, ScrollView, StyleSheet } from 'react-native'
-import IList from '../../../component/list/IList'
+import { ScrollView, StyleSheet, View } from 'react-native'
 import ErrorMessage from '../../../component/announce/ErrorMessage'
+import IList from '../../../component/list/IList'
 
 const DetailFormSCR = (props) => {
     const { 
@@ -25,7 +25,7 @@ const DetailFormSCR = (props) => {
                     stickyHeaderIndices={[0]} />
             </ScrollView>
             
-            <ErrorMessage isDisplaying={errorMessage} message={errorMessage} iconName='warning' type='font-awesome' />
+            <ErrorMessage isDisplaying={errorMessage} message={errorMessage} iconName='warning' type='antdesign' />
         </View>
     )
 }

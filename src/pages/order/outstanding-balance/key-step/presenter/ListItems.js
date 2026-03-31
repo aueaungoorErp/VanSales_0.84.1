@@ -1,7 +1,7 @@
 import React from 'react'
 import { View } from 'react-native'
-import IList from '../../../../../component/list/IList'
 import ErrorMessage from '../../../../../component/announce/ErrorMessage'
+import IList from '../../../../../component/list/IList'
 
 const ListItems = (props) => {
     const { header, listItems, renderItem, errorMessage } = props
@@ -22,7 +22,7 @@ const ListItems = (props) => {
                 !errorMessage ? _renderList() : null
             }
 
-            <ErrorMessage isDisplaying={errorMessage} message={errorMessage} iconName='account-search' iconType='MaterialCommunityIcons' />
+            <ErrorMessage isDisplaying={errorMessage} message={errorMessage} iconName='search1' iconType='AntDesign' />
         </View>
     )
 }

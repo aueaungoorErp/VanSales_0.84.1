@@ -1,8 +1,9 @@
 import _ from 'lodash'
 import React, { Component } from 'react'
 import { Alert, Text, TextInput, View } from 'react-native'
-import { Icon, ListItem } from 'react-native-elements'
+import { ListItem } from 'react-native-elements'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import { mainDivider, MainTheme } from '../../constant/lov'
 
 const Item = ({ children, style }) => <View style={style}>{children}</View>
@@ -94,9 +95,8 @@ class IPatternStockListItem extends Component {
                         <Text style={{ width: 100, marginLeft: 5, marginTop: 10, textAlign: 'right', fontSize: hp('1.7%') }} allowFontScaling={false} >{item.DIFFERENCE}</Text>
                         <Text style={{ width: 100, marginLeft: 5, marginTop: 10, textAlign: 'right', fontSize: hp('1.7%') }} allowFontScaling={false} >{item.VTRD_CODE}</Text>
                         <View style={{ width: 50, justifyContent: 'center' }} >
-                            <Icon
-                                name='trash-o'
-                                type='font-awesome'
+                            <AntDesign
+                                name='delete'
                                 color={MainTheme.colorPrimary}
                                 size={30}
                                 onPress={() => this._removeAlertDialog(index)} />

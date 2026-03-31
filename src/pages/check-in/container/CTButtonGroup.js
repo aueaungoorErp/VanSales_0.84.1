@@ -1,25 +1,25 @@
-﻿import React, {Component} from 'react';
-import {connect} from 'react-redux';
+﻿import React, { Component } from 'react';
 import {
-  View,
+  ActivityIndicator,
   Alert,
-  Text,
   Modal,
   StyleSheet,
+  Text,
   TouchableOpacity,
-  ActivityIndicator,
+  View,
 } from 'react-native';
-import {checkInFormButtonGroup} from '../../../constant/lov';
+import { connect } from 'react-redux';
+import { checkDistance, submit } from '../../../action/check-in';
+import { UpdAddrBookV3Api } from '../../../api/check-in';
+import { checkInFormButtonGroup } from '../../../constant/lov';
 import ButtonGroup from '../presenter/ButtonGroup';
-import {submit, checkDistance} from '../../../action/check-in';
-import { UpdAddrBookV3Api} from '../../../api/check-in';
 
-import Navigator from '../../../services/Navigator';
-import {getUserToken,getLoginGuID } from '../../../utils/Token';
 import * as appConfig from '../../../../appConfig';
+import Navigator from '../../../services/Navigator';
+import { getLoginGuID, getUserToken } from '../../../utils/Token';
 
-import {getCurrentPosition} from '../../../action/geolocation';
-import {MainTheme} from '../../../constant/lov';
+import { getCurrentPosition } from '../../../action/geolocation';
+import { MainTheme } from '../../../constant/lov';
 
 
 
@@ -67,18 +67,26 @@ class CTButtonGroup extends Component {
   };
 
   _getPreviousRoute = async () => {
-    const {routes, index} = Navigator.getCurrentRoute();
-    await this._setState('previousRoute', routes[index - 1]);
+    try {
+      const navState = Navigator.getCurrentRoute();
+      if (navState && navState.routes && navState.index > 0) {
+        await this._setState('previousRoute', navState.routes[navState.index - 1]);
+      }
+    } catch (e) {
+      console.log('_getPreviousRoute error', e);
+    }
   };
 
   _renderItem = (item, key) => {
+    const previousRoute = this.state.previousRoute || {};
+    const position = this.props.geolocation && this.props.geolocation.position ? this.props.geolocation.position : {};
     const isDisabled =
       (item.title === 'ยกเลิก' &&
-        this.state.userToken.VANCONFIG.VANCNF_FORCE_GPS === 1 &&
-        this.state.previousRoute.name === 'Order') ||
+        this.state.userToken && this.state.userToken.VANCONFIG && this.state.userToken.VANCONFIG.VANCNF_FORCE_GPS === 1 &&
+        previousRoute.name === 'Order') ||
       (item.title === 'เช็คอิน' &&
-        this.props.geolocation.position.latitude === null &&
-        this.props.geolocation.position.longitude === null);
+        position.latitude === null &&
+        position.longitude === null);
 
     return (
       <TouchableOpacity
@@ -100,20 +108,24 @@ class CTButtonGroup extends Component {
 
   _onPress = async (item) => {
     const userToken = await getUserToken();
-    const {routes, index} = Navigator.getCurrentRoute();
-    const {name: routeName} = routes[index - 1];
+    const navState = Navigator.getCurrentRoute();
+    let routeName = null;
+    if (navState && navState.routes && navState.index > 0) {
+      routeName = navState.routes[navState.index - 1].name;
+    }
 
     if (item.methodName === 'confirm') {
       if (await this._validateForm()) {
+        const position = this.props.geolocation && this.props.geolocation.position ? this.props.geolocation.position : {};
         if (
-          userToken.VANCONFIG.VANCNF_WARN_NOGPS == 2 &&
-          this.props.geolocation.position.latitude === null &&
-          this.props.geolocation.position.longitude === null
+          userToken && userToken.VANCONFIG && userToken.VANCONFIG.VANCNF_WARN_NOGPS == 2 &&
+          position.latitude === null &&
+          position.longitude === null
         ) {
           console.log(
             'check in on press',
             userToken.VANCONFIG.VANCNF_WARN_NOGPS,
-            this.props.geolocation.position.latitude,
+            position.latitude,
           );
           this._setState('showDialog', true);
         }
@@ -141,9 +153,12 @@ class CTButtonGroup extends Component {
   };
 
   _onSkip = () => {
-    if (this.state.userToken.VANCONFIG.VANCNF_WARN_NOGPS === 1) {
-      const {routes, index} = Navigator.getCurrentRoute();
-      const {name: routeName} = routes[index - 1];
+    if (this.state.userToken && this.state.userToken.VANCONFIG && this.state.userToken.VANCONFIG.VANCNF_WARN_NOGPS === 1) {
+      const navState = Navigator.getCurrentRoute();
+      let routeName = null;
+      if (navState && navState.routes && navState.index > 0) {
+        routeName = navState.routes[navState.index - 1].name;
+      }
       if (routeName === 'Order' || routeName === 'CustomerProfileDetail')
         Navigator.pop(1, true);
       Navigator.navigate('OrderChoice');
@@ -160,7 +175,7 @@ class CTButtonGroup extends Component {
       ) {
       
 
-   if (  isNaN(parseFloat(this.props.customer.item.INFO.ADDB_GPS_LAT_S)) || isNaN(parseFloat(this.props.customer.item.INFO.ADDB_GPS_LONG_S)) )
+   if ( !this.props.customer.item || !this.props.customer.item.INFO || isNaN(parseFloat(this.props.customer.item.INFO.ADDB_GPS_LAT_S)) || isNaN(parseFloat(this.props.customer.item.INFO.ADDB_GPS_LONG_S)) )
       // ไม่มีพิกัดในฐานข้อมูล 
       {
         const AsyncAlert = async () => new Promise((resolve) => {
@@ -263,7 +278,7 @@ class CTButtonGroup extends Component {
       const AsyncAlert = async () => new Promise((resolve) => {
         Alert.alert(
                 'เช็คอินไม่สำเร็จ',
-              error ,
+              typeof error === 'string' ? error : (error && error.message ? error.message : 'เกิดข้อผิดพลาด') ,
           [
             //  {text: 'ไม่ยืนยัน', onPress: () => { resolve('NO'); }, },              
               {text: 'ตกลง', onPress: () => { resolve('NO'); }, },

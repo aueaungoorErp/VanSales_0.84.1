@@ -1,29 +1,23 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { View, Text } from 'react-native';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { Text, View } from 'react-native';
 import { ListItem } from 'react-native-elements';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { connect } from 'react-redux';
 import ListItems from '../presenter/ListItems';
-import { getWareLocationStockBalance } from '../../../api/drop-point';
-import { BPAPUS_BPAPSV } from '../../../../appConfig';
-import {
-  BPAPUS_FUNCTION_WH_CODE,
-} from '../../../constant/bPlusApi';
-import { lookupErpV3Api, readErpV3Api, updateErpV3Api } from '../../../api/bPlusApi';
 
 import {
-  setProduct,
-  setModal,
   clearProductList,
+  searchProductBySkuAlt,
   searchProductList,
   setError,
   setGoodsCodeCriteria,
-  searchProductBySkuAlt,
   setKeyword,
+  setModal,
+  setProduct,
 } from '../../../action/product';
-import Navigate from '../../../services/Navigator';
 import { mainDivider } from '../../../constant/lov';
-import { getUserToken, getLoginGuID } from '../../../utils/Token';
+import Navigate from '../../../services/Navigator';
+import { getUserToken } from '../../../utils/Token';
 class CTListItems extends Component {
   constructor(props) {
     super(props);
@@ -43,7 +37,13 @@ class CTListItems extends Component {
   _renderProductItem = (item) => {
     return (
       <ListItem
-        title={
+        containerStyle={mainDivider}
+        bottomDivider
+        onPress={() => {
+          this._onItemPress(item);
+        }}
+      >
+        <ListItem.Content>
           <View style={{ flexDirection: 'row' }}>
             <View style={{ flex: 1, flexDirection: 'column' }}>
               <Text style={{ fontSize: hp('2%'), color: '#000066' }} allowFontScaling={false}>
@@ -86,22 +86,19 @@ class CTListItems extends Component {
               </Text>
             </View>
           </View>
-        }
-        leftIcon={{ name: item.icon, type: item.type }}
-        hideChevron
-        containerStyle={mainDivider}
-        bottomDivider
-        onPress={() => {
-          this._onItemPress(item);
-        }}
-      />
+        </ListItem.Content>
+      </ListItem>
     );
   };
 
   _renderStockItem = (item) => {
     return (
       <ListItem
-        title={
+        onPress={() => {
+          this._onItemPress(item);
+        }}
+      >
+        <ListItem.Content>
           <View style={{ flexDirection: 'row' }}>
             <View style={{ flex: 1, flexDirection: 'column' }}>
               <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>
@@ -115,24 +112,22 @@ class CTListItems extends Component {
               </Text>
             </View>
             <View style={{ flex: 1, flexDirection: 'column' }}>
-              {/* <Text>ราคา {item.ARPLU_U_PRC.toLocaleString(navigator.language, { minimumFractionDigits: 2 })} บาท</Text> */}
-              {/* <Text>บรรจุ {item.UTQ_NAME} </Text> */}
             </View>
           </View>
-        }
-        leftIcon={{ name: item.icon, type: item.type }}
-        hideChevron
-        onPress={() => {
-          this._onItemPress(item);
-        }}
-      />
+        </ListItem.Content>
+      </ListItem>
     );
   };
 
   _renderSkuAltItem = (item) => {
     return (
       <ListItem
-        title={
+        containerStyle={mainDivider}
+        onPress={() => {
+          this._onItemPress(item);
+        }}
+      >
+        <ListItem.Content>
           <View style={{ flexDirection: 'row' }}>
             <View style={{ flex: 1, flexDirection: 'column' }}>
               <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>
@@ -146,18 +141,10 @@ class CTListItems extends Component {
               </Text>
             </View>
             <View style={{ flex: 1, flexDirection: 'column' }}>
-              {/* <Text>ราคา {item.ARPLU_U_PRC.toLocaleString(navigator.language, { minimumFractionDigits: 2 })} บาท</Text> */}
-              {/* <Text>บรรจุ {item.UTQ_NAME} </Text> */}
             </View>
           </View>
-        }
-        leftIcon={{ name: item.icon, type: item.type }}
-        containerStyle={mainDivider}
-        hideChevron
-        onPress={() => {
-          this._onItemPress(item);
-        }}
-      />
+        </ListItem.Content>
+      </ListItem>
     );
   };
 
@@ -187,7 +174,7 @@ class CTListItems extends Component {
           this.props.setModal(false);
           this.props.inputQtyRef
             ? setTimeout(() => {
-              this.props.inputQtyRef._root.focus();
+              this.props.inputQtyRef.focus();
             }, 200)
             : null;
         }

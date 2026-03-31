@@ -1,7 +1,8 @@
 ﻿import { NavigationContainer } from '@react-navigation/native';
 import { CardStyleInterpolators, createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import LoginHeader from './component/header/LoginHeader';
 import MainHeader from './component/header/MainHeader';
 import { APP_VERSION_FULL } from './constant/lov';
@@ -116,31 +117,44 @@ function HomeNavigator() {
   );
 }
 
+const appStyles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+});
+
 class AppNavigator extends React.Component {
   render() {
     return (
-      <NavigationContainer ref={navigationRef}>
-        <RootStack.Navigator
-          initialRouteName="Splash"
-          screenOptions={{ cardStyleInterpolator: androidCardInterpolator }}
-        >
-          <RootStack.Screen
-            name="Splash"
-            component={Splash}
-            options={{ headerShown: false }}
-          />
-          <RootStack.Screen
-            name="Auth"
-            component={LoginNavigator}
-            options={{ headerShown: false }}
-          />
-          <RootStack.Screen
-            name="Main"
-            component={HomeNavigator}
-            options={{ headerShown: false }}
-          />
-        </RootStack.Navigator>
-      </NavigationContainer>
+      <SafeAreaProvider>
+        {/* <SafeAreaView style={appStyles.safeArea}  edges={Platform.OS === 'android' ? ['top', 'bottom', 'left', 'right'] : ["top"]}> */}
+                <SafeAreaView style={appStyles.safeArea}  edges={['top', 'bottom', 'left', 'right'] }>
+
+          <NavigationContainer ref={navigationRef}>
+            <RootStack.Navigator
+              initialRouteName="Splash"
+              screenOptions={{ cardStyleInterpolator: androidCardInterpolator }}
+            >
+
+              <RootStack.Screen
+                name="Splash"
+                component={Splash}
+                options={{ headerShown: false }}
+              />
+              <RootStack.Screen
+                name="Auth"
+                component={LoginNavigator}
+                options={{ headerShown: false }}
+              />
+              <RootStack.Screen
+                name="Main"
+                component={HomeNavigator}
+                options={{ headerShown: false }}
+              />
+            </RootStack.Navigator>
+          </NavigationContainer>
+        </SafeAreaView>
+      </SafeAreaProvider>
     );
   }
 }

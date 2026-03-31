@@ -1,7 +1,8 @@
 import React from 'react'
 import { StyleSheet } from 'react-native'
-import { Icon, SearchBar} from 'react-native-elements'
+import { SearchBar } from 'react-native-elements'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import { MainTheme } from '../../constant/lov'
 
 
@@ -26,12 +27,10 @@ const ISearchBar = (props) => (
         onClear={props.onClear ? () => props.onClear() : null}
         onCancel={props.onCancel ? () => props.onCancel() : null}
         clearIcon={
-            <Icon 
-                type='font-awesome' 
-                name='times-circle' 
+            <AntDesign 
+                name='closecircleo' 
                 color={MainTheme.colorButtonBorder } 
                 size={15} 
-                underlayColor={MainTheme.colorSecondary} 
                 onPress={() => props.onClear()} />
         } />
 )

@@ -1,27 +1,26 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { View, Text, Alert, Dimensions } from 'react-native';
-import { ListItem, Icon } from 'react-native-elements';
+import { Alert, Dimensions, Text, View } from 'react-native';
+import { Icon, ListItem } from 'react-native-elements';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { connect } from 'react-redux';
 import Navigator from '../../../../services/Navigator';
 
-import ListItems from '../../presenter/ListItems';
-import { MainTheme, MOBILE5INCH, mainDivider } from '../../../../constant/lov';
 import {
-  setOrderItems,
-  removeProductItem,
-  calculateOrderProductSummary,
-  editProduct,
-  getProductListItemsFromLastBillByArCode,
+    calculateOrderProductSummary,
+    editProduct,
+    getProductListItemsFromLastBillByArCode,
+    removeProductItem,
+    setOrderItems,
 } from '../../../../action/order';
-import IPatternStockListItem from '../../../../component/list-item/IPatternStockListItem';
+import { setGoodsCodeCriteria, setProduct } from '../../../../action/product';
+import { mainDivider, MainTheme, MOBILE5INCH } from '../../../../constant/lov';
 import { numberOnlyCanZeroFirst } from '../../../../utils/Culculate';
-import { setProduct, setGoodsCodeCriteria } from '../../../../action/product';
 import {
-  convertProductItemToOrderItem,
-  convertOrderItemToProductItem,
+    convertOrderItemToProductItem,
+    convertProductItemToOrderItem,
 } from '../../../../utils/Order';
-import { getUserToken, getLoginGuID } from '../../../../utils/Token';
+import { getLoginGuID, getUserToken } from '../../../../utils/Token';
+import ListItems from '../../presenter/ListItems';
 
 
 class CTListItems extends Component {
@@ -307,20 +306,20 @@ class CTListItems extends Component {
                     justifyContent: 'space-around',
                   }}>
                   <Icon
-                    name="pencil"
+                    name="edit"
                     color={MainTheme.colorPrimary}
                     size={30}
-                    type={'font-awesome'}
+                    type={'antdesign'}
                     onPress={() => {
                       this._editProductItem(item, index);
                     }}
                   />
 
                   <Icon
-                    name="trash-o"
+                    name="delete"
                     color={MainTheme.colorPrimary}
                     size={30}
-                    type={'font-awesome'}
+                    type={'antdesign'}
                     onPress={() => {
                       this._removeAlertDialog(index);
                     }}
