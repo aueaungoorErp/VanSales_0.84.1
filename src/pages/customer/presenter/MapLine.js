@@ -1,9 +1,9 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
-import MapView from 'react-native-maps'
-import { ProgressDialog, ConfirmDialog } from 'react-native-simple-dialogs'
-import IList from '../../../component/list/IList'
+import { StyleSheet, Text, View } from 'react-native'
+import MapView, { Marker, Polyline } from 'react-native-maps'
+import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs'
 import IPatternCurrentMarkerItem from '../../../component/item/IPatternCurrentMarkerItem'
+import IList from '../../../component/list/IList'
 
 const Map = (props) => {
     const { 
@@ -28,8 +28,32 @@ const Map = (props) => {
         )
     }
 
-    const markerII = listItems.filter(item => item.ADDB_GPS_LAT_S !== null && item.ADDB_GPS_LONG_S!== null).map((item, index) => { 
+    const validMarkers = listItems.filter((item) => {
+        const latitude = item?.coordinate?.latitude
+        const longitude = item?.coordinate?.longitude
+
+        return Number.isFinite(latitude) && Number.isFinite(longitude)
+    })
+
+    const markerII = validMarkers.map((item) => {
         return { latitude: item.coordinate.latitude, longitude: item.coordinate.longitude }
+    })
+
+    const markerElements = validMarkers.map((marker, index) => {
+        if (marker.currentLocation) {
+            return _renderCurrentMarker(marker, index)
+        }
+
+        return (
+            <Marker
+                key={index}
+                coordinate={marker.coordinate}
+                title={marker.title}
+                description={marker.description}
+                pinColor='red'
+                ref={instance => getMarkersInstance(instance)}
+            />
+        )
     })
 
     return (
@@ -50,40 +74,23 @@ const Map = (props) => {
                         style={styles.map}
                         ref={map => getMapInstance(map)}
                         onRegionChangeComplete={(region) => {onRegionChangeComplete(region)}} >
+                        {markerElements}
 
-                        {
-                            
-                            markers = listItems.filter(item => item.ADDB_GPS_LAT_S !== null && item.ADDB_GPS_LONG_S!== null).map((marker, index) => {
-                                if (marker.currentLocation) {
-                                    return (
-                                        _renderCurrentMarker(marker, index)
-                                    )
-                                } else {
-                                    return (
-                                        <MapView.Marker key={index} coordinate={marker.coordinate} ref={instance => getMarkersInstance(instance)}>
-                                            <MapView.Callout style={{width: 100}}>
-                                                <Text>{marker.title}</Text>
-                                            </MapView.Callout>
-                                        </MapView.Marker>
-                                    )
-                                }
-                            })
-                        }
-
-                        <MapView.Polyline
-                            coordinates={markerII}
-                            strokeColor="#2B60DE" // fallback for when `strokeColors` is not supported by the map-provider
-                            strokeColors={[
-                                '#7F0000',
-                                '#00000000', // no color, creates a "long" gradient between the previous and next coordinate
-                                '#B24112',
-                                '#E5845C',
-                                '#238C23',
-                                '#7F0000'
-                            ]}
-                            strokeWidth={6} >
-
-                        </MapView.Polyline>
+                        {markerII.length > 1 ? (
+                            <Polyline
+                                coordinates={markerII}
+                                strokeColor="#2B60DE"
+                                strokeColors={[
+                                    '#7F0000',
+                                    '#00000000',
+                                    '#B24112',
+                                    '#E5845C',
+                                    '#238C23',
+                                    '#7F0000'
+                                ]}
+                                strokeWidth={6}
+                            />
+                        ) : null}
 
                     </MapView>    
                 </View>

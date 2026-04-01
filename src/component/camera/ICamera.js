@@ -1,168 +1,278 @@
-// import React, { Component } from 'react'
-// import { View, Text, TouchableOpacity, StyleSheet, Image, BackHandler } from 'react-native'
-// import { RNCamera } from 'react-native-camera'
-// import { MainTheme } from '../../constant/lov'
-// import BarcodeFinder from './IBarcodeFinder'
+import { useIsFocused } from '@react-navigation/native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    ActivityIndicator,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import {
+    Camera,
+    useCameraDevice,
+    useCodeScanner,
+} from 'react-native-vision-camera';
+import { MainTheme } from '../../constant/lov';
+import Navigator from '../../services/Navigator';
+import BarcodeFinder from './IBarcodeFinder';
 
-// class ICamera extends Component {
-//     constructor(props) {
-//         super(props)
+const ICamera = ({
+	takePicture,
+	barcodeFinderVisible,
+	onBarCodeRead,
+	reverseCamera = true,
+}) => {
+	const camera = useRef(null);
+	const isFocused = useIsFocused();
+	const [cameraPosition, setCameraPosition] = useState('back');
+	const [permissionState, setPermissionState] = useState('not-determined');
+	const [working, setWorking] = useState(false);
+	const scannedRef = useRef(false);
 
-//         this.state = {
-//             cameraType: RNCamera.Constants.Type.back,
-//             lastImage: null,
-//             working: false
-//         }
-//         this._takePicture = this._takePicture.bind(this)
-//         this._camera = null
-//     }
+	const device = useCameraDevice(cameraPosition);
 
-//     componentDidMount() {
-//         this.backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-//             if (this.state.working) {
-//                 return true
-//             }
-//         })
-//     }
+	useEffect(() => {
+		let mounted = true;
 
-//     componentWillUnmount() {
-//         this.backHandler.remove()
-//     }
+		const requestPermission = async () => {
+			const currentStatus = await Camera.getCameraPermissionStatus();
 
-//     _reverseCamera = () => {
-//         this.setState(oldState => {
-//             return {
-//                 cameraType: this.state.cameraType === RNCamera.Constants.Type.back ? RNCamera.Constants.Type.front : RNCamera.Constants.Type.back
-//             }
-//         })
-//     }
+			if (currentStatus === 'granted') {
+				if (mounted) {
+					setPermissionState('granted');
+				}
+				return;
+			}
 
-//     _takePicture = async () => {
-//         if (this._camera) {
+			const nextStatus = await Camera.requestCameraPermission();
+			if (mounted) {
+				setPermissionState(nextStatus);
+			}
+		};
 
-//             this.setState(oldState => {
-//                 return {
-//                     working: true
-//                 }
-//             })
+		requestPermission();
 
-//             const options = { quality: 0.5, base64: true, fixOrientation: true }
-//             const data = await this._camera.takePictureAsync(options)
+		return () => {
+			mounted = false;
+		};
+	}, []);
 
-//             this.setState(oldState => {
-//                 return {
-//                     lastImage: data,
-//                     working: false
-//                 }
-//             })
+	const codeScanner = useCodeScanner({
+		codeTypes: ['qr', 'ean-13', 'ean-8', 'code-128', 'code-39', 'code-93', 'upc-a', 'upc-e'],
+		onCodeScanned: codes => {
+			if (!barcodeFinderVisible || scannedRef.current || !codes?.length) {
+				return;
+			}
 
-//             this.props.takePicture ? this.props.takePicture(data) : null
-//         }
-//     }
+			const firstCode = codes[0];
+			const codeValue = firstCode?.value;
+			if (!codeValue) {
+				return;
+			}
 
-//     render() {
-//         const { permissionDialogTitle, permissionDialogMessage, style, reverseCamera, SnapShotButtonCustom } = this.props
+			scannedRef.current = true;
+			if (onBarCodeRead) {
+				onBarCodeRead({
+					data: codeValue,
+					type: firstCode?.type || 'barcode',
+					rawValue: firstCode,
+				});
+			}
 
-//         return (
-//             <View style={[styles.container, style && style.container ? style.container : null]}>
-//                 <RNCamera
-//                     ref={ref => {
-//                         this._camera = ref;
-//                     }}
-//                     style = {[styles.preview, style && style.preview ? style.preview : null]}
-//                     type={this.state.cameraType}
-//                     flashMode={RNCamera.Constants.FlashMode.on}
-//                     androidCameraPermissionOptions={{
-//                         title: permissionDialogTitle ? permissionDialogTitle : 'Permission to use camera',
-//                         message: permissionDialogMessage ? permissionDialogMessage : 'We need your permission to use your camera phone'
-//                     }}
-//                     onBarCodeRead={ (data) => this.props.onBarCodeRead ? this.props.onBarCodeRead(data) : null } >
+			setTimeout(() => {
+				scannedRef.current = false;
+			}, 1200);
+		},
+	});
 
-//                     {
-//                         this.props.barcodeFinderVisible ? <BarcodeFinder width={280} height={220} borderColor="red" borderWidth={2} /> : null
-//                     }
+	const handleTakePicture = async () => {
+		if (!takePicture || !camera.current || working) {
+			return;
+		}
 
-//                 </RNCamera>
+		try {
+			setWorking(true);
+			const photo = await camera.current.takePhoto({
+				qualityPrioritization: 'balanced',
+				enableAutoRedEyeReduction: false,
+			});
 
-//                 {
-//                     !this.props.barcodeFinderVisible ?
-//                     <View style={[styles.footer,  style && style.buttonSection ? styles.buttonSection : null]}>
-//                         <Image
-//                             style={[styles.lastImage, style && style.lastImage ? style.lastImage : null]}
-//                             source={{uri: this.state.lastImage ? this.state.lastImage.uri : 'null'}} />
-//                         { SnapShotButtonCustom ? SnapShotButtonCustom : <SnapShotButton takePicture={this._takePicture.bind(this)} disabled={this.state.working} /> }
-//                         { reverseCamera ? <ReverseCamera reverseCamera={this._reverseCamera.bind(this)} /> : <View style={{ width: 66, margin: 20 }} />}
-//                     </View>
-//                     : null
-//                 }
-//             </View>
-//         )
-//     }
-// }
+			const photoData = {
+				...photo,
+				uri: photo?.path ? `file://${photo.path}` : undefined,
+			};
+			await takePicture(photoData);
+		} finally {
+			setWorking(false);
+		}
+	};
 
-// export default ICamera
+	if (permissionState !== 'granted') {
+		return (
+			<View style={styles.centerState}>
+				<Text style={styles.stateTitle}>ไม่สามารถเปิดกล้องได้</Text>
+				<Text style={styles.stateText}>กรุณาอนุญาตการใช้งานกล้องก่อน</Text>
+			</View>
+		);
+	}
 
-// const SnapShotButton = (props) => {
+	if (!device) {
+		return (
+			<View style={styles.centerState}>
+				<ActivityIndicator size="large" color={MainTheme.colorPrimary} />
+				<Text style={styles.stateText}>กำลังเปิดกล้อง...</Text>
+			</View>
+		);
+	}
 
-//     return (
-//         <TouchableOpacity
-//             onPress={props.takePicture}
-//             disabled={props.disabled}
-//             style = {styles.capture}>
-//             <Text style={{fontSize: 14}}> ถ่าย </Text>
-//         </TouchableOpacity>
-//     )
-// }
+	return (
+		<View style={styles.container}>
+			<Camera
+				ref={camera}
+				style={StyleSheet.absoluteFill}
+				device={device}
+				isActive={isFocused}
+				photo={Boolean(takePicture)}
+				codeScanner={onBarCodeRead ? codeScanner : undefined}
+			/>
 
-// const ReverseCamera = (props) => {
-//     const { reverseCamera,  style } = props
-//     return (
-//         <Icon
-//             name='switch-camera'
-//             type='MaterialCommunityIcons'
-//             size={66}
-//             iconStyle={[styles.iconStyle, style && style.iconStyle ? style.iconStyle : null]}
-//             color={MainTheme.colorSecondary}
-//             underlayColor='transparent'
-//             onPress={reverseCamera} />
-//     )
-// }
+			{barcodeFinderVisible ? (
+				<BarcodeFinder width={280} height={220} borderColor="#FF4D4F" borderWidth={2} />
+			) : null}
 
-// const styles = StyleSheet.create({
-//     container: {
-//         flex: 1,
-//         flexDirection: 'column',
-//         backgroundColor: 'black'
-//     },
-//     preview: {
-//         flex: 1,
-//         justifyContent: 'flex-end',
-//         alignItems: 'center'
-//     },
-//     capture: {
-//         width: 80,
-//         backgroundColor: '#fff',
-//         borderRadius: 5,
-//         padding: 15,
-//         paddingHorizontal: 20,
-//         alignSelf: 'center',
-//         margin: 20
-//     },
-//     footer: {
-//         height: 66,
-//         flexDirection: 'row',
-//         justifyContent: 'space-between',
-//         backgroundColor: '#000000',
+			<View style={styles.topBar}>
+				<TouchableOpacity style={styles.topButton} onPress={() => Navigator.back()}>
+					<Text style={styles.topButtonText}>ปิด</Text>
+				</TouchableOpacity>
+			</View>
 
-//     },
-//     lastImage: {
-//         alignSelf: 'center',
-//         width: 80,
-//         height: 58,
-//         alignItems: 'center',
-//         marginLeft: 15,
-//         backgroundColor: '#000000'
-//     },
-//     iconStyle: {
-//     }
-// })
+			{!barcodeFinderVisible ? (
+				<View style={styles.footer}>
+					<View style={styles.sideControl} />
+					<TouchableOpacity
+						onPress={handleTakePicture}
+						disabled={working}
+						style={[styles.captureButton, working ? styles.captureButtonDisabled : null]}>
+						<Text style={styles.captureButtonText}>{working ? 'กำลังถ่าย...' : 'ถ่าย'}</Text>
+					</TouchableOpacity>
+					{reverseCamera ? (
+						<TouchableOpacity
+							style={styles.sideControl}
+							onPress={() =>
+								setCameraPosition(current => (current === 'back' ? 'front' : 'back'))
+							}>
+							<Text style={styles.switchText}>สลับ</Text>
+						</TouchableOpacity>
+					) : (
+						<View style={styles.sideControl} />
+					)}
+				</View>
+			) : (
+				<View style={styles.scanHintWrap}>
+					<Text style={styles.scanHintText}>นำบาร์โค้ดหรือ QR Code ให้อยู่ในกรอบ</Text>
+				</View>
+			)}
+		</View>
+	);
+};
+
+export default ICamera;
+
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		backgroundColor: '#000000',
+	},
+	centerState: {
+		flex: 1,
+		backgroundColor: '#000000',
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingHorizontal: 24,
+	},
+	stateTitle: {
+		color: '#FFFFFF',
+		fontSize: 18,
+		fontWeight: '700',
+		marginBottom: 8,
+	},
+	stateText: {
+		color: '#D1D5DB',
+		fontSize: 14,
+		textAlign: 'center',
+		marginTop: 12,
+	},
+	topBar: {
+		position: 'absolute',
+		top: 18,
+		left: 16,
+		right: 16,
+		flexDirection: 'row',
+		justifyContent: 'flex-start',
+	},
+	topButton: {
+		backgroundColor: 'rgba(0, 0, 0, 0.55)',
+		paddingHorizontal: 14,
+		paddingVertical: 10,
+		borderRadius: 999,
+	},
+	topButtonText: {
+		color: '#FFFFFF',
+		fontSize: 14,
+		fontWeight: '600',
+	},
+	footer: {
+		position: 'absolute',
+		left: 0,
+		right: 0,
+		bottom: 24,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		paddingHorizontal: 24,
+	},
+	sideControl: {
+		width: 74,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	switchText: {
+		color: '#FFFFFF',
+		fontSize: 15,
+		fontWeight: '600',
+	},
+	captureButton: {
+		minWidth: 92,
+		backgroundColor: '#FFFFFF',
+		borderRadius: 999,
+		paddingHorizontal: 24,
+		paddingVertical: 14,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	captureButtonDisabled: {
+		backgroundColor: '#D1D5DB',
+	},
+	captureButtonText: {
+		color: '#111827',
+		fontSize: 15,
+		fontWeight: '700',
+	},
+	scanHintWrap: {
+		position: 'absolute',
+		left: 24,
+		right: 24,
+		bottom: 42,
+		alignItems: 'center',
+	},
+	scanHintText: {
+		color: '#FFFFFF',
+		fontSize: 14,
+		textAlign: 'center',
+		backgroundColor: 'rgba(0, 0, 0, 0.55)',
+		paddingHorizontal: 16,
+		paddingVertical: 10,
+		borderRadius: 999,
+		overflow: 'hidden',
+	},
+});

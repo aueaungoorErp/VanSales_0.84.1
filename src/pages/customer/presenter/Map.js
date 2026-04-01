@@ -52,6 +52,34 @@ const Map = (props) => {
     }
 
     const listitemRV = listItems.slice(1)
+    const validMarkers = listItems.filter((item) => {
+        const latitude = item?.coordinate?.latitude
+        const longitude = item?.coordinate?.longitude
+
+        return Number.isFinite(latitude) && Number.isFinite(longitude)
+    })
+
+    const markerElements = validMarkers.map((marker, index) => {
+        const scaleStyle = focus === index || prevFocus === index ?
+        {
+            transform: [
+                {
+                    scale: index === focus ? focusScale : unFocusScale,
+                }
+            ]
+        } : {}
+
+        const opacityStyle = focus === index || index === prevFocus ?
+        {
+            opacity: index === focus ? focusOpacity : unFocusOpacity
+        } : { opacity: 0.35 }
+
+        if (marker.currentLocation) {
+            return _renderCurrentMarker(marker, index)
+        }
+
+        return _renderMarker(marker, index, opacityStyle, scaleStyle)
+    })
 
     return (
         <View style={{ flex: 1 }} >
@@ -72,36 +100,7 @@ const Map = (props) => {
                         style={styles.map}
                         ref={map => getMapInstance(map)}
                         onRegionChangeComplete={(region) => {onRegionChangeComplete(region)}} >
-
-                        {
-                            
-                            markers = listItems.map((marker, index) => {
-                                const scaleStyle = focus === index || prevFocus === index ?
-                                {
-                                    transform: [
-                                        {
-                                            scale: index === focus ? focusScale : unFocusScale,
-                                        }
-                                    ]
-                                } : {}
-                                    
-                                const opacityStyle = focus === index || index === prevFocus ?
-                                {
-                                    opacity: index === focus ? focusOpacity : unFocusOpacity
-                                } : { opacity: 0.35 }
-
-                                if (marker.currentLocation) {
-                                    return (
-                                        _renderCurrentMarker(marker, index)
-                                    )
-                                } else {
-
-                                    return (
-                                        _renderMarker(marker, index, opacityStyle, scaleStyle)
-                                    )
-                                }
-                            })
-                        }
+                        {markerElements}
 
                     </MapView>    
                 </View>

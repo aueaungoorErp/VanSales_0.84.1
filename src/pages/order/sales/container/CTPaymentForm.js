@@ -1,47 +1,44 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { Keyboard, TouchableOpacity, Text } from 'react-native';
 import moment from 'moment';
-import { paymentButtonGroup } from '../../../../constant/lov';
-import Navigator from '../../../../services/Navigator';
-import {
-  genenrateOrderForCreateToServer,
-  genenrateOrderForUpdateToServer,
-  genenrateAttachImageToServer,
-} from '../../../../utils/Order';
+import React, { Component } from 'react';
+import { Keyboard, Text, TouchableOpacity } from 'react-native';
+import { connect } from 'react-redux';
+import { setIsSubmit as setCheckInIsSubmit } from '../../../../action/check-in';
 import { getCurrentPosition } from '../../../../action/geolocation';
+import { auth, getQRCode, postinvoice, subscription } from '../../../../action/ktb-payment';
+import { setIsSubmit as setMileIsSubmit } from '../../../../action/mile';
 import {
-  orderCreateCash,
   createOrderSaleV3,
+  orderAttachImage,
+  orderCreateCash,
   orderUpdateCash,
+  setHeaderProcessedVdiBankTransfer,
   setHeaderProcessedVdiChequeBank,
   setHeaderProcessedVdiChequeDate,
   setHeaderProcessedVdiChequeNo,
-  setHeaderProcessedVdiBankTransfer,
   setHeaderProcessedVdiQRRefer,
-  orderAttachImage,
 } from '../../../../action/order';
 import {
   authForGetAccessToken,
   requestQrCodeSCB,
 } from '../../../../action/qrcode-payment';
-import { auth, subscription, getQRCode } from '../../../../action/ktb-payment';
-import { getUserToken, getLoginGuID } from '../../../../utils/Token';
+import { paymentButtonGroup } from '../../../../constant/lov';
+import Navigator from '../../../../services/Navigator';
 import { numberOnlyCanZeroFirst } from '../../../../utils/Culculate';
-import { setIsSubmit as setCheckInIsSubmit } from '../../../../action/check-in';
-import { setIsSubmit as setMileIsSubmit } from '../../../../action/mile';
-import { PAYMENT_CALL_BACK_END_POINT } from '../../../../../appConfig';
+import {
+  genenrateAttachImageToServer,
+  genenrateOrderForCreateToServer
+} from '../../../../utils/Order';
+import { getLoginGuID, getUserToken } from '../../../../utils/Token';
 import PaymentForm from '../presenter/PaymentForm';
-import { postinvoice } from '../../../../action/ktb-payment';
 
+import { BPAPUS_BPAPSV } from '../../../../../appConfig';
+import { lookupErpV3Api } from '../../../../api/bPlusApi';
 import {
   BPAPUS_LOOKUP_OT_REC_CODE,
   BPAPUS_LOOKUP_QR_CODE,
-  BPAPUS_REMAIN_OPTION_UNDER,
-  BPAPUS_REMAIN_OPTION_OVER
+  BPAPUS_REMAIN_OPTION_OVER,
+  BPAPUS_REMAIN_OPTION_UNDER
 } from '../../../../constant/bPlusApi';
-import { lookupErpV3Api, readErpV3Api, updateErpV3Api } from '../../../../api/bPlusApi';
-import { BPAPUS_BPAPSV } from '../../../../../appConfig';
 
 
 
@@ -947,8 +944,7 @@ class CTPaymentForm extends Component {
 
 
     if (this.state.groupofpaymentType.has('qrcode') && this.state.qrConfirm == false) {
-      //console.log("qrcode", item.methodType)
-      await this._requestQrCode(this.state.qrin ? this.state.qrin.toString() : "0");
+      await this._qrcodePayment();
       return false;
     }
 
@@ -1674,16 +1670,16 @@ class CTPaymentForm extends Component {
         userPassword: this.state.userToken.VANCONFIG.VANCNF_BANK_QRCODE_PASSWORD,
       });
       console.log("auth 3 ", auth)
-      const { data } = auth;
+      const data = auth?.data || auth;
 
       if (data) {
-        console.log("auth 4 ", data.toString())
-        this._requestQrCode(data.toString());
-        //this._requestQrCodeSCB(data);
-
+        await this._requestQrCode(data);
+      } else {
+        await this._requestQrCode(null);
       }
     } catch (error) {
-      this._setState('errorMessage', error);
+      console.log('_qrcodePayment error', error);
+      await this._requestQrCode(null);
     }
 
     this._setState('isLoading', false);
@@ -1759,134 +1755,38 @@ if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('
 
 
     try {
-      // const qrcode = await this.props.requestQrCodeSCB(
-      //   obj,
-      //   //this.props.order.headerProcessed.VDI_AMOUNT,
-      //   this.props.processResult.DOCINFO.DI_AMOUNT.toString(),
-      // );
-      // const { isError, data } = qrcode;
+      const qrAmount = this.state.qrin ? this.state.qrin.toString() : '0';
+      let qrPayload = null;
 
-      // const isError;
-      // const data: any;
+      if (obj?.paymentChannels?.[0]?.billerId && obj?.paymentChannels?.[0]?.terminalId) {
+        const qrcode = await this.props.requestQrCodeSCB(obj, qrAmount);
+        const {isError, data} = qrcode || {};
 
-      // let acc_id = Id;
-      // if (acc_id.length() == 13) {
-      //     // สำหรับเลขประจำตัวประชาชน
-      //     pp_acc_id = "0213" + acc_id;
-      // } else if (acc_id.length() == 10) {
-      //     // สำหรับเลขบัญชีธนาคาร
-      //     pp_acc_id = "01130066" + acc_id.substring(1);
-      // } else if (acc_id.length() == 15 && acc_id.startsWith("006")) {
-      //     // สำหรับ E-wallet ID (006xxxxx)
-      //     pp_acc_id = "0315" + acc_id;
-      // } else {
-      //     imv_thai_qr.setImageDrawable(null);
-      //     return;
-      // }
-
-
-
-      const isError = false;
-      const data = obj;
-
-
-      if (!isError) {
-
-        await this._setState('qrCode', data);
-        await this._setState('isQRCodeDialogOpen', true);
-
-        console.log("qrCode ", data);
-        console.log("isQRCodeDialogOpen ", true);
-
-
-
-        // console.log(
-        //   'PAYMENT_CALL_BACK_END_POINT',
-        //   PAYMENT_CALL_BACK_END_POINT + `?TxUID=${data.partnerTxnUid}`,
-        // );
-        // const ws = new WebSocket(
-        //   PAYMENT_CALL_BACK_END_POINT + `?TxUID=${data.partnerTxnUid}`,
-        // );
-
-        // ws.onopen = () => {
-        //   // connection opened
-        //   // ws.send('something') // send a message
-        //   console.log('onopen');
-        // };
-
-        // ws.onmessage = async (e) => 
-        {
-          // a message was received
-          //console.log('onmessage', e.data);
-
-          //  ws.close();
-
-
-          console.log("this.props.order.header.VDI_USER_REF ", this.props.order.header.VDI_USER_REF);
-
-          if (this.props.order.header.VDI_USER_REF === null) {
-            await this.props.orderCreateCash(
-              genenrateOrderForCreateToServer(
-                this.props.order,
-                this.props.mile.item.mileage,
-                this.props.geolocation.position,
-                this.state.dscfTxnId,
-              ),
-            );
-          } else {
-
-            await this._orderCash1(null)
-            // await this.props.orderUpdateCash(
-            //   genenrateOrderForUpdateToServer(
-            //     genenrateOrderForCreateToServer(
-            //       this.props.order,
-            //       this.props.mile.item.mileage,
-            //       this.props.geolocation.position,
-            //       this.state.dscfTxnId,
-            //     ),
-            //     this.props.order.header,
-            //   ),
-            // );
-          }
-
-          if (
-            this.props.checkin.item.photo !== null &&
-            this.props.checkin.item.isSubmit === false
-          ) {
-            await this._orderAttachImage();
-          }
-
-          if (
-            this.props.mile.item.photo !== null &&
-            this.props.mile.item.isSubmit === false
-          ) {
-            await this._orderMileAttachImage();
-          }
-
-          // Navigator.navigate('OrderSalesSummary', {
-          //   actionType: 'orderProductSummaryProcessed',
-          //   printType: 'cash',
-          // });
-
-          //this._setState('successMessage', 'ส่งรายการเรียบร้อย 10');
-          // Navigator.navigate('OrderChoice')
-        };
-
-        // ws.onerror = (e) => {
-        //   // an error occurred
-        //   console.log('onerror 3', e);
-        //   ws.close();
-        //   throw new Error(e.message);
-        // };
-
-        // ws.onclose = async (e) => {
-        //   // connection closed
-        // await this._setState('isQRCodeDialogOpen', false , 5000);
-        //   console.log('onerror 4', e.code, e.reason);
-        // };
+        if (!isError) {
+          qrPayload =
+            data?.qrCode ||
+            data?.result ||
+            data?.payload ||
+            data?.qrData ||
+            null;
+        }
       }
+
+      if (!qrPayload) {
+        qrPayload = qrAmount;
+      }
+
+      await this._setState('qrCode', qrPayload);
+      await this._setState('isQRCodeDialogOpen', true);
+
+      console.log("qrCode ", qrPayload);
+      console.log("isQRCodeDialogOpen ", true);
     } catch (error) {
+      console.log('_requestQrCode error', error);
+      const fallbackQrAmount = this.state.qrin ? this.state.qrin.toString() : '0';
       this._setState('errorMessage', error);
+      await this._setState('qrCode', fallbackQrAmount);
+      await this._setState('isQRCodeDialogOpen', true);
     }
   };
 
@@ -2156,7 +2056,9 @@ if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('
     console.log("_setqrContentItem this.state.qrContent>>", this.state.qrContent)
 
 
-    const qrContent = this.state.qrContent?.find(item => item.QRCT_CODE === value);
+    const qrContent = this.state.qrContent?.find(
+      item => String(item.QRCT_KEY) === String(value) || String(item.QRCT_CODE) === String(value)
+    );
 
     console.log("_setqrContentItem qrContent>> ", qrContent)
     const result = qrContent?.QRCT_NAME || '';
@@ -2515,6 +2417,7 @@ if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('
           isDialogOpen={this.state.isDialogOpen}
           setState={this._setState}
           qrCode={this.state.qrCode}
+          qrAmount={this.state.qrin}
           qrLogo={this.state.qrLogo}
           userToken={this.state.userToken}
           otherPaymentType={this.state.otherPaymentType}
