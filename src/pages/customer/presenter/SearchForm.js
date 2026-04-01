@@ -29,13 +29,10 @@ const SearchForm = (props) => {
 
   return (
     <View style={styles.container}>
+     
+
       {userToken.VANCONFIG.VANCNF_AR_LIMIT != 2 ? (
-        <View
-          style={{
-            borderBottomWidth: 0.5,
-            borderColor: MainTheme.colorButtonBorder,
-            paddingLeft: 5,
-          }}>
+        <View style={styles.typePickerSection}>
           <RNPickerSelect
             items={types}
             onValueChange={(value) => {
@@ -43,14 +40,9 @@ const SearchForm = (props) => {
               setCustomerType ? setCustomerType(value) : null;
             }}
             style={{
-              iconContainer: {
-                top: 10,
-                right: 5,
-              },
-              inputAndroid: {
-                color: '#000000',
-                paddingRight: 30,
-              },
+              iconContainer: styles.typePickerIcon,
+              inputAndroid: styles.typePickerInput,
+              inputIOS: styles.typePickerInput,
             }}
             value={type}
             placeholder={{}}
@@ -68,14 +60,10 @@ const SearchForm = (props) => {
           />
         </View>
       ) : null}
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+
+      <View style={styles.searchRow}>
         {userToken.VANCONFIG.VANCNF_AR_LIMIT != 2 ? (
-          <View style={{flex: 0.7}}>
+          <View style={styles.searchFieldWrap}>
             <ISearchBar
               value={value}
               round={true}
@@ -87,6 +75,11 @@ const SearchForm = (props) => {
               }
               onSubmitEditing={() => (onSearch ? onSearch() : null)}
               onClear={() => (setTextSearch ? setTextSearch(null) : null)}
+              style={{
+                containerStyle: styles.searchBarContainer,
+                inputContainerStyle: styles.searchBarInputContainer,
+                inputStyle: styles.searchBarInput,
+              }}
             />
           </View>
         ) : null}
@@ -96,10 +89,10 @@ const SearchForm = (props) => {
             onPress={() => {
               onSearch ? onSearch() : null;
             }}
-            style={{flex: 0.1, height: 35, marginTop: 5}}>
+            style={styles.iconButton}>
             <AntDesign
               name="search1"
-              size={26}
+              size={22}
               color={MainTheme.colorQuaternary}
             />
           </TouchableOpacity>
@@ -109,10 +102,10 @@ const SearchForm = (props) => {
           onPress={() => {
             onRefresh ? onRefresh() : null;
           }}
-          style={{flex: 0.1, height: 35, marginTop: 5}}>
+          style={styles.iconButton}>
           <AntDesign
             name="sync"
-            size={26}
+            size={22}
             color={MainTheme.colorTertiary}
           />
         </TouchableOpacity>
@@ -125,10 +118,10 @@ const SearchForm = (props) => {
             onPress={() => {
               navigateTo ? navigateTo('CustomerDestination') : null;
             }}
-            style={{flex: 0.1, height: 35, marginTop: 5}}>
+            style={styles.iconButton}>
             <AntDesign
               name="sync"
-              size={26}
+              size={22}
               color={MainTheme.colorTertiary}
             />
           </TouchableOpacity>
@@ -137,22 +130,17 @@ const SearchForm = (props) => {
         {userToken.VANCONFIG.VANCNF_AR_LIMIT == 1 ? (
           <TouchableOpacity
             onPress={() => { navigateTo ? navigateTo('CustomerRouteMapLine') : null }}
-            style={{ flex: 0.1, height: 35, marginTop: 5 }} >
-            <AntDesign name='fork' size={26} color={MainTheme.colorTertiary} />
+            style={styles.iconButton} >
+            <AntDesign name='fork' size={22} color={MainTheme.colorTertiary} />
           </TouchableOpacity>
         ) :  <TouchableOpacity
             onPress={() => { navigateTo ? navigateTo('CustomerRouteMapLine2') : null }}
-            style={{ flex: 0.1, height: 35, marginTop: 5 }} >
-            <AntDesign name='fork' size={26} color={MainTheme.colorTertiary} />
+            style={styles.iconButton} >
+            <AntDesign name='fork' size={22} color={MainTheme.colorTertiary} />
           </TouchableOpacity> }
      
      </View>
-      <View
-        style={{
-          borderBottomWidth: 0.5,
-          width: '100%',
-          borderColor: MainTheme.colorButtonBorder,
-        }}></View>
+      <View style={styles.bottomDivider}></View>
     </View>
   );
 };
@@ -160,7 +148,86 @@ const SearchForm = (props) => {
 export default SearchForm;
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    paddingHorizontal: 10,
+    paddingTop: 6,
+    paddingBottom: 4,
+    backgroundColor: '#FFFFFF',
+  },
+  heroSection: {
+    marginBottom: 10,
+  },
+  heroTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: MainTheme.colorQuaternary,
+    marginBottom: 2,
+  },
+  heroSubtitle: {
+    fontSize: 13,
+    color: '#6B7280',
+  },
+  typePickerSection: {
+    borderWidth: 1,
+    borderColor: '#D7DFE5',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    backgroundColor: '#F9FBFA',
+  },
+  typePickerIcon: {
+    top: 10,
+    right: 6,
+  },
+  typePickerInput: {
+    color: '#000000',
+    paddingRight: 30,
+    paddingVertical: 12,
+    fontSize: 14,
+  },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  searchFieldWrap: {
+    flex: 1,
+  },
+  searchBarContainer: {
+    marginTop: 0,
+    marginBottom: 0,
+    backgroundColor: 'transparent',
+  },
+  searchBarInputContainer: {
+    minHeight: 46,
+    borderWidth: 1,
+    borderColor: '#D7DFE5',
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  searchBarInput: {
+    fontSize: 14,
+    color: '#111827',
+  },
+  iconButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F3F7F5',
+    borderWidth: 1,
+    borderColor: '#D7DFE5',
+  },
+  bottomDivider: {
+    borderBottomWidth: 0.5,
+    width: '100%',
+    borderColor: MainTheme.colorButtonBorder,
+    marginTop: 10,
+  },
   searchSection: {
     flex: 1,
     alignItems: 'center',

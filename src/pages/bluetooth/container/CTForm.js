@@ -10,6 +10,7 @@ import {
   setPrintingType as setPrintingTypeAction,
   setState,
 } from '../../../action/bluetooth';
+import { BluetoothModels } from '../../../constant/lov';
 
 import {
   getUserToken,
@@ -51,17 +52,7 @@ class CTForm extends Component {
   };
 
   _getModelPrinters = () => {
-    console.log('_getModelPrinters called');
-    console.log('BplusPrinting module:', BplusPrinting);
-    console.log('BluetoothFinder module:', BluetoothFinder);
-    if (!BplusPrinting) {
-      console.warn('BplusPrinting native module is not available');
-      return;
-    }
-    BplusPrinting.getModelPrinters((result) => {
-      console.log('getModelPrinters result:', JSON.stringify(result));
-      this.props.setModelList(result.modelList);
-    });
+    this.props.setModelList(BluetoothModels.items);
   };
 
   _fetchBluetoothList = () => {

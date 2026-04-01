@@ -1,13 +1,13 @@
 ﻿import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { AndroidBackHandler } from '../../../../component/AndroidBackHandler'
-import { mainContainer, MOBILE5INCH } from '../../../../constant/lov'
+import { mainContainer } from '../../../../constant/lov'
 import Navigator from '../../../../services/Navigator'
-import CTHeaderDetail from '../../container/CTHeaderDetail'
 import CTDropPointHeaderDetail from '../../../stock/container/drop-point/CTHeaderDetail'
-import CTSummaryListItems from '../container/CTSummaryListItems'
-import CTSummaryDetail from '../container/CTSummaryDetail'
+import CTHeaderDetail from '../../container/CTHeaderDetail'
 import CTSummaryButtonGroup from '../container/CTSummaryButtonGroup'
+import CTSummaryDetail from '../container/CTSummaryDetail'
+import CTSummaryListItems from '../container/CTSummaryListItems'
 
 const Summary = (props) => {
 
@@ -31,12 +31,12 @@ const Summary = (props) => {
     return (
         <AndroidBackHandler onBackPress={_onBackButtonPressAndroid}>
             <View style={styles.container} >
-                <View style={{ flex: 0.3 }}>
+                <View style={styles.headerSection}>
                     {
                         printType !== 'transfer' ? <CTHeaderDetail /> : <CTDropPointHeaderDetail />
                     }
                 </View>
-                <View style={{ flex: 0.7 }}>
+                <View style={styles.summaryContentSection}>
                     <CTSummaryListItems />
                     <CTSummaryDetail />
                 </View>
@@ -49,5 +49,17 @@ const Summary = (props) => {
 export default Summary
 
 const styles = StyleSheet.create({
-    container: mainContainer
+    container: {
+        ...mainContainer,
+        backgroundColor: '#F4F7F6',
+    },
+    headerSection: {
+        flex: 0.28,
+        paddingBottom: 6,
+    },
+    summaryContentSection: {
+        flex: 0.72,
+        paddingHorizontal: 8,
+        paddingBottom: 8,
+    },
 })

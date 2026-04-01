@@ -12,7 +12,38 @@ class IButtonGroup extends Component {
   _updateIndex(selectedIndex) {
     this.props.onPress(selectedIndex)
     this.setState({selectedIndex})
-  }  
+  }
+
+  _renderButtonContent(button, isSelected, textStyle, selectedTextStyle) {
+    if (React.isValidElement(button)) {
+      return button
+    }
+
+    if (button && typeof button === 'object') {
+      if (React.isValidElement(button.element)) {
+        return button.element
+      }
+
+      if (typeof button.element === 'function') {
+        return button.element()
+      }
+
+      const label = button.title ?? button.label ?? null
+      if (label !== null && label !== undefined) {
+        return (
+          <Text style={[styles.buttonText, textStyle, isSelected ? [styles.selectedText, selectedTextStyle] : null]}>
+            {label}
+          </Text>
+        )
+      }
+    }
+
+    return (
+      <Text style={[styles.buttonText, textStyle, isSelected ? [styles.selectedText, selectedTextStyle] : null]}>
+        {button}
+      </Text>
+    )
+  }
 
   render() {
     let { buttons, containerStyle, selectedButtonStyle, selectedTextStyle, textStyle, containerBorderRadius, buttonStyle} = this.props
@@ -31,9 +62,7 @@ class IButtonGroup extends Component {
                 index > 0 ? {borderLeftWidth: 1, borderLeftColor: '#8FEA80'} : null,
               ]}
               activeOpacity={0.7}>
-              <Text style={[styles.buttonText, textStyle, index === selectedIndex ? [styles.selectedText, selectedTextStyle] : null]}>
-                {button}
-              </Text>
+              {this._renderButtonContent(button, index === selectedIndex, textStyle, selectedTextStyle)}
             </TouchableOpacity>
           ))}
         </View>

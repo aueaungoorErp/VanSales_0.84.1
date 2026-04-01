@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import { Image, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { Icon, ListItem } from '../../../component/elements';
-import { mainDivider, MainTheme, storeChoiceListItems } from '../../../constant/lov';
+import { MainTheme, storeChoiceListItems } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
 import ListItems from '../presenter/ListItems';
@@ -42,17 +42,22 @@ class CTListItems extends Component {
   _header = () => {
     return (
       <ListItem
-        containerStyle={{backgroundColor: MainTheme.colorSeptenary}}
-        bottomDivider>
+        containerStyle={styles.headerCard}>
         <Image
-          style={{width: 35, height: 35, alignSelf: 'center'}}
+          style={styles.headerImage}
           resizeMode="contain"
           source={require('../../../images/warehouse.png')}
         />
         <ListItem.Content>
-          <View style={{flexDirection: 'column'}}>
-            <Text style={{fontSize: hp('2%')}} allowFontScaling={false}>
+          <View style={styles.headerTextWrap}>
+            <Text style={styles.headerEyebrow} allowFontScaling={false}>
+              WAREHOUSE
+            </Text>
+            <Text style={styles.headerTitle} allowFontScaling={false}>
               คลังสินค้า
+            </Text>
+            <Text style={styles.headerSubtitle} allowFontScaling={false}>
+              เลือกหมวดงานคลังที่ต้องการใช้งาน
             </Text>
           </View>
         </ListItem.Content>
@@ -76,22 +81,26 @@ class CTListItems extends Component {
       <ListItem
         key={key}
         onPress={() => this._onPress(item)}
-        containerStyle={mainDivider}
-        bottomDivider>
-        <Icon
-          name={item.iconName}
-          type={item.iconType}
-          iconStyle={item.iconStyle}
-          size={item.size}
-        />
+        containerStyle={styles.itemCard}>
+        <View style={styles.itemIconWrap}>
+          <Icon
+            name={item.iconName}
+            type={item.iconType}
+            iconStyle={item.iconStyle}
+            size={item.size}
+          />
+        </View>
         <ListItem.Content>
-          <View style={{flexDirection: 'column'}}>
-            <Text style={{fontSize: hp('2%')}} allowFontScaling={false}>
+          <View style={styles.itemTextWrap}>
+            <Text style={styles.itemTitle} allowFontScaling={false}>
               {item.title}
+            </Text>
+            <Text style={styles.itemSubtitle} allowFontScaling={false}>
+              แตะเพื่อเปิดเมนูนี้
             </Text>
           </View>
         </ListItem.Content>
-        <ListItem.Chevron />
+        <ListItem.Chevron color={MainTheme.colorPrimary} size={18} />
       </ListItem>
     );
   };
@@ -126,3 +135,75 @@ class CTListItems extends Component {
 }
 
 export default CTListItems;
+
+const styles = StyleSheet.create({
+  headerCard: {
+    backgroundColor: '#EAF6EF',
+    marginHorizontal: 12,
+    marginTop: 12,
+    marginBottom: 8,
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderWidth: 1,
+    borderColor: '#D6EAD9',
+  },
+  headerImage: {
+    width: 38,
+    height: 38,
+    alignSelf: 'center',
+    marginRight: 12,
+  },
+  headerTextWrap: {
+    flexDirection: 'column',
+  },
+  headerEyebrow: {
+    fontSize: hp('1.35%'),
+    color: '#6A8D76',
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  headerTitle: {
+    fontSize: hp('2.2%'),
+    color: '#1F3B2F',
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  headerSubtitle: {
+    fontSize: hp('1.55%'),
+    color: '#587060',
+  },
+  itemCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 12,
+    marginVertical: 6,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: '#E4E8EC',
+  },
+  itemIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F2FBF7',
+    marginRight: 12,
+  },
+  itemTextWrap: {
+    flexDirection: 'column',
+  },
+  itemTitle: {
+    fontSize: hp('1.95%'),
+    color: '#21312A',
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  itemSubtitle: {
+    fontSize: hp('1.45%'),
+    color: '#718076',
+  },
+});

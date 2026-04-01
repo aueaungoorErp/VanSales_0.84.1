@@ -9,14 +9,17 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 
 const ICON_COMPONENTS = {
     AntDesign,
+    antdesign: AntDesign,
     'ant-design': AntDesign,
     Entypo,
     entypo: Entypo,
     Feather,
     feather: Feather,
     FontAwesome,
+    fontawesome: FontAwesome,
     'font-awesome': FontAwesome,
     FontAwesome5,
+    fontawesome5: FontAwesome5,
     'font-awesome-5': FontAwesome5,
     Ionicons,
     ionicon: Ionicons,

@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import IDatePicker from '../../../component/input/IDatePicker'
@@ -21,29 +21,36 @@ const SearchForm = (props) => {
     return (
         <View style={[styles.container, style && style.container ? style.container : null]}>
             
-            <View style={{flexDirection: 'row'}}>
-                <View style={styles.sectionInline}>
 
-                    <View style={{flex: 0.45, marginHorizontal: 5}}>
+            <View style={styles.searchCard}>
+
+                <View style={styles.controlsRow}>
+                    <View style={styles.fieldsRow}>
+                    <View style={styles.fieldCard}>
+                        <Text style={styles.fieldLabel} allowFontScaling={false}>จาก</Text>
                         <IDatePicker
-                                label='จาก'
-                                value={dateFrom}
-                                onDateChange={onDateFromChange} />
+                            value={dateFrom}
+                            hideBorder
+                            inputTextStyle={styles.dateValueText}
+                            onDateChange={onDateFromChange} />
                     </View>
-                    <View style={{flex: 0.45, marginHorizontal: 5}}>
+                    <View style={styles.fieldCard}>
+                        <Text style={styles.fieldLabel} allowFontScaling={false}>ถึง</Text>
                         <IDatePicker
-                                label='ถึง'
-                                value={dateTo}
-                                onDateChange={onDateToChange} />
+                            value={dateTo}
+                            hideBorder
+                            inputTextStyle={styles.dateValueText}
+                            onDateChange={onDateToChange} />
                     </View>
 
-                    <View style={[styles.sectionInline, {flex: 0.1}]}>
-                        <AntDesign
-                            name='search1' 
-                            color={MainTheme.colorPrimary}
-                            size={40} 
-                            onPress={() => onPress ? onPress() : null} />
                     </View>
+
+                    <TouchableOpacity
+                        activeOpacity={0.85}
+                        style={styles.actionButton}
+                        onPress={() => onPress ? onPress() : null}>
+                        <AntDesign name='search1' color={MainTheme.colorSecondary} size={20} style={styles.actionIcon} />
+                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -76,15 +83,112 @@ export default SearchForm
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'column',
-        marginTop: 5,
-        marginBottom: 20,
+        paddingHorizontal: 14,
+        paddingTop: 4,
+        paddingBottom: 10,
     },
-    sectionInline: {
-        flex: 1,
-        height: 30, 
+    heroCard: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center'
+        alignItems: 'flex-start',
+        backgroundColor: '#EAF6EF',
+        borderRadius: 18,
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+        borderWidth: 1,
+        borderColor: '#D6EAD9',
+        marginBottom: 12,
+    },
+    heroBadge: {
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        backgroundColor: MainTheme.colorPrimary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
+        marginTop: 2,
+    },
+    heroCopy: {
+        flex: 1,
+    },
+    eyebrow: {
+        fontSize: 12,
+        color: '#6A8D76',
+        fontWeight: '700',
+        marginBottom: 2,
+    },
+    heroTitle: {
+        fontSize: 22,
+        color: '#1F3B2F',
+        fontWeight: '700',
+        marginBottom: 4,
+    },
+    heroSubtitle: {
+        fontSize: 13,
+        color: '#587060',
+        lineHeight: 19,
+    },
+    searchCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 18,
+        borderWidth: 1,
+        borderColor: '#E1EAE4',
+        paddingHorizontal: 14,
+        paddingVertical: 16,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 3,
+    },
+    sectionTitle: {
+        fontSize: 15,
+        color: '#355244',
+        fontWeight: '700',
+        marginBottom: 12,
+    },
+    controlsRow: {
+        flexDirection: 'row',
+        alignItems: 'stretch',
+    },
+    fieldsRow: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginRight: 12,
+    },
+    fieldCard: {
+        flex: 1,
+        backgroundColor: '#F7FAF8',
+        borderWidth: 1,
+        borderColor: '#DEE9E3',
+        borderRadius: 14,
+        paddingHorizontal: 12,
+        justifyContent: 'center',
+        marginHorizontal: 4,
+        height: 55,
+        gap:0
+    },
+    fieldLabel: {
+        fontSize: 13,
+        color: '#4E685A',
+        fontWeight: '700',
+    },
+    dateValueText: {
+        fontSize: 13,
+    },
+    actionButton: {
+        width: 60,
+        minHeight: 50,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        paddingHorizontal: 0,
+        backgroundColor: MainTheme.colorPrimary,
+    },
+    actionIcon: {
+        marginRight: 0,
     },
     dateIcon: {
         position: 'absolute',

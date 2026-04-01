@@ -1,15 +1,18 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { MainTheme } from '../../../constant/lov'
-import CTSearchForm from '../container/CTSearchForm'
+import { StyleSheet, View } from 'react-native'
 import CTListItems from '../container/CTListItems'
+import CTSearchForm from '../container/CTSearchForm'
 
 const Summary = (props) => {
 
     return (
         <View style={styles.container}>
-            <CTSearchForm />
-            <CTListItems />
+            <View style={styles.searchSection}>
+                <CTSearchForm />
+            </View>
+            <View style={styles.listSection}>
+                <CTListItems />
+            </View>
         </View>
     )
 }
@@ -21,6 +24,13 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'column',
         justifyContent: 'flex-start',
-        backgroundColor: MainTheme.colorSecondary
+        backgroundColor: '#F4F8F5'
+    },
+    searchSection: {
+        zIndex: 1,
+    },
+    listSection: {
+        flex: 1,
+        paddingTop: 4,
     }
 })

@@ -1,30 +1,31 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import Navigator from '../../../services/Navigator';
-import DetailForm from '../presenter/DetailForm';
-import {productDetailFormButtonGroup, MainTheme} from '../../../constant/lov';
+import React, { Component } from 'react';
+import { Text, TouchableOpacity } from 'react-native';
+import { connect } from 'react-redux';
 import {
-  setInitialState,
-  clearItem,
-  setItemQty,
-  setItemTotalPrice,
-  setItemNetPrice,
-  setItemDiscount,
-  setItemTotalDiscount,
-  setItemFree,
-  processOrderItem,
-  setGoodsCodeCriteria,
-  searchProductByGoodsCode,
-  setItemLot,
-  setItemSerial,
+    clearItem,
+    processOrderItem,
+    searchProductByGoodsCode,
+    setGoodsCodeCriteria,
+    setInitialState,
+    setItemDiscount,
+    setItemFree,
+    setItemLot,
+    setItemNetPrice,
+    setItemQty,
+    setItemSerial,
+    setItemTotalDiscount,
+    setItemTotalPrice,
 } from '../../../action/product';
+import { MainTheme, productDetailFormButtonGroup } from '../../../constant/lov';
+import Navigator from '../../../services/Navigator';
 import {
-  calculateOrderProductTotalDiscount,
-  calculateDiscount,
-  discountFormat,
-  numberOnly,
+    calculateDiscount,
+    calculateOrderProductTotalDiscount,
+    discountFormat,
+    numberOnly,
 } from '../../../utils/Culculate';
-import {getUserToken} from '../../../utils/Token';
+import { getUserToken } from '../../../utils/Token';
+import DetailForm from '../presenter/DetailForm';
 
 class CTDetailForm extends Component {
   _isMounted = false;

@@ -8,7 +8,12 @@ import { MainTheme } from '../../constant/lov'
 const ISearchBar = (props) => (
     <View style={[styles.ContainerStyle, props.style && props.style.containerStyle ? props.style.containerStyle : null]}>
         <View style={[styles.InputContainerStyle, props.style && props.style.inputContainerStyle ? props.style.inputContainerStyle : null]}>
-            <AntDesign name='search1' size={20} color={MainTheme.colorButtonBorder} style={{marginHorizontal: 8}} />
+            <AntDesign
+                name='search1'
+                size={20}
+                color={MainTheme.colorButtonBorder}
+                style={[styles.SearchIconStyle, props.style && props.style.searchIconStyle ? props.style.searchIconStyle : null]}
+            />
             <TextInput
                 placeholder={props.placeholder ? props.placeholder : null}
                 placeholderTextColor='#999'
@@ -49,14 +54,23 @@ const styles = StyleSheet.create({
         
     },
     InputContainerStyle: {
+        flexDirection: 'row',
+        alignItems: 'center',
         borderWidth: 0.5,
         borderBottomWidth: 0.5,
         borderColor: MainTheme.colorButtonBorder,
-        backgroundColor: MainTheme.colorSecondary
+        backgroundColor: MainTheme.colorSecondary,
+        minHeight: 42,
+        paddingHorizontal: 4,
+    },
+    SearchIconStyle: {
+        marginHorizontal: 8,
+        alignSelf: 'center',
     },
     InputStyle: {
         fontSize: 12,
-        color: '#000000'
+        color: '#000000',
+        paddingVertical: 8,
         // backgroundColor: MainTheme.colorSecondary,
         // borderRadius: 5,
         // borderWidth: .5,

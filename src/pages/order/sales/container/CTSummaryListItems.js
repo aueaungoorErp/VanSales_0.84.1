@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { ListItem } from '../../../../component/elements';
@@ -13,7 +13,7 @@ const CTSummaryListItems = (props) => {
   // console.log('props.order', props.order);
   const _header = () => (
     <ListItem
-      containerStyle={{backgroundColor: MainTheme.colorPrimary}}
+      containerStyle={styles.summaryHeaderRow}
     >
       <ListItem.Content key="content">
         <View>
@@ -278,6 +278,7 @@ const CTSummaryListItems = (props) => {
               VTRD_AUTO === 1 ? '#AED6F1' : MainTheme.colorSecondary,
           },
           mainDivider,
+          styles.summaryBodyRow,
         ]}
         bottomDivider
       >
@@ -466,7 +467,7 @@ const CTSummaryListItems = (props) => {
     return (
       <ListItem
         bottomDivider
-        containerStyle={mainDivider}
+        containerStyle={[mainDivider, styles.summaryBodyRow]}
       >
         <ListItem.Content key="content">
           <View style={{flexDirection: 'row'}}>
@@ -579,3 +580,15 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(CTSummaryListItems);
+
+const styles = StyleSheet.create({
+  summaryHeaderRow: {
+    backgroundColor: MainTheme.colorPrimary,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+  },
+  summaryBodyRow: {
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+  },
+});

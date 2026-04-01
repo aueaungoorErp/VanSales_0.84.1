@@ -1,12 +1,13 @@
 ﻿import React, { Component } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Linking,
+    Modal,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { checkDistance, submit } from '../../../action/check-in';
@@ -55,6 +56,20 @@ class CTButtonGroup extends Component {
   componentDidUpdate = (prevProps) => {
     if (this.props.geolocation.isError !== prevProps.geolocation.isError && this.props.geolocation.isError) {
       this._setState('showDialog', true);
+    }
+
+    const prevLat = prevProps.geolocation.position?.latitude;
+    const prevLng = prevProps.geolocation.position?.longitude;
+    const currentLat = this.props.geolocation.position?.latitude;
+    const currentLng = this.props.geolocation.position?.longitude;
+
+    if (
+      this.state.showDialog &&
+      currentLat !== null &&
+      currentLng !== null &&
+      (prevLat !== currentLat || prevLng !== currentLng)
+    ) {
+      this._setState('showDialog', false);
     }
   };
 
@@ -163,6 +178,14 @@ class CTButtonGroup extends Component {
         Navigator.pop(1, true);
       Navigator.navigate('OrderChoice');
     } else {
+    }
+  };
+
+  _openLocationSettings = async () => {
+    try {
+      await Linking.openSettings();
+    } catch (error) {
+      console.log('openSettings error', error);
     }
   };
 
@@ -311,6 +334,13 @@ class CTButtonGroup extends Component {
   };
 
   render() {
+    const geolocationMessage = this.props.geolocation.message || 'ไม่สามารถค้นหาพิกัดตำแหน่งของผู้ใช้งานได้';
+    const isPermissionBlocked = geolocationMessage.includes('การตั้งค่าแอป');
+    const canSkip =
+      this.state.userToken &&
+      this.state.userToken.VANCONFIG &&
+      this.state.userToken.VANCONFIG.VANCNF_WARN_NOGPS === 1;
+
     return (
       <View>
         <Modal
@@ -322,19 +352,23 @@ class CTButtonGroup extends Component {
             <View style={styles.dialogCard}>
               <Text style={styles.dialogTitle}>คำเตือน</Text>
               <Text style={styles.dialogMessage}>
-                ไม่สามารถค้นหาพิกัดตำแหน่งของผู้ใช้งานได้
+                {geolocationMessage}
               </Text>
               <View style={styles.dialogButtonRow}>
                 <TouchableOpacity
                   style={[styles.dialogButton, styles.primaryDialogButton]}
-                  onPress={this._getCurrentPosition}>
-                  <Text style={styles.primaryDialogButtonText}>ลองใหม่</Text>
+                  onPress={isPermissionBlocked ? this._openLocationSettings : this._getCurrentPosition}>
+                  <Text style={styles.primaryDialogButtonText}>
+                    {isPermissionBlocked ? 'เปิดตั้งค่า' : 'ลองใหม่'}
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.dialogButton, styles.secondaryDialogButton]}
-                  onPress={this._onSkip}>
-                  <Text style={styles.secondaryDialogButtonText}>ข้าม</Text>
-                </TouchableOpacity>
+                {canSkip ? (
+                  <TouchableOpacity
+                    style={[styles.dialogButton, styles.secondaryDialogButton]}
+                    onPress={this._onSkip}>
+                    <Text style={styles.secondaryDialogButtonText}>ข้าม</Text>
+                  </TouchableOpacity>
+                ) : null}
               </View>
             </View>
           </View>

@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
 import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import IPickerSelectWithLabel from '../../../component/input/IPickerSelectWithLabel';
 import { BluetoothModels, MainTheme } from '../../../constant/lov';
 
 const Form = (props) => {
@@ -99,16 +99,36 @@ const Form = (props) => {
               <AntDesign name="setting" size={16} color={MainTheme.colorSecondary} />
               <Text style={styles.cardHeaderText}>เลือกรุ่นปริ้นเตอร์</Text>
             </View>
-            <View style={[styles.cardBody, {paddingVertical: 4 , flexDirection: 'row', alignItems: 'center' , gap: 20 , borderWidth:1}]}>
-              <Text style={{ color: '#555'}}>เลือก</Text>
-              <IPickerSelectWithLabel
-                items={bluetooth.modelItems && bluetooth.modelItems.length > 0 ? bluetooth.modelItems : BluetoothModels.items}
-                selectedValue={bluetooth.model}
-                enabled={!isConnected}
-                onValueChange={(model) => {
-                  setModel(model);
-                }}
-              />
+            <View style={styles.cardBody}>
+              <Text style={styles.modelHint}>เลือกได้ 1 รุ่น</Text>
+              <View style={styles.modelPickerContainer}>
+                <RNPickerSelect
+                  onValueChange={(model) => setModel(model)}
+                  items={BluetoothModels.items}
+                  value={bluetooth.model}
+                  disabled={isConnected}
+                  useNativeAndroidPickerStyle={false}
+                  placeholder={{
+                    label: 'เลือกรุ่นปริ้นเตอร์',
+                    value: null,
+                  }}
+                  style={{
+                    inputAndroid: styles.modelPickerInput,
+                    inputIOS: styles.modelPickerInput,
+                    iconContainer: styles.modelPickerIconContainer,
+                    placeholder: {
+                      color: '#98A2B3',
+                    },
+                  }}
+                  Icon={() => (
+                    <AntDesign
+                      name="down"
+                      size={18}
+                      color={isConnected ? '#98A2B3' : MainTheme.colorPrimary}
+                    />
+                  )}
+                />
+              </View>
             </View>
           </View>
 
@@ -295,6 +315,30 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flex: 1,
+  },
+  modelHint: {
+    fontSize: 13,
+    color: '#555',
+    marginBottom: 10,
+  },
+  modelPickerContainer: {
+    borderWidth: 1,
+    borderColor: '#D9E1E7',
+    borderRadius: 10,
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: 12,
+    justifyContent: 'center',
+    minHeight: 48,
+  },
+  modelPickerInput: {
+    color: '#344054',
+    fontSize: 14,
+    paddingVertical: 12,
+    paddingRight: 28,
+  },
+  modelPickerIconContainer: {
+    top: 14,
+    right: 12,
   },
   actionRow: {
     flexDirection: 'row',

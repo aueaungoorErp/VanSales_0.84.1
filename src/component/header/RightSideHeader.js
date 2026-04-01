@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
 import Navigator from '../../services/Navigator';
 
@@ -46,7 +46,7 @@ const RightSideHeader = (props) => {
     const _renderPDF = () => {
       return (
         <TouchableOpacity onPress={_onPress}>
-          <AntDesign name="pdffile1" color="#FFFFFF" size={26} />
+          <FontAwesome5 name="file-pdf" color="#FFFFFF" size={22} solid />
         </TouchableOpacity>
       )
     }

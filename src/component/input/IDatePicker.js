@@ -74,18 +74,18 @@ class IDatePicker extends Component {
     }
 
     render () {
-        const { label, value, disabled, hideBorder } = this.props
+        const { label, value, disabled, hideBorder, inputTextStyle, labelTextStyle, iconSize } = this.props
         return (
             <View>
                 <Item style={{ borderBottomColor: '#d6d7da', borderBottomWidth: hideBorder ? 0 : 0.5 }}>
                     {
                         label ? 
-                            <Text style={{ fontSize: hp('1.7%') }} allowFontScaling={false} > {label} </Text>
+                            <Text style={[{ fontSize: hp('1.7%') }, labelTextStyle]} allowFontScaling={false} > {label} </Text>
                         : null
                     }
                     
-                    <Input editable={false} value={toBuddhistYear(value)} style={{ fontSize: hp('1.7%') }} allowFontScaling={false} />
-                    <AntDesign name='calendar' size={20} color={MainTheme.colorTertiary} onPress={() => disabled === undefined || disabled === false ? this._setState('visible', true) : null} />
+                    <Input editable={false} value={toBuddhistYear(value)} style={[{ fontSize: hp('1.7%') }, inputTextStyle]} allowFontScaling={false} />
+                    <AntDesign name='calendar' size={iconSize || 20} color={MainTheme.colorTertiary} onPress={() => disabled === undefined || disabled === false ? this._setState('visible', true) : null} />
                 </Item>
 
                 <IOverlay 

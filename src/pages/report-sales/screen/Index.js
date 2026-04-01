@@ -1,8 +1,7 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { MainTheme } from '../../../constant/lov'
-import CTSearchForm from '../container/CTSearchForm'
+import { StyleSheet, View } from 'react-native'
 import CTDetailForm from '../container/CTDetailForm'
+import CTSearchForm from '../container/CTSearchForm'
 
 const Index = (props) => {
 
@@ -21,7 +20,7 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'column',
         justifyContent: 'flex-start',
-        backgroundColor: MainTheme.colorSecondary,
-        padding: 5
+        backgroundColor: '#F4F8F5',
+        paddingVertical: 8
     }
 })

@@ -2,6 +2,7 @@ import React from 'react'
 import { Alert, Image, PermissionsAndroid, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import AntDesign from 'react-native-vector-icons/AntDesign'
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5'
 import { connect } from 'react-redux'
 import { MainTheme, settingListItems } from '../../../constant/lov'
 import { strings } from '../../../locales/i18n'
@@ -66,6 +67,33 @@ class CTListItems extends React.Component {
         )
     }
 
+    _getFormattedBaseUrl = () => {
+        const rawBaseUrl = this.state.config?.baseUrl
+
+        if (!rawBaseUrl) {
+            return null
+        }
+
+        if (/^https?:\/\//i.test(rawBaseUrl)) {
+            return rawBaseUrl
+        }
+
+        return `http://${rawBaseUrl}`
+    }
+
+    _getDisplayTitle = (item) => {
+        if (item.title === 'ปริ้นเตอร์' || item.title === 'printer') {
+            return 'ปริ้นเตอร์'
+        }
+
+        if (item.iconName === 'server') {
+            const formattedBaseUrl = this._getFormattedBaseUrl()
+            return formattedBaseUrl ? `${item.title} ${formattedBaseUrl}` : item.title
+        }
+
+        return item.title
+    }
+
     _renderItem = ({ item }, key) => {
         if (item.title === 'ปริ้นเตอร์' || item.title === 'printer') {
             return this._renderCustomPattern(item)
@@ -85,7 +113,7 @@ class CTListItems extends React.Component {
                 </View>
                 <View style={itemStyles.textContainer}>
                     <Text style={itemStyles.title} allowFontScaling={false}>
-                        {item.title} {item.iconName === 'cloudserver' && this.state.config ? this.state.config.baseUrl : null}
+                        {this._getDisplayTitle(item)}
                     </Text>
                 </View>
                 <AntDesign name="right" size={14} color="#ccc" />
@@ -119,13 +147,13 @@ class CTListItems extends React.Component {
             <TouchableOpacity style={itemStyles.row} onPress={() => this._onPress(item)} activeOpacity={0.6}>
                 <View style={itemStyles.iconContainer}>
                     {isPDF ? (
-                        <AntDesign name='pdffile1' color={MainTheme.colorPrimary} size={22} />
+                        <FontAwesome5 name='file-pdf' color={MainTheme.colorPrimary} size={20} solid />
                     ) : (
                         <Image style={{width: 25, height: 25}} resizeMode='contain' source={isConnected ? item.imgSrc : item.subImgSrc} />
                     )}
                 </View>
                 <View style={itemStyles.textContainer}>
-                    <Text style={itemStyles.title} allowFontScaling={false}>{isPDF ? 'PDF' : item.title}</Text>
+                    <Text style={itemStyles.title} allowFontScaling={false}>{isPDF ? 'PDF' : this._getDisplayTitle(item)}</Text>
                     <Text style={[itemStyles.subtitle, {color: isConnected ? MainTheme.colorPrimary : '#E74C3C'}]}>
                         {isPDF ? 'พิมพ์เป็น PDF' : isConnected ? 'เชื่อมต่อแล้ว' : 'ไม่ได้เชื่อมต่อ'}
                     </Text>

@@ -1,19 +1,19 @@
 ﻿import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import SearchForm from '../presenter/SearchForm';
 import {
-  searchProductList,
-  setKeyword,
-  clearProductList,
-  searchProductSkuAltList,
+    clearProductList,
+    searchProductList,
+    searchProductSkuAltList,
+    setKeyword,
 } from '../../../action/product';
 import {
-  setProductCategory,
-  setInitialState,
+    searchProductCateGoryList,
+    setInitialState,
+    setProductCategory,
 } from '../../../action/product-category';
-import { searchProductCateGoryList } from '../../../action/product-category';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
+import SearchForm from '../presenter/SearchForm';
 
 class CTSearchForm extends Component {
   _isMounted = false;
@@ -166,6 +166,7 @@ class CTSearchForm extends Component {
         hasBarcodeScan={this._hasBarcodeScan}
         onScanBarcodePress={this._onScanBarcodePress}
         actionType={this.props.actionType}
+        isStockSearch={this.props.screen === 'Stock'}
       />
     );
   }

@@ -113,6 +113,19 @@ const PaymentForm = (props) => {
 
   console.log("remainoption >>", remainoption)
 
+  const normalizeQrAmount = (amount) => {
+    if (amount === null || amount === undefined || amount === '') {
+      return null;
+    }
+
+    const numericAmount = parseFloat(String(amount).replace(/,/g, ''));
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      return null;
+    }
+
+    return numericAmount.toFixed(2);
+  };
+
 
   const bankFiles = bankFileListItems.filter(item => !item.BANK_T_NAME.includes("(ยกเลิก)")).sort((a, b) => {
     if (a.BANK_T_NAME < b.BANK_T_NAME) return -1;
@@ -428,14 +441,21 @@ const PaymentForm = (props) => {
 
   const checkpayment = (amount, promptPay) => {
     console.log("promptPay promptPay =>", promptPay);
-    if (promptPay === null) return
-    if (amount === null) return
-    const result = qrContentListItem.filter(item => item.QRCT_KEY == promptPay)[0]?.QRCT_SOURCE || "";
+    const normalizedAmount = normalizeQrAmount(amount);
+    if (promptPay === null || promptPay === undefined) return null;
+    if (!normalizedAmount) return null;
+
+    const qrContent = qrContentListItem.find(item => item.QRCT_KEY == promptPay);
+    if (!qrContent) {
+      return null;
+    }
+
+    const result = qrContent.QRCT_SOURCE || "";
     console.log("QRCT_SOURCE =>", result);
     if (result.toString() === "4") {
-      return genQrPaymentFromQrCode(amount, promptPay)
+      return genQrPaymentFromQrCode(normalizedAmount, promptPay)
     } else {
-      return genQrPayment(amount, promptPay);
+      return genQrPayment(normalizedAmount, promptPay);
     }
   };
 
@@ -450,8 +470,8 @@ const PaymentForm = (props) => {
     let pp_chksum = "";
 
     //console.log("promptPay pp_str =>", promptPay);
-    if (promptPay === null) return
-    if (amount === null) return
+    if (promptPay === null || promptPay === undefined) return null;
+    if (!amount) return null;
 
     const qrCode = qrContentListItem.filter(item => item.QRCT_KEY == promptPay)[0]?.QRCT_CONTENT || "";
 
@@ -486,8 +506,8 @@ const PaymentForm = (props) => {
 
 
     //console.log("promptPay pp_str =>", promptPay);
-    if (promptPay === null) return
-    if (amount === null) return
+    if (promptPay === null || promptPay === undefined) return null;
+    if (!amount) return null;
 
     const result = qrContentListItem.filter(item => item.QRCT_KEY == promptPay)[0]?.QRCT_CONTENT || "";
 
@@ -538,6 +558,8 @@ const PaymentForm = (props) => {
     //console.log("genQrPayment pp_str =>", pp_str);
     return pp_str;
   }
+
+  const qrPaymentValue = checkpayment(qrCode, qrContentItem);
 
   checksumCRC16 = (input) => {
     let crc = 0xffff; // initial value
@@ -1034,24 +1056,19 @@ const PaymentForm = (props) => {
           visible={isDialogOpen}
           onRequestClose={() => { setState ? setState('isDialogOpen', false) : null; }}
         >
-          <View style={{ width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.30)', alignItems: 'center', justifyContent: 'center', }}>
-            <View style={{ width: '80%', height: '25%', backgroundColor: '#FFFFFF', borderRadius: 5, }}>
-              <View style={{
-                flex: 0.1, backgroundColor: '#2554C7', borderTopRightRadius: 5, borderTopLeftRadius: 5, alignItems: 'center', padding: 10, alignItems:
-                  'center', justifyContent: 'center',
-              }}>
-                <Text style={{ fontSize: hp('1.7%'), color: '#FFFFFF' }} allowFontScaling={false}>
+          <View style={styles.modalBackdrop}>
+            <View style={styles.remainModalCard}>
+              <View style={styles.remainModalHeader}>
+                <Text style={styles.remainModalHeaderText} allowFontScaling={false}>
                   ระบุหมายเหตุการชำระ{differValue < 0 ? "ขาด" : "เกิน"}  {Math.abs(differValue).toFixed(2)} บาท
                 </Text>
               </View>
-              <View style={{ flex: 0.5, alignItems: 'center', padding: 3, alignItems: 'baseline', justifyContent: 'flex-start', }}>
-              </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', }}>
+              <View style={styles.remainModalBody}>
                 {
                   (
                     <>
-                      <Item style={[styles.inputSection2, { backgroundColor: checkedItems.item2 ? '#f0ffff' : 'white', }]}>
-                        <Form style={[styles.inputSection2, { borderBottomColor: '#d6d7da', borderBottomWidth: 0.5, height: 40, padding: 0 }]}>
+                      <Item style={styles.remainModalPickerWrapper}>
+                        <Form style={styles.remainModalPickerForm}>
                           <RNPickerSelect
                             items={remainoption}
                             //disabled={!true}
@@ -1061,7 +1078,8 @@ const PaymentForm = (props) => {
                             value={remainoptiontItem}
                             style={{
                               iconContainer: { top: -3, right: 0, },
-                              inputAndroid: { color: '#000000', }
+                              inputAndroid: { color: '#000000', paddingRight: 28 },
+                              inputIOS: { color: '#000000', paddingRight: 28 }
                             }}
                             placeholder={{ label: 'เลือก', value: null }}
                             placeholderTextColor={'#808080'}
@@ -1078,12 +1096,11 @@ const PaymentForm = (props) => {
                     </>
                   )
                 }
-
               </View>
               <IButtonGroupCustom
                 listItems={buttonListItems}
                 renderItem={renderItemRemainOption}
-                style={iButtonGroupCustomStyles}
+                style={remainOptionButtonGroupStyles}
               />
             </View>
           </View>
@@ -1157,14 +1174,19 @@ const PaymentForm = (props) => {
                                         <Text style={{  }}>QR</Text>
                                     </View> */}
                 {/* <Text style={{  }}>{qrCode}</Text> */}
-                <QRCode
-                  value={checkpayment(qrCode, qrContentItem)}
-                  //value={qrCode}
-                  size={240}
-                  logo={qrLogo}
-                  logoSize={60}
-                  logoBackgroundColor="transparent"
-                />
+                {qrPaymentValue ? (
+                  <QRCode
+                    value={qrPaymentValue}
+                    size={240}
+                    logo={qrLogo}
+                    logoSize={60}
+                    logoBackgroundColor="transparent"
+                  />
+                ) : (
+                  <Text style={{fontSize: hp('1.7%'), color: '#666666'}} allowFontScaling={false}>
+                    ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบข้อมูลการชำระ
+                  </Text>
+                )}
                 {/* <View style={{ flex: 0.6, borderWidth: 1, backgroundColor: 'red' }}>
                                         <QRCode
                                             value={qrCode}
@@ -1297,6 +1319,53 @@ export default PaymentForm;
 
 const styles = StyleSheet.create({
   container: {},
+  modalBackdrop: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.30)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  remainModalCard: {
+    width: '100%',
+    maxWidth: 420,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  remainModalHeader: {
+    backgroundColor: '#2554C7',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  remainModalHeaderText: {
+    fontSize: hp('1.9%'),
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  remainModalBody: {
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 8,
+  },
+  remainModalPickerWrapper: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#d6d7da',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    minHeight: 48,
+  },
+  remainModalPickerForm: {
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%',
+    paddingVertical: 0,
+  },
   messageBox: {
     marginTop: 15,
     // height: 30
@@ -1374,5 +1443,16 @@ const iButtonGroupCustomStyles = StyleSheet.create({
     padding: 5,
     justifyContent: 'space-evenly',
     marginTop: 5,
+  },
+});
+
+const remainOptionButtonGroupStyles = StyleSheet.create({
+  container: {
+    flex: null,
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    paddingHorizontal: 12,
+    paddingBottom: 16,
+    paddingTop: 4,
   },
 });

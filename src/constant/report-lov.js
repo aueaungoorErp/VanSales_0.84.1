@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, ScrollView, Text, View } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { MainTheme, mainDivider } from '../constant/lov';
 import { decimal2digitWithCommas } from '../utils/FormatUtil';
@@ -10,6 +10,141 @@ const ListItem = ({title, containerStyle, bottomDivider}) => (
   </View>
 );
 const fontDefault = '1.7%';
+const salesOrderByCategoryStyles = StyleSheet.create({
+  headerContainer: {
+    backgroundColor: MainTheme.colorQuinary,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+  },
+  headerTextPrimary: {
+    flex: 1.5,
+    color: MainTheme.colorSecondary,
+    fontSize: hp('1.7%'),
+    fontWeight: '700',
+  },
+  headerTextNumeric: {
+    flex: 1,
+    textAlign: 'right',
+    color: MainTheme.colorSecondary,
+    fontSize: hp('1.7%'),
+    fontWeight: '700',
+  },
+  groupCard: {
+    padding: 0,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E3E8E6',
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  groupHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#EAF6EF',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D9EBDD',
+  },
+  groupHeaderText: {
+    flex: 1,
+    color: MainTheme.colorQuaternary,
+    fontSize: hp(fontDefault),
+    fontWeight: '700',
+  },
+  dataRow: {
+    flexDirection: 'row',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEF2F0',
+  },
+  dataRowLast: {
+    borderBottomWidth: 0,
+  },
+  dataPrimaryText: {
+    flex: 1.5,
+    fontSize: hp('1.7%'),
+    color: '#1F2F28',
+  },
+  dataNumericText: {
+    flex: 1,
+    textAlign: 'right',
+    fontSize: hp('1.7%'),
+    color: '#33423A',
+  },
+  groupSummaryRow: {
+    flexDirection: 'row',
+    backgroundColor: '#F6F1DD',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderTopWidth: 1,
+    borderTopColor: '#E7DFC0',
+  },
+  groupSummaryPrimaryText: {
+    flex: 1.5,
+    fontSize: hp('1.7%'),
+    color: '#5F5422',
+    fontWeight: '700',
+  },
+  groupSummaryNumericText: {
+    flex: 1,
+    textAlign: 'right',
+    fontSize: hp('1.7%'),
+    color: '#5F5422',
+    fontWeight: '700',
+  },
+  summaryCard: {
+    backgroundColor: '#F7FBF8',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#DDE8E2',
+    overflow: 'hidden',
+  },
+  summaryTitleRow: {
+    flexDirection: 'row',
+    backgroundColor: '#EAF6EF',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D9EBDD',
+  },
+  summaryTitleText: {
+    flex: 1,
+    color: MainTheme.colorQuaternary,
+    fontSize: hp('1.7%'),
+    fontWeight: '700',
+  },
+  summaryDataRow: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEF2F0',
+  },
+  summaryFooterRow: {
+    flexDirection: 'row',
+    backgroundColor: '#FBE8EA',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  summaryFooterPrimaryText: {
+    flex: 1.5,
+    color: MainTheme.colorFourteendary,
+    fontSize: hp('1.7%'),
+    fontWeight: '700',
+  },
+  summaryFooterNumericText: {
+    flex: 1,
+    textAlign: 'right',
+    color: MainTheme.colorFourteendary,
+    fontSize: hp('1.7%'),
+    fontWeight: '700',
+  },
+});
 // report #1
 export const salesOrderByCategory = {
   header: () => {
@@ -18,47 +153,28 @@ export const salesOrderByCategory = {
         title={
           <View style={{flexDirection: 'row'}}>
             <Text
-              style={{
-                flex: 1.5,
-                color: MainTheme.colorSecondary,
-                fontSize: hp('1.7%'),
-              }}
+              style={salesOrderByCategoryStyles.headerTextPrimary}
               allowFontScaling={false}>
               ประเภทสินค้า
             </Text>
             <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp('1.7%'),
-              }}
+              style={salesOrderByCategoryStyles.headerTextNumeric}
               allowFontScaling={false}>
               จำนวนรวม
             </Text>
              <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp('1.7%'),
-              }}
+              style={salesOrderByCategoryStyles.headerTextNumeric}
               allowFontScaling={false}>
               จำนวนแถม
             </Text>
             <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp('1.7%'),
-              }}
+              style={salesOrderByCategoryStyles.headerTextNumeric}
               allowFontScaling={false}>
               ยอดขาย
             </Text>
           </View>
         }
-        containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+        containerStyle={salesOrderByCategoryStyles.headerContainer}
         titleNumberOfLines={1}
       />
     );
@@ -68,191 +184,125 @@ export const salesOrderByCategory = {
       <ListItem
         title={
           <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: MainTheme.colorSeptenary,
-                paddingVertical: 15,
-                paddingHorizontal: 5,
-              }}>
+            <View style={salesOrderByCategoryStyles.groupHeader}>
               <Text
-                style={{
-                  flex: 1,
-                  color: MainTheme.colorQuaternary,
-                  fontSize: hp(fontDefault),
-                }}
+                style={salesOrderByCategoryStyles.groupHeaderText}
                 allowFontScaling={false}>
                 วันที่ {item.GROUP_NAME}
               </Text>
             </View>
             {item.ITEMS.map((row, i) => (
-              <View style={{flexDirection: 'row', padding: 15}} key={i}>
+              <View
+                style={[
+                  salesOrderByCategoryStyles.dataRow,
+                  i === item.ITEMS.length - 1 ? salesOrderByCategoryStyles.dataRowLast : null,
+                ]}
+                key={i}>
                 <Text
-                  style={{flex: 1.5, fontSize: hp('1.7%')}}
+                  style={salesOrderByCategoryStyles.dataPrimaryText}
                   allowFontScaling={false}>
                   {row.ICCAT_NAME}
                 </Text>
                 <Text
-                  style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
+                  style={salesOrderByCategoryStyles.dataNumericText}
                   allowFontScaling={false}>
                   {row.SKUQTY}
                 </Text>
                 <Text
-                  style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
+                  style={salesOrderByCategoryStyles.dataNumericText}
                   allowFontScaling={false}>
                   {row.SKUQFREE}
                 </Text>
                 <Text
-                  style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
+                  style={salesOrderByCategoryStyles.dataNumericText}
                   allowFontScaling={false}>
                   {decimal2digitWithCommas(parseFloat(row.SKUAMT))}
                 </Text>
               </View>
             ))}
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: '#E5E4E2',
-                padding: 15,
-              }}>
+            <View style={salesOrderByCategoryStyles.groupSummaryRow}>
               <Text
-                style={{flex: 1.5, fontSize: hp('1.7%')}}
+                style={salesOrderByCategoryStyles.groupSummaryPrimaryText}
                 allowFontScaling={false}>
                 รวม
               </Text>
               <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
+                style={salesOrderByCategoryStyles.groupSummaryNumericText}
                 allowFontScaling={false}>
                 {item.GROUP_SUM_QTY}
               </Text>
                <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
+                style={salesOrderByCategoryStyles.groupSummaryNumericText}
                 allowFontScaling={false}>
                 {item.GROUP_SUM_QFREE}
               </Text>
               <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
+                style={salesOrderByCategoryStyles.groupSummaryNumericText}
                 allowFontScaling={false}>
                 {decimal2digitWithCommas(parseFloat(item.GROUP_SUM_AMT))}
               </Text>
             </View>
           </View>
         }
-        containerStyle={[{padding: 0}, mainDivider]}
+        containerStyle={salesOrderByCategoryStyles.groupCard}
         titleNumberOfLines={1}
       />
     );
   },
   footerRenderItem: (item) => {
     return (
-      <View style={{backgroundColor: MainTheme.colorSeptenary}}>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorSeptenary,
-            padding: 15,
-          }}>
+      <View style={salesOrderByCategoryStyles.summaryCard}>
+        <View style={salesOrderByCategoryStyles.summaryTitleRow}>
           <Text
-            style={{
-              flex: 1,
-              color: MainTheme.colorQuaternary,
-              fontSize: hp('1.7%'),
-            }}
+            style={salesOrderByCategoryStyles.summaryTitleText}
             allowFontScaling={false}>
             รวมทั้งสิ้น
           </Text>
         </View>
         {item.SUMMARY_SECTION.map((item, i) => (
           <View
-            style={{
-              flexDirection: 'row',
-              backgroundColor: MainTheme.colorThirteendary,
-              padding: 15,
-            }}
+            style={salesOrderByCategoryStyles.summaryDataRow}
             key={i}>
             <Text
-              style={{
-                flex: 1.5,
-                color: MainTheme.colorFourteendary,
-                fontSize: hp('1.7%'),
-              }}
+              style={salesOrderByCategoryStyles.dataPrimaryText}
               allowFontScaling={false}>
               {item.ITEM_NAME}
             </Text>
             <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp('1.7%'),
-              }}
+              style={salesOrderByCategoryStyles.dataNumericText}
               allowFontScaling={false}>
               {item.ITEM_QTY}
             </Text>
              <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp('1.7%'),
-              }}
+              style={salesOrderByCategoryStyles.dataNumericText}
               allowFontScaling={false}>
               {item.ITEM_QFREE}
             </Text>
             <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp('1.7%'),
-              }}
+              style={salesOrderByCategoryStyles.dataNumericText}
               allowFontScaling={false}>
               {decimal2digitWithCommas(parseFloat(item.ITEM_AMT))}
             </Text>
           </View>
         ))}
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
+        <View style={salesOrderByCategoryStyles.summaryFooterRow}>
           <Text
-            style={{
-              flex: 1.5,
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
+            style={salesOrderByCategoryStyles.summaryFooterPrimaryText}
             allowFontScaling={false}>
             รวม
           </Text>
           <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
+            style={salesOrderByCategoryStyles.summaryFooterNumericText}
             allowFontScaling={false}>
             {item.SUM_QTY}
           </Text>
            <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
+            style={salesOrderByCategoryStyles.summaryFooterNumericText}
             allowFontScaling={false}>
             {item.SUM_QFREE}
           </Text>
           <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
+            style={salesOrderByCategoryStyles.summaryFooterNumericText}
             allowFontScaling={false}>
             {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
           </Text>

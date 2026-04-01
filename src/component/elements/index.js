@@ -4,6 +4,7 @@
  */
 import { Text, TouchableOpacity, View } from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import { resolveVectorIconComponent } from '../../utils/iconFactory';
 
 /**
  * ListItem - replaces react-native-elements ListItem
@@ -11,37 +12,81 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 export const ListItem = ({
   title,
   containerStyle,
+  style,
   bottomDivider,
   leftIcon,
   hideChevron,
   titleNumberOfLines,
+  children,
+  onPress,
   ...rest
-}) => (
-  <View
-    style={[
-      {paddingVertical: 8, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center'},
-      containerStyle,
-      bottomDivider && {borderBottomWidth: 1, borderBottomColor: '#e1e8ee'},
-    ]}>
-    {leftIcon && leftIcon.name ? (
-      <AntDesign
-        name={leftIcon.name === 'bluetooth' ? 'scan1' : leftIcon.name}
-        size={leftIcon.size || 20}
-        color={leftIcon.color || '#333'}
-        style={{marginRight: 10}}
-      />
-    ) : null}
-    <View style={{flex: 1}}>{title}</View>
-    {!hideChevron ? <AntDesign name="right" size={14} color="#ccc" /> : null}
+}) => {
+  const LeftIconComponent = resolveVectorIconComponent(leftIcon?.type, AntDesign);
+
+  const content = (
+    <>
+      {leftIcon && leftIcon.name ? (
+        <LeftIconComponent
+          name={leftIcon.name === 'bluetooth' ? 'scan1' : leftIcon.name}
+          size={leftIcon.size || 20}
+          color={leftIcon.color || '#333'}
+          style={{marginRight: 10}}
+        />
+      ) : null}
+      {children ? (
+        children
+      ) : (
+        <View style={{flex: 1}}>
+          {typeof title === 'string' || typeof title === 'number' ? (
+            <Text numberOfLines={titleNumberOfLines}>{title}</Text>
+          ) : (
+            title
+          )}
+        </View>
+      )}
+      {!children && !hideChevron ? <AntDesign name="right" size={14} color="#ccc" /> : null}
+    </>
+  );
+
+  const containerStyles = [
+    {paddingVertical: 8, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center'},
+    style,
+    containerStyle,
+    bottomDivider && {borderBottomWidth: 1, borderBottomColor: '#e1e8ee'},
+  ];
+
+  if (onPress) {
+    return (
+      <TouchableOpacity style={containerStyles} onPress={onPress} activeOpacity={0.7} {...rest}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View style={containerStyles} {...rest}>
+      {content}
+    </View>
+  );
+};
+
+ListItem.Content = ({children, style, ...rest}) => (
+  <View style={[{flex: 1}, style]} {...rest}>
+    {children}
   </View>
+);
+
+ListItem.Chevron = ({color, size, style, ...rest}) => (
+  <AntDesign name="right" size={size || 14} color={color || '#ccc'} style={style} {...rest} />
 );
 
 /**
  * Icon - replaces react-native-elements Icon
  */
 export const Icon = ({name, type, size, color, onPress, iconStyle, containerStyle, ...rest}) => {
+  const IconComponent = resolveVectorIconComponent(type, AntDesign);
   const iconComponent = (
-    <AntDesign
+    <IconComponent
       name={name || 'questioncircleo'}
       size={size || 24}
       color={color || '#333'}
