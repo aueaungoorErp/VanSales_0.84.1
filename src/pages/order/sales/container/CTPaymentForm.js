@@ -439,72 +439,155 @@ class CTPaymentForm extends Component {
     //   : this._setDisabledPaymentTransfer();
   };
 
+  _getReadableErrorMessage = (error, fallbackMessage) => {
+    if (!error) {
+      return fallbackMessage;
+    }
+
+    if (typeof error === 'string') {
+      return error;
+    }
+
+    if (typeof error?.message === 'string' && error.message.trim()) {
+      return error.message.trim();
+    }
+
+    if (typeof error?.errorMessage === 'string' && error.errorMessage.trim()) {
+      return error.errorMessage.trim();
+    }
+
+    return fallbackMessage;
+  };
+
+  _getCustomerTaxId = () => {
+    const customerItem = this.props.customer?.item || {};
+    const candidates = [
+      customerItem.INFO?.ADDB_TAX_ID,
+      customerItem.INFO?.TAXID,
+      customerItem.CUS_ADDB?.ADDB_TAX_ID,
+      customerItem.CUS_ADDB?.TAXID,
+      customerItem.TEMP_CUS?.ADDB_TAX_ID,
+      customerItem.TEMP_CUS?.TAXID,
+    ]
+      .map(value => String(value || '').trim())
+      .filter(Boolean);
+
+    return candidates.find(value => /\d{13}/.test(value)) || candidates[0] || null;
+  };
+
+  _logMissingCustomerTaxId = () => {
+    const customerItem = this.props.customer?.item || {};
+    console.log('_getCustomerTaxId missing', {
+      infoAddbTaxId: customerItem.INFO?.ADDB_TAX_ID || null,
+      infoTaxId: customerItem.INFO?.TAXID || null,
+      cusAddbTaxId: customerItem.CUS_ADDB?.ADDB_TAX_ID || null,
+      cusAddbTaxIdAlt: customerItem.CUS_ADDB?.TAXID || null,
+      tempCusTaxId: customerItem.TEMP_CUS?.TAXID || null,
+      tempCusAddbTaxId: customerItem.TEMP_CUS?.ADDB_TAX_ID || null,
+    });
+  };
+
+  _prepareKtbSession = async ({ showError = false, setQrRefer = false } = {}) => {
+    const customerTaxId = this._getCustomerTaxId();
+
+    if (!customerTaxId) {
+      this._logMissingCustomerTaxId();
+      const errorMessage = 'ไม่พบ ADDB_TAX_ID';
+      if (showError) {
+        this._setState('errorMessage', errorMessage);
+      }
+      return { ok: false, errorMessage };
+    }
+
+    if (this.state.accessToken && this.state.dscfTxnId) {
+      if (setQrRefer) {
+        await this.props.setHeaderProcessedVdiQRRefer(this.state.dscfTxnId);
+      }
+      return { ok: true, accessToken: this.state.accessToken, dscfTxnId: this.state.dscfTxnId };
+    }
+
+    const auth = await this.props.auth();
+    const { txnStatusCode, message, result } = auth || {};
+
+    if (txnStatusCode !== 200 || !result?.accessToken) {
+      const errorMessage = this._getReadableErrorMessage(message, 'ไม่สามารถเชื่อมต่อ KTB ได้');
+      if (showError) {
+        this._setState('errorMessage', errorMessage);
+      }
+      return { ok: false, errorMessage };
+    }
+
+    const accessToken = result.accessToken;
+    await this._setState('accessToken', accessToken);
+
+    const subscription = await this.props.subscription(
+      {
+        dealerTaxId: customerTaxId,
+        sponsorTaxId: '9100990000161',
+      },
+      accessToken,
+    );
+
+    const dscfTxnId = subscription?.result?.dscfTxnId || null;
+    await this._setState('dscfTxnId', dscfTxnId);
+
+    if (!dscfTxnId) {
+      const errorMessage = 'ลูกค้าไม่ได้เป็นสมาชิก';
+      if (showError) {
+        this._setState('errorMessage', errorMessage);
+      }
+      return { ok: false, errorMessage };
+    }
+
+    if (setQrRefer) {
+      await this.props.setHeaderProcessedVdiQRRefer(dscfTxnId);
+    }
+
+    return { ok: true, accessToken, dscfTxnId };
+  };
+
+  _tryKtbQrFallback = async () => {
+    const prepared = await this._prepareKtbSession({ setQrRefer: true });
+
+    if (!prepared.ok) {
+      console.log('_tryKtbQrFallback unavailable', prepared.errorMessage);
+      return false;
+    }
+
+    console.log('_tryKtbQrFallback prepared', prepared.dscfTxnId);
+    await this._qrcodeKTB();
+    return true;
+  };
+
   _checkKTBMember = async () => {
     this._setState('isLoading', true);
     this._setState('errorMessage', null);
     this._setState('successMessage', null);
     this._setState('buttonDisabled', true);
 
-    const auth = await this.props.auth();
-    const { txnStatusCode, message, result } = auth;
+    const prepared = await this._prepareKtbSession({
+      showError: this.state.paymentType === 'ktb',
+      setQrRefer: this.state.paymentType === 'ktb',
+    });
 
-    if (txnStatusCode === 200 && result) {
-      const { accessToken } = auth.result;
-      if (accessToken) {
-        this._setState('accessToken', accessToken);
-        const { ADDB_TAX_ID } = this.props.customer.item.INFO;
-        if (!ADDB_TAX_ID) {
-          if (this.state.paymentType === 'ktb') {
-            this._setState('errorMessage', 'ไม่พบ ADDB_TAX_ID');
-            this._setState('buttonDisabled', false);
-          }
-          this._setState('isLoading', false);
-          return false;
-        }
-
-        const data = {
-          dealerTaxId: ADDB_TAX_ID,
-          // sponsorTaxId: this.state.userToken.COMPANYINFO.CMPNY_REG_NO,
-          sponsorTaxId: '9100990000161',
-        };
-
-        const subscription = await this.props.subscription(data, accessToken);
-
-        const { dscfTxnId } = subscription.result;
-        this._setState('dscfTxnId', dscfTxnId);
-
-        if (!dscfTxnId && this.state.paymentType === 'ktb') {
-          this._setState('errorMessage', 'ลูกค้าไม่ได้เป็นสมาชิก');
-          this._setState('buttonDisabled', false);
-          this._setState('isLoading', false);
-          return false;
-        }
-
-        if (this.state.paymentType === 'ktb') {
-          await this.props.setHeaderProcessedVdiQRRefer(this.state.dscfTxnId);
-        } else {
-          await this.props.setHeaderProcessedVdiQRRefer(null);
-        }
-
-        this._setState('errorMessage', null);
-        this._setState('buttonDisabled', false);
-        this._setState('isLoading', false);
-        // เวฟ
-        const setting = await getSettingConfig();
-        if (setting && setting.baseUrl) {
-          Request.setHeaders({
-            vanCNFMachine: setting.vanCNFMachine
-          });
-          Request.setBaseUrl(setting.baseUrl)
-        }
-        // เวฟ
-        await this._orderCash1(null)
-        ;
-      }
-    } else if (txnStatusCode === 400) {
-      this._setState('errorMessage', message);
+    if (prepared.ok) {
+      this._setState('errorMessage', null);
       this._setState('buttonDisabled', false);
       this._setState('isLoading', false);
+      // เวฟ
+      const setting = await getSettingConfig();
+      if (setting && setting.baseUrl) {
+        Request.setHeaders({
+          vanCNFMachine: setting.vanCNFMachine
+        });
+        Request.setBaseUrl(setting.baseUrl)
+      }
+      // เวฟ
+      await this._orderCash1(null);
+    } else if (prepared.errorMessage) {
+      this._setState('buttonDisabled', false);
+      this._setState('isLoading', false);
+      return false;
     } else {
       await this._orderCash1(null)
     }
@@ -520,9 +603,10 @@ class CTPaymentForm extends Component {
     const { RESULT } = RESULT_DATA;
     const { ITEMS } = RESULT;
 
-    const { ADDB_TAX_ID } = this.props.customer.item.INFO;
+    const customerTaxId = this._getCustomerTaxId();
 
-    if (!ADDB_TAX_ID) {
+    if (!customerTaxId) {
+      this._logMissingCustomerTaxId();
       this._setState('errorMessage', 'ไม่พบ ADDB_TAX_ID');
       this._setState('buttonDisabled', false);
       this._setState('isLoading', false);
@@ -621,7 +705,7 @@ class CTPaymentForm extends Component {
               invoiceHdr: {
                 invoiceId: VDI_REF, // (Create-Response.json)
                 outstandingAmount: VDI_AF_DISC, // (Create-Response.json)
-                dealerTaxId: ADDB_TAX_ID, // (Create-Response.json)
+                dealerTaxId: customerTaxId, // (Create-Response.json)
                 invoiceTaxAmount: VDI_AF_DISC_VAT_EXP_VAT,
                 //invoiceAmount: this.props.order.headerProcessed.VDI_AMOUNT,
                 invoiceAmount: VDI_AF_DISC,
@@ -1230,7 +1314,7 @@ class CTPaymentForm extends Component {
             'YYYY-MM-DD HH:mm:ss',
           );
 
-          const { ADDB_TAX_ID } = this.props.customer.item.INFO;
+          const customerTaxId = this._getCustomerTaxId();
 
           const data = {
             //accessToken: this.state.accessToken,
@@ -1244,7 +1328,7 @@ class CTPaymentForm extends Component {
               invoiceHdr: {
                 invoiceId: VDI_REF, // (Create-Response.json)
                 outstandingAmount: 0, // fix
-                dealerTaxId: ADDB_TAX_ID, // (Create-Response.json)
+                dealerTaxId: customerTaxId, // (Create-Response.json)
                 invoiceTaxAmount: VDI_AF_DISC_VAT_EXP_VAT,
                 invoiceAmount: this.props.order.headerProcessed.VDI_AMOUNT,
                 terminalId: VDI_MACHINE,
@@ -1672,6 +1756,12 @@ class CTPaymentForm extends Component {
       console.log("auth 3 ", auth)
       const data = auth?.data || auth;
 
+      if (!data) {
+        console.log('_qrcodePayment auth returned empty payload');
+      } else if (!data?.paymentChannels?.length) {
+        console.log('_qrcodePayment auth missing paymentChannels', JSON.stringify(data));
+      }
+
       if (data) {
         await this._requestQrCode(data);
       } else {
@@ -1679,7 +1769,7 @@ class CTPaymentForm extends Component {
       }
     } catch (error) {
       console.log('_qrcodePayment error', error);
-      await this._requestQrCode(null);
+      await this._requestQrCode(null, error);
     }
 
     this._setState('isLoading', false);
@@ -1687,7 +1777,7 @@ class CTPaymentForm extends Component {
   };
 
 
-  _requestQrCode = async (obj) => {
+  _requestQrCode = async (obj, requestError = null) => {
     this._setState('errorMessage', null);
 
     if (
@@ -1757,6 +1847,7 @@ if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('
     try {
       const qrAmount = this.state.qrin ? this.state.qrin.toString() : '0';
       let qrPayload = null;
+      let shouldUseKtbFallback = Boolean(requestError);
 
       if (obj?.paymentChannels?.[0]?.billerId && obj?.paymentChannels?.[0]?.terminalId) {
         const qrcode = await this.props.requestQrCodeSCB(obj, qrAmount);
@@ -1769,11 +1860,31 @@ if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('
             data?.payload ||
             data?.qrData ||
             null;
+        } else {
+          shouldUseKtbFallback = true;
+        }
+      } else {
+        shouldUseKtbFallback = true;
+      }
+
+      if (!qrPayload && shouldUseKtbFallback) {
+        const ktbFallbackWorked = await this._tryKtbQrFallback();
+        if (ktbFallbackWorked) {
+          console.log('_requestQrCode fallback to KTB QR');
+          return;
         }
       }
 
       if (!qrPayload) {
-        qrPayload = qrAmount;
+        await this._setState('isQRCodeDialogOpen', false);
+        this._setState(
+          'errorMessage',
+          this._getReadableErrorMessage(
+            requestError,
+            'ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบการเชื่อมต่อหรือข้อมูล QR'
+          )
+        );
+        return;
       }
 
       await this._setState('qrCode', qrPayload);
@@ -1783,10 +1894,20 @@ if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('
       console.log("isQRCodeDialogOpen ", true);
     } catch (error) {
       console.log('_requestQrCode error', error);
-      const fallbackQrAmount = this.state.qrin ? this.state.qrin.toString() : '0';
-      this._setState('errorMessage', error);
-      await this._setState('qrCode', fallbackQrAmount);
-      await this._setState('isQRCodeDialogOpen', true);
+      const ktbFallbackWorked = await this._tryKtbQrFallback();
+      if (ktbFallbackWorked) {
+        console.log('_requestQrCode catch fallback to KTB QR');
+        return;
+      }
+
+      await this._setState('isQRCodeDialogOpen', false);
+      this._setState(
+        'errorMessage',
+        this._getReadableErrorMessage(
+          error,
+          'ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบการเชื่อมต่อหรือข้อมูล QR'
+        )
+      );
     }
   };
 

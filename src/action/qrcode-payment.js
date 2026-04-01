@@ -12,21 +12,15 @@ export const authForGetAccessToken = (auth) => dispatch => {
         authForGetAccessTokenApi(auth).then((v) => {
             resolve(v)
         }).catch((error) => {
-            if (error.response) {
-                // The request was made and the server responded with a status code
-                // that falls out of the range of 2xx
-                reject(error.response.data)
-            } else if (error.request) {
-              // The request was made but no response was received
-              // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-              // http.ClientRequest in node.js
-              reject(error.request.data)
-            } else {
-                // Something happened in setting up the request that triggered an Error
-                reject(error.message)
-            }
+            const errorMessage =
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.response?.data ||
+                error?.request?.data ||
+                error?.message ||
+                'QRCode authentication failed'
 
-            reject(error.config)
+            reject(errorMessage)
           })
     })
 }
@@ -43,9 +37,14 @@ export const requestQrCodeSCB = (data, amount) => (dispatch) => {
         requestQrCodeSCBApi(request).then((v) => {
             resolve(v)
         }).catch((error) => {
-            if (error.message !== null) {
-                reject(error.message)
-            }
+            const errorMessage =
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.response?.data ||
+                error?.message ||
+                'Request QRCode SCB failed'
+
+            reject(errorMessage)
         })
     })
 }

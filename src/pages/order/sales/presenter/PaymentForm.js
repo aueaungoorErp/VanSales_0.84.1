@@ -110,11 +110,26 @@ const PaymentForm = (props) => {
   } = props;
   // const [isDialogOpen, setisDialogOpen] =  useState(false);
 
+  const safeRemainOptionItems = Array.isArray(remainOptionItem) ? remainOptionItem : [];
+  const safeBankFileListItems = Array.isArray(bankFileListItems) ? bankFileListItems : [];
+  const safeQrContentListItems = Array.isArray(qrContentListItem) ? qrContentListItem : [];
+  const safeOtherPaymentType = Array.isArray(otherPaymentType) ? otherPaymentType : [];
+  const safeListBankAccountItem = Array.isArray(listbankAccountItem) ? listbankAccountItem : [];
+  const safeUserToken = userToken && userToken.VANCONFIG ? userToken : {
+    VANCONFIG: {
+      VANCNF_ENABLE_CASH: null,
+      VANCNF_BANK_TRANSFER_USE: null,
+      VANCNF_CHEQUE: null,
+      VANCNF_BANK_QRCODE_USE: null,
+    },
+  };
+  const safeTotalPrice = Number.isFinite(Number(totalPrice)) ? Number(totalPrice) : 0;
+
   //console.log("remainOption >>", remainOptionItem)
   // console.log("bankAccountItem >>", listbankAccountItem)
   console.log("remainOptionItem >>", remainOptionItem)
 
-  const remainoption = remainOptionItem.map((item) => ({
+  const remainoption = safeRemainOptionItems.map((item) => ({
     label: item.SYSLKUP_T_DESC,
     value: item.SYSLKUP_KEY,
   }));
@@ -135,7 +150,7 @@ const PaymentForm = (props) => {
   };
 
 
-  const bankFiles = bankFileListItems.filter(item => !item.BANK_T_NAME.includes("(ยกเลิก)")).sort((a, b) => {
+  const bankFiles = safeBankFileListItems.filter(item => !item.BANK_T_NAME.includes("(ยกเลิก)")).sort((a, b) => {
     if (a.BANK_T_NAME < b.BANK_T_NAME) return -1;
     if (a.BANK_T_NAME > b.BANK_T_NAME) return 1;
     return 0;
@@ -145,7 +160,7 @@ const PaymentForm = (props) => {
   }));
  // console.log("bankAccount4 >>", bankFiles)
 
-  const bankAccount = Object.values(listbankAccountItem.sort((a, b) => {
+  const bankAccount = Object.values(safeListBankAccountItem.sort((a, b) => {
     if (a.BNKAC_CODE < b.BNKAC_CODE) return -1;
     if (a.BNKAC_CODE > b.BNKAC_CODE) return 1;
     return 0;
@@ -155,14 +170,14 @@ const PaymentForm = (props) => {
   })));
 
 
-  const qrCodeContent = Object.values(qrContentListItem.map((item) => ({
+  const qrCodeContent = Object.values(safeQrContentListItems.map((item) => ({
     label: item.QRCT_NAME,
     value: item.QRCT_KEY,
   }))
   );
 
 
-  const otherPayment = Object.values(otherPaymentType.map((item) => ({
+  const otherPayment = Object.values(safeOtherPaymentType.map((item) => ({
     label: item.PMT_NAME,
     value: item.PMT_KEY,
   }))
@@ -174,7 +189,7 @@ const PaymentForm = (props) => {
     }
 
     return (
-      qrContentListItem.find(
+      safeQrContentListItems.find(
         item =>
           String(item.QRCT_KEY) === String(promptPay) ||
           String(item.QRCT_CODE) === String(promptPay),
@@ -202,7 +217,7 @@ const PaymentForm = (props) => {
       return true;
     }
 
-    return /[A-Za-z]/.test(normalizedContent) && normalizedContent.length > 20;
+    return normalizedContent.length > 20;
   };
 
   const [checkedItems, setCheckedItems] = useState({
@@ -213,13 +228,13 @@ const PaymentForm = (props) => {
     item5: false,
   });
 
-  const formattedTotalPrice = totalPrice
+  const formattedTotalPrice = safeTotalPrice
     .toFixed(2)
     .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  const showCashCard = userToken.VANCONFIG.VANCNF_ENABLE_CASH === 2;
-  const showTransferQrCard = userToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
-  const showChequeCard = userToken.VANCONFIG.VANCNF_CHEQUE === 2;
-  const showOtherCard = userToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
+  const showCashCard = safeUserToken.VANCONFIG.VANCNF_ENABLE_CASH === 2;
+  const showTransferQrCard = safeUserToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
+  const showChequeCard = safeUserToken.VANCONFIG.VANCNF_CHEQUE === 2;
+  const showOtherCard = safeUserToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
 
   const getBorderlessPickerStyle = (enabled) => ({
     iconContainer: {
@@ -527,13 +542,56 @@ const PaymentForm = (props) => {
     }
 
     const result = String(qrContent.QRCT_SOURCE || '').trim();
-    console.log("QRCT_SOURCE =>", result);
+    const rawQrContent = String(qrContent.QRCT_CONTENT || '').trim();
+    const isUsableQrSeed = (value) => {
+      const normalizedValue = String(value || '').trim();
+      if (!normalizedValue || normalizedValue === '0') {
+        return false;
+      }
 
-    if (result === '4' || isQrTemplatePayload(qrContent.QRCT_CONTENT)) {
-      return genQrPaymentFromQrCode(normalizedAmount, qrContent.QRCT_CONTENT)
-    } else {
-      return genQrPayment(normalizedAmount, qrContent.QRCT_CONTENT);
+      if (isDirectQrPayload(normalizedValue) || isQrTemplatePayload(normalizedValue)) {
+        return true;
+      }
+
+      if (/^qr\s*code$/i.test(normalizedValue) || /^qrcode$/i.test(normalizedValue)) {
+        return false;
+      }
+
+      return /\d/.test(normalizedValue);
+    };
+
+    const fallbackQrSeed = [
+      qrContent.BNKAC_CODE,
+      qrContent.QRCT_CODE,
+      qrContent.QRCT_NAME,
+      qrContent.BNKAC_NAME,
+    ]
+      .map(item => String(item || '').trim())
+      .find(item => isUsableQrSeed(item));
+    console.log("QRCT_SOURCE =>", result);
+    console.log("QRCT_CONTENT =>", rawQrContent);
+    console.log("QR fallback seed =>", fallbackQrSeed);
+
+    const qrSourceValue = rawQrContent || fallbackQrSeed;
+
+    if (!qrSourceValue || qrSourceValue === '0') {
+      return null;
     }
+
+    if (result === '4' || isQrTemplatePayload(qrSourceValue)) {
+      return genQrPaymentFromQrCode(normalizedAmount, qrSourceValue) || qrSourceValue;
+    }
+
+    const generatedPromptPay = genQrPayment(normalizedAmount, qrSourceValue);
+    if (generatedPromptPay) {
+      return generatedPromptPay;
+    }
+
+    if (isDirectQrPayload(qrSourceValue)) {
+      return qrSourceValue;
+    }
+
+    return qrSourceValue;
   };
 
 
@@ -808,7 +866,7 @@ const PaymentForm = (props) => {
 
 
                 {
-                  userToken.VANCONFIG.VANCNF_BANK_QRCODE_USE !== 2 ?
+                  safeUserToken.VANCONFIG.VANCNF_BANK_QRCODE_USE !== 2 ?
                     <Item style={[styles.checkBoxSection, { backgroundColor: checkedItems.item3 ? '#f0ffff' : 'white', }]}>
                       <Item style={{ flex: 0.3, borderBottomWidth: 0 }}>
                         <CheckBox
@@ -916,7 +974,7 @@ const PaymentForm = (props) => {
               </Text>
               
             </View>
-            {userToken.VANCONFIG.VANCNF_CHEQUE === 2 ? (
+            {safeUserToken.VANCONFIG.VANCNF_CHEQUE === 2 ? (
           <>
             <Item style={[styles.checkBoxSection,
             { backgroundColor: checkedItems.item4 ? '#f0ffff' : 'white', }
@@ -1037,7 +1095,7 @@ const PaymentForm = (props) => {
              
             </View>
         {
-          userToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2 ?
+          safeUserToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2 ?
             (
               <>
                 <Item style={[styles.checkBoxSection,

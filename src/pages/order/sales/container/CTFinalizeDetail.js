@@ -1,56 +1,52 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { Alert, Keyboard, TouchableOpacity, Text } from 'react-native';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import moment from 'moment';
-import { BluetoothPrinter, BluetoothFinder } from '../../../../module';
+import React, { Component } from 'react';
+import { Alert, Keyboard, Text, TouchableOpacity } from 'react-native';
+import { connect } from 'react-redux';
+import { BluetoothFinder, BluetoothPrinter } from '../../../../module';
 
-import {
-  productFinalizeFormButtonGroup,
-  paymentLOVItems,
-  returnLOVItems,
-  MainTheme,
-} from '../../../../constant/lov';
-import {
-  setVDIRemark,
-  setDisBill1,
-  setDisBill2,
-  setDisBill1AfterDis,
-  setDisBill2AfterDis,
-  setDisCountType1,
-  setDisCountType2,
-  calculateOrderNetPriceAfterDiscount,
-  clearDisBill,
-  processOrderSale,
-  createOrderSaleV3,
-  orderReservV3,
-  orderReturn,
-  calculateOrderProductProcessSummary,
-  calculateOrderProductSummary,
-  setDisBillProcess,
-  setHeaderProcessedShipDate,
-  updateOrderSale,
-  orderTransferV3,
-  orderAttachImage,
-} from '../../../../action/order';
 import { getCurrentPosition } from '../../../../action/geolocation';
 import {
-  genenrateOrderForProcessToServer,
-  genenrateOrderForCreateToServer,
-  genenrateOrderForUpdateToServer,
-  genenrateAttachImageToServer,
-  generateResponseFromServer,
-} from '../../../../utils/Order';
-import { discountFormat } from '../../../../utils/Culculate';
-import Navigator from '../../../../services/Navigator';
-import {
-  getUserToken,
-  getLoginGuID,
-  getSettingConfig,
-} from '../../../../utils/Token';
-import { BPAPUS_BPAPSV } from '../../../../../appConfig';
+  calculateOrderNetPriceAfterDiscount,
+  calculateOrderProductProcessSummary,
+  calculateOrderProductSummary,
+  clearDisBill,
+  createOrderSaleV3,
+  orderAttachImage,
+  orderReservV3,
+  orderReturn,
+  orderTransferV3,
+  processOrderSale,
+  setDisBill1,
+  setDisBill2,
+  setDisBillProcess,
+  setDisCountType1,
+  setDisCountType2,
+  setHeaderProcessedShipDate,
+  setVDIRemark,
+  updateOrderSale
+} from '../../../../action/order';
 import { systemCheck } from '../../../../action/setting';
 import { return_Errmessage } from '../../../../api/setting';
+import {
+  MainTheme,
+  paymentLOVItems,
+  productFinalizeFormButtonGroup,
+  returnLOVItems,
+} from '../../../../constant/lov';
+import Navigator from '../../../../services/Navigator';
+import { discountFormat } from '../../../../utils/Culculate';
+import {
+  genenrateAttachImageToServer,
+  genenrateOrderForCreateToServer,
+  genenrateOrderForProcessToServer,
+  genenrateOrderForUpdateToServer,
+  generateResponseFromServer,
+} from '../../../../utils/Order';
+import {
+  getLoginGuID,
+  getSettingConfig,
+  getUserToken,
+} from '../../../../utils/Token';
 
 
 
@@ -112,6 +108,20 @@ class CTFinalizeDetail extends Component {
     this._setDisType2(false);
 
   };
+
+  componentDidUpdate(prevProps) {
+    const nextProcessFail = this.props.order?.orderProductSummary?.ORDER_PROCESS_FAIL;
+    const prevProcessFail = prevProps.order?.orderProductSummary?.ORDER_PROCESS_FAIL;
+    const shouldShowProcessFail =
+      this.props.order?.header?.AR_ORDER_TYPE === 'ขายสินค้า' &&
+      this.state.userToken?.VANCONFIG?.VANCNF_NOV_SKU_BAL == 1 &&
+      nextProcessFail != '' &&
+      nextProcessFail !== this.state.errorMessage;
+
+    if (nextProcessFail !== prevProcessFail && shouldShowProcessFail) {
+      this._setErrorMessage(nextProcessFail);
+    }
+  }
 
   _getUserToken = async () => {
     const userToken = await getUserToken();
@@ -1298,20 +1308,6 @@ class CTFinalizeDetail extends Component {
     //    '==ORDER_PROCESS_FAIL==', this.props.order.orderProductSummary.ORDER_PROCESS_FAIL, );
     //  console.log(
     //    'this.state.errorMessage', this.state.errorMessage, );
-
-
-
-    this.props.order.header.AR_ORDER_TYPE === 'ขายสินค้า' &&
-      this.state.userToken &&
-      this.state.userToken.VANCONFIG &&
-      this.state.userToken.VANCONFIG.VANCNF_NOV_SKU_BAL &&
-      this.state.userToken.VANCONFIG.VANCNF_NOV_SKU_BAL == 1 &&
-      this.props.order.orderProductSummary.ORDER_PROCESS_FAIL != '' &&
-      this.state.errorMessage === undefined &&
-      this.state.errorMessage != this.props.order.orderProductSummary.ORDER_PROCESS_FAIL
-      ? this._setErrorMessage(this.props.order.orderProductSummary.ORDER_PROCESS_FAIL,) : console.log('ไม่ Error');
-
-
     //  if (this.props.order.orderProductSummary.ORDER_PROCESS_FAIL != '') {
     //    if (this.state.errorMessage === undefined && this.state.errorMessage != this.props.order.orderProductSummary.ORDER_PROCESS_FAIL) {
     //      this._setErrorMessage(this.props.order.orderProductSummary.ORDER_PROCESS_FAIL, );
@@ -1326,15 +1322,23 @@ class CTFinalizeDetail extends Component {
       ? (editableDisBill = true)
       : false;
 
-    this.props.order.header.VDI_AF_DISC = parseFloat(this.state.processResult?.DOCINFO?.DI_AMOUNT);
-    console.log('VDI_AF_DISC 2', this.props.order.header);
+    const processedAmount = parseFloat(this.state.processResult?.DOCINFO?.DI_AMOUNT);
+    const orderForView = {
+      ...this.props.order,
+      header: {
+        ...this.props.order.header,
+        VDI_AF_DISC: Number.isNaN(processedAmount)
+          ? this.props.order.header.VDI_AF_DISC
+          : processedAmount,
+      },
+    };
 
     return (
       <FinalizeDetail
         arOrderType={this.props.order.header.AR_ORDER_TYPE}
         vdiRemark={this.props.order.header.VDI_REMARK}
         orderProductSummary={this.props.order.orderProductSummary}
-        orderProductSummaryProcessed={this.props.order}
+        orderProductSummaryProcessed={orderForView}
         processResult={this.state.processResult}
         setDisBill1={this._setDisBill1}
         setDisBill2={this._setDisBill2}

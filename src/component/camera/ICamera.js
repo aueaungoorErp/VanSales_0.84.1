@@ -16,6 +16,151 @@ import { MainTheme } from '../../constant/lov';
 import Navigator from '../../services/Navigator';
 import BarcodeFinder from './IBarcodeFinder';
 
+const sanitizeRawScanValue = value => {
+	if (value === null || value === undefined) {
+		return null;
+	}
+
+	const text = String(value).replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+	return text || null;
+};
+
+const collectStringValues = (input, bucket, depth = 0) => {
+	if (depth > 5 || input === null || input === undefined) {
+		return;
+	}
+
+	if (typeof input === 'string' || typeof input === 'number') {
+		const sanitized = sanitizeRawScanValue(input);
+		if (sanitized && !bucket.includes(sanitized)) {
+			bucket.push(sanitized);
+		}
+		return;
+	}
+
+	if (Array.isArray(input)) {
+		input.forEach(item => collectStringValues(item, bucket, depth + 1));
+		return;
+	}
+
+	if (typeof input === 'object') {
+		Object.values(input).forEach(value => collectStringValues(value, bucket, depth + 1));
+	}
+};
+
+const getQrPayloadScore = value => {
+	const normalized = sanitizeRawScanValue(value);
+	if (!normalized || normalized === '0') {
+		return -1;
+	}
+
+	if (normalized.startsWith('000201')) {
+		return 1000 + normalized.length;
+	}
+
+	if (normalized.includes('000201')) {
+		return 950 + normalized.length;
+	}
+
+	if (normalized.includes('5303764') && normalized.includes('5802TH')) {
+		return 900 + normalized.length;
+	}
+
+	if (normalized.length >= 20) {
+		return 500 + normalized.length;
+	}
+
+	return normalized.length;
+};
+
+const getCodeTypePriority = codeType => {
+	const normalizedType = String(codeType || '').toLowerCase();
+
+	if (normalizedType.includes('qr')) {
+		return 3;
+	}
+
+	if (normalizedType.includes('ean') || normalizedType.includes('upc')) {
+		return 2;
+	}
+
+	if (normalizedType.includes('code')) {
+		return 1;
+	}
+
+	return 0;
+};
+
+const getRawScanPayload = code => {
+	const candidates = [];
+
+	[
+		code?.value,
+		code?.displayValue,
+		code?.content?.data,
+		code?.rawValue,
+		code,
+	].forEach(value => collectStringValues(value, candidates));
+
+	const uniqueCandidates = candidates.filter(
+		(candidate, index, self) => self.indexOf(candidate) === index,
+	);
+
+	const sortedCandidates = uniqueCandidates.sort((left, right) => {
+		return getQrPayloadScore(right) - getQrPayloadScore(left);
+	});
+
+	return {
+		data: sortedCandidates[0] || null,
+		alternates: sortedCandidates.slice(1),
+		originalData: sortedCandidates[0] || null,
+	};
+};
+
+const pickBestScannedCode = codes => {
+	if (!Array.isArray(codes) || codes.length === 0) {
+		return null;
+	}
+
+	let bestCode = null;
+	let bestPayload = null;
+
+	codes.forEach(code => {
+		const payload = getRawScanPayload(code);
+		if (!payload.data) {
+			return;
+		}
+
+		if (!bestCode) {
+			bestCode = code;
+			bestPayload = payload;
+			return;
+		}
+
+		const currentPriority = getCodeTypePriority(code?.type);
+		const bestPriority = getCodeTypePriority(bestCode?.type);
+		const currentLength = String(payload.data || '').length;
+		const bestLength = String(bestPayload?.data || '').length;
+
+		if (
+			currentPriority > bestPriority ||
+			(currentPriority === bestPriority && currentLength > bestLength)
+		) {
+			bestCode = code;
+			bestPayload = payload;
+		}
+	});
+
+	if (!bestCode || !bestPayload) {
+		return null;
+	}
+
+	return {
+		code: bestCode,
+		payload: bestPayload,
+	};
+};
+
 const ICamera = ({
 	takePicture,
 	barcodeFinderVisible,
@@ -64,18 +209,25 @@ const ICamera = ({
 				return;
 			}
 
-			const firstCode = codes[0];
-			const codeValue = firstCode?.value;
-			if (!codeValue) {
+			const bestScan = pickBestScannedCode(codes);
+			if (!bestScan?.payload?.data) {
 				return;
 			}
+
+			console.log('VisionCamera bestScan', JSON.stringify({
+				type: bestScan.code?.type,
+				data: bestScan.payload.data,
+				alternates: bestScan.payload.alternates,
+			}));
 
 			scannedRef.current = true;
 			if (onBarCodeRead) {
 				onBarCodeRead({
-					data: codeValue,
-					type: firstCode?.type || 'barcode',
-					rawValue: firstCode,
+					data: bestScan.payload.data,
+					alternates: bestScan.payload.alternates,
+					originalData: bestScan.payload.originalData,
+					type: bestScan.code?.type || 'barcode',
+					rawValue: bestScan.code,
 				});
 			}
 
