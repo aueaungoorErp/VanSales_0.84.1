@@ -67,6 +67,7 @@ class CTChoices extends Component {
           color: MainTheme.colorPrimary,
           size: 24,
         }}
+        hideChevron
         bottomDivider></ListItem>
     );
   };
