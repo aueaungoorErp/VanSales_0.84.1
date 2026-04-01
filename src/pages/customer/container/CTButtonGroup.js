@@ -1,23 +1,23 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import { Alert, Keyboard, TouchableOpacity, Text } from 'react-native';
 import moment from 'moment';
-import ButtonGroup from '../presenter/ButtonGroup';
+import React from 'react';
+import { Alert, Keyboard, Text, TouchableOpacity } from 'react-native';
+import { connect } from 'react-redux';
+import { BPAPUS_BPAPSV } from '../../../../appConfig';
+import {
+  closeCustomerAccount,
+  createTempCus,
+  setCustomerTempCus,
+} from '../../../action/customer';
+import { lookupErpV3Api } from '../../../api/bPlusApi';
 import {
   customerAddButtonGroup,
   customerProfileDetailButtonGroup,
   MainTheme,
 } from '../../../constant/lov';
-import { getUserToken, getLoginGuID } from '../../../utils/Token';
-import Navigator from '../../../services/Navigator';
-import { lookupErpV3Api } from '../../../api/bPlusApi';
-import {
-  createTempCus,
-  setCustomerTempCus,
-  closeCustomerAccount,
-} from '../../../action/customer';
 import { strings } from '../../../locales/i18n';
-import { BPAPUS_BPAPSV } from '../../../../appConfig';
+import Navigator from '../../../services/Navigator';
+import { getLoginGuID, getUserToken } from '../../../utils/Token';
+import ButtonGroup from '../presenter/ButtonGroup';
 
 class CTButtonGroup extends React.Component {
   _isMounted = false;
@@ -375,11 +375,44 @@ class CTButtonGroup extends React.Component {
   };
 
   _renderItem = (item, key) => {
+    const isPrimary = item.methodName === 'add';
+    const isDisabled = !!this.state.buttonDisabled;
+
     return (
-      <TouchableOpacity key={key} style={[item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, this.state.buttonDisabled ? { backgroundColor: MainTheme.colorNonary } : null]} onPress={() => {
+      <TouchableOpacity key={key} style={[
+          item.containerStyle,
+          {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginHorizontal: 4,
+            paddingVertical: 14,
+            paddingHorizontal: 16,
+            minHeight: 54,
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: isPrimary ? MainTheme.colorPrimary : '#D7E0D8',
+            backgroundColor: isDisabled
+              ? MainTheme.colorNonary
+              : isPrimary
+              ? MainTheme.colorPrimary
+              : '#FFFFFF',
+          },
+        ]} onPress={() => {
           this._onPress(item);
         }} disabled={this.state.buttonDisabled} activeOpacity={0.7}>
-              <Text style={item.titleStyle}>{item.title}</Text>
+              <Text style={[
+                item.titleStyle,
+                {
+                  fontWeight: '700',
+                  fontSize: 16,
+                  color: isDisabled
+                    ? '#FFFFFF'
+                    : isPrimary
+                    ? MainTheme.colorSecondary
+                    : '#22312B',
+                },
+              ]}>{item.title}</Text>
             </TouchableOpacity>
     );
   };

@@ -36,7 +36,7 @@ const ButtonGroup = (props) => {
         isCloseReasonLoading } = props
 
     return (
-        <View>
+        <View style={styles.footerWrap}>
             <IButtonGroupCustom listItems={listItems} renderItem={renderItem} style={iButtonGroupCustomStyles} />
 
             <ProgressDialog
@@ -125,8 +125,12 @@ const ButtonGroup = (props) => {
 export default ButtonGroup
 
 const styles = StyleSheet.create({
-    container: {
-
+    footerWrap: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        padding: 8,
+        borderWidth: 1,
+        borderColor: '#DFE6DF'
     },
     messageBox: {
         marginVertical: 15,
@@ -137,8 +141,8 @@ const styles = StyleSheet.create({
 const iButtonGroupCustomStyles = StyleSheet.create({
     container: {
         flex: null,
-        height: 60, 
+        minHeight: 60,
         flexDirection: 'row',
-        justifyContent: null
+        justifyContent: 'space-between'
     }
 })
