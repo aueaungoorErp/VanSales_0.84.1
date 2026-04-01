@@ -1,4 +1,5 @@
 //import React from 'react';
+import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import React, { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
@@ -13,8 +14,14 @@ import ITextWithErrorMessage from '../../../../component/text/ITextWithErrorMess
 import ITextWithSuccessMessage from '../../../../component/text/ITextWithSuccessMessage';
 import { MainTheme } from '../../../../constant/lov';
 
-const Container = ({children}) => <View style={{flex: 1}}>{children}</View>;
-const Content = ({children}) => <ScrollView>{children}</ScrollView>;
+const Container = ({children}) => <View style={styles.screen}>{children}</View>;
+const Content = ({children}) => (
+  <ScrollView
+    style={styles.contentScroll}
+    contentContainerStyle={styles.contentContainer}>
+    {children}
+  </ScrollView>
+);
 const Form = ({style, children}) => <View style={style}>{children}</View>;
 const Item = ({style, children}) => (
   <View style={[{flexDirection: 'row', alignItems: 'center'}, style]}>{children}</View>
@@ -92,6 +99,7 @@ const PaymentForm = (props) => {
     isQRCodeDialogOpen,
     isDialogOpen,
     qrCode,
+    qrAmount,
     qrLogo,
     userToken,
     // cashin,
@@ -160,12 +168,80 @@ const PaymentForm = (props) => {
   }))
   );
 
+  const getSelectedQrContent = (promptPay) => {
+    if (promptPay === null || promptPay === undefined || promptPay === '') {
+      return null;
+    }
+
+    return (
+      qrContentListItem.find(
+        item =>
+          String(item.QRCT_KEY) === String(promptPay) ||
+          String(item.QRCT_CODE) === String(promptPay),
+      ) || null
+    );
+  };
+
+  const isQrTemplatePayload = (content) => {
+    const normalizedContent = String(content || '').trim();
+
+    return (
+      normalizedContent.startsWith('000201') ||
+      (normalizedContent.includes('5303764') && normalizedContent.includes('5802TH'))
+    );
+  };
+
+  const isDirectQrPayload = (content) => {
+    const normalizedContent = String(content || '').trim();
+
+    if (!normalizedContent) {
+      return false;
+    }
+
+    if (isQrTemplatePayload(normalizedContent)) {
+      return true;
+    }
+
+    return /[A-Za-z]/.test(normalizedContent) && normalizedContent.length > 20;
+  };
+
   const [checkedItems, setCheckedItems] = useState({
     item1: false,
     item2: false,
     item3: false,
     item4: false,
     item5: false,
+  });
+
+  const formattedTotalPrice = totalPrice
+    .toFixed(2)
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const showCashCard = userToken.VANCONFIG.VANCNF_ENABLE_CASH === 2;
+  const showTransferQrCard = userToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
+  const showChequeCard = userToken.VANCONFIG.VANCNF_CHEQUE === 2;
+  const showOtherCard = userToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
+
+  const getBorderlessPickerStyle = (enabled) => ({
+    iconContainer: {
+      top: 10,
+      right: 0,
+    },
+    inputAndroid: {
+      color: enabled ? '#000000' : '#808080',
+      minHeight: 40,
+      paddingVertical: 10,
+      paddingRight: 28,
+      textAlignVertical: 'center',
+    },
+    inputIOS: {
+      color: enabled ? '#000000' : '#808080',
+      minHeight: 40,
+      paddingVertical: 10,
+      paddingRight: 28,
+    },
+    placeholder: {
+      color: '#808080',
+    },
   });
 
   const toggleCheckBox = (item) => {
@@ -445,35 +521,34 @@ const PaymentForm = (props) => {
     if (promptPay === null || promptPay === undefined) return null;
     if (!normalizedAmount) return null;
 
-    const qrContent = qrContentListItem.find(item => item.QRCT_KEY == promptPay);
+    const qrContent = getSelectedQrContent(promptPay);
     if (!qrContent) {
       return null;
     }
 
-    const result = qrContent.QRCT_SOURCE || "";
+    const result = String(qrContent.QRCT_SOURCE || '').trim();
     console.log("QRCT_SOURCE =>", result);
-    if (result.toString() === "4") {
-      return genQrPaymentFromQrCode(normalizedAmount, promptPay)
+
+    if (result === '4' || isQrTemplatePayload(qrContent.QRCT_CONTENT)) {
+      return genQrPaymentFromQrCode(normalizedAmount, qrContent.QRCT_CONTENT)
     } else {
-      return genQrPayment(normalizedAmount, promptPay);
+      return genQrPayment(normalizedAmount, qrContent.QRCT_CONTENT);
     }
   };
 
 
 
 
-  const genQrPaymentFromQrCode = (amount, promptPay) => {
-    // console.log("genQrPaymentFromQrCode =>", amount);
-    // console.log("genQrPaymentFromQrCode =>", promptPay);
+  const genQrPaymentFromQrCode = (amount, qrTemplate) => {
 
     let pp_amount = "";
     let pp_chksum = "";
 
-    //console.log("promptPay pp_str =>", promptPay);
-    if (promptPay === null || promptPay === undefined) return null;
+    //console.log("promptPay pp_str =>", qrTemplate);
+    if (qrTemplate === null || qrTemplate === undefined) return null;
     if (!amount) return null;
 
-    const qrCode = qrContentListItem.filter(item => item.QRCT_KEY == promptPay)[0]?.QRCT_CONTENT || "";
+    const qrCode = String(qrTemplate || '').trim();
 
     //console.log("promptPay pp_str =>", qrCode);
 
@@ -509,7 +584,7 @@ const PaymentForm = (props) => {
     if (promptPay === null || promptPay === undefined) return null;
     if (!amount) return null;
 
-    const result = qrContentListItem.filter(item => item.QRCT_KEY == promptPay)[0]?.QRCT_CONTENT || "";
+    const result = String(promptPay || '').trim();
 
     //console.log("promptPay pp_str =>", result);
 
@@ -519,7 +594,7 @@ const PaymentForm = (props) => {
     let pp_chksum = "";
 
     // process acc_id
-    let acc_id = result; //3130200142805
+    let acc_id = result.replace(/[^0-9]/g, ''); //3130200142805
     if (acc_id.length === 15) {
       // truemoney e-wallet
       pp_acc_id = "0315" + acc_id;
@@ -559,7 +634,10 @@ const PaymentForm = (props) => {
     return pp_str;
   }
 
-  const qrPaymentValue = checkpayment(qrCode, qrContentItem);
+  const qrPaymentValue = isDirectQrPayload(qrCode)
+    ? String(qrCode).trim()
+    : checkpayment(qrAmount, qrContentItem);
+  const qrDisplayAmount = normalizeQrAmount(qrAmount) || normalizeQrAmount(qrCode) || '0.00';
 
   checksumCRC16 = (input) => {
     let crc = 0xffff; // initial value
@@ -583,21 +661,42 @@ const PaymentForm = (props) => {
   return (
     <Container>
       <Content>
-        <Item style={styles.titleSection}>
-          <AntDesign
-            name="pay-circle-o1"
-            color={MainTheme.colorSenary}
-            size={20}
-          />
+        <View style={styles.titleSection}>
+          <View style={styles.titleIconWrap}>
+            <MaterialDesignIcons
+              name="credit-card-outline"
+              color={MainTheme.colorSecondary}
+              size={24}
+            />
+          </View>
 
-          <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>
-            การชำระเงิน ยอดเงินทั้งหมด{' '}
-            {totalPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          </Text>
-        </Item>
+          <View style={styles.titleCopyWrap}>
+            <Text style={styles.titleEyebrow} allowFontScaling={false}>
+              PAYMENT
+            </Text>
+            <Text style={styles.titleText} allowFontScaling={false}>
+              การชำระเงิน
+            </Text>
+          </View>
 
-        {userToken.VANCONFIG.VANCNF_ENABLE_CASH === 2 ? (
-          <>
+          <View style={styles.totalBadge}>
+            <Text style={styles.totalBadgeLabel} allowFontScaling={false}>
+              ยอดทั้งหมด
+            </Text>
+            <Text style={styles.totalBadgeValue} allowFontScaling={false}>
+              {formattedTotalPrice}
+            </Text>
+          </View>
+        </View>
+
+        {showCashCard ? (
+          <View style={styles.paymentCard}>
+            <View style={styles.paymentCardHeader}>
+              <Text style={styles.paymentCardTitle} allowFontScaling={false}>
+                เงินสด
+              </Text>
+             
+            </View>
             <Item style={[styles.checkBoxSection,
             { backgroundColor: checkedItems.item1 ? '#f0ffff' : 'white', }
             ]}>
@@ -645,7 +744,7 @@ const PaymentForm = (props) => {
               </Item>
             </Item>
 
-          </>
+          </View>
         ) : null}
         <View style={styles.line} />
 
@@ -653,9 +752,15 @@ const PaymentForm = (props) => {
         {/* transfer is locked 24/09/2019 */}
 
         {
-          userToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2 ?
+          showTransferQrCard ?
             (
-              <>
+              <View style={styles.paymentCard}>
+                <View style={styles.paymentCardHeader}>
+                  <Text style={styles.paymentCardTitle} allowFontScaling={false}>
+                    โอนและ QR Code
+                  </Text>
+                
+                </View>
                 <Item style={[styles.checkBoxSection,
                 { backgroundColor: checkedItems.item2 ? '#f0ffff' : 'white', }
                 ]}>
@@ -756,10 +861,10 @@ const PaymentForm = (props) => {
 
 
 
-                <Item style={[styles.inputSection,
-                { backgroundColor: checkedItems.item2 ? '#f0ffff' : checkedItems.item3 ? '#f0ffff' : 'white', }
+                <Item style={[styles.otherPickerSection,
+                { backgroundColor: checkedItems.item2 ? '#f0ffff' : checkedItems.item3 ? '#f0ffff' : 'transparent', }
                 ]}>
-                  <Form style={[styles.inputSection2, { borderBottomColor: '#d6d7da', borderBottomWidth: 0.5, height: 40, padding: 0 }]}>
+                  <Form style={[styles.inputSection2, { borderBottomColor: 'transparent', borderBottomWidth: 0, height: 40, padding: 0 }]}>
                     <RNPickerSelect
                       items={checkedItems.item2 == true ? bankAccount : checkedItems.item3 == true ? qrCodeContent : ""}
                       disabled={checkedItems.item2 == true ? !checkedItems.item2 : checkedItems.item3 == true ? !checkedItems.item3 : true}
@@ -776,18 +881,15 @@ const PaymentForm = (props) => {
                       }
                       }
                       value={checkedItems.item2 == true ? bankAccountItem : checkedItems.item3 == true ? qrContentItem : null}
-                      style={{
-                        iconContainer: { top: -3, right: 0, },
-                        inputAndroid: { color: '#000000', }
-                      }}
+                      style={getBorderlessPickerStyle(checkedItems.item2 || checkedItems.item3)}
                       placeholder={{ label: 'เลือก', value: null }}
                       placeholderTextColor={checkedItems.item2 ? '#808080' : MainTheme.placeholerTextInput}
-                      textInputProps={{ underlineColorAndroid: 'cyan', underlineColor: 'yellow' }}
+                      textInputProps={{ underlineColorAndroid: 'transparent', underlineColor: 'transparent' }}
                       useNativeAndroidPickerStyle={false}
                       Icon={() => {
                         return <AntDesign
                           name='down'
-                          size={20} color={MainTheme.colorPrimary} style={{marginTop: 5}} />
+                          size={20} color={MainTheme.colorPrimary} style={{marginTop: 0}} />
                       }} />
 
 
@@ -795,7 +897,7 @@ const PaymentForm = (props) => {
                   </Form>
                 </Item>
 
-              </>
+              </View>
             ) : null}
         <View style={styles.line} />
 
@@ -806,7 +908,15 @@ const PaymentForm = (props) => {
 
 
 
-        {userToken.VANCONFIG.VANCNF_CHEQUE === 2 ? (
+        {showChequeCard ? (
+          <View style={styles.paymentCard}>
+            <View style={styles.paymentCardHeader}>
+              <Text style={styles.paymentCardTitle} allowFontScaling={false}>
+                เช็ค
+              </Text>
+              
+            </View>
+            {userToken.VANCONFIG.VANCNF_CHEQUE === 2 ? (
           <>
             <Item style={[styles.checkBoxSection,
             { backgroundColor: checkedItems.item4 ? '#f0ffff' : 'white', }
@@ -851,27 +961,24 @@ const PaymentForm = (props) => {
                 />
               </Item>
             </Item>
-            <Item style={[styles.inputSection,
-            { backgroundColor: checkedItems.item4 ? '#f0ffff' : 'white', }
+            <Item style={[styles.otherPickerSection,
+            { backgroundColor: checkedItems.item4 ? '#f0ffff' : 'transparent', }
             ]}>
-              <Form style={[styles.inputSection2, { borderBottomColor: '#d6d7da', borderBottomWidth: 0.5, height: 40, padding: 0 }]}>
+              <Form style={[styles.inputSection2, { borderBottomColor: 'transparent', borderBottomWidth: 0, height: 40, padding: 0 }]}>
                 <RNPickerSelect
                   items={bankFiles}
                   disabled={!checkedItems.item4}
                   onValueChange={(value) => { setBankFileItem ? setBankFileItem(value) : null }}
                   value={checkedItems.item4 == true ? bankFileItem : null}
-                  style={{
-                    iconContainer: { top: -3, right: 0, },
-                    inputAndroid: { color: '#000000', }
-                  }}
+                  style={getBorderlessPickerStyle(checkedItems.item4)}
                   placeholder={{ label: 'เลือก', value: null }}
                   placeholderTextColor={checkedItems.item4 ? '#808080' : MainTheme.placeholerTextInput}
-                  textInputProps={{ underlineColorAndroid: 'cyan', underlineColor: 'yellow' }}
+                  textInputProps={{ underlineColorAndroid: 'transparent', underlineColor: 'transparent' }}
                   useNativeAndroidPickerStyle={false}
                   Icon={() => {
                     return <AntDesign
                       name='down'
-                      size={20} color={MainTheme.colorPrimary} style={{marginTop: 5}} />
+                      size={20} color={MainTheme.colorPrimary} style={{marginTop: 0}} />
                   }} />
               </Form>
             </Item>
@@ -916,8 +1023,19 @@ const PaymentForm = (props) => {
 
           </>
         ) : null}
+
+          </View>
+        ) : null}
         <View style={styles.line} />
 
+        {showOtherCard ? (
+          <View style={styles.paymentCard}>
+            <View style={styles.paymentCardHeader}>
+              <Text style={styles.paymentCardTitle} allowFontScaling={false}>
+                ช่องทางอื่นๆ
+              </Text>
+             
+            </View>
         {
           userToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2 ?
             (
@@ -928,7 +1046,6 @@ const PaymentForm = (props) => {
                   <Item style={{ flex: 0.3, borderBottomWidth: 0 }}>
                     <CheckBox
                       title='อื่นๆ'
-                      // checked={paymentType === 'other'}
                       checked={checkedItems.item5}
                       checkedColor={MainTheme.colorTertiary}
                       containerStyle={[styles.checkBoxStyle,
@@ -951,7 +1068,6 @@ const PaymentForm = (props) => {
                       placeholder="ยอดเงิน"
                       placeholderTextColor={checkedItems.item5 ? '#808080' : MainTheme.placeholerTextInput}
 
-                      //value={checkedItems.item5 == true ? totalPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
                       value={(checkedItems.item5 === true) ? otherin : ""}  // Number(cashin).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ""} //.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
                       maxLength={14}
                       style={{ fontSize: 14, paddingVertical: 0, height: 30 }}
@@ -965,38 +1081,28 @@ const PaymentForm = (props) => {
                     />
                   </Item>
                 </Item>
-                <Item style={[styles.checkBoxSection,
-                { backgroundColor: checkedItems.item5 ? '#f0ffff' : 'white', }
+                <Item style={[styles.otherPickerSection,
+                { backgroundColor: checkedItems.item5 ? '#f0ffff' : 'transparent', }
                 ]}>
-                  {/* <Item style={{ flex: 0.3, borderBottomWidth: 0 }}>
-                  </Item> */}
-                  <Form style={[styles.inputSection2, { borderBottomColor: '#d6d7da', borderBottomWidth: 0.5, height: 40, padding: 0 }]}>
+                  <Form style={[styles.inputSection2, { borderBottomColor: 'transparent', borderBottomWidth: 0, height: 40, padding: 0 }]}>
                     <RNPickerSelect
                       items={otherPayment}
                       disabled={!checkedItems.item5}
                       onValueChange={(value) => {
                         setotherPaymentItem ? setotherPaymentItem(value) : null
                       }}
-                      style={{
-                        iconContainer: {
-                          top: -5,
-                          right: 0,
-                        },
-                        inputAndroid: {
-                          color: '#000000',
-                        }
-                      }}
+                      style={getBorderlessPickerStyle(checkedItems.item5)}
                       value={checkedItems.item5 == true ? otherPaymentItem : null}
                       placeholder={{
                         label: 'เลือก',
                         value: null
                       }}
-                      textInputProps={{ underlineColorAndroid: 'cyan', underlineColor: 'yellow' }}
+                      textInputProps={{ underlineColorAndroid: 'transparent', underlineColor: 'transparent' }}
                       useNativeAndroidPickerStyle={false}
                       Icon={() => {
                         return <AntDesign
                           name='down'
-                          size={20} color={MainTheme.colorPrimary} style={{marginTop: 5}} />
+                          size={20} color={MainTheme.colorPrimary} style={{marginTop: 0}} />
                       }} />
                   </Form>
                 </Item>
@@ -1009,6 +1115,8 @@ const PaymentForm = (props) => {
 
               </>
             ) : null}
+          </View>
+        ) : null}
         <View style={styles.line} />
 
 
@@ -1083,7 +1191,7 @@ const PaymentForm = (props) => {
                             }}
                             placeholder={{ label: 'เลือก', value: null }}
                             placeholderTextColor={'#808080'}
-                            textInputProps={{ underlineColorAndroid: 'cyan', underlineColor: 'yellow' }}
+                            textInputProps={{ underlineColorAndroid: 'transparent', underlineColor: 'transparent' }}
                             useNativeAndroidPickerStyle={false}
                             Icon={() => {
                               return <AntDesign
@@ -1227,7 +1335,7 @@ const PaymentForm = (props) => {
                     จำนวนเงิน
                   </Text>
                   <Text style={{ fontSize: hp('1.7%') }} allowFontScaling={false}>
-                    {Number(qrCode).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    {Number(qrDisplayAmount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                     {' '}
                     บาท
                   </Text>
@@ -1245,12 +1353,9 @@ const PaymentForm = (props) => {
                   style={{
                     flex: 1.9,
                     flexDirection: 'row',
-                    // width: '100%',
-                    //backgroundColor: '#2554C7',
                     borderTopRightRadius: 5,
                     borderTopLeftRadius: 5,
                     alignItems: 'center',
-                    padding: 10,
                     alignItems: 'center',
                     justifyContent: 'space-between',
                   }}>
@@ -1261,7 +1366,6 @@ const PaymentForm = (props) => {
 
 
                   <Button
-                    //  key={key}
                     large
                     buttonStyle={{
                       backgroundColor: MainTheme.colorPrimary,
@@ -1271,37 +1375,27 @@ const PaymentForm = (props) => {
                       borderColor: MainTheme.colorQuaternary,
                       borderWidth: 0.3,
                     }}
-                    //size={50}
                     title={'ตกลง'}
-                    // title={item.title}
-                    // titleStyle={item.titleStyle}
+                   
                     onPress={() => {
                       (setqrConfirm ? setqrConfirm(true) : false);
                       setState ? setState('isQRCodeDialogOpen', false) : null;
-                      // setState ? setState('qrConfirm', true) : null;
-                      // setqrConfirm
-                      //this._onPress(item);
+                     
                     }}
-                  // disabled={item.title === 'ตกลง' ? this.state.buttonDisabled : false}
                   />
 
                   <Button
-                    //  key={key}
                     large
                     buttonStyle={
                       {
                         backgroundColor: MainTheme.colorSecondary,
-                        height: 40,
                         borderRadius: 0,
-                        // borderColor: "#E5E4E2",
                         width: 110,
                         borderColor: MainTheme.colorButtonBorder,
                         borderWidth: 0.3
                       }
                     }
-                    //size={50}
                     title={'ยกเลิก'}
-                    //containerStyle={{ flex: 1 }}
                     containerStyle={{ marginLeft: 1 }} // กำหนดระยะห่างระหว่างปุ่มที่ 100px
                     titleStyle={{ color: '#000000' }}
                     onPress={() => { setState ? setState('isQRCodeDialogOpen', false) : null; }} />
@@ -1318,6 +1412,17 @@ const PaymentForm = (props) => {
 export default PaymentForm;
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#F4F7FB',
+  },
+  contentScroll: {
+    flex: 1,
+    backgroundColor: '#F4F7FB',
+  },
+  contentContainer: {
+    paddingBottom: 28,
+  },
   container: {},
   modalBackdrop: {
     width: '100%',
@@ -1371,40 +1476,145 @@ const styles = StyleSheet.create({
     // height: 30
   },
   titleSection: {
-    borderBottomWidth: 0,
-    marginLeft: 0,
-    paddingLeft: 15,
+    marginHorizontal: 12,
+    marginTop: 12,
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
     flexDirection: 'row',
-    backgroundColor: MainTheme.colorSeptenary,
-    height: 40,
     alignItems: 'center',
+    backgroundColor: '#EAF2FF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#D7E4FB',
+  },
+  titleIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: MainTheme.colorPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  titleCopyWrap: {
+    flex: 1,
+    paddingRight: 10,
+  },
+  titleEyebrow: {
+    fontSize: hp('1.25%'),
+    color: '#6C7A96',
+    fontWeight: '700',
+    marginBottom: 2,
+    letterSpacing: 0.6,
+  },
+  titleText: {
+    fontSize: hp('2.15%'),
+    color: '#1D3557',
+    fontWeight: '700',
+  },
+  totalBadge: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    alignItems: 'flex-end',
+    borderWidth: 1,
+    borderColor: '#D7E4FB',
+  },
+  totalBadgeLabel: {
+    fontSize: hp('1.2%'),
+    color: '#6C7A96',
+    fontWeight: '600',
+    marginBottom: 1,
+  },
+  totalBadgeValue: {
+    fontSize: hp('1.95%'),
+    color: MainTheme.colorPrimary,
+    fontWeight: '700',
   },
   bodySection: {
     marginTop: 5,
   },
+  paymentCard: {
+    marginHorizontal: 12,
+    marginBottom: 12,
+    paddingTop: 14,
+    paddingBottom: 6,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  paymentCardHeader: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  paymentCardTitle: {
+    fontSize: hp('2%'),
+    color: '#1D3557',
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  paymentCardSubtitle: {
+    fontSize: hp('1.45%'),
+    color: '#6B7A90',
+  },
+  otherPickerSection: {
+    marginHorizontal: 14,
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    minHeight: 48,
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
   checkBoxSection: {
-    borderBottomWidth: 0,
-    borderColor: '#d6d7da',
+    minHeight: 56,
     flexDirection: 'row',
-    marginRight: 10,
+    alignItems: 'stretch',
+    marginHorizontal: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E1E8EC',
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
   checkBoxStyle: {
     flex: 1,
-    //backgroundColor: MainTheme.colorSecondary,
-    paddingTop: 3,
-    paddingBottom: 3,
-
-    paddingLeft: 0.5,
+    minHeight: 56,
+    justifyContent: 'center',
+    paddingTop: 6,
+    paddingBottom: 6,
+    paddingLeft: 2,
     borderWidth: 0,
     marginRight: 0,
+    marginLeft: 0,
+    marginTop: 0,
+    marginBottom: 0,
   },
   inputSection: {
-
     flex: 0.8,
+    minHeight: 56,
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+    borderLeftWidth: 1,
+    borderLeftColor: '#E6EBF0',
   },
   inputSection2: {
-    marginStart: 15,
+    marginStart: 0,
     flex: 1,
+    justifyContent: 'center',
   },
   dateIcon: {
     position: 'absolute',
@@ -1428,10 +1638,10 @@ const styles = StyleSheet.create({
   },
   line: {
     height: 0,
-    backgroundColor: '#E5E4E2', // Line color
-    width: '60%',             // Adjust the width as needed
-    alignSelf: 'center',      // Center align the line
-    marginVertical: 0,       // Space above and below the line
+    backgroundColor: 'transparent',
+    width: '100%',
+    alignSelf: 'center',
+    marginVertical: 0,
   },
 });
 

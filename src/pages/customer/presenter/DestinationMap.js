@@ -1,6 +1,6 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-import MapView from 'react-native-maps'
+import MapView, { Marker } from 'react-native-maps'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs'
 import IPatternCurrentMarkerItem from '../../../component/item/IPatternCurrentMarkerItem'
@@ -34,6 +34,30 @@ const Map = (props) => {
         )
     }
 
+    const validMarkers = listItems.filter((item) => {
+        const latitude = item?.coordinate?.latitude
+        const longitude = item?.coordinate?.longitude
+
+        return Number.isFinite(latitude) && Number.isFinite(longitude)
+    })
+
+    const markerElements = validMarkers.map((marker, index) => {
+        if (marker.currentLocation) {
+            return _renderCurrentMarker(marker, index)
+        }
+
+        return (
+            <Marker
+                key={index}
+                coordinate={marker.coordinate}
+                title={marker.title}
+                description={marker.description}
+                pinColor='red'
+                ref={instance => getMarkersInstance(instance)}
+            />
+        )
+    })
+
 
     return (
         <View style={{ flex: 1 }} >
@@ -51,28 +75,7 @@ const Map = (props) => {
                     style={styles.map}
                     ref={map => getMapInstance(map)}
                     onRegionChangeComplete={(region) => {onRegionChangeComplete(region)}} >
-
-                    {
-                           
-                        
-                        markers = listItems.filter(item => item.ADDB_GPS_LAT_S !== null && item.ADDB_GPS_LONG_S!== null).map((marker, index) => {
-
-
-                            if (marker.currentLocation) {
-                                return (
-                                    _renderCurrentMarker(marker, index)
-                                )
-                            } else {
-                                return (
-                                    <MapView.Marker key={index} coordinate={marker.coordinate} ref={instance => getMarkersInstance(instance)}>
-                                        <MapView.Callout style={{width: 100}}>
-                                            <Text>{marker.title}</Text>
-                                        </MapView.Callout>
-                                    </MapView.Marker>
-                                )
-                            }
-                        })
-                    }
+                    {markerElements}
 
                 </MapView>    
             </View>
