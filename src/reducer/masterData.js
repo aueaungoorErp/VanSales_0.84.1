@@ -139,6 +139,11 @@ export const masterData = (state = initialState, action) => {
             }
         case types.MASTER_DATA_GET_SUB_DISTRICT_LIST_ITEMS_BY_DISTRICT_ID_FAIL:
                 return { ...state, isLoading: false, isError: true }
+        case types.MASTER_DATA_SET_PROVINCE_LIST_ITEMS:
+            return {
+                ...state,
+                province: {...state.province, listItems: action.payload}
+            }
         case types.MASTER_DATA_SET_DISTRICT_LIST_ITEMS:
             return { 
                 ...state, 

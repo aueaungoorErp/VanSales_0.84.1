@@ -30,6 +30,10 @@ const SearchForm = (props) => {
   const searchPlaceholder =
     actionType !== 'add_scr' ? 'รหัส , ชื่อสินค้า' : 'ค้นหาประเภททดแทน';
 
+  const shouldShowAllOption = !categoryItems.some(
+    (item) => item && item.ICDEPT_KEY == null,
+  );
+
   const actionButtons = (
     <>
       <TouchableOpacity onPress={() => {
@@ -68,21 +72,12 @@ const SearchForm = (props) => {
 
   return (
     <View style={[styles.container, isStockSearch ? styles.stockContainer : null]}>
-      
-
-      <View style={isStockSearch ? styles.stockSearchCard : null}>
+      <View style={isStockSearch ? styles.stockSearchCard : styles.searchCard}>
       <View style={isStockSearch ? styles.stockPickerRow : styles.pickerRow}>
         <Item
           style={isStockSearch ? styles.stockPickerItem : styles.pickerItem}>
           <Form style={isStockSearch ? styles.stockForm : styles.form}>
-            {isStockSearch ? (
-              <AntDesign
-                name="appstore1"
-                size={17}
-                color={MainTheme.colorPrimary}
-                style={styles.stockPickerLeadingIcon}
-              />
-            ) : null}
+          
             <Picker
               style={isStockSearch ? styles.stockPicker : styles.picker}
               selectedValue={category}
@@ -90,7 +85,9 @@ const SearchForm = (props) => {
               onValueChange={(value) => {
                 setProductCategory ? setProductCategory(value) : null;
               }}>
-              <Picker.Item label="ทั้งหมด" value={null} color="#21312A" />
+              {shouldShowAllOption ? (
+                <Picker.Item label="ทั้งหมด" value={null} color="#21312A" />
+              ) : null}
               {categoryItems.map((item, index) => {
                 return (
                   <Picker.Item
@@ -126,7 +123,12 @@ const SearchForm = (props) => {
               inputContainerStyle: styles.stockSearchBarInputContainer,
               inputStyle: styles.stockSearchBarInput,
               searchIconStyle: styles.stockSearchBarSearchIcon,
-            } : null}
+            } : {
+              containerStyle: styles.searchBarContainer,
+              inputContainerStyle: styles.searchBarInputContainer,
+              inputStyle: styles.searchBarInput,
+              searchIconStyle: styles.searchBarSearchIcon,
+            }}
           />
         </View>
         {actionButtons}
@@ -143,7 +145,25 @@ const SearchForm = (props) => {
 export default SearchForm;
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    paddingHorizontal: 10,
+    paddingTop: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  searchCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E1EAE4',
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 10,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
   stockContainer: {
     paddingHorizontal: 12,
     paddingTop: 10,
@@ -203,9 +223,10 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   form: {
-    margin: 2,
+    margin: 0,
     padding: 0,
     flexDirection: 'row',
+    alignItems: 'center',
   },
   stockForm: {
     margin: 0,
@@ -215,6 +236,7 @@ const styles = StyleSheet.create({
   },
   pickerRow: {
     flexDirection: 'row',
+    marginBottom: 10,
   },
   stockPickerRow: {
     flexDirection: 'row',
@@ -222,9 +244,22 @@ const styles = StyleSheet.create({
   },
   pickerItem: {
     flex: 1,
-    height: 35,
-    marginLeft: 5,
-    marginRight: 5,
+    minHeight: 50,
+    borderWidth: 1,
+    borderColor: '#DCE6E0',
+    borderRadius: 14,
+    backgroundColor: '#F8FBF9',
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+  },
+  pickerLeadingIcon: {
+    marginLeft: 4,
+    marginRight: 6,
+  },
+  pickerLabel: {
+    fontSize: 13,
+    color: '#5E6E66',
+    marginRight: 4,
   },
   stockPickerItem: {
     flex: 1,
@@ -247,8 +282,11 @@ const styles = StyleSheet.create({
   //   flex: 0.8
   // },
   picker: {
-    height: 30,
+    height: 50,
     marginLeft: 0,
+    flex: 1,
+    color: '#21312A',
+    marginTop: -2,
   },
   stockPicker: {
     height: 50,
@@ -259,15 +297,40 @@ const styles = StyleSheet.create({
   },
   searchRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
+    gap: 8,
   },
   stockSearchRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   searchField: {
-    flex: 0.8,
+    flex: 1,
+  },
+  searchBarContainer: {
+    marginTop: 0,
+    marginBottom: 0,
+    backgroundColor: 'transparent',
+  },
+  searchBarInputContainer: {
+    minHeight: 48,
+    borderWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#D7DFE5',
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 6,
+    alignItems: 'center',
+  },
+  searchBarSearchIcon: {
+    marginHorizontal: 8,
+    marginTop: 0,
+    alignSelf: 'center',
+  },
+  searchBarInput: {
+    fontSize: 14,
+    color: '#111827',
+    paddingVertical: 0,
   },
   stockSearchField: {
     flex: 1,
@@ -299,10 +362,14 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   iconButton: {
-    flex: 0.1,
-    height: 35,
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#F3F7F5',
+    borderWidth: 1,
+    borderColor: '#D7DFE5',
   },
   stockIconButtonPrimary: {
     width: 42,
@@ -330,6 +397,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     width: '100%',
     borderColor: MainTheme.colorButtonBorder,
+    marginTop: 10,
   },
   stockBottomSpacer: {
     height: 10,

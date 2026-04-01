@@ -36,7 +36,7 @@ class CTSearchForm extends Component {
   async componentDidMount() {
     this._isMounted = true;
     console.log('CTSearchForm componentDidMount screen=', this.props.screen, 'actionType=', this.props.actionType);
-    // await this._searchProductCateGoryList()
+    await this._searchProductCateGoryList();
     this.props.screen === 'ProductAddTo' && this.props.actionType === 'add_scr'
       ? null
       : this.props.clearProductList();
@@ -91,6 +91,10 @@ class CTSearchForm extends Component {
   _onSearch = async () => {
     console.log('_onSearch: product.isLoading=', this.props.product.isLoading, 'productCategory.listItems isArray=', Array.isArray(this.props.productCategory.listItems), 'length=', this.props.productCategory.listItems ? this.props.productCategory.listItems.length : 'null');
     if (!this.props.product.isLoading) {
+      if (!Array.isArray(this.props.productCategory.listItems) || this.props.productCategory.listItems.length === 0) {
+        await this._searchProductCateGoryList();
+      }
+
       if (Array.isArray(this.props.productCategory.listItems)) {
         let category = this.props.productCategory.listItems.find((v) => {
           return this.state.ICDEPT_KEY === v.ICDEPT_KEY;

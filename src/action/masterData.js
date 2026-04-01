@@ -1,12 +1,121 @@
-// Stub exports — react-native-sqlite-storage is not installed,
-// so the original implementations are commented out below.
-// These no-op stubs prevent "undefined is not a function" crashes.
+import { Platform } from 'react-native';
+import RNFS from 'react-native-fs';
+import { open } from 'react-native-nitro-sqlite';
+import {
+  closeDatabaseQueue,
+  isDatabaseOpen,
+} from 'react-native-nitro-sqlite/lib/module/DatabaseQueue';
+import * as types from '../constant/masterData';
+
+const PROVINCES_DB_NAME = 'provinces.db';
+const PROVINCES_DB_ASSET_PATH = 'www/provinces.db';
+const PROVINCES_DB_LOCATION = 'sqlite';
+const PROVINCES_DB_DIR = `${RNFS.DocumentDirectoryPath}/sqlite`;
+const PROVINCES_DB_PATH = `${PROVINCES_DB_DIR}/${PROVINCES_DB_NAME}`;
+
+let provincesDb = null;
+
+const ensureDbDirectory = async () => {
+  const exists = await RNFS.exists(PROVINCES_DB_DIR);
+  if (!exists) {
+    await RNFS.mkdir(PROVINCES_DB_DIR);
+  }
+};
+
+const copyBundledDatabaseIfNeeded = async (force = false) => {
+  await ensureDbDirectory();
+
+  const alreadyExists = await RNFS.exists(PROVINCES_DB_PATH);
+  if (alreadyExists && !force) {
+    return;
+  }
+
+  if (alreadyExists && force) {
+    await RNFS.unlink(PROVINCES_DB_PATH);
+  }
+
+  if (Platform.OS === 'android') {
+    await RNFS.copyFileAssets(PROVINCES_DB_ASSET_PATH, PROVINCES_DB_PATH);
+    return;
+  }
+
+  if (Platform.OS === 'ios') {
+    const sourcePath = `${RNFS.MainBundlePath}/${PROVINCES_DB_NAME}`;
+    const sourceExists = await RNFS.exists(sourcePath);
+
+    if (!sourceExists) {
+      throw new Error(
+        'ไม่พบ provinces.db ใน iOS bundle กรุณาเพิ่มไฟล์ฐานข้อมูลเข้า iOS resources',
+      );
+    }
+
+    await RNFS.copyFile(sourcePath, PROVINCES_DB_PATH);
+    return;
+  }
+
+  throw new Error(`Platform ${Platform.OS} ยังไม่รองรับ flow นี้`);
+};
+
+const openProvincesDb = () => {
+  // Fast refresh can reset this module while Nitro's internal queue still
+  // thinks the database is open. Clear the stale JS queue entry first.
+  if (isDatabaseOpen(PROVINCES_DB_NAME)) {
+    closeDatabaseQueue(PROVINCES_DB_NAME);
+  }
+
+  return open({
+    name: PROVINCES_DB_NAME,
+    location: PROVINCES_DB_LOCATION,
+  });
+};
+
+const hasRequiredTables = async (db) => {
+  const result = await db.executeAsync(
+    "SELECT lower(name) as name FROM sqlite_master WHERE type = 'table' AND lower(name) IN ('provinces', 'districts', 'subdistricts')",
+  );
+  const rows = Array.isArray(result?.results) ? result.results : [];
+  return rows.length === 3;
+};
+
+const getProvincesDb = async () => {
+  await copyBundledDatabaseIfNeeded();
+
+  if (!provincesDb) {
+    provincesDb = openProvincesDb();
+
+    const tablesExist = await hasRequiredTables(provincesDb);
+    if (!tablesExist) {
+      provincesDb.close();
+      provincesDb = null;
+
+      await copyBundledDatabaseIfNeeded(true);
+      provincesDb = openProvincesDb();
+
+      const retryTablesExist = await hasRequiredTables(provincesDb);
+      if (!retryTablesExist) {
+        throw new Error(
+          'เปิด provinces.db ได้แต่ไม่พบตาราง Provinces/Districts/Subdistricts',
+        );
+      }
+    }
+  }
+
+  return provincesDb;
+};
+
+const executeSelect = async (query, params = []) => {
+  const db = await getProvincesDb();
+  const result = await db.executeAsync(query, params);
+  return Array.isArray(result?.results) ? result.results : [];
+};
 
 export const setInitialState = () => (dispatch) => {
+  dispatch({type: types.MASTER_DATA_INITIAL_STATE});
   return Promise.resolve();
 };
 
 export const clearMasterBankFileList = () => (dispatch) => {
+  dispatch({type: types.MASTER_DATA_CLEAR_BANK_FILE_LIST});
   return Promise.resolve();
 };
 
@@ -23,27 +132,127 @@ export const getMasterDataSurveyForm = () => (dispatch) => {
 };
 
 export const getMasterDataProvinces = () => (dispatch) => {
-  return Promise.resolve();
+  return new Promise(async (resolve, reject) => {
+    dispatch({type: types.MASTER_DATA_GET_PROVINCE_LIST_ITEMS});
+
+    try {
+      const results = await executeSelect('SELECT * FROM Provinces');
+
+      if (!results.length) {
+        throw new Error('ไม่พบข้อมูลจังหวัด');
+      }
+
+      dispatch({
+        type: types.MASTER_DATA_GET_PROVINCE_LIST_ITEMS_SUCCESS,
+        payload: results,
+      });
+      resolve(results);
+    } catch (error) {
+      dispatch({type: types.MASTER_DATA_GET_PROVINCE_LIST_ITEMS_FAIL});
+      reject(error);
+    }
+  });
 };
 
-export const getMasterDataDistricts = (provinceId) => (dispatch) => {
-  return Promise.resolve();
+export const getMasterDataDistricts = (provinceId) => (dispatch, getState) => {
+  return new Promise(async (resolve, reject) => {
+    dispatch({type: types.MASTER_DATA_GET_DISTRICT_LIST_ITEMS_BY_PROVINCE_ID});
+
+    try {
+      const state = getState();
+      const selectedProvinceId =
+        provinceId || state?.customer?.item?.TEMP_CUS?.PROVINCE;
+
+      if (!selectedProvinceId) {
+        dispatch({
+          type: types.MASTER_DATA_GET_DISTRICT_LIST_ITEMS_BY_PROVINCE_ID_SUCCESS,
+          payload: [],
+        });
+        resolve([]);
+        return;
+      }
+
+      const results = await executeSelect(
+        'SELECT * FROM Districts WHERE ProvinceId = ?',
+        [selectedProvinceId],
+      );
+
+      if (!results.length) {
+        throw new Error('ไม่พบข้อมูลเขต/อำเภอ');
+      }
+
+      dispatch({
+        type: types.MASTER_DATA_GET_DISTRICT_LIST_ITEMS_BY_PROVINCE_ID_SUCCESS,
+        payload: results,
+      });
+      resolve(results);
+    } catch (error) {
+      dispatch({type: types.MASTER_DATA_GET_DISTRICT_LIST_ITEMS_BY_PROVINCE_ID_FAIL});
+      reject(error);
+    }
+  });
 };
 
-export const getMasterDataSubDistricts = (districtId) => (dispatch) => {
-  return Promise.resolve();
+export const getMasterDataSubDistricts = (districtId) => (dispatch, getState) => {
+  return new Promise(async (resolve, reject) => {
+    dispatch({
+      type: types.MASTER_DATA_GET_SUB_DISTRICT_LIST_ITEMS_BY_DISTRICT_ID,
+    });
+
+    try {
+      const state = getState();
+      const selectedDistrictId =
+        districtId || state?.customer?.item?.TEMP_CUS?.ADDRESS3;
+
+      if (!selectedDistrictId) {
+        dispatch({
+          type: types.MASTER_DATA_GET_SUB_DISTRICT_LIST_ITEMS_BY_DISTRICT_ID_SUCCESS,
+          payload: [],
+        });
+        resolve([]);
+        return;
+      }
+
+      const results = await executeSelect(
+        'SELECT * FROM Subdistricts WHERE DistrictId = ?',
+        [selectedDistrictId],
+      );
+
+      if (!results.length) {
+        throw new Error('ไม่พบข้อมูลแขวง/ตำบล');
+      }
+
+      dispatch({
+        type: types.MASTER_DATA_GET_SUB_DISTRICT_LIST_ITEMS_BY_DISTRICT_ID_SUCCESS,
+        payload: results,
+      });
+      resolve(results);
+    } catch (error) {
+      dispatch({type: types.MASTER_DATA_GET_SUB_DISTRICT_LIST_ITEMS_BY_DISTRICT_ID_FAIL});
+      reject(error);
+    }
+  });
 };
 
 export const setProvinceListItems = (items) => (dispatch) => {
-  return Promise.resolve();
+  return new Promise((resolve) => {
+    dispatch({type: types.MASTER_DATA_SET_PROVINCE_LIST_ITEMS, payload: items});
+    resolve(items);
+  });
 };
 
 export const setDistrictListItems = (items) => (dispatch) => {
-  return Promise.resolve();
+  return new Promise((resolve) => {
+    dispatch({type: types.MASTER_DATA_SET_DISTRICT_LIST_ITEMS, payload: items});
+    resolve(items);
+  });
 };
 
 export const setSubDistrictListItems = (items) => (dispatch) => {
-  return Promise.resolve();
+  return new Promise((resolve) => {
+    dispatch({type: types.MASTER_DATA_SET_SUB_DISTRICT_LIST_ITEMS, payload: items});
+    resolve(items);
+  });
 };
 
 export const getMasterDataBankAccounts = () => (dispatch) => {
