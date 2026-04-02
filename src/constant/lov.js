@@ -45,21 +45,17 @@ export const distanceSelectItems = [
 
 export const BluetoothModels = {
   items: [
-    // {
-    //     label: 'Zebra',
-    //     value: 'Zebra',
-    // },
-    // {
-    //     label: 'CodeSoft',
-    //     value: 'CodeSoft',
-    // },
-    {
-      label: 'EPSON',
-      value: 'EPSON',
-    },
     {
       label: 'ZIJIANG',
-      value: 'ZIJIANG',
+      value: 0,
+    },
+    {
+      label: 'EPSON',
+      value: 1,
+    },
+    {
+      label: 'BARIGAN',
+      value: 4,
     },
   ],
 };

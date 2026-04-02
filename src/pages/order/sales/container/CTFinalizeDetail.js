@@ -79,6 +79,8 @@ class CTFinalizeDetail extends Component {
 
   componentDidMount = async (props) => {
 
+    await this._getActiveUserToken();
+
 
 
 
@@ -135,6 +137,21 @@ class CTFinalizeDetail extends Component {
     }
   };
 
+  _getActiveUserToken = async () => {
+    const latestUserToken = await getUserToken();
+    const activeUserToken = latestUserToken || this.state.userToken;
+
+    if (latestUserToken) {
+      await this.setState((oldState) => {
+        return {
+          userToken: latestUserToken,
+        };
+      });
+    }
+
+    return activeUserToken;
+  };
+
   _setStateUpdateOrderSale = async () => {
     // await this._setSaleDisable(true);
     if (this.props.order.header.AR_ORDER_SUB_TYPE === 'credit') {
@@ -189,12 +206,20 @@ class CTFinalizeDetail extends Component {
     await this.props.setVDIRemark(value);
   };
 
-  _onPress = (item) => {
+  _onPress = async (item) => {
     // console.log('item.methodName =>', item.methodName);
     // console.log('this.state.submitDisabled =>', this.state.submitDisabled);
     // console.log('this.state.disabledButton =>', this.state.disabledButton);
 
 
+    const activeUserToken = await this._getActiveUserToken();
+    const activeVanConfig = activeUserToken?.VANCONFIG;
+
+    if (!activeVanConfig) {
+      this._setErrorMessage('ไม่พบข้อมูล VANCONFIG กรุณาเข้าใช้งานใหม่');
+      Keyboard.dismiss();
+      return;
+    }
 
     if (!this.state.isLoading) {
       this._setErrorMessage(null);
@@ -215,7 +240,7 @@ class CTFinalizeDetail extends Component {
               if (this.state.paymentType === '0') {
                 //ขายเชื่อ
                 console.log('ขายเชื่อ 1');
-                if (this.state.userToken.VANCONFIG.VANCNF_ENABLE_AR == 2) {
+                if (activeVanConfig.VANCNF_ENABLE_AR == 2) {
                   console.log('ขายเชื่อ 2');
                   if (this.props.order.header.VDI_USER_REF === null) {
                     console.log('ขายเชื่อ 3');
@@ -228,8 +253,8 @@ class CTFinalizeDetail extends Component {
                 }
               } else {
                 if (
-                  this.state.userToken.VANCONFIG.VANCNF_ENABLE_CASH == 2 ||
-                  this.state.userToken.VANCONFIG.VANCNF_CHEQUE == 2 //||
+                  activeVanConfig.VANCNF_ENABLE_CASH == 2 ||
+                  activeVanConfig.VANCNF_CHEQUE == 2 //||
                   // this.state.userToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE ===
                   //   2 ||
                   // this.state.userToken.VANCONFIG.VANCNF_BANK_QRCODE_USE === 2
@@ -302,6 +327,15 @@ class CTFinalizeDetail extends Component {
       this._setIsLoading(true);
       this._setErrorMessage(null);
       this._setSuccessMessage(null);
+      const activeUserToken = await this._getActiveUserToken();
+      const activeVanConfig = activeUserToken?.VANCONFIG;
+
+      if (!activeVanConfig) {
+        this._setErrorMessage('ไม่พบข้อมูล VANCONFIG กรุณาเข้าใช้งานใหม่');
+        this._setIsLoading(false);
+        return;
+      }
+
       // console.log('_orderReturn');
       // console.log('_orderReturn this.state.returnType ', this.state.returnType);
       // console.log(
@@ -309,7 +343,7 @@ class CTFinalizeDetail extends Component {
       //   this.props.order.header.VDI_USER_REF,
       // );
       if (
-        this.state.userToken.VANCONFIG.VANCNF_ENABLE_AR != 2 &&
+        activeVanConfig.VANCNF_ENABLE_AR != 2 &&
         this.state.returnType == '0'
       ) {
         this._setErrorMessage('ไม่สามารถบันทึกรับคืนเชื่อได้');
@@ -920,7 +954,6 @@ class CTFinalizeDetail extends Component {
       }
 
       this.props.order.header.VDI_AF_DISC = this.props.order.orderProductSummary.totalPrice !== "" ? this.props.order.orderProductSummary.totalPrice : 0;
-      console.log('VDI_AF_DISC 1', this.props.order.header);
 
       // Bazz
       const response = await this.props.processOrderSale(
@@ -1168,9 +1201,19 @@ class CTFinalizeDetail extends Component {
 
 
 
-  _setPaymentType = (value) => {
+  _setPaymentType = async (value) => {
+    const activeUserToken = await this._getActiveUserToken();
+    const activeVanConfig = activeUserToken?.VANCONFIG;
+
+    if (!activeVanConfig) {
+      this._setSubmitDisabled(true);
+      this._setSuccessMessage(null);
+      this._setErrorMessage('ไม่พบข้อมูล VANCONFIG กรุณาเข้าใช้งานใหม่');
+      return;
+    }
+
     if (
-      this.state.userToken.VANCONFIG.VANCNF_ENABLE_CASHSALES == 'Y' &&
+      activeVanConfig.VANCNF_ENABLE_CASHSALES == 'Y' &&
       value == 1
     ) {
       this._setErrorMessage(null);
@@ -1180,7 +1223,7 @@ class CTFinalizeDetail extends Component {
         };
       });
     } else if (
-      this.state.userToken.VANCONFIG.VANCNF_ENABLE_INV == 'Y' &&
+      activeVanConfig.VANCNF_ENABLE_INV == 'Y' &&
       value == 0
     ) {
       this._setErrorMessage(null);
@@ -1190,14 +1233,14 @@ class CTFinalizeDetail extends Component {
         };
       });
     } else if (
-      this.state.userToken.VANCONFIG.VANCNF_ENABLE_CASHSALES == 'N' &&
+      activeVanConfig.VANCNF_ENABLE_CASHSALES == 'N' &&
       value == 1
     ) {
       this._setSubmitDisabled(true);
       this._setSuccessMessage(null);
       this._setErrorMessage('กรุณาตรวจสอบการตั้งค่าขายสด');
     } else if (
-      this.state.userToken.VANCONFIG.VANCNF_ENABLE_INV == 'N' &&
+      activeVanConfig.VANCNF_ENABLE_INV == 'N' &&
       value == 0
     ) {
       this._setSubmitDisabled(true);

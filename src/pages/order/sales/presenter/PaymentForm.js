@@ -14,6 +14,12 @@ import ITextWithErrorMessage from '../../../../component/text/ITextWithErrorMess
 import ITextWithSuccessMessage from '../../../../component/text/ITextWithSuccessMessage';
 import { MainTheme } from '../../../../constant/lov';
 
+const runIfFunction = async (fn, ...args) => {
+  if (typeof fn === 'function') {
+    await fn(...args);
+  }
+};
+
 const Container = ({children}) => <View style={styles.screen}>{children}</View>;
 const Content = ({children}) => (
   <ScrollView
@@ -127,22 +133,21 @@ const PaymentForm = (props) => {
 
   //console.log("remainOption >>", remainOptionItem)
   // console.log("bankAccountItem >>", listbankAccountItem)
-  console.log("remainOptionItem >>", remainOptionItem)
 
   const remainoption = safeRemainOptionItems.map((item) => ({
     label: item.SYSLKUP_T_DESC,
     value: item.SYSLKUP_KEY,
   }));
 
-  console.log("remainoption >>", remainoption)
-
   const normalizeQrAmount = (amount) => {
     if (amount === null || amount === undefined || amount === '') {
       return null;
     }
 
-    const numericAmount = parseFloat(String(amount).replace(/,/g, ''));
-    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+
+
+const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
+    if (numericAmount <= 0) {
       return null;
     }
 
@@ -197,6 +202,8 @@ const PaymentForm = (props) => {
     );
   };
 
+  const defaultQrContent = safeQrContentListItems[0] || null;
+
   const isQrTemplatePayload = (content) => {
     const normalizedContent = String(content || '').trim();
 
@@ -233,6 +240,7 @@ const PaymentForm = (props) => {
     .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const showCashCard = safeUserToken.VANCONFIG.VANCNF_ENABLE_CASH === 2;
   const showTransferQrCard = safeUserToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
+  const showQrCodeOption = false;
   const showChequeCard = safeUserToken.VANCONFIG.VANCNF_CHEQUE === 2;
   const showOtherCard = safeUserToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
 
@@ -267,21 +275,11 @@ const PaymentForm = (props) => {
       [item]: !prevState[item],
     }));
 
-    //console.log('Bazzz groupofpaymentType prevState >', prevState);
 
 
   };
 
   const nottoggleCheckBox = (item, notitem) => {
-    console.log('=============================');
-    console.log("groupofpaymentType>", groupofpaymentType);
-
-    console.log('Bazzz groupofpaymentType item >', item);
-    console.log('Bazzz groupofpaymentType notitem >', notitem);
-    //console.log('checkedItems1 >', checkedItems);
-
-    // setremainConfirm(false);
-    // setremainoptionItem(null);
 
 
     if (item == "item2" && groupofpaymentType.has("transfer") || item == "item3" && groupofpaymentType.has("qrcode")) {
@@ -298,12 +296,6 @@ const PaymentForm = (props) => {
       }));
     }
 
-
-
-    console.log('checkedItems2 >', checkedItems.item2);
-    console.log('checkedItems3 >', checkedItems.item3);
-
-    console.log('=============================');
 
 
   };
@@ -356,16 +348,6 @@ const PaymentForm = (props) => {
     let numericValue4 = groupofpaymentType.has('cheque') ? isNaN(parseFloat((chequein || '').replace(/,/g, ''))) ? 0 : parseFloat((chequein || '').replace(/,/g, '')) : 0;
     let numericValue5 = groupofpaymentType.has('other') ? isNaN(parseFloat((otherin || '').replace(/,/g, ''))) ? 0 : parseFloat((otherin || '').replace(/,/g, '')) : 0;
 
-    console.log("numericValue5 >> ", numericValue5);
-    console.log("numericValue4 >> ", numericValue4);
-    console.log("numericValue3 >> ", numericValue3);
-    console.log("numericValue2 >> ", numericValue2);
-    console.log("numericValue1 >> ", numericValue1);
-    console.log(numericValue5 + numericValue4 + numericValue3 + numericValue2 + numericValue1);
-    console.log(totalPrice);
-    console.log("groupofpaymentType>", groupofpaymentType);
-
-
     let payin = numericValue5 + numericValue4 + numericValue3 + numericValue2 + numericValue1;
 
 
@@ -377,10 +359,8 @@ const PaymentForm = (props) => {
 
           if (numericValue1 <= (totalPrice + differBy - numericValue2 - numericValue3 - numericValue4 - numericValue5)) {
             numericValue1 = (totalPrice + differBy - numericValue2 - numericValue3 - numericValue4 - numericValue5);
-            console.log("numericValue1 1 >> ", numericValue1);
           } else {
             numericValue1 = (totalPrice) - numericValue2 - numericValue3 - numericValue4 - numericValue5
-            console.log("numericValue1 2 >> ", numericValue1);
           }
         }
 
@@ -401,10 +381,8 @@ const PaymentForm = (props) => {
 
           if (numericValue2 <= (totalPrice + differBy - numericValue1 - numericValue3 - numericValue4 - numericValue5)) {
             numericValue2 = (totalPrice + differBy - numericValue1 - numericValue3 - numericValue4 - numericValue5);
-            console.log("numericValue2 1 >> ", numericValue2);
           } else {
             numericValue2 = (totalPrice) - numericValue1 - numericValue3 - numericValue4 - numericValue5
-            console.log("numericValue2 2 >> ", numericValue2);
           }
         }
 
@@ -423,10 +401,8 @@ const PaymentForm = (props) => {
         if (numericValue5 + numericValue4 + numericValue3 + numericValue2 + numericValue1 >= totalPrice + differBy) {
           if (numericValue3 <= (totalPrice + differBy - numericValue1 - numericValue2 - numericValue4 - numericValue5)) {
             numericValue3 = (totalPrice + differBy - numericValue1 - numericValue2 - numericValue4 - numericValue5);
-            console.log("numericValue3 1 >> ", numericValue3);
           } else {
             numericValue3 = (totalPrice) - numericValue1 - numericValue2 - numericValue4 - numericValue5
-            console.log("numericValue3 2 >> ", numericValue3);
           }
         }
         if (!isNaN(numericValue3) && numericValue3 > 0) {
@@ -447,10 +423,8 @@ const PaymentForm = (props) => {
         if (numericValue5 + numericValue4 + numericValue3 + numericValue2 + numericValue1 >= totalPrice + differBy) {
           if (numericValue4 <= (totalPrice + differBy - numericValue2 - numericValue3 - numericValue1 - numericValue5)) {
             numericValue4 = (totalPrice + differBy - numericValue2 - numericValue3 - numericValue1 - numericValue5);
-            console.log("numericValue4 1 >> ", numericValue4);
           } else {
             numericValue4 = (totalPrice) - numericValue1 - numericValue2 - numericValue3 - numericValue5
-            console.log("numericValue4 2 >> ", numericValue4);
           }
         }
 
@@ -467,10 +441,8 @@ const PaymentForm = (props) => {
         if (numericValue5 + numericValue4 + numericValue3 + numericValue2 + numericValue1 >= totalPrice + differBy) {
           if (numericValue5 <= (totalPrice + differBy - numericValue2 - numericValue3 - numericValue1 - numericValue4)) {
             numericValue5 = (totalPrice + differBy - numericValue2 - numericValue3 - numericValue1 - numericValue4);
-            console.log("numericValue5 1 >> ", numericValue5);
           } else {
             numericValue5 = (totalPrice) - numericValue2 - numericValue3 - numericValue1 - numericValue4
-            console.log("numericValue5 2 >> ", numericValue5);
           }
         }
         if (!isNaN(numericValue5) && numericValue5 > 0) {
@@ -512,7 +484,6 @@ const PaymentForm = (props) => {
           this.state.groupofpaymentType.has('other')
 
         ) {
-          console.log("_orderCash", item.methodType)
           await this._orderCash();
         } //else if (this.state.groupofpaymentType.has('qrcode')) {
         // await this._qrcodePayment();
@@ -531,18 +502,14 @@ const PaymentForm = (props) => {
   };
 
   const checkpayment = (amount, promptPay) => {
-    console.log("promptPay promptPay =>", promptPay);
     const normalizedAmount = normalizeQrAmount(amount);
-    if (promptPay === null || promptPay === undefined) return null;
     if (!normalizedAmount) return null;
 
-    const qrContent = getSelectedQrContent(promptPay);
-    if (!qrContent) {
-      return null;
-    }
+    const qrContent = getSelectedQrContent(promptPay) || defaultQrContent;
+    const rawPromptPay = String(promptPay || '').trim();
 
-    const result = String(qrContent.QRCT_SOURCE || '').trim();
-    const rawQrContent = String(qrContent.QRCT_CONTENT || '').trim();
+    const result = String(qrContent?.QRCT_SOURCE || '').trim();
+    const rawQrContent = String(qrContent?.QRCT_CONTENT || '').trim();
     const isUsableQrSeed = (value) => {
       const normalizedValue = String(value || '').trim();
       if (!normalizedValue || normalizedValue === '0') {
@@ -561,18 +528,17 @@ const PaymentForm = (props) => {
     };
 
     const fallbackQrSeed = [
-      qrContent.BNKAC_CODE,
-      qrContent.QRCT_CODE,
-      qrContent.QRCT_NAME,
-      qrContent.BNKAC_NAME,
+      rawQrContent,
+      qrContent?.BNKAC_CODE,
+      qrContent?.QRCT_CODE,
+      qrContent?.QRCT_NAME,
+      qrContent?.BNKAC_NAME,
+      !qrContent && isUsableQrSeed(rawPromptPay) ? rawPromptPay : null,
     ]
       .map(item => String(item || '').trim())
       .find(item => isUsableQrSeed(item));
-    console.log("QRCT_SOURCE =>", result);
-    console.log("QRCT_CONTENT =>", rawQrContent);
-    console.log("QR fallback seed =>", fallbackQrSeed);
 
-    const qrSourceValue = rawQrContent || fallbackQrSeed;
+    const qrSourceValue = fallbackQrSeed;
 
     if (!qrSourceValue || qrSourceValue === '0') {
       return null;
@@ -644,7 +610,6 @@ const PaymentForm = (props) => {
 
     const result = String(promptPay || '').trim();
 
-    //console.log("promptPay pp_str =>", result);
 
 
     let pp_acc_id = "";
@@ -692,10 +657,14 @@ const PaymentForm = (props) => {
     return pp_str;
   }
 
+  console.log('qrCode',qrCode)
+
   const qrPaymentValue = isDirectQrPayload(qrCode)
     ? String(qrCode).trim()
-    : checkpayment(qrAmount, qrContentItem);
+    : checkpayment(qrAmount, qrContentItem) || checkpayment(qrAmount, qrCode);
   const qrDisplayAmount = normalizeQrAmount(qrAmount) || normalizeQrAmount(qrCode) || '0.00';
+
+  console.log('qrPaymentValue',qrPaymentValue)
 
   checksumCRC16 = (input) => {
     let crc = 0xffff; // initial value
@@ -767,8 +736,9 @@ const PaymentForm = (props) => {
                   containerStyle={[styles.checkBoxStyle,
                   { backgroundColor: checkedItems.item1 ? '#f0ffff' : 'white', }]}
                   textStyle={{ fontSize: hp('1.6%') }}
-                  onPress={() => {
-                    setPaymentType ? setPaymentType('cash') && toggleCheckBox('item1') : null;
+                  onPress={async () => {
+                    await runIfFunction(setPaymentType, 'cash');
+                    toggleCheckBox('item1');
                     setremainConfirm(false);
                     setremainoptionItem(null);
                      setAmtcashin(0);
@@ -831,8 +801,9 @@ const PaymentForm = (props) => {
                       containerStyle={[styles.checkBoxStyle,
                       { backgroundColor: checkedItems.item2 ? '#f0ffff' : 'white', }]}
                       textStyle={{ fontSize: hp('1.6%') }}
-                      onPress={() => {
-                        setPaymentType ? setPaymentType('transfer') && nottoggleCheckBox('item2', 'item3') : null;
+                      onPress={async () => {
+                        await runIfFunction(setPaymentType, 'transfer');
+                        nottoggleCheckBox('item2', 'item3');
                         setremainConfirm(false);
                         setremainoptionItem(null);
                         setAmttranferin(0);
@@ -866,7 +837,7 @@ const PaymentForm = (props) => {
 
 
                 {
-                  safeUserToken.VANCONFIG.VANCNF_BANK_QRCODE_USE !== 2 ?
+                  showQrCodeOption && safeUserToken.VANCONFIG.VANCNF_BANK_QRCODE_USE !== 2 ?
                     <Item style={[styles.checkBoxSection, { backgroundColor: checkedItems.item3 ? '#f0ffff' : 'white', }]}>
                       <Item style={{ flex: 0.3, borderBottomWidth: 0 }}>
                         <CheckBox
@@ -878,8 +849,9 @@ const PaymentForm = (props) => {
                           { backgroundColor: checkedItems.item3 ? '#f0ffff' : 'white', }]}
 
                           textStyle={{ fontSize: hp('1.6%') }}
-                          onPress={() => {
-                            setPaymentType ? setPaymentType('qrcode') && nottoggleCheckBox('item3', 'item2') : null;
+                          onPress={async () => {
+                            await runIfFunction(setPaymentType, 'qrcode');
+                            nottoggleCheckBox('item3', 'item2');
                             setremainConfirm(false);
                             setremainoptionItem(null);
                             setAmtQrin(0);
@@ -924,22 +896,19 @@ const PaymentForm = (props) => {
                 ]}>
                   <Form style={[styles.inputSection2, { borderBottomColor: 'transparent', borderBottomWidth: 0, height: 40, padding: 0 }]}>
                     <RNPickerSelect
-                      items={checkedItems.item2 == true ? bankAccount : checkedItems.item3 == true ? qrCodeContent : ""}
-                      disabled={checkedItems.item2 == true ? !checkedItems.item2 : checkedItems.item3 == true ? !checkedItems.item3 : true}
+                      items={checkedItems.item2 == true ? bankAccount : checkedItems.item3 == true && showQrCodeOption ? qrCodeContent : []}
+                      disabled={checkedItems.item2 == true ? !checkedItems.item2 : checkedItems.item3 == true && showQrCodeOption ? !checkedItems.item3 : true}
                       onValueChange={(value) => {
-
-                        console.log("valuevalue", value);
-
                         checkedItems.item2 == true ?
                           (setBankAccountItem ? setBankAccountItem(value) : null)
                           :
-                          checkedItems.item3 == true ?
+                          checkedItems.item3 == true && showQrCodeOption ?
                             (setqrContentItem ? setqrContentItem(value) : null)
                             : null
                       }
                       }
-                      value={checkedItems.item2 == true ? bankAccountItem : checkedItems.item3 == true ? qrContentItem : null}
-                      style={getBorderlessPickerStyle(checkedItems.item2 || checkedItems.item3)}
+                      value={checkedItems.item2 == true ? bankAccountItem : checkedItems.item3 == true && showQrCodeOption ? qrContentItem : null}
+                      style={getBorderlessPickerStyle(checkedItems.item2 || (checkedItems.item3 && showQrCodeOption))}
                       placeholder={{ label: 'เลือก', value: null }}
                       placeholderTextColor={checkedItems.item2 ? '#808080' : MainTheme.placeholerTextInput}
                       textInputProps={{ underlineColorAndroid: 'transparent', underlineColor: 'transparent' }}
@@ -988,8 +957,9 @@ const PaymentForm = (props) => {
                   containerStyle={[styles.checkBoxStyle,
                   { backgroundColor: checkedItems.item4 ? '#f0ffff' : 'white', }]}
                   textStyle={{ fontSize: hp('1.6%') }}
-                  onPress={() => {
-                    setPaymentType ? setPaymentType('cheque') && toggleCheckBox('item4') : null;
+                  onPress={async () => {
+                    await runIfFunction(setPaymentType, 'cheque');
+                    toggleCheckBox('item4');
                     setremainConfirm(false);
                     setremainoptionItem(null);
                     setAmtchequein(0);
@@ -1109,8 +1079,9 @@ const PaymentForm = (props) => {
                       containerStyle={[styles.checkBoxStyle,
                       { backgroundColor: checkedItems.item5 ? '#f0ffff' : 'white', }]}
                       textStyle={{ fontSize: hp('1.6%') }}
-                      onPress={() => {
-                        setPaymentType ? setPaymentType('other') && toggleCheckBox('item5') : null;
+                      onPress={async () => {
+                        await runIfFunction(setPaymentType, 'other');
+                        toggleCheckBox('item5');
                         setremainConfirm(false);
                         setremainoptionItem(null);
                         setAmtOtherin(0);
@@ -1277,7 +1248,7 @@ const PaymentForm = (props) => {
         <Modal
           animationType="fade"
           transparent={true}
-          visible={isQRCodeDialogOpen}
+          visible={showQrCodeOption && isQRCodeDialogOpen}
           onRequestClose={() => {
             setState ? setState('isQRCodeDialogOpen', false) : null;
           }}>

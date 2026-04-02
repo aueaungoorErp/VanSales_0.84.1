@@ -1,6 +1,5 @@
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
-import IList from '../../../component/list/IList'
 
 const ListItems = (props) => {
 
@@ -9,7 +8,11 @@ const ListItems = (props) => {
     return (
         <View style={styles.container}>
             {
-                printingType === 'BLUETOOTH' ? <IList data={items} renderItem={renderItem} horizontal={false} /> : null
+                printingType === 'BLUETOOTH' ? items.map((item, index) => (
+                    <View key={item.address || index}>
+                        {renderItem({ item })}
+                    </View>
+                )) : null
             }
         </View>
     )

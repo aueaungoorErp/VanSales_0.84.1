@@ -70,10 +70,6 @@ const FinalizeDetail = (props) => {
   // console.log('processResult FinalizeDetail', processResult);
   // console.log('processResult successMessage', successMessage);
   // console.log('processResult errorMessage', errorMessage);
-  console.log(
-    'processResult props.orderProductSummary',
-    props.orderProductSummary,
-  );
     // console.log('DIS_BILL_1 >>> ', DIS_BILL_1);
     // console.log('DIS_BILL_2 >>> ', DIS_BILL_2);
     // console.log('DIS_COUNT_TYPE1 >>> ', DIS_COUNT_TYPE1);

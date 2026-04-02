@@ -220,7 +220,6 @@ class CTPaymentForm extends Component {
 
   _getQRContent = async () => {
     //24.หาประเภท QR Code (Bk000620)
-    console.log('_getQRContent');
     const LoginGUID = await getLoginGuID();
     let dataObj2 = {
       'BPAPUS-BPAPSV': BPAPUS_BPAPSV,
@@ -232,16 +231,18 @@ class CTPaymentForm extends Component {
       'BPAPUS-OFFSET': '0',
       'BPAPUS-FETCH': '0',
     };
-    console.log('qrContent dataObj2 >>>', dataObj2);
-
     await lookupErpV3Api(dataObj2)
       .then(async (v) => {
         const { ResponseData, ResponseCode, ReasonString } = v.data;
-        console.log('qrContent v.data >>>', ResponseData);
 
         if (ResponseCode == 200) {
           let responseData = JSON.parse(ResponseData);
-          const result = await this._setState('qrContent', Object.values(responseData.Bk000620));
+          const qrContentItems = Object.values(responseData.Bk000620);
+          await this._setState('qrContent', qrContentItems);
+          if (!this.state.qrContentItem && qrContentItems.length > 0) {
+            await this._setState('qrContentItem', qrContentItems[0].QRCT_KEY);
+            await this._setState('qrContentName', qrContentItems[0].QRCT_NAME || '');
+          }
           //     console.log("Bk000620" , result); // Log the result to see if it's null or has any issues
           //     console.log("Bk000620" , Object.values(responseData.Bk000620)); // Log the result to see if it's null or has any issues
           //  this.state.qrContent = Object.values(responseData.Bk000620);
@@ -401,32 +402,26 @@ class CTPaymentForm extends Component {
   // };
 
   _setPaymentType = async (value) => {
+    const nextPaymentTypes = new Set(this.state.groupofpaymentType);
 
-    console.log('Bazzz>', value);
-    await this._setState('paymentType', value);
-    console.log('Bazzz>', value + " " + this.state.groupofpaymentType.has(value));
-
-    if (!this.state.groupofpaymentType.has(value)) {
-      this.state.groupofpaymentType.add(value);
+    if (nextPaymentTypes.has(value)) {
+      nextPaymentTypes.delete(value);
     } else {
-      this.state.groupofpaymentType.delete(value);
+      nextPaymentTypes.add(value);
     }
 
-
-    if (value === "transfer") {
-      this.state.groupofpaymentType.delete("qrcode");
-      // this._setState('item2', false);
-      // this._setState('item3', false);
-
+    if (value === 'transfer') {
+      nextPaymentTypes.delete('qrcode');
     }
 
-    if (value === "qrcode") {
-      this.state.groupofpaymentType.delete("transfer");
-      // this._setState('item2', false);
-      // this._setState('item3', false);
+    if (value === 'qrcode') {
+      nextPaymentTypes.delete('transfer');
     }
 
-    console.log('Bazzz groupofpaymentType>', this.state.groupofpaymentType);
+    await this.setState({
+      paymentType: nextPaymentTypes.has(value) ? value : null,
+      groupofpaymentType: nextPaymentTypes,
+    });
 
     // this.state.paymentType === 'cheque'
     //   ? this._setEnabledPaymentCheque()
@@ -1028,7 +1023,7 @@ class CTPaymentForm extends Component {
 
 
     if (this.state.groupofpaymentType.has('qrcode') && this.state.qrConfirm == false) {
-      await this._qrcodePayment();
+      await this._requestQrCode(this.state.qrin ? this.state.qrin.toString() : '0');
       return false;
     }
 
@@ -1748,28 +1743,16 @@ class CTPaymentForm extends Component {
     this._setState('buttonDisabled', true);
 
     try {
-      console.log("auth")
-      const auth = await this.props.authForGetAccessToken({
-        userName: this.state.userToken.VANCONFIG.VANCNF_BANK_QRCODE_USERNAME,
-        userPassword: this.state.userToken.VANCONFIG.VANCNF_BANK_QRCODE_PASSWORD,
-      });
-      console.log("auth 3 ", auth)
-      const data = auth?.data || auth;
+      const latestUserToken = await getUserToken();
 
-      if (!data) {
-        console.log('_qrcodePayment auth returned empty payload');
-      } else if (!data?.paymentChannels?.length) {
-        console.log('_qrcodePayment auth missing paymentChannels', JSON.stringify(data));
+      if (latestUserToken) {
+        await this._setState('userToken', latestUserToken);
       }
 
-      if (data) {
-        await this._requestQrCode(data);
-      } else {
-        await this._requestQrCode(null);
-      }
+      await this._requestQrCode(this.state.qrin ? this.state.qrin.toString() : '0');
     } catch (error) {
       console.log('_qrcodePayment error', error);
-      await this._requestQrCode(null, error);
+      this._setState('errorMessage', error);
     }
 
     this._setState('isLoading', false);
@@ -1777,8 +1760,47 @@ class CTPaymentForm extends Component {
   };
 
 
-  _requestQrCode = async (obj, requestError = null) => {
+//   _requestQrCode = async (obj) => {
+//     this._setState('errorMessage', null);
+
+//     if (
+//       this.state.groupofpaymentType.has('qrcode') && (this.state.qrin === null || Number(this.state.qrin) <= 0)
+//     ) {
+//       await this._setState('isQRCodeDialogOpen', false);
+//       this._setState('errorMessage', 'กรุณาระบุจำนวนเงิน (QrCode)');
+//       return;
+//     }
+
+
+//     if (
+//       this.state.groupofpaymentType.has('qrcode') && (this.state.qrContentItem === null)
+//     ) {
+//       this._setState('errorMessage', 'กรุณาระบุธนาคาร (QrCode) ');
+//       return;
+//     }
+
+//     let payin = (this.state.groupofpaymentType.has('cash') ? Number(this.state.cashin) : 0) +
+//     (this.state.groupofpaymentType.has('transfer') ? Number(this.state.paymentTransfer.tranFerin) : 0) +
+//     (this.state.groupofpaymentType.has('qrcode') ? Number(this.state.qrin) : 0) +
+//     (this.state.groupofpaymentType.has('cheque') ? Number(this.state.paymentCheque.chequein) : 0) +
+//     (this.state.groupofpaymentType.has('other') ? Number(this.state.otherin) : 0);
+
+  _requestQrCode = async (obj) => {
     this._setState('errorMessage', null);
+
+    const selectedQrContent = this.state.qrContent?.find(
+      item => String(item.QRCT_KEY) === String(this.state.qrContentItem) || String(item.QRCT_CODE) === String(this.state.qrContentItem)
+    );
+
+    const qrCodeSeedCandidates = [
+      obj,
+      selectedQrContent?.QRCT_CONTENT,
+      selectedQrContent?.QRCT_CODE,
+      selectedQrContent?.BNKAC_CODE,
+    ]
+      .map(value => String(value || '').trim())
+      .filter(Boolean)
+      .filter(value => value !== '0');
 
     if (
       this.state.groupofpaymentType.has('qrcode') && (this.state.qrin === null || Number(this.state.qrin) <= 0)
@@ -1788,7 +1810,6 @@ class CTPaymentForm extends Component {
       return;
     }
 
-
     if (
       this.state.groupofpaymentType.has('qrcode') && (this.state.qrContentItem === null)
     ) {
@@ -1797,13 +1818,10 @@ class CTPaymentForm extends Component {
     }
 
     let payin = (this.state.groupofpaymentType.has('cash') ? Number(this.state.cashin) : 0) +
-    (this.state.groupofpaymentType.has('transfer') ? Number(this.state.paymentTransfer.tranFerin) : 0) +
-    (this.state.groupofpaymentType.has('qrcode') ? Number(this.state.qrin) : 0) +
-    (this.state.groupofpaymentType.has('cheque') ? Number(this.state.paymentCheque.chequein) : 0) +
-    (this.state.groupofpaymentType.has('other') ? Number(this.state.otherin) : 0);
-
-    console.log("payin", Number(payin))
-    console.log("VDI_AMOUNT", Number(this.props.order.header.VDI_AF_DISC))
+      (this.state.groupofpaymentType.has('transfer') ? Number(this.state.paymentTransfer.tranFerin) : 0) +
+      (this.state.groupofpaymentType.has('qrcode') ? Number(this.state.qrin) : 0) +
+      (this.state.groupofpaymentType.has('cheque') ? Number(this.state.paymentCheque.chequein) : 0) +
+      (this.state.groupofpaymentType.has('other') ? Number(this.state.otherin) : 0);
 
     if (
       this.state.groupofpaymentType.has('qrcode') && (Number(payin) < Number(this.props.order.header.VDI_AF_DISC) - this.state.differBy)
@@ -1813,101 +1831,45 @@ class CTPaymentForm extends Component {
       return;
     }
 
-if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('qrcode')) {
-        if (
-          Number(payin) > Number(this.props.order.header.VDI_AF_DISC) &&
-          Number(this.props.order.header.VDI_AF_DISC - payin) <= Number(this.state.differBy)
-
-        ) {
-          await this._setState('reMainOption1', this.state.reMainOption_Over);
-          await this._setState('differValue', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
-          if (this.state.remainConfirm == false) {
-            await this._setState('isDialogOpen', true);
-            return;
-          }
-        } else if (
-          Number(payin) < Number(this.props.order.header.VDI_AF_DISC) &&
-          Number(this.state.differBy) >= Number(this.props.order.header.VDI_AF_DISC - payin)
-        ) {
-          await this._setState('reMainOption1', this.state.reMainOption_Under);
-          await this._setState('differValue', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
-          if (this.state.remainConfirm == false) {
-            await this._setState('isDialogOpen', true);
-            return;
-          }
-        } else if (Number(payin) === Number(this.props.order.header.VDI_AF_DISC)) {
-          await this._setState('isDialogOpen', false);
-        }
-      }
-
-      console.log('this.state.reMainOption OV ', this.state.reMainOption_Over);
-      console.log('this.state.reMainOption UD ', this.state.reMainOption_Under);
-
-
-    try {
-      const qrAmount = this.state.qrin ? this.state.qrin.toString() : '0';
-      let qrPayload = null;
-      let shouldUseKtbFallback = Boolean(requestError);
-
-      if (obj?.paymentChannels?.[0]?.billerId && obj?.paymentChannels?.[0]?.terminalId) {
-        const qrcode = await this.props.requestQrCodeSCB(obj, qrAmount);
-        const {isError, data} = qrcode || {};
-
-        if (!isError) {
-          qrPayload =
-            data?.qrCode ||
-            data?.result ||
-            data?.payload ||
-            data?.qrData ||
-            null;
-        } else {
-          shouldUseKtbFallback = true;
-        }
-      } else {
-        shouldUseKtbFallback = true;
-      }
-
-      if (!qrPayload && shouldUseKtbFallback) {
-        const ktbFallbackWorked = await this._tryKtbQrFallback();
-        if (ktbFallbackWorked) {
-          console.log('_requestQrCode fallback to KTB QR');
+    if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('qrcode')) {
+      if (
+        Number(payin) > Number(this.props.order.header.VDI_AF_DISC) &&
+        Number(this.props.order.header.VDI_AF_DISC - payin) <= Number(this.state.differBy)
+      ) {
+        await this._setState('reMainOption1', this.state.reMainOption_Over);
+        await this._setState('differValue', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
+        if (this.state.remainConfirm == false) {
+          await this._setState('isDialogOpen', true);
           return;
         }
+      } else if (
+        Number(payin) < Number(this.props.order.header.VDI_AF_DISC) &&
+        Number(this.state.differBy) >= Number(this.props.order.header.VDI_AF_DISC - payin)
+      ) {
+        await this._setState('reMainOption1', this.state.reMainOption_Under);
+        await this._setState('differValue', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
+        if (this.state.remainConfirm == false) {
+          await this._setState('isDialogOpen', true);
+          return;
+        }
+      } else if (Number(payin) === Number(this.props.order.header.VDI_AF_DISC)) {
+        await this._setState('isDialogOpen', false);
       }
+    }
 
-      if (!qrPayload) {
-        await this._setState('isQRCodeDialogOpen', false);
-        this._setState(
-          'errorMessage',
-          this._getReadableErrorMessage(
-            requestError,
-            'ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบการเชื่อมต่อหรือข้อมูล QR'
-          )
-        );
+    try {
+      const isError = false;
+      const data = qrCodeSeedCandidates[0] || obj;
+
+      if (isError || !data) {
+        this._setState('errorMessage', 'ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบการเชื่อมต่อหรือข้อมูล QR');
         return;
       }
 
-      await this._setState('qrCode', qrPayload);
+      await this._setState('qrCode', data);
       await this._setState('isQRCodeDialogOpen', true);
-
-      console.log("qrCode ", qrPayload);
-      console.log("isQRCodeDialogOpen ", true);
     } catch (error) {
-      console.log('_requestQrCode error', error);
-      const ktbFallbackWorked = await this._tryKtbQrFallback();
-      if (ktbFallbackWorked) {
-        console.log('_requestQrCode catch fallback to KTB QR');
-        return;
-      }
-
-      await this._setState('isQRCodeDialogOpen', false);
-      this._setState(
-        'errorMessage',
-        this._getReadableErrorMessage(
-          error,
-          'ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบการเชื่อมต่อหรือข้อมูล QR'
-        )
-      );
+      this._setState('errorMessage', error);
     }
   };
 
@@ -2173,15 +2135,20 @@ if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('
   };
 
   _setqrContentItem = async (value) => {
-    console.log("_setqrContentItem value>>", value)
-    console.log("_setqrContentItem this.state.qrContent>>", this.state.qrContent)
+    if (value === false || value === undefined) {
+      return;
+    }
 
+    if (value === null) {
+      await this._setState('qrContentItem', null);
+      await this._setState('qrContentName', '');
+      return;
+    }
 
     const qrContent = this.state.qrContent?.find(
       item => String(item.QRCT_KEY) === String(value) || String(item.QRCT_CODE) === String(value)
     );
 
-    console.log("_setqrContentItem qrContent>> ", qrContent)
     const result = qrContent?.QRCT_NAME || '';
 
     await this.setState((oldState) => {

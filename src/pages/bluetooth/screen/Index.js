@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { StyleSheet, View } from 'react-native'
+import { ScrollView, StyleSheet } from 'react-native'
 
 import CTForm from '../container/CTForm'
 import CTListItems from '../container/CTListItems'
@@ -12,10 +12,10 @@ class Index extends Component {
 
     render() {
         return (
-            <View style={styles.container}>
+            <ScrollView style={styles.container}>
                 <CTForm />
                 <CTListItems />
-            </View>
+            </ScrollView>
         )
     }
 }

@@ -1,48 +1,48 @@
 import React, { Component } from 'react';
-import { Alert, Keyboard, PermissionsAndroid, Platform, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Alert, Keyboard, PermissionsAndroid, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Dialog from 'react-native-dialog';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import { connect } from 'react-redux';
 import {
-  addProduct,
-  addStockImageItem,
-  calculateOrderProductSummary,
-  createQuotation,
-  getProductListItemsFromLastBillByArCode,
-  orderAttachMultipleImages,
-  orderUpdateQuotation,
-  processOrderSale,
-  removeAllProductItems,
-  removeAllStockImageItems,
-  setHeader,
-  setOrderItems,
-  setVDIRemark,
+    addProduct,
+    addStockImageItem,
+    calculateOrderProductSummary,
+    createQuotation,
+    getProductListItemsFromLastBillByArCode,
+    orderAttachMultipleImages,
+    orderUpdateQuotation,
+    processOrderSale,
+    removeAllProductItems,
+    removeAllStockImageItems,
+    setHeader,
+    setOrderItems,
+    setVDIRemark,
 } from '../../../../action/order';
 import { setInitialState as setProductInitialState } from '../../../../action/product';
 import { systemCheck } from '../../../../action/setting';
 import { serverReady } from '../../../../api/setting';
 import {
-  checkStockButtonGroup,
-  checkStockImageButtonGroup,
-  checkStockSummaryButtonGroup,
-  checkStockTopButtonGroup,
-  MainTheme,
+    checkStockButtonGroup,
+    checkStockImageButtonGroup,
+    checkStockSummaryButtonGroup,
+    checkStockTopButtonGroup,
+    MainTheme,
 } from '../../../../constant/lov';
 import { printReceipt2 } from '../../../../constant/printing-pdf-lov';
 import { BluetoothFinder, BplusPrinting } from '../../../../module';
 import Navigator from '../../../../services/Navigator';
 import {
-  convertProductItemToOrderItem,
-  genenrateMultipleAttachImageToServer,
-  genenrateOrderForCreateToServer,
-  genenrateOrderForProcessToServer,
-  genenrateOrderForUpdateToServer,
-  generateHeader,
+    convertProductItemToOrderItem,
+    genenrateMultipleAttachImageToServer,
+    genenrateOrderForCreateToServer,
+    genenrateOrderForProcessToServer,
+    genenrateOrderForUpdateToServer,
+    generateHeader,
 } from '../../../../utils/Order';
 import {
-  getLoginGuID,
-  getSettingConfig,
-  getUserToken,
+    getLoginGuID,
+    getSettingConfig,
+    getUserToken,
 } from '../../../../utils/Token';
 import ButtonGroup from '../presenter/ButtonGroup';
 
@@ -120,10 +120,6 @@ class CTButtonGroup extends Component {
   _setButtonGroup = () => {
     const { routes, index } = Navigator.getCurrentRoute();
     const routeName = routes[index]?.name || routes[index]?.routeName;
-    console.log('routeName >> ', routeName)
-    console.log('this.props.position >> ', this.props.position)
-
-
 
     if (routeName === 'OrderCheckStock')
       this.props.position === 'top'
@@ -133,9 +129,6 @@ class CTButtonGroup extends Component {
       this._listItems = checkStockSummaryButtonGroup;
     else if (routeName === 'OrderCheckStockImageItems')
       this._listItems = checkStockImageButtonGroup;
-
-
-    console.log('this._listItems >> 1 ', this._listItems)
 
   };
 
@@ -189,8 +182,6 @@ class CTButtonGroup extends Component {
       elevation: 0,
     };
 
-
-    console.log("this.props.screen === 'Summary'", this.props.screen);
 
     const disabled =
       this.props.order.productListItems.length <= 0 && item.methodName === 'confirm'
@@ -821,10 +812,7 @@ class CTButtonGroup extends Component {
     });
   };
   render() {
-    console.log('this._listItems >> ', this._listItems)
     //  console.log('routeName >> ', routeName)
-    console.log('this.props.position >> ', this.props.position)
-
 
     return (
       <View>

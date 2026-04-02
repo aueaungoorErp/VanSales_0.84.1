@@ -339,11 +339,6 @@ class CTListItems extends Component {
   };
 
   _renderItem = ({ item, index }) => {
-    console.log('<ListItem 1 >>> ', item);
-    console.log('<ListItem index >>> ', index);
-
-    console.log('<ListItem 1.1 >>> 2', this.props.order.header.AR_ORDER_TYPE);
-
     return (
       <ListItem
         title={
@@ -521,7 +516,6 @@ class CTListItems extends Component {
   _setStockBalance = async (item, index, value) => {
 
     item.VTRD_QTY = item.VTRD_QTY_OLD;
-    console.log('_setStockBalance ');
     const { productListItems } = this.props.order;
     const CAS_QTY = numberOnlyCanZeroFirst(value);
     const difference =
@@ -563,7 +557,6 @@ class CTListItems extends Component {
 
 
   render() {
-    console.log('Dimensions.get(wi{this.props.order.productListItems', this.props.order.productListItems);
     return (
       <ListItems
         listItems={this.props.order.productListItems}

@@ -1,57 +1,53 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { Alert, Keyboard, TouchableOpacity, Text } from 'react-native';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import moment from 'moment';
-import { BluetoothPrinter, BluetoothFinder } from '../../../../module';
+import React, { Component } from 'react';
+import { Alert, Keyboard, Text, TouchableOpacity } from 'react-native';
+import { connect } from 'react-redux';
+import { BluetoothFinder, BluetoothPrinter } from '../../../../module';
 
-import {
-  productFinalizeFormButtonGroup,
-  paymentLOVItems,
-  returnLOVItems,
-  MainTheme,
-} from '../../../../constant/lov';
-import {
-  setVDIRemark,
-  setDisBill1,
-  setDisBill2,
-  setDisBill1AfterDis,
-  setDisBill2AfterDis,
-  setDisCountType1,
-  setDisCountType2,
-  calculateOrderNetPriceAfterDiscount,
-  clearDisBill,
-  processOrderSale,
-  createOrderSaleV3,
-  orderReservV3,
-  orderReturn,
-  calculateOrderProductProcessSummary,
-  calculateOrderProductSummary,
-  setDisBillProcess,
-  setHeaderProcessedShipDate,
-  updateOrderSale,
-  orderTransferV3,
-  orderAttachImage,
-  setOrderItems,
-} from '../../../../action/order';
 import { getCurrentPosition } from '../../../../action/geolocation';
 import {
-  genenrateOrderForProcessToServer,
-  genenrateOrderForCreateToServer,
-  genenrateOrderForUpdateToServer,
-  genenrateAttachImageToServer,
-  generateResponseFromServer,
-} from '../../../../utils/Order';
-import { discountFormat } from '../../../../utils/Culculate';
-import Navigator from '../../../../services/Navigator';
-import {
-  getUserToken,
-  getLoginGuID,
-  getSettingConfig,
-} from '../../../../utils/Token';
-import { BPAPUS_BPAPSV } from '../../../../../appConfig';
+    calculateOrderNetPriceAfterDiscount,
+    calculateOrderProductProcessSummary,
+    calculateOrderProductSummary,
+    clearDisBill,
+    createOrderSaleV3,
+    orderAttachImage,
+    orderReservV3,
+    orderReturn,
+    orderTransferV3,
+    processOrderSale,
+    setDisBill1,
+    setDisBill2,
+    setDisBillProcess,
+    setDisCountType1,
+    setDisCountType2,
+    setHeaderProcessedShipDate,
+    setOrderItems,
+    setVDIRemark,
+    updateOrderSale
+} from '../../../../action/order';
 import { systemCheck } from '../../../../action/setting';
 import { return_Errmessage } from '../../../../api/setting';
+import {
+    MainTheme,
+    paymentLOVItems,
+    productFinalizeFormButtonGroup,
+    returnLOVItems,
+} from '../../../../constant/lov';
+import Navigator from '../../../../services/Navigator';
+import { discountFormat } from '../../../../utils/Culculate';
+import {
+    genenrateAttachImageToServer,
+    genenrateOrderForCreateToServer,
+    genenrateOrderForProcessToServer,
+    genenrateOrderForUpdateToServer,
+    generateResponseFromServer,
+} from '../../../../utils/Order';
+import {
+    getLoginGuID,
+    getSettingConfig,
+    getUserToken,
+} from '../../../../utils/Token';
 
 
 
@@ -974,7 +970,6 @@ class CTFinalizeDetail extends Component {
       }
 
       this.props.order.header.VDI_AF_DISC = this.props.order.orderProductSummary.totalPrice !== "" ? this.props.order.orderProductSummary.totalPrice : 0;
-      console.log('VDI_AF_DISC 1', this.props.order);
 
       // Bazz
       const response = await this.props.processOrderSale(

@@ -1,35 +1,34 @@
 import moment from 'moment';
-import {
-  orderCreateCashApi,
-  orderUpdateCashApi,
-  createDocVisitApi,
-  createDocSurveyApi,
-  orderFileApi,
-  orderCancelApi,
-  orderUpdateApi,
-  updateOrderSaleApi,
-  createQuotationApi,
-  orderUpdateQuotationApi,
-  orderAttachImageApi,
-  orderAttachMultipleImagesApi,
-} from '../api/order';
+import { BPAPUS_BPAPSV } from '../../appConfig';
+import { lookupErpV3Api, readErpV3Api, updateErpV3Api } from '../api/bPlusApi';
 import { getWareLocationStockBalance } from '../api/drop-point';
 import {
-  BPAPUS_FUNCTION_DC_CODE,
-  BPAPUS_FUNCTION_V_CODE,
-  BPAPUS_FUNCTION_BK_CODE,
-  BPAPUS_FUNCTION_WH_CODE,
-} from '../constant/bPlusApi';
-import { lookupErpV3Api, readErpV3Api, updateErpV3Api } from '../api/bPlusApi';
+    createDocSurveyApi,
+    createDocVisitApi,
+    orderAttachImageApi,
+    orderAttachMultipleImagesApi,
+    orderCancelApi,
+    orderCreateCashApi,
+    orderFileApi,
+    orderUpdateApi,
+    orderUpdateCashApi,
+    orderUpdateQuotationApi,
+    updateOrderSaleApi
+} from '../api/order';
 import { processOrderItemV3Api } from '../api/product';
-import { getUserToken, getLoginGuID, getSettingConfig } from '../utils/Token';
+import {
+    BPAPUS_FUNCTION_BK_CODE,
+    BPAPUS_FUNCTION_DC_CODE,
+    BPAPUS_FUNCTION_V_CODE,
+    BPAPUS_FUNCTION_WH_CODE,
+} from '../constant/bPlusApi';
 import * as types from '../constant/order';
 import {
-  convertProductItemLastBillToOrderItem,
-  convertProductItemFromServerProcess2V3,
-  generateItemsProcessedFromServer,
+    convertProductItemFromServerProcess2V3,
+    convertProductItemLastBillToOrderItem,
+    generateItemsProcessedFromServer,
 } from '../utils/Order';
-import { BPAPUS_BPAPSV } from '../../appConfig';
+import { getLoginGuID, getUserToken } from '../utils/Token';
 export const setInitialState = () => (dispatch) => {
   dispatch({ type: types.ORDER_SET_INITIAL_STATE });
 };
@@ -249,9 +248,6 @@ export const processOrderSale = (data, order, vanConfig) => (
     dispatch({ type: types.ORDER_PROCESS });
     const LoginGUID = await getLoginGuID();
     const customer = getState().customer;
-
-     console.log('processOrderSale order ', order);
-     console.log('processOrderSale data ', data);
     // console.log('processOrderSale data.ITEMS ', data.ITEMS.length);
     // console.log('processOrderSale vanConfig ', vanConfig);
     let isNegative = false;
@@ -272,7 +268,6 @@ export const processOrderSale = (data, order, vanConfig) => (
         .then((v) => {
           const { ResponseData, ResponseCode, ReasonString } = v.data;
           if (ResponseCode == 200) {
-            console.log(JSON.parse(ResponseData));
             let responseData = JSON.parse(ResponseData);
             WL_CODE = responseData.Wh000220
               ? responseData.Wh000220[0].WL_CODE
@@ -292,11 +287,8 @@ export const processOrderSale = (data, order, vanConfig) => (
           vanConfig,
         ).then((v) => {
           const { ReasonString, ResponseCode, ResponseData } = v;
-          console.log('getDropPointListItems ', v);
           let responseData = JSON.parse(ResponseData);
           if (ResponseCode == 200) {
-            console.log('jkdfjsdjfkdkf 1==== ', JSON.stringify(responseData));
-
             for (let obj of responseData.ShowSkuBalance) {
               if (obj.WL_CODE == WL_CODE && parseInt(obj.QTY) < 0) {
                 isNegative = true;
@@ -307,11 +299,8 @@ export const processOrderSale = (data, order, vanConfig) => (
         });
       }
     }
-
-    console.log('--VANCNF_NOV_SKU_BAL--', vanConfig.VANCNF_NOV_SKU_BAL);
     if (order.header.AR_ORDER_TYPE !== 'ขายสินค้า') { isNegative = false }
 
-    console.log('isNeg ', isNegative);
     if (isNegative) {
       if (order.header.AR_ORDER_TYPE === 'ขายสินค้า') {
         dispatch({
@@ -328,7 +317,6 @@ export const processOrderSale = (data, order, vanConfig) => (
           let objData = await convertProductItemFromServerProcess2V3(
             order.productListItems[i],
           );
-          console.log('data.ITEMS[i] objData1 :', objData);
           ImpTrhDetail.push(objData);
         }
       } else {
@@ -336,13 +324,10 @@ export const processOrderSale = (data, order, vanConfig) => (
           let objData = await convertProductItemFromServerProcess2V3(
             data.ITEMS[i],
           );
-          console.log('data.ITEMS[i] objData 2:', objData);
           ImpTrhDetail.push(objData);
         }
       }
-      console.log('ImpTrhDetail ', JSON.stringify(ImpTrhDetail));
       let DT_KEY_FILTER = null;
-      console.log('data.PROCESS_DETAIL  ', data.PROCESS_DETAIL);
       if (data.PROCESS_DETAIL == 'รับคืนสินค้า') {
         DT_KEY_FILTER = vanConfig.VANCNF_RTN_DT;
       } else if (data.PROCESS_DETAIL == 'จองสินค้า') {
@@ -369,7 +354,6 @@ export const processOrderSale = (data, order, vanConfig) => (
       };
       let VANCNF_BOOK_DT = null;
       let DT_PROPERTIES = null;
-      console.log('dataObj1 ', dataObj1);
       await lookupErpV3Api(dataObj1)
         .then((v) => {
           const { ResponseData, ResponseCode, ReasonString } = v.data;
@@ -389,8 +373,6 @@ export const processOrderSale = (data, order, vanConfig) => (
         .catch((err) => {
           console.log('ERROR lookupErpV3Api', err);
         });
-      console.log('VANCNF_BOOK_DT ', VANCNF_BOOK_DT);
-      console.log('DT_PROPERTIES ', DT_PROPERTIES);
       let param = null;
       let dataObj3 = {
         'BPAPUS-BPAPSV': BPAPUS_BPAPSV,
@@ -420,10 +402,6 @@ export const processOrderSale = (data, order, vanConfig) => (
           console.log('ERROR lookupErpV3Api', err);
         });
       let ARD_TDSC_KEYIN = data.DIS_BILL_1 + ',' + data.DIS_BILL_2;
-
-      console.log('จองสินค้า 1', data.PROCESS_DETAIL);
-      console.log('จองสินค้า 1', order.header);
-
 
       if (data.PROCESS_DETAIL == 'จองสินค้า' || data.PROCESS_DETAIL == 'ใบเสนอราคา') {
         param = {
@@ -495,7 +473,6 @@ export const processOrderSale = (data, order, vanConfig) => (
           ],
         };
       } else {
-        console.log("99999999" , data.ImpTranPayd)
         param = {
           ErpUpdFunc: [
             {
@@ -564,7 +541,6 @@ export const processOrderSale = (data, order, vanConfig) => (
       }
 
       if (data.PROCESS_TYPE == 1) {
-        console.log('param data.PROCESS_TYPE == 1 ', JSON.stringify(param));
         let dataObj = {
           'BPAPUS-BPAPSV': BPAPUS_BPAPSV,
           'BPAPUS-LOGIN-GUID': LoginGUID,
@@ -575,12 +551,8 @@ export const processOrderSale = (data, order, vanConfig) => (
           'BPAPUS-OFFSET': '0',
           'BPAPUS-FETCH': '0',
         };
-        console.log('dataObj PROCESS_TYPE == 1', JSON.stringify(dataObj));
         processOrderItemV3Api(dataObj)
           .then((v) => {
-            console.log('processOrderSale RESULT_DATA ', v);
-
-
             const { ResponseData, ResponseCode, ReasonString } = v;
             if (ResponseCode == 200) {
               let responseData = JSON.parse(ResponseData);
@@ -588,12 +560,10 @@ export const processOrderSale = (data, order, vanConfig) => (
               //   type: types.ORDER_SET_HEADER_PROCESSED,
               //   payload: RESULT_DATA.RESULT.HEADER,
               // });
-              console.log('processOrderItemV3Api responseData 1', responseData);
               let x = generateItemsProcessedFromServer(
                 responseData.TRANSTKD,
                 order.productListItems,
               );
-              console.log('x ', x);
               let itemsPrt = [];
               for (let obj of x) {
                 if (obj.TRD_Q_FREE > 0) {
@@ -629,7 +599,6 @@ export const processOrderSale = (data, order, vanConfig) => (
                   itemsPrt.push({ ...obj, VTRD_PRT_FREE_AUTO: false });
                 }
               }
-              console.log(' itemsPrt ', JSON.stringify(itemsPrt));
               dispatch({
                 type: types.ORDER_SET_ITEMS_PROCESSED,
                 payload: x,
@@ -649,7 +618,6 @@ export const processOrderSale = (data, order, vanConfig) => (
             reject(err);
           });
       } else {
-        console.log('param data.PROCESS_TYPE == else', JSON.stringify(param));
         let dataObj = {
           'BPAPUS-BPAPSV': BPAPUS_BPAPSV,
           'BPAPUS-LOGIN-GUID': LoginGUID,
@@ -660,7 +628,6 @@ export const processOrderSale = (data, order, vanConfig) => (
           'BPAPUS-OFFSET': '0',
           'BPAPUS-FETCH': '0',
         };
-        console.log('dataObj', JSON.stringify(dataObj));
         processOrderItemV3Api(dataObj)
           .then((v) => {
             const { ResponseData, ResponseCode, ReasonString } = v;
@@ -674,12 +641,10 @@ export const processOrderSale = (data, order, vanConfig) => (
               //   type: types.ORDER_SET_HEADER_PROCESSED,
               //   payload: RESULT_DATA.RESULT.HEADER,
               // });
-              console.log('processOrderItemV3Api responseData 2', responseData);
               let x = generateItemsProcessedFromServer(
                 responseData.TRANSTKD,
                 order.productListItems,
               );
-              console.log('processOrderItemV3Api x', x);
 
               let itemsPrt = [];
               for (let obj of x) {
@@ -716,7 +681,6 @@ export const processOrderSale = (data, order, vanConfig) => (
                   itemsPrt.push({ ...obj, VTRD_PRT_FREE_AUTO: false });
                 }
               }
-              console.log(' itemsPrt ', JSON.stringify(itemsPrt));
 
               dispatch({
                 type: types.ORDER_SET_ITEMS_PROCESSED,

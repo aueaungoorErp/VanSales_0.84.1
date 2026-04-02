@@ -1,17 +1,15 @@
 import React from 'react'
-import { View, StyleSheet, Dimensions } from 'react-native'
+import { StyleSheet, View } from 'react-native'
+import { mainContainer } from '../../../../constant/lov'
 import BackHandlerHOC from '../../../../hoc/BackHandlerHOC'
-import { mainContainer, MOBILE5INCH } from '../../../../constant/lov'
-import CTHeaderDetail from '../../container/CTHeaderDetail'
-import CTDropPointHeaderDetail from '../../../stock/container/drop-point/CTHeaderDetail'
-import CTFinalizeDetail from '../container/CTFinalizeDetail'
 import Navigator from '../../../../services/Navigator'
+import CTDropPointHeaderDetail from '../../../stock/container/drop-point/CTHeaderDetail'
+import CTHeaderDetail from '../../container/CTHeaderDetail'
+import CTFinalizeDetail from '../container/CTFinalizeDetail'
 
 const Finalize = (props) => {
     const { routes, index } = Navigator.getCurrentRoute()
     const { orderType } = routes[index].params
-
-    console.log(orderType)
 
     return (
         <View style={styles.container} >
