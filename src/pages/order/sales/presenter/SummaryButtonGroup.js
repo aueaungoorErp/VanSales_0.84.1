@@ -24,7 +24,7 @@ export default ButtonGroup
 const styles = StyleSheet.create({
     messageBox: {
         height: 30,
-        margin: 15
+        margin: 15,
     }
 })
 

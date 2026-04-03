@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -90,28 +90,29 @@ const FinalizeDetail = (props) => {
 
     // console.log('arOrderType ', arOrderType);
   };
-     // Code ชิน
-     if (arOrderType === 'ขายสินค้า') {
-      //  console.log('paymentType', paymentType)
-       if (paymentType == null && paymentItems.length > 0 && paymentItems[0].value) {
-         try {
-           setPaymentType(paymentItems[0].value)
-         } catch (error) {
+  useEffect(() => {
+    if (
+      arOrderType === 'ขายสินค้า' &&
+      paymentType == null &&
+      paymentItems.length > 0 &&
+      paymentItems[0]?.value != null
+    ) {
+      setPaymentType(paymentItems[0].value);
+    }
+  }, [arOrderType, paymentItems, paymentType, setPaymentType]);
 
-         }
-       }
-     } else if (arOrderType === 'รับคืนสินค้า') {
-      //  console.log('returnType', returnType)
-       if (returnType == null && returnItems.length > 0 && returnItems[0].value) {
-         try {
-           setReturnType(returnItems[0].value)
-         } catch (error) {
+  useEffect(() => {
+    if (
+      arOrderType === 'รับคืนสินค้า' &&
+      returnType == null &&
+      returnItems.length > 0 &&
+      returnItems[0]?.value != null
+    ) {
+      setReturnType(returnItems[0].value);
+    }
+  }, [arOrderType, returnItems, returnType, setReturnType]);
 
-         }
-       }
-     }
-
-    console.log('orderProductSummaryProcessed', orderProductSummaryProcessed);
+  console.log('orderProductSummaryProcessed', orderProductSummaryProcessed);
 
   return (
     <View style={{flex: 1}}>

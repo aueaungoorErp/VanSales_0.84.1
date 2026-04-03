@@ -117,6 +117,80 @@ class CTPaymentForm extends Component {
      this._getRemainOtipn_Over();
   }
 
+  _getResolvedOrderAmount = () => {
+    const candidates = [
+      this.props.processResult?.DOCINFO?.DI_AMOUNT,
+      this.props.order?.headerProcessed?.VDI_AF_DISC,
+      this.props.order?.orderProductSummary?.totalPrice,
+      this.props.order?.header?.VDI_AF_DISC,
+    ];
+
+    for (const candidate of candidates) {
+      const amount = parseFloat(candidate);
+      if (Number.isFinite(amount) && amount > 0) {
+        return amount;
+      }
+    }
+
+    return 0;
+  };
+
+  _getCurrentPayin = (state = this.state) => {
+    const paymentTypes = state?.groupofpaymentType || new Set();
+
+    return (paymentTypes.has('cash') ? Number(state?.cashin || 0) : 0) +
+      (paymentTypes.has('transfer') ? Number(state?.paymentTransfer?.tranFerin || 0) : 0) +
+      (paymentTypes.has('qrcode') ? Number(state?.qrin || 0) : 0) +
+      (paymentTypes.has('cheque') ? Number(state?.paymentCheque?.chequein || 0) : 0) +
+      (paymentTypes.has('other') ? Number(state?.otherin || 0) : 0);
+  };
+
+  _isPaymentAmountErrorMessage = (message) => {
+    if (typeof message !== 'string') {
+      return false;
+    }
+
+    return message.includes('ยอดชำระยังไม่ครบ') || message.includes('ไม่สามารถชำระเกินยอดเงินทั้งหมด');
+  };
+
+  _syncPaymentAmountError = () => {
+    if (!this._isPaymentAmountErrorMessage(this.state.errorMessage)) {
+      return;
+    }
+
+    const totalPrice = this._getResolvedOrderAmount();
+    const payin = this._getCurrentPayin();
+    const minimumAmount = Number(totalPrice) - Number(this.state.differBy || 0);
+    const maximumAmount = Number(totalPrice) + Number(this.state.differBy || 0);
+
+    if (Number(payin) >= minimumAmount && Number(payin) <= maximumAmount) {
+      this.setState({ errorMessage: null });
+    }
+  };
+
+  componentDidUpdate(prevProps, prevState) {
+    const previousAmount = this._getCurrentPayin(prevState);
+    const currentAmount = this._getCurrentPayin(this.state);
+    const previousTypes = Array.from(prevState.groupofpaymentType || []).sort().join('|');
+    const currentTypes = Array.from(this.state.groupofpaymentType || []).sort().join('|');
+    const previousTotal = [
+      prevProps.processResult?.DOCINFO?.DI_AMOUNT,
+      prevProps.order?.headerProcessed?.VDI_AF_DISC,
+      prevProps.order?.orderProductSummary?.totalPrice,
+      prevProps.order?.header?.VDI_AF_DISC,
+    ].map(value => parseFloat(value)).find(value => Number.isFinite(value) && value > 0) || 0;
+    const currentTotal = this._getResolvedOrderAmount();
+
+    if (
+      previousAmount !== currentAmount ||
+      previousTypes !== currentTypes ||
+      prevState.differBy !== this.state.differBy ||
+      previousTotal !== currentTotal
+    ) {
+      this._syncPaymentAmountError();
+    }
+  }
+
 //   componentDidMount() {
 //      this._getRemainOtipn_Under();
 //      this._getRemainOtipn_Over();
@@ -756,10 +830,7 @@ class CTPaymentForm extends Component {
 
 
   _onPress = async (item) => {
-
-    const totalPrice = (this.props.order.header.VDI_AF_DISC !== null && this.props.order.header.VDI_AF_DISC !== undefined && !Number.isNaN(this.props.order.header.VDI_AF_DISC))
-      ? this.props.order.header.VDI_AF_DISC
-      : 0;
+    const totalPrice = this._getResolvedOrderAmount();
 
 
     this._setState('errorMessage', '');
@@ -793,27 +864,27 @@ class CTPaymentForm extends Component {
 
           if (this.state.remainoptiontItem === null) {
             if (
-              Number(payin) > Number(this.props.order.header.VDI_AF_DISC) &&
-              Number(this.props.order.header.VDI_AF_DISC - payin) <= Number(this.state.differBy)
+              Number(payin) > Number(totalPrice) &&
+              Number(totalPrice - payin) <= Number(this.state.differBy)
 
             ) {
               await this._setState('reMainOption1', this.state.reMainOption_Over);
-              await this._setState('differValue', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
+              await this._setState('differValue', (Number(payin - totalPrice).toFixed(2)));
               if (this.state.remainConfirm == false) {
                 await this._setState('isDialogOpen', true);
                 return false;
               }
             } else if (
-              Number(payin) < Number(this.props.order.header.VDI_AF_DISC) &&
-              Number(this.state.differBy) >= Number(this.props.order.header.VDI_AF_DISC - payin)
+              Number(payin) < Number(totalPrice) &&
+              Number(this.state.differBy) >= Number(totalPrice - payin)
             ) {
               await this._setState('reMainOption1', this.state.reMainOption_Under);
-              await this._setState('differValue', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
+              await this._setState('differValue', (Number(payin - totalPrice).toFixed(2)));
               if (this.state.remainConfirm == false) {
                 await this._setState('isDialogOpen', true);
                 return false;
               }
-            } else if (Number(payin) === Number(this.props.order.header.VDI_AF_DISC)) {
+            } else if (Number(payin) === Number(totalPrice)) {
               await this._setState('remainConfirm', false);
               if (this.state.remainConfirm == false) {
                 await this._setState('isDialogOpen', false);
@@ -930,6 +1001,7 @@ class CTPaymentForm extends Component {
 
 
   _validateAll = async (_value) => {
+    const totalPrice = this._getResolvedOrderAmount();
 
       this._setState('errorMessage', '');
 
@@ -986,8 +1058,8 @@ class CTPaymentForm extends Component {
 
     console.log('_orderCash this.state.paymentType ', this.state.paymentType);
     console.log('SUNNNMMM payin', payin);
-    console.log('SUNNNMMM Number(this.props.order.header.VDI_AF_DISC) - this.state.differBy', Number(this.props.order.header.VDI_AF_DISC) - this.state.differBy);
-    console.log('SUNNNMMM VDI_AF_DISC', Number(this.props.order.header.VDI_AF_DISC));
+    console.log('SUNNNMMM totalPrice - differBy', Number(totalPrice) - this.state.differBy);
+    console.log('SUNNNMMM totalPrice', Number(totalPrice));
 
     // if (this.state.groupofpaymentType.has('qrcode')) {
     //   await this._setState('isQRCodeDialogOpen', false);
@@ -996,15 +1068,15 @@ class CTPaymentForm extends Component {
     //   return;
     // }
 
-    if (Number(payin) > Number(this.props.order.header.VDI_AF_DISC) + this.state.differBy) {
+    if (Number(payin) > Number(totalPrice) + this.state.differBy) {
 
-      this._setState('errorMessage', 'ไม่สามารถชำระเกินยอดเงินทั้งหมด ' + (Number(this.props.order.header.VDI_AF_DISC)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' บาท');
+      this._setState('errorMessage', 'ไม่สามารถชำระเกินยอดเงินทั้งหมด ' + (Number(totalPrice)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' บาท');
       setTimeout(() => {
       }, 5000); // หน่วงเวลา 5 วินาที
       return false;
     }
 
-    if (Number(payin) < Number(this.props.order.header.VDI_AF_DISC) - this.state.differBy) {
+    if (Number(payin) < Number(totalPrice) - this.state.differBy) {
       this._setState('errorMessage', 'ยอดชำระยังไม่ครบ กรุณาตรวจสอบ ');
             setTimeout(() => {
       }, 5000); // หน่วงเวลา 5 วินาที
@@ -1012,8 +1084,8 @@ class CTPaymentForm extends Component {
     }
 
     console.log('_remain_option1   ', (Number(payin).toFixed(2)));
-    console.log('_remain_option1   ', (Number(this.props.order.header.VDI_AF_DISC).toFixed(2)));
-    console.log('_remain_option1   ', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
+    console.log('_remain_option1   ', (Number(totalPrice).toFixed(2)));
+    console.log('_remain_option1   ', (Number(payin - totalPrice).toFixed(2)));
 
     // if ( this.state.remainConfirm == false) {
     //   await this._requestQrCode(this.state.qrin ? this.state.qrin.toString() : "0");
@@ -1787,6 +1859,7 @@ class CTPaymentForm extends Component {
 
   _requestQrCode = async (obj) => {
     this._setState('errorMessage', null);
+    const totalPrice = this._getResolvedOrderAmount();
 
     const selectedQrContent = this.state.qrContent?.find(
       item => String(item.QRCT_KEY) === String(this.state.qrContentItem) || String(item.QRCT_CODE) === String(this.state.qrContentItem)
@@ -1824,7 +1897,7 @@ class CTPaymentForm extends Component {
       (this.state.groupofpaymentType.has('other') ? Number(this.state.otherin) : 0);
 
     if (
-      this.state.groupofpaymentType.has('qrcode') && (Number(payin) < Number(this.props.order.header.VDI_AF_DISC) - this.state.differBy)
+      this.state.groupofpaymentType.has('qrcode') && (Number(payin) < Number(totalPrice) - this.state.differBy)
     ) {
       await this._setState('isQRCodeDialogOpen', false);
       this._setState('errorMessage', 'ยอดชำระยังไม่ครบ กรุณาตรวจสอบ ');
@@ -1833,26 +1906,26 @@ class CTPaymentForm extends Component {
 
     if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('qrcode')) {
       if (
-        Number(payin) > Number(this.props.order.header.VDI_AF_DISC) &&
-        Number(this.props.order.header.VDI_AF_DISC - payin) <= Number(this.state.differBy)
+        Number(payin) > Number(totalPrice) &&
+        Number(totalPrice - payin) <= Number(this.state.differBy)
       ) {
         await this._setState('reMainOption1', this.state.reMainOption_Over);
-        await this._setState('differValue', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
+        await this._setState('differValue', (Number(payin - totalPrice).toFixed(2)));
         if (this.state.remainConfirm == false) {
           await this._setState('isDialogOpen', true);
           return;
         }
       } else if (
-        Number(payin) < Number(this.props.order.header.VDI_AF_DISC) &&
-        Number(this.state.differBy) >= Number(this.props.order.header.VDI_AF_DISC - payin)
+        Number(payin) < Number(totalPrice) &&
+        Number(this.state.differBy) >= Number(totalPrice - payin)
       ) {
         await this._setState('reMainOption1', this.state.reMainOption_Under);
-        await this._setState('differValue', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
+        await this._setState('differValue', (Number(payin - totalPrice).toFixed(2)));
         if (this.state.remainConfirm == false) {
           await this._setState('isDialogOpen', true);
           return;
         }
-      } else if (Number(payin) === Number(this.props.order.header.VDI_AF_DISC)) {
+      } else if (Number(payin) === Number(totalPrice)) {
         await this._setState('isDialogOpen', false);
       }
     }
@@ -2431,9 +2504,7 @@ class CTPaymentForm extends Component {
     //  console.log("headerProcessed header26", this.props.order.header);
 
 
-    const totalPrice = (this.props.order.header.VDI_AF_DISC !== null && this.props.order.header.VDI_AF_DISC !== undefined && !Number.isNaN(this.props.order.header.VDI_AF_DISC))
-      ? this.props.order.header.VDI_AF_DISC
-      : 0;
+    const totalPrice = this._getResolvedOrderAmount();
 
     //console.log("headerProcessed header25", totalPrice );
 

@@ -1,48 +1,48 @@
 import React, { Component } from 'react';
 import { Alert, Keyboard, PermissionsAndroid, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Dialog from 'react-native-dialog';
-import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import RNHTMLtoPDF, { generatePDF } from 'react-native-html-to-pdf';
 import { connect } from 'react-redux';
 import {
-    addProduct,
-    addStockImageItem,
-    calculateOrderProductSummary,
-    createQuotation,
-    getProductListItemsFromLastBillByArCode,
-    orderAttachMultipleImages,
-    orderUpdateQuotation,
-    processOrderSale,
-    removeAllProductItems,
-    removeAllStockImageItems,
-    setHeader,
-    setOrderItems,
-    setVDIRemark,
+  addProduct,
+  addStockImageItem,
+  calculateOrderProductSummary,
+  createQuotation,
+  getProductListItemsFromLastBillByArCode,
+  orderAttachMultipleImages,
+  orderUpdateQuotation,
+  processOrderSale,
+  removeAllProductItems,
+  removeAllStockImageItems,
+  setHeader,
+  setOrderItems,
+  setVDIRemark,
 } from '../../../../action/order';
 import { setInitialState as setProductInitialState } from '../../../../action/product';
 import { systemCheck } from '../../../../action/setting';
 import { serverReady } from '../../../../api/setting';
 import {
-    checkStockButtonGroup,
-    checkStockImageButtonGroup,
-    checkStockSummaryButtonGroup,
-    checkStockTopButtonGroup,
-    MainTheme,
+  checkStockButtonGroup,
+  checkStockImageButtonGroup,
+  checkStockSummaryButtonGroup,
+  checkStockTopButtonGroup,
+  MainTheme,
 } from '../../../../constant/lov';
 import { printReceipt2 } from '../../../../constant/printing-pdf-lov';
 import { BluetoothFinder, BplusPrinting } from '../../../../module';
 import Navigator from '../../../../services/Navigator';
 import {
-    convertProductItemToOrderItem,
-    genenrateMultipleAttachImageToServer,
-    genenrateOrderForCreateToServer,
-    genenrateOrderForProcessToServer,
-    genenrateOrderForUpdateToServer,
-    generateHeader,
+  convertProductItemToOrderItem,
+  genenrateMultipleAttachImageToServer,
+  genenrateOrderForCreateToServer,
+  genenrateOrderForProcessToServer,
+  genenrateOrderForUpdateToServer,
+  generateHeader,
 } from '../../../../utils/Order';
 import {
-    getLoginGuID,
-    getSettingConfig,
-    getUserToken,
+  getLoginGuID,
+  getSettingConfig,
+  getUserToken,
 } from '../../../../utils/Token';
 import ButtonGroup from '../presenter/ButtonGroup';
 
@@ -523,6 +523,18 @@ class CTButtonGroup extends Component {
     });
   };
 
+  _generatePDFFile = async (options) => {
+    if (RNHTMLtoPDF && typeof RNHTMLtoPDF.convert === 'function') {
+      return RNHTMLtoPDF.convert(options);
+    }
+
+    if (typeof generatePDF === 'function') {
+      return generatePDF(options);
+    }
+
+    throw new Error('ไม่พบ PDF module ใน runtime กรุณา build แอป Android ใหม่');
+  };
+
   _createQuatation = async () => {
     try {
 
@@ -766,7 +778,7 @@ class CTButtonGroup extends Component {
           base64: true,
         };
         // console.log('options ', JSON.stringify(options));
-        let file = await RNHTMLtoPDF.convert(options);
+        let file = await this._generatePDFFile(options);
 
         // console.log('filePath2: ', file);
         this._pdfAlertDialog(file.filePath);

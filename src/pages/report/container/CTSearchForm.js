@@ -1,21 +1,21 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {Alert, PermissionsAndroid,} from 'react-native';
-import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import moment from 'moment';
-import IDurationDateSearchForm from '../../../component/input/IDurationDateSearchForm';
+import React, { Component } from 'react';
+import { Alert } from 'react-native';
+import RNHTMLtoPDF, { generatePDF } from 'react-native-html-to-pdf';
+import { connect } from 'react-redux';
 import {
-  setInitialState,
   getReportData,
   getReportDataNoGroup,
   getReportV3,
+  setInitialState,
 } from '../../../action/report';
+import { systemCheck } from '../../../action/setting';
+import IDurationDateSearchForm from '../../../component/input/IDurationDateSearchForm';
+import { printReport } from '../../../constant/printing-pdf-lov';
+import { BluetoothFinder, BplusPrinting } from '../../../module';
 import Navigator from '../../../services/Navigator';
-import {BluetoothFinder, BplusPrinting} from '../../../module';
-import {getUserToken, getSettingConfig} from '../../../utils/Token';
-import {systemCheck} from '../../../action/setting';
-import {toBuddhistYear} from '../../../utils/Date';
-import {printReport} from '../../../constant/printing-pdf-lov';
+import { toBuddhistYear } from '../../../utils/Date';
+import { getSettingConfig, getUserToken } from '../../../utils/Token';
 
 class CTSearchForm extends Component {
   _isMounted = false;
@@ -156,6 +156,7 @@ class CTSearchForm extends Component {
         console.log('res 2', JSON.stringify(res));
         console.log('userToken ', JSON.stringify(userToken));
         let printTime = RESPONSE_DATETIME;
+        const reportPrintTime = RESPONSE_DATETIME;
         //let date = toBuddhistYear(printTime[0], '-', 2);
 
         //printTime = printTime[1].split('.');
@@ -218,7 +219,7 @@ class CTSearchForm extends Component {
               SALESMAN,
               dateFrom,
               dateTo,
-              printTime,
+              reportPrintTime,
             );
 
             let options = {
@@ -228,7 +229,7 @@ class CTSearchForm extends Component {
               base64: true,
             };
 // console.log('HTML == >' , html + ' ' + fileName)
-            let file = await RNHTMLtoPDF.convert(options);
+            let file = await this._generatePDFFile(options);
 
             await this._setState('loadingMessage', '');
             await this._setState('isLoading', false);
@@ -261,7 +262,7 @@ class CTSearchForm extends Component {
               SALESMAN,
               dateFrom,
               dateTo,
-              date + ' ' + printTime[0],
+              reportPrintTime,
             );
 
             let options = {
@@ -271,7 +272,7 @@ class CTSearchForm extends Component {
               base64: true,
             };
 
-            let file = await RNHTMLtoPDF.convert(options);
+            let file = await this._generatePDFFile(options);
 
             await this._setState('loadingMessage', '');
             await this._setState('isLoading', false);
@@ -298,7 +299,7 @@ class CTSearchForm extends Component {
               SALESMAN,
               dateFrom,
               dateTo,
-              date + ' ' + printTime[0],
+              reportPrintTime,
             );
 
             let options = {
@@ -308,7 +309,7 @@ class CTSearchForm extends Component {
               base64: true,
             };
 
-            let file = await RNHTMLtoPDF.convert(options);
+            let file = await this._generatePDFFile(options);
 
             await this._setState('loadingMessage', '');
             await this._setState('isLoading', false);
@@ -339,7 +340,7 @@ class CTSearchForm extends Component {
               SALESMAN,
               dateFrom,
               dateTo,
-              date + ' ' + printTime[0],
+              reportPrintTime,
             );
 
             let options = {
@@ -349,7 +350,7 @@ class CTSearchForm extends Component {
               base64: true,
             };
 
-            let file = await RNHTMLtoPDF.convert(options);
+            let file = await this._generatePDFFile(options);
 
             await this._setState('loadingMessage', '');
             await this._setState('isLoading', false);
@@ -396,6 +397,18 @@ class CTSearchForm extends Component {
       {cancelable: false},
     );
 
+  _generatePDFFile = async (options) => {
+    if (RNHTMLtoPDF && typeof RNHTMLtoPDF.convert === 'function') {
+      return RNHTMLtoPDF.convert(options);
+    }
+
+    if (typeof generatePDF === 'function') {
+      return generatePDF(options);
+    }
+
+    throw new Error('ไม่พบ PDF module ใน runtime กรุณา build แอป Android ใหม่');
+  };
+
   _printerReport = async () => {
     try {
       if (this.props.bluetooth.state !== 'connected') {
@@ -426,6 +439,7 @@ class CTSearchForm extends Component {
           const {RESPONSE_DATETIME} = response;
           
           let printTime = RESPONSE_DATETIME;
+         const reportPrintTime = RESPONSE_DATETIME;
           //let date = toBuddhistYear(printTime[0], '-', 2);
 
           //printTime = printTime[1].split('.');
@@ -523,7 +537,7 @@ class CTSearchForm extends Component {
                 userToken.SALESMAN,
                 dateFrom,
                 dateTo,
-                date + ' ' + printTime[0],
+                reportPrintTime,
               );
 
               await this._setState('loadingMessage', '');
@@ -550,7 +564,7 @@ class CTSearchForm extends Component {
                 userToken.SALESMAN,
                 dateFrom,
                 dateTo,
-                date + ' ' + printTime[0],
+                reportPrintTime,
               );
 
               await this._setState('loadingMessage', '');
