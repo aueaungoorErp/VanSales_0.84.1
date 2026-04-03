@@ -152,26 +152,7 @@ const SettingForm = (props) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.heroPanel}>
-        <View>
-          <Text style={styles.panelEyebrow}>VANSALES SYSTEM</Text>
-          <Text style={styles.panelTitle}>ศูนย์กลางการตั้งค่าระบบ</Text>
-          <Text style={styles.panelDescription}>
-            เลือก service ที่ต้องการใช้งานแล้วตรวจสอบสถานะการเชื่อมต่อของหน่วยรถได้ทันที
-          </Text>
-        </View>
-        <View style={[
-          styles.statusBadge,
-          isConnected ? styles.statusBadgeSuccess : styles.statusBadgeIdle,
-        ]}>
-          <Text style={[
-            styles.statusText,
-            isConnected ? styles.statusTextSuccess : styles.statusTextIdle,
-          ]}>
-            {isConnected ? 'เชื่อมต่อแล้ว' : 'รอการเชื่อมต่อ'}
-          </Text>
-        </View>
-      </View>
+     
 
       <View style={styles.sectionCard}>
         <Text style={styles.sectionTitle}>เลือกเว็บเซอร์วิส</Text>
@@ -233,7 +214,7 @@ const SettingForm = (props) => {
         </View>
       </View>
 
-      <View style={styles.sectionCard}>
+      <View style={[styles.sectionCard ]}>
         <Text style={styles.sectionTitle}>รายละเอียดการเชื่อมต่อ</Text>
 
         <View style={styles.summaryGrid}>
@@ -242,20 +223,24 @@ const SettingForm = (props) => {
             <Text style={styles.summaryValue}>{toInputValue(vanCNFMachine) || '-'}</Text>
           </View>
 
+          
+
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>{strings('login_setting.employee')}</Text>
-            <Text style={styles.summaryValue}>{toInputValue(salesMan?.SLMN_NAME) || '-'}</Text>
+            <Text style={styles.summaryLabel}>{strings('login_setting.car_number')}</Text>
+            <Text style={styles.summaryValue}>{toInputValue(vanConfig?.VANCNF_REG_NAME) || '-'}</Text>
           </View>
 
           <View style={styles.summaryItemWide}>
-            <Text style={styles.summaryLabel}>{strings('login_setting.car_number')}</Text>
-            <Text style={styles.summaryValue}>{toInputValue(vanConfig?.VANCNF_REG_NAME) || '-'}</Text>
+            <Text style={styles.summaryLabel}>{strings('login_setting.employee')}</Text>
+            <Text style={styles.summaryValue}>{toInputValue(salesMan?.SLMN_NAME) || '-'}</Text>
           </View>
         </View>
       </View>
 
       <View style={styles.sectionCard}>
         <Text style={styles.sectionTitle}>จัดการการตั้งค่า</Text>
+
+          
 
         <IButtonGroupCustom
           listItems={buttonListItems}
@@ -344,10 +329,11 @@ const styles = StyleSheet.create({
   sectionCard: {
     backgroundColor: MainTheme.colorSecondary,
     borderRadius: 18,
-    padding: 16,
     marginBottom: 14,
     borderWidth: 1,
     borderColor: '#E3E8E4',
+    paddingVertical:16,
+    paddingLeft:8
   },
   sectionTitle: {
     color: MainTheme.colorQuaternary,
@@ -401,7 +387,7 @@ const styles = StyleSheet.create({
     rowGap: 12,
   },
   summaryItem: {
-    width: '48%',
+  width: '48%',
     backgroundColor: '#F6FAF7',
     borderRadius: 14,
     padding: 14,
@@ -432,12 +418,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   editButton: {
+    height: 44,
     backgroundColor: MainTheme.colorSecondary,
-    width: 150,
+   width:100,
     elevation: 0,
-    borderWidth: 1,
+    borderWidth: 0.5,
     borderColor: MainTheme.colorButtonBorder,
-    borderRadius: 12,
+    borderRadius: 8,
+    alignContent: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   editButtonTitle: {
     color: MainTheme.colorPrimary,
@@ -447,16 +437,16 @@ const styles = StyleSheet.create({
 
 const iButtonGroupCustomStyles = StyleSheet.create({
   container: {
-    flex: null,
+    flex: 1,
     flexDirection: 'row',
     paddingVertical: 4,
     justifyContent: 'space-between',
-    gap: 10,
+    gap: 5,
     flexWrap: 'wrap',
   },
   panel: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginTop: 10,
+    flex: 1,
+    justifyContent: 'center',
+    height: 50,
   },
 });

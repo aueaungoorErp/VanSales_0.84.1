@@ -1,7 +1,7 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import MapView, { Callout, Marker } from 'react-native-maps'
-import AntDesign from 'react-native-vector-icons/AntDesign'
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5'
 
 const IMap = (props) => {
 
@@ -10,10 +10,11 @@ const IMap = (props) => {
     const _renderCurrentMarker = (marker, index) => {
         return (
             <Marker key={index} coordinate={marker.coordinate}>
-                <AntDesign
-                    name='user'
+                <FontAwesome5
+                    name='map-marker-alt'
                     color='#517fa4'
-                    size={40} />
+                    size={34}
+                    solid />
                  <Callout style={{width: 100}}>
                     <Text>{marker.title}</Text>
                     <Text>{marker.description}</Text>

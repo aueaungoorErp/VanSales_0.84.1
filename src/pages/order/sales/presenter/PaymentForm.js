@@ -1180,11 +1180,15 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
           <ILoading isLoading={isLoading} />
         </View>
 
+        <View style={{flexDirection: 'row', justifyContent: 'center' , alignItems:'center',}}>
+          
+
         <IButtonGroupCustom
           listItems={buttonListItems}
           renderItem={renderItem}
-          style={iButtonGroupCustomStyles}
+          style={{flexDirection: 'row', justifyContent: 'space-between'}}
         />
+        </View>
 
 
 

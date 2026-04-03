@@ -1,6 +1,6 @@
 ﻿import _, { isNull } from 'lodash';
 import React, { useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, View, TouchableOpacity } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import * as appConfig from '../../../appConfig';
@@ -405,12 +405,7 @@ const ServiceSetting = (props) => {
         style={styles.form}
         contentContainerStyle={styles.formContent}
         showsVerticalScrollIndicator={false}>
-        <View style={styles.heroCard}>
-          <Text style={styles.heroTitle}>ตั้งค่าการเชื่อมต่อหน่วยรถ</Text>
-          <Text style={styles.heroText}>
-            กรอก URL, หน่วยรถ และข้อมูลผู้ใช้ให้ครบถ้วนก่อนบันทึก ระบบจะใช้ค่าเริ่มต้นจาก API_ENDPOINT_V3 ให้อัตโนมัติ
-          </Text>
-        </View>
+      
 
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>ข้อมูลเซอร์วิส</Text>
@@ -522,21 +517,21 @@ const ServiceSetting = (props) => {
         </View>
 
         <View style={iButtonGroupCustomStyles.container}>
-          <TouchableOpacity style={[styles.primaryButton, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {
+          <TouchableOpacity style={[styles.primaryButton, {justifyContent: "center", alignItems: "center",}]} onPress={() => {
               mode === 'add' ? _onSave() : _onEdit();
             }} activeOpacity={0.7}>
               <Text style={{ color: MainTheme.colorSecondary, fontSize: hp('1.7%') }}>{`บันทึกและเชื่อมต่อ`}</Text>
             </TouchableOpacity>
 
           {mode === 'add' && (
-            <TouchableOpacity style={[styles.secondaryButton, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {
+            <TouchableOpacity style={[styles.secondaryButton, {justifyContent: "center", alignItems: "center",}]} onPress={() => {
                 _onReset();
               }} activeOpacity={0.7}>
               <Text style={{ color: MainTheme.colorPrimary, fontSize: hp('1.7%') }}>{`ล้าง`}</Text>
             </TouchableOpacity>
           )}
           {mode === 'edit' && (
-            <TouchableOpacity style={[styles.secondaryButton, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {
+            <TouchableOpacity style={[styles.secondaryButton, {justifyContent: "center", alignItems: "center", paddingVertical: 1, paddingHorizontal: 16}]} onPress={() => {
                 _onDelete();
               }} activeOpacity={0.7}>
               <Text style={{ color: MainTheme.colorPrimary, fontSize: hp('1.7%') }}>{`ลบ`}</Text>
@@ -674,10 +669,10 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: MainTheme.colorPrimary,
-    width: 150,
     elevation: 0,
     borderColor: MainTheme.colorPrimary,
     borderRadius: 12,
+    paddingHorizontal:6
   },
   secondaryButton: {
     backgroundColor: MainTheme.colorSecondary,
@@ -695,8 +690,6 @@ const iButtonGroupCustomStyles = StyleSheet.create({
     flexDirection: 'row',
     paddingVertical: 5,
     justifyContent: 'space-evenly',
-    marginTop: 4,
-    flexWrap: 'wrap',
     rowGap: 10,
   },
   panel: {

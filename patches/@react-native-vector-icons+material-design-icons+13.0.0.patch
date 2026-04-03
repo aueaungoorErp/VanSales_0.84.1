@@ -1,0 +1,28 @@
+diff --git a/node_modules/@react-native-vector-icons/material-design-icons/android/build.gradle b/node_modules/@react-native-vector-icons/material-design-icons/android/build.gradle
+index 568a14d..d6b2c0d 100644
+--- a/node_modules/@react-native-vector-icons/material-design-icons/android/build.gradle
++++ b/node_modules/@react-native-vector-icons/material-design-icons/android/build.gradle
+@@ -2,7 +2,7 @@
+ // If you're contributing to react-native-vector-icons, make the change there, otherwise it'll be lost
+ 
+ def isNewArchitectureEnabled() {
+-  return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
++  return false
+ }
+ 
+ def safeExtGet(prop, fallback) {
+@@ -48,14 +48,6 @@ dependencies {
+   implementation "com.facebook.react:react-native:+"
+ }
+ 
+-if (isNewArchitectureEnabled()) {
+-  react {
+-    jsRootDir = file("../src/")
+-    libraryName = "VectorIconsMaterialDesignIcons"
+-    codegenJavaPackageName = "com.reactnativevectoricons.material_design_icons"
+-  }
+-}
+-
+ android.sourceSets.main.assets.srcDirs += file("$buildDir/intermediates/RNVI-material-design-icons")
+ 
+ task copyFonts(type: Copy) {

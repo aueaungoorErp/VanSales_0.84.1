@@ -259,6 +259,8 @@ class Form extends Component {
       canLogin: false,
     });
 
+    
+
     if (!finalBaseUrl) {
       console.log('service1 invalid =', service1);
       console.log('listServiceSettings =', list);

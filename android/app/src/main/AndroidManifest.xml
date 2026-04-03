@@ -27,17 +27,9 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:theme="@style/AppTheme"
-      android:usesCleartextTraffic="${usesCleartextTraffic}"
-      android:supportsRtl="true">
-            <provider
-                android:name="cl.json.RNShareFileProvider"
-                android:authorities="${applicationId}.rnshare.fileprovider"
-                android:exported="false"
-                android:grantUriPermissions="true">
-                <meta-data
-                    android:name="android.support.FILE_PROVIDER_PATHS"
-                    android:resource="@xml/provider_paths" />
-            </provider>
+      android:usesCleartextTraffic="true"
+      android:supportsRtl="true"
+       android:exported="true">
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
