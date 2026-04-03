@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import { Alert, Keyboard, PermissionsAndroid, Platform, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Alert, Keyboard, PermissionsAndroid, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Dialog from 'react-native-dialog';
-import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import RNHTMLtoPDF, { generatePDF } from 'react-native-html-to-pdf';
 import { connect } from 'react-redux';
 import {
   addProduct,
@@ -120,10 +120,6 @@ class CTButtonGroup extends Component {
   _setButtonGroup = () => {
     const { routes, index } = Navigator.getCurrentRoute();
     const routeName = routes[index]?.name || routes[index]?.routeName;
-    console.log('routeName >> ', routeName)
-    console.log('this.props.position >> ', this.props.position)
-
-
 
     if (routeName === 'OrderCheckStock')
       this.props.position === 'top'
@@ -133,9 +129,6 @@ class CTButtonGroup extends Component {
       this._listItems = checkStockSummaryButtonGroup;
     else if (routeName === 'OrderCheckStockImageItems')
       this._listItems = checkStockImageButtonGroup;
-
-
-    console.log('this._listItems >> 1 ', this._listItems)
 
   };
 
@@ -189,8 +182,6 @@ class CTButtonGroup extends Component {
       elevation: 0,
     };
 
-
-    console.log("this.props.screen === 'Summary'", this.props.screen);
 
     const disabled =
       this.props.order.productListItems.length <= 0 && item.methodName === 'confirm'
@@ -532,6 +523,18 @@ class CTButtonGroup extends Component {
     });
   };
 
+  _generatePDFFile = async (options) => {
+    if (RNHTMLtoPDF && typeof RNHTMLtoPDF.convert === 'function') {
+      return RNHTMLtoPDF.convert(options);
+    }
+
+    if (typeof generatePDF === 'function') {
+      return generatePDF(options);
+    }
+
+    throw new Error('ไม่พบ PDF module ใน runtime กรุณา build แอป Android ใหม่');
+  };
+
   _createQuatation = async () => {
     try {
 
@@ -775,7 +778,7 @@ class CTButtonGroup extends Component {
           base64: true,
         };
         // console.log('options ', JSON.stringify(options));
-        let file = await RNHTMLtoPDF.convert(options);
+        let file = await this._generatePDFFile(options);
 
         // console.log('filePath2: ', file);
         this._pdfAlertDialog(file.filePath);
@@ -821,10 +824,7 @@ class CTButtonGroup extends Component {
     });
   };
   render() {
-    console.log('this._listItems >> ', this._listItems)
     //  console.log('routeName >> ', routeName)
-    console.log('this.props.position >> ', this.props.position)
-
 
     return (
       <View>

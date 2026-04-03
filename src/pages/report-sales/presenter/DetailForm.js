@@ -26,7 +26,7 @@ const Detail = (props) => {
       <View style={styles.summaryHeaderCard}>
        
         <View style={styles.summaryHeaderCopy}>
-          <Text style={styles.title} allowFontScaling={false}>แสดงยอดขายเดือนปี</Text>
+          <Text style={styles.title} allowFontScaling={false}>แสดงยอดขายเดือน</Text>
         </View>
       </View>
 

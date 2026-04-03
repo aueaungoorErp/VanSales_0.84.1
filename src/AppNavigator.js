@@ -37,7 +37,6 @@ function LoginNavigator() {
       <LoginStack.Screen
         name="Login"
         component={require('./pages/login/screen/Index').default}
-        initialParams={{ title: 'เข้าสู่ระบบ' }}
       />
       <LoginStack.Screen
         name="LoginSetting"

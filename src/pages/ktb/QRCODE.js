@@ -228,8 +228,15 @@ const theme = {
   },
 };
 
+const MOCK_QRCODE_DATA = '00020101021153037645802TH29370016A0000006770101110213110400008173763049875';
+
 const QRCODE = props => {
-  const {accessToken, data, totalPrice, qrcodeVaule} = props.route.params;
+  const params = props.route?.params || {};
+  const accessToken = params.accessToken || null;
+  const data = params.data || null;
+  const totalPrice = params.totalPrice || null;
+  const qrcodeVaule = params.qrcodeVaule || MOCK_QRCODE_DATA;
+  const isMock = !params.qrcodeVaule;
 
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [status, setPaymentStatus] = useState(null);
@@ -237,6 +244,13 @@ const QRCODE = props => {
 
   const timerRef = useRef(null);
   const hasStartedRef = useRef(false);
+  const postinvoiceRef = useRef(props.postinvoice);
+  const getPaymentStatusRef = useRef(props.getPaymentStatus);
+
+  useEffect(() => {
+    postinvoiceRef.current = props.postinvoice;
+    getPaymentStatusRef.current = props.getPaymentStatus;
+  });
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
@@ -272,73 +286,88 @@ const QRCODE = props => {
 
   const resetAll = useCallback(() => {
     setPaymentStatus(null);
+    setMessageError(null);
     resetTimer();
   }, [resetTimer]);
 
   const postInvoice = useCallback(async () => {
-    const postinvoiceResult = await props.postinvoice(data, accessToken);
-    const {txnStatusCode, message} = postinvoiceResult;
+    if (!data || !accessToken) return;
+    try {
+      const postinvoiceResult = await postinvoiceRef.current(data, accessToken);
+      const {txnStatusCode, message} = postinvoiceResult;
 
-    console.log('postinvoice ', JSON.stringify(postinvoiceResult));
+      console.log('postinvoice ', JSON.stringify(postinvoiceResult));
 
-    if (txnStatusCode === 200) {
+      if (txnStatusCode === 200) {
+        const getPaymentStatusData = {
+          dscfTxnId: data.dscfTxnId,
+        };
+
+        const result = await getPaymentStatusRef.current(
+          getPaymentStatusData,
+          accessToken,
+        );
+
+        const {txnStatusCode: paymentTxnStatusCode, paymentStatus} = result;
+
+        if (paymentTxnStatusCode === 200 && paymentStatus) {
+          if (paymentStatus === 'Pending') {
+            setPaymentStatus(paymentStatus);
+          }
+        }
+      } else if (txnStatusCode === 400) {
+        const err = JSON.parse(message);
+        setMessageError(err.description);
+      }
+    } catch (e) {
+      console.warn('postInvoice error:', e);
+      setMessageError(e.message || 'Network error');
+    }
+  }, [data, accessToken]);
+
+  const payment = useCallback(async () => {
+    if (!data || !accessToken) return;
+    try {
       const getPaymentStatusData = {
         dscfTxnId: data.dscfTxnId,
       };
 
-      const result = await props.getPaymentStatus(
+      const result = await getPaymentStatusRef.current(
         getPaymentStatusData,
         accessToken,
       );
 
-      const {txnStatusCode: paymentTxnStatusCode, paymentStatus} = result;
+      const {txnStatusCode, paymentStatus} = result;
 
-      if (paymentTxnStatusCode === 200 && paymentStatus) {
+      if (txnStatusCode === 200) {
         if (paymentStatus === 'Pending') {
           setPaymentStatus(paymentStatus);
+        } else if (paymentStatus === 'Paid') {
+          setPaymentStatus(paymentStatus);
+          Navigator.navigate('OrderSalesSummary', {
+            actionType: 'orderProductSummaryProcessed',
+            printType: 'cash',
+          });
+          resetAll();
         }
       }
-    } else if (txnStatusCode === 400) {
-      const err = JSON.parse(message);
-      setMessageError(err.description);
+    } catch (e) {
+      console.warn('payment error:', e);
     }
-  }, [props, data, accessToken]);
+  }, [data, accessToken, resetAll]);
 
-  const payment = useCallback(async () => {
-    const getPaymentStatusData = {
-      dscfTxnId: data.dscfTxnId,
-    };
-
-    const result = await props.getPaymentStatus(
-      getPaymentStatusData,
-      accessToken,
-    );
-
-    const {txnStatusCode, paymentStatus} = result;
-
-    if (txnStatusCode === 200) {
-      if (paymentStatus === 'Pending') {
-        setPaymentStatus(paymentStatus);
-      } else if (paymentStatus === 'Paid') {
-        setPaymentStatus(paymentStatus);
-        Navigator.navigate('OrderSalesSummary', {
-          actionType: 'orderProductSummaryProcessed',
-          printType: 'cash',
-        });
-        resetAll();
-      }
-    }
-  }, [props, data, accessToken, resetAll]);
-
+  // Mount effect — run once
   useEffect(() => {
-    resetAll();
     startTimer();
-    postInvoice();
+    if (!isMock) {
+      postInvoice();
+    }
 
     return () => {
       clearTimer();
     };
-  }, [resetAll, startTimer, postInvoice, clearTimer]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const backAction = () => {

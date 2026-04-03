@@ -37,7 +37,10 @@ const ButtonGroup = (props) => {
 
     return (
         <View style={styles.footerWrap}>
+            <View style={{ height:50}}>
+
             <IButtonGroupCustom listItems={listItems} renderItem={renderItem} style={iButtonGroupCustomStyles} />
+            </View>
 
             <ProgressDialog
                 visible={loadingMessage !== null && loadingMessage !== ''}
@@ -139,10 +142,5 @@ const styles = StyleSheet.create({
 })
 
 const iButtonGroupCustomStyles = StyleSheet.create({
-    container: {
-        flex: null,
-        minHeight: 60,
-        flexDirection: 'row',
-        justifyContent: 'space-between'
-    }
+   
 })

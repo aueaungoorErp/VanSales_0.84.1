@@ -20,6 +20,18 @@ class CTSearchForm extends Component {
   _firstTime = true;
   _scanBarcodeEnabled = true;
 
+  _getScanKeyword = (scanResult) => {
+    const candidates = [
+      scanResult?.data,
+      ...(Array.isArray(scanResult?.alternates) ? scanResult.alternates : []),
+      scanResult?.originalData,
+    ]
+      .map((value) => (value === null || value === undefined ? '' : String(value).trim()))
+      .filter(Boolean);
+
+    return candidates[0] || null;
+  };
+
   constructor(props) {
     super(props);
 
@@ -140,7 +152,8 @@ class CTSearchForm extends Component {
       barcodeFinderVisible: true,
       onBarCodeRead: async (scanResult) => {
         if (this._scanBarcodeEnabled) {
-          await this._setTextSearch(scanResult.data);
+          const scanKeyword = this._getScanKeyword(scanResult);
+          await this._setTextSearch(scanKeyword);
           this._scanBarcodeEnabled = false;
 
           setTimeout(async () => {

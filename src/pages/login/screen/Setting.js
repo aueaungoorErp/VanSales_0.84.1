@@ -29,7 +29,7 @@ const Setting = (props) => {
         <View style={styles.titleSection}>
           <AntDesign
             name="setting"
-            color={MainTheme.colorSecondary}
+            color={MainTheme.colorQuaternary}
             size={30}
           />
 
@@ -40,12 +40,7 @@ const Setting = (props) => {
           </Text>
         </View>
 
-        <View style={styles.heroCard}>
-          <Text style={styles.heroHeading}>ตั้งค่าการเชื่อมต่อระบบ</Text>
-          <Text style={styles.heroDescription}>
-            เลือกเว็บเซอร์วิส ตรวจสอบการเชื่อมต่อ และทบทวนข้อมูลหน่วยรถได้จากหน้าจอนี้
-          </Text>
-        </View>
+      
       </View>
 
       <ScrollView

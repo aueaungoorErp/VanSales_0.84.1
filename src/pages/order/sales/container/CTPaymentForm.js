@@ -117,6 +117,80 @@ class CTPaymentForm extends Component {
      this._getRemainOtipn_Over();
   }
 
+  _getResolvedOrderAmount = () => {
+    const candidates = [
+      this.props.processResult?.DOCINFO?.DI_AMOUNT,
+      this.props.order?.headerProcessed?.VDI_AF_DISC,
+      this.props.order?.orderProductSummary?.totalPrice,
+      this.props.order?.header?.VDI_AF_DISC,
+    ];
+
+    for (const candidate of candidates) {
+      const amount = parseFloat(candidate);
+      if (Number.isFinite(amount) && amount > 0) {
+        return amount;
+      }
+    }
+
+    return 0;
+  };
+
+  _getCurrentPayin = (state = this.state) => {
+    const paymentTypes = state?.groupofpaymentType || new Set();
+
+    return (paymentTypes.has('cash') ? Number(state?.cashin || 0) : 0) +
+      (paymentTypes.has('transfer') ? Number(state?.paymentTransfer?.tranFerin || 0) : 0) +
+      (paymentTypes.has('qrcode') ? Number(state?.qrin || 0) : 0) +
+      (paymentTypes.has('cheque') ? Number(state?.paymentCheque?.chequein || 0) : 0) +
+      (paymentTypes.has('other') ? Number(state?.otherin || 0) : 0);
+  };
+
+  _isPaymentAmountErrorMessage = (message) => {
+    if (typeof message !== 'string') {
+      return false;
+    }
+
+    return message.includes('ยอดชำระยังไม่ครบ') || message.includes('ไม่สามารถชำระเกินยอดเงินทั้งหมด');
+  };
+
+  _syncPaymentAmountError = () => {
+    if (!this._isPaymentAmountErrorMessage(this.state.errorMessage)) {
+      return;
+    }
+
+    const totalPrice = this._getResolvedOrderAmount();
+    const payin = this._getCurrentPayin();
+    const minimumAmount = Number(totalPrice) - Number(this.state.differBy || 0);
+    const maximumAmount = Number(totalPrice) + Number(this.state.differBy || 0);
+
+    if (Number(payin) >= minimumAmount && Number(payin) <= maximumAmount) {
+      this.setState({ errorMessage: null });
+    }
+  };
+
+  componentDidUpdate(prevProps, prevState) {
+    const previousAmount = this._getCurrentPayin(prevState);
+    const currentAmount = this._getCurrentPayin(this.state);
+    const previousTypes = Array.from(prevState.groupofpaymentType || []).sort().join('|');
+    const currentTypes = Array.from(this.state.groupofpaymentType || []).sort().join('|');
+    const previousTotal = [
+      prevProps.processResult?.DOCINFO?.DI_AMOUNT,
+      prevProps.order?.headerProcessed?.VDI_AF_DISC,
+      prevProps.order?.orderProductSummary?.totalPrice,
+      prevProps.order?.header?.VDI_AF_DISC,
+    ].map(value => parseFloat(value)).find(value => Number.isFinite(value) && value > 0) || 0;
+    const currentTotal = this._getResolvedOrderAmount();
+
+    if (
+      previousAmount !== currentAmount ||
+      previousTypes !== currentTypes ||
+      prevState.differBy !== this.state.differBy ||
+      previousTotal !== currentTotal
+    ) {
+      this._syncPaymentAmountError();
+    }
+  }
+
 //   componentDidMount() {
 //      this._getRemainOtipn_Under();
 //      this._getRemainOtipn_Over();
@@ -220,7 +294,6 @@ class CTPaymentForm extends Component {
 
   _getQRContent = async () => {
     //24.หาประเภท QR Code (Bk000620)
-    console.log('_getQRContent');
     const LoginGUID = await getLoginGuID();
     let dataObj2 = {
       'BPAPUS-BPAPSV': BPAPUS_BPAPSV,
@@ -232,16 +305,18 @@ class CTPaymentForm extends Component {
       'BPAPUS-OFFSET': '0',
       'BPAPUS-FETCH': '0',
     };
-    console.log('qrContent dataObj2 >>>', dataObj2);
-
     await lookupErpV3Api(dataObj2)
       .then(async (v) => {
         const { ResponseData, ResponseCode, ReasonString } = v.data;
-        console.log('qrContent v.data >>>', ResponseData);
 
         if (ResponseCode == 200) {
           let responseData = JSON.parse(ResponseData);
-          const result = await this._setState('qrContent', Object.values(responseData.Bk000620));
+          const qrContentItems = Object.values(responseData.Bk000620);
+          await this._setState('qrContent', qrContentItems);
+          if (!this.state.qrContentItem && qrContentItems.length > 0) {
+            await this._setState('qrContentItem', qrContentItems[0].QRCT_KEY);
+            await this._setState('qrContentName', qrContentItems[0].QRCT_NAME || '');
+          }
           //     console.log("Bk000620" , result); // Log the result to see if it's null or has any issues
           //     console.log("Bk000620" , Object.values(responseData.Bk000620)); // Log the result to see if it's null or has any issues
           //  this.state.qrContent = Object.values(responseData.Bk000620);
@@ -401,32 +476,26 @@ class CTPaymentForm extends Component {
   // };
 
   _setPaymentType = async (value) => {
+    const nextPaymentTypes = new Set(this.state.groupofpaymentType);
 
-    console.log('Bazzz>', value);
-    await this._setState('paymentType', value);
-    console.log('Bazzz>', value + " " + this.state.groupofpaymentType.has(value));
-
-    if (!this.state.groupofpaymentType.has(value)) {
-      this.state.groupofpaymentType.add(value);
+    if (nextPaymentTypes.has(value)) {
+      nextPaymentTypes.delete(value);
     } else {
-      this.state.groupofpaymentType.delete(value);
+      nextPaymentTypes.add(value);
     }
 
-
-    if (value === "transfer") {
-      this.state.groupofpaymentType.delete("qrcode");
-      // this._setState('item2', false);
-      // this._setState('item3', false);
-
+    if (value === 'transfer') {
+      nextPaymentTypes.delete('qrcode');
     }
 
-    if (value === "qrcode") {
-      this.state.groupofpaymentType.delete("transfer");
-      // this._setState('item2', false);
-      // this._setState('item3', false);
+    if (value === 'qrcode') {
+      nextPaymentTypes.delete('transfer');
     }
 
-    console.log('Bazzz groupofpaymentType>', this.state.groupofpaymentType);
+    await this.setState({
+      paymentType: nextPaymentTypes.has(value) ? value : null,
+      groupofpaymentType: nextPaymentTypes,
+    });
 
     // this.state.paymentType === 'cheque'
     //   ? this._setEnabledPaymentCheque()
@@ -439,72 +508,155 @@ class CTPaymentForm extends Component {
     //   : this._setDisabledPaymentTransfer();
   };
 
+  _getReadableErrorMessage = (error, fallbackMessage) => {
+    if (!error) {
+      return fallbackMessage;
+    }
+
+    if (typeof error === 'string') {
+      return error;
+    }
+
+    if (typeof error?.message === 'string' && error.message.trim()) {
+      return error.message.trim();
+    }
+
+    if (typeof error?.errorMessage === 'string' && error.errorMessage.trim()) {
+      return error.errorMessage.trim();
+    }
+
+    return fallbackMessage;
+  };
+
+  _getCustomerTaxId = () => {
+    const customerItem = this.props.customer?.item || {};
+    const candidates = [
+      customerItem.INFO?.ADDB_TAX_ID,
+      customerItem.INFO?.TAXID,
+      customerItem.CUS_ADDB?.ADDB_TAX_ID,
+      customerItem.CUS_ADDB?.TAXID,
+      customerItem.TEMP_CUS?.ADDB_TAX_ID,
+      customerItem.TEMP_CUS?.TAXID,
+    ]
+      .map(value => String(value || '').trim())
+      .filter(Boolean);
+
+    return candidates.find(value => /\d{13}/.test(value)) || candidates[0] || null;
+  };
+
+  _logMissingCustomerTaxId = () => {
+    const customerItem = this.props.customer?.item || {};
+    console.log('_getCustomerTaxId missing', {
+      infoAddbTaxId: customerItem.INFO?.ADDB_TAX_ID || null,
+      infoTaxId: customerItem.INFO?.TAXID || null,
+      cusAddbTaxId: customerItem.CUS_ADDB?.ADDB_TAX_ID || null,
+      cusAddbTaxIdAlt: customerItem.CUS_ADDB?.TAXID || null,
+      tempCusTaxId: customerItem.TEMP_CUS?.TAXID || null,
+      tempCusAddbTaxId: customerItem.TEMP_CUS?.ADDB_TAX_ID || null,
+    });
+  };
+
+  _prepareKtbSession = async ({ showError = false, setQrRefer = false } = {}) => {
+    const customerTaxId = this._getCustomerTaxId();
+
+    if (!customerTaxId) {
+      this._logMissingCustomerTaxId();
+      const errorMessage = 'ไม่พบ ADDB_TAX_ID';
+      if (showError) {
+        this._setState('errorMessage', errorMessage);
+      }
+      return { ok: false, errorMessage };
+    }
+
+    if (this.state.accessToken && this.state.dscfTxnId) {
+      if (setQrRefer) {
+        await this.props.setHeaderProcessedVdiQRRefer(this.state.dscfTxnId);
+      }
+      return { ok: true, accessToken: this.state.accessToken, dscfTxnId: this.state.dscfTxnId };
+    }
+
+    const auth = await this.props.auth();
+    const { txnStatusCode, message, result } = auth || {};
+
+    if (txnStatusCode !== 200 || !result?.accessToken) {
+      const errorMessage = this._getReadableErrorMessage(message, 'ไม่สามารถเชื่อมต่อ KTB ได้');
+      if (showError) {
+        this._setState('errorMessage', errorMessage);
+      }
+      return { ok: false, errorMessage };
+    }
+
+    const accessToken = result.accessToken;
+    await this._setState('accessToken', accessToken);
+
+    const subscription = await this.props.subscription(
+      {
+        dealerTaxId: customerTaxId,
+        sponsorTaxId: '9100990000161',
+      },
+      accessToken,
+    );
+
+    const dscfTxnId = subscription?.result?.dscfTxnId || null;
+    await this._setState('dscfTxnId', dscfTxnId);
+
+    if (!dscfTxnId) {
+      const errorMessage = 'ลูกค้าไม่ได้เป็นสมาชิก';
+      if (showError) {
+        this._setState('errorMessage', errorMessage);
+      }
+      return { ok: false, errorMessage };
+    }
+
+    if (setQrRefer) {
+      await this.props.setHeaderProcessedVdiQRRefer(dscfTxnId);
+    }
+
+    return { ok: true, accessToken, dscfTxnId };
+  };
+
+  _tryKtbQrFallback = async () => {
+    const prepared = await this._prepareKtbSession({ setQrRefer: true });
+
+    if (!prepared.ok) {
+      console.log('_tryKtbQrFallback unavailable', prepared.errorMessage);
+      return false;
+    }
+
+    console.log('_tryKtbQrFallback prepared', prepared.dscfTxnId);
+    await this._qrcodeKTB();
+    return true;
+  };
+
   _checkKTBMember = async () => {
     this._setState('isLoading', true);
     this._setState('errorMessage', null);
     this._setState('successMessage', null);
     this._setState('buttonDisabled', true);
 
-    const auth = await this.props.auth();
-    const { txnStatusCode, message, result } = auth;
+    const prepared = await this._prepareKtbSession({
+      showError: this.state.paymentType === 'ktb',
+      setQrRefer: this.state.paymentType === 'ktb',
+    });
 
-    if (txnStatusCode === 200 && result) {
-      const { accessToken } = auth.result;
-      if (accessToken) {
-        this._setState('accessToken', accessToken);
-        const { ADDB_TAX_ID } = this.props.customer.item.INFO;
-        if (!ADDB_TAX_ID) {
-          if (this.state.paymentType === 'ktb') {
-            this._setState('errorMessage', 'ไม่พบ ADDB_TAX_ID');
-            this._setState('buttonDisabled', false);
-          }
-          this._setState('isLoading', false);
-          return false;
-        }
-
-        const data = {
-          dealerTaxId: ADDB_TAX_ID,
-          // sponsorTaxId: this.state.userToken.COMPANYINFO.CMPNY_REG_NO,
-          sponsorTaxId: '9100990000161',
-        };
-
-        const subscription = await this.props.subscription(data, accessToken);
-
-        const { dscfTxnId } = subscription.result;
-        this._setState('dscfTxnId', dscfTxnId);
-
-        if (!dscfTxnId && this.state.paymentType === 'ktb') {
-          this._setState('errorMessage', 'ลูกค้าไม่ได้เป็นสมาชิก');
-          this._setState('buttonDisabled', false);
-          this._setState('isLoading', false);
-          return false;
-        }
-
-        if (this.state.paymentType === 'ktb') {
-          await this.props.setHeaderProcessedVdiQRRefer(this.state.dscfTxnId);
-        } else {
-          await this.props.setHeaderProcessedVdiQRRefer(null);
-        }
-
-        this._setState('errorMessage', null);
-        this._setState('buttonDisabled', false);
-        this._setState('isLoading', false);
-        // เวฟ
-        const setting = await getSettingConfig();
-        if (setting && setting.baseUrl) {
-          Request.setHeaders({
-            vanCNFMachine: setting.vanCNFMachine
-          });
-          Request.setBaseUrl(setting.baseUrl)
-        }
-        // เวฟ
-        await this._orderCash1(null)
-        ;
-      }
-    } else if (txnStatusCode === 400) {
-      this._setState('errorMessage', message);
+    if (prepared.ok) {
+      this._setState('errorMessage', null);
       this._setState('buttonDisabled', false);
       this._setState('isLoading', false);
+      // เวฟ
+      const setting = await getSettingConfig();
+      if (setting && setting.baseUrl) {
+        Request.setHeaders({
+          vanCNFMachine: setting.vanCNFMachine
+        });
+        Request.setBaseUrl(setting.baseUrl)
+      }
+      // เวฟ
+      await this._orderCash1(null);
+    } else if (prepared.errorMessage) {
+      this._setState('buttonDisabled', false);
+      this._setState('isLoading', false);
+      return false;
     } else {
       await this._orderCash1(null)
     }
@@ -520,9 +672,10 @@ class CTPaymentForm extends Component {
     const { RESULT } = RESULT_DATA;
     const { ITEMS } = RESULT;
 
-    const { ADDB_TAX_ID } = this.props.customer.item.INFO;
+    const customerTaxId = this._getCustomerTaxId();
 
-    if (!ADDB_TAX_ID) {
+    if (!customerTaxId) {
+      this._logMissingCustomerTaxId();
       this._setState('errorMessage', 'ไม่พบ ADDB_TAX_ID');
       this._setState('buttonDisabled', false);
       this._setState('isLoading', false);
@@ -621,7 +774,7 @@ class CTPaymentForm extends Component {
               invoiceHdr: {
                 invoiceId: VDI_REF, // (Create-Response.json)
                 outstandingAmount: VDI_AF_DISC, // (Create-Response.json)
-                dealerTaxId: ADDB_TAX_ID, // (Create-Response.json)
+                dealerTaxId: customerTaxId, // (Create-Response.json)
                 invoiceTaxAmount: VDI_AF_DISC_VAT_EXP_VAT,
                 //invoiceAmount: this.props.order.headerProcessed.VDI_AMOUNT,
                 invoiceAmount: VDI_AF_DISC,
@@ -677,10 +830,7 @@ class CTPaymentForm extends Component {
 
 
   _onPress = async (item) => {
-
-    const totalPrice = (this.props.order.header.VDI_AF_DISC !== null && this.props.order.header.VDI_AF_DISC !== undefined && !Number.isNaN(this.props.order.header.VDI_AF_DISC))
-      ? this.props.order.header.VDI_AF_DISC
-      : 0;
+    const totalPrice = this._getResolvedOrderAmount();
 
 
     this._setState('errorMessage', '');
@@ -714,27 +864,27 @@ class CTPaymentForm extends Component {
 
           if (this.state.remainoptiontItem === null) {
             if (
-              Number(payin) > Number(this.props.order.header.VDI_AF_DISC) &&
-              Number(this.props.order.header.VDI_AF_DISC - payin) <= Number(this.state.differBy)
+              Number(payin) > Number(totalPrice) &&
+              Number(totalPrice - payin) <= Number(this.state.differBy)
 
             ) {
               await this._setState('reMainOption1', this.state.reMainOption_Over);
-              await this._setState('differValue', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
+              await this._setState('differValue', (Number(payin - totalPrice).toFixed(2)));
               if (this.state.remainConfirm == false) {
                 await this._setState('isDialogOpen', true);
                 return false;
               }
             } else if (
-              Number(payin) < Number(this.props.order.header.VDI_AF_DISC) &&
-              Number(this.state.differBy) >= Number(this.props.order.header.VDI_AF_DISC - payin)
+              Number(payin) < Number(totalPrice) &&
+              Number(this.state.differBy) >= Number(totalPrice - payin)
             ) {
               await this._setState('reMainOption1', this.state.reMainOption_Under);
-              await this._setState('differValue', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
+              await this._setState('differValue', (Number(payin - totalPrice).toFixed(2)));
               if (this.state.remainConfirm == false) {
                 await this._setState('isDialogOpen', true);
                 return false;
               }
-            } else if (Number(payin) === Number(this.props.order.header.VDI_AF_DISC)) {
+            } else if (Number(payin) === Number(totalPrice)) {
               await this._setState('remainConfirm', false);
               if (this.state.remainConfirm == false) {
                 await this._setState('isDialogOpen', false);
@@ -851,6 +1001,7 @@ class CTPaymentForm extends Component {
 
 
   _validateAll = async (_value) => {
+    const totalPrice = this._getResolvedOrderAmount();
 
       this._setState('errorMessage', '');
 
@@ -907,8 +1058,8 @@ class CTPaymentForm extends Component {
 
     console.log('_orderCash this.state.paymentType ', this.state.paymentType);
     console.log('SUNNNMMM payin', payin);
-    console.log('SUNNNMMM Number(this.props.order.header.VDI_AF_DISC) - this.state.differBy', Number(this.props.order.header.VDI_AF_DISC) - this.state.differBy);
-    console.log('SUNNNMMM VDI_AF_DISC', Number(this.props.order.header.VDI_AF_DISC));
+    console.log('SUNNNMMM totalPrice - differBy', Number(totalPrice) - this.state.differBy);
+    console.log('SUNNNMMM totalPrice', Number(totalPrice));
 
     // if (this.state.groupofpaymentType.has('qrcode')) {
     //   await this._setState('isQRCodeDialogOpen', false);
@@ -917,15 +1068,15 @@ class CTPaymentForm extends Component {
     //   return;
     // }
 
-    if (Number(payin) > Number(this.props.order.header.VDI_AF_DISC) + this.state.differBy) {
+    if (Number(payin) > Number(totalPrice) + this.state.differBy) {
 
-      this._setState('errorMessage', 'ไม่สามารถชำระเกินยอดเงินทั้งหมด ' + (Number(this.props.order.header.VDI_AF_DISC)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' บาท');
+      this._setState('errorMessage', 'ไม่สามารถชำระเกินยอดเงินทั้งหมด ' + (Number(totalPrice)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' บาท');
       setTimeout(() => {
       }, 5000); // หน่วงเวลา 5 วินาที
       return false;
     }
 
-    if (Number(payin) < Number(this.props.order.header.VDI_AF_DISC) - this.state.differBy) {
+    if (Number(payin) < Number(totalPrice) - this.state.differBy) {
       this._setState('errorMessage', 'ยอดชำระยังไม่ครบ กรุณาตรวจสอบ ');
             setTimeout(() => {
       }, 5000); // หน่วงเวลา 5 วินาที
@@ -933,8 +1084,8 @@ class CTPaymentForm extends Component {
     }
 
     console.log('_remain_option1   ', (Number(payin).toFixed(2)));
-    console.log('_remain_option1   ', (Number(this.props.order.header.VDI_AF_DISC).toFixed(2)));
-    console.log('_remain_option1   ', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
+    console.log('_remain_option1   ', (Number(totalPrice).toFixed(2)));
+    console.log('_remain_option1   ', (Number(payin - totalPrice).toFixed(2)));
 
     // if ( this.state.remainConfirm == false) {
     //   await this._requestQrCode(this.state.qrin ? this.state.qrin.toString() : "0");
@@ -944,7 +1095,7 @@ class CTPaymentForm extends Component {
 
 
     if (this.state.groupofpaymentType.has('qrcode') && this.state.qrConfirm == false) {
-      await this._qrcodePayment();
+      await this._requestQrCode(this.state.qrin ? this.state.qrin.toString() : '0');
       return false;
     }
 
@@ -1230,7 +1381,7 @@ class CTPaymentForm extends Component {
             'YYYY-MM-DD HH:mm:ss',
           );
 
-          const { ADDB_TAX_ID } = this.props.customer.item.INFO;
+          const customerTaxId = this._getCustomerTaxId();
 
           const data = {
             //accessToken: this.state.accessToken,
@@ -1244,7 +1395,7 @@ class CTPaymentForm extends Component {
               invoiceHdr: {
                 invoiceId: VDI_REF, // (Create-Response.json)
                 outstandingAmount: 0, // fix
-                dealerTaxId: ADDB_TAX_ID, // (Create-Response.json)
+                dealerTaxId: customerTaxId, // (Create-Response.json)
                 invoiceTaxAmount: VDI_AF_DISC_VAT_EXP_VAT,
                 invoiceAmount: this.props.order.headerProcessed.VDI_AMOUNT,
                 terminalId: VDI_MACHINE,
@@ -1664,22 +1815,16 @@ class CTPaymentForm extends Component {
     this._setState('buttonDisabled', true);
 
     try {
-      console.log("auth")
-      const auth = await this.props.authForGetAccessToken({
-        userName: this.state.userToken.VANCONFIG.VANCNF_BANK_QRCODE_USERNAME,
-        userPassword: this.state.userToken.VANCONFIG.VANCNF_BANK_QRCODE_PASSWORD,
-      });
-      console.log("auth 3 ", auth)
-      const data = auth?.data || auth;
+      const latestUserToken = await getUserToken();
 
-      if (data) {
-        await this._requestQrCode(data);
-      } else {
-        await this._requestQrCode(null);
+      if (latestUserToken) {
+        await this._setState('userToken', latestUserToken);
       }
+
+      await this._requestQrCode(this.state.qrin ? this.state.qrin.toString() : '0');
     } catch (error) {
       console.log('_qrcodePayment error', error);
-      await this._requestQrCode(null);
+      this._setState('errorMessage', error);
     }
 
     this._setState('isLoading', false);
@@ -1687,8 +1832,48 @@ class CTPaymentForm extends Component {
   };
 
 
+//   _requestQrCode = async (obj) => {
+//     this._setState('errorMessage', null);
+
+//     if (
+//       this.state.groupofpaymentType.has('qrcode') && (this.state.qrin === null || Number(this.state.qrin) <= 0)
+//     ) {
+//       await this._setState('isQRCodeDialogOpen', false);
+//       this._setState('errorMessage', 'กรุณาระบุจำนวนเงิน (QrCode)');
+//       return;
+//     }
+
+
+//     if (
+//       this.state.groupofpaymentType.has('qrcode') && (this.state.qrContentItem === null)
+//     ) {
+//       this._setState('errorMessage', 'กรุณาระบุธนาคาร (QrCode) ');
+//       return;
+//     }
+
+//     let payin = (this.state.groupofpaymentType.has('cash') ? Number(this.state.cashin) : 0) +
+//     (this.state.groupofpaymentType.has('transfer') ? Number(this.state.paymentTransfer.tranFerin) : 0) +
+//     (this.state.groupofpaymentType.has('qrcode') ? Number(this.state.qrin) : 0) +
+//     (this.state.groupofpaymentType.has('cheque') ? Number(this.state.paymentCheque.chequein) : 0) +
+//     (this.state.groupofpaymentType.has('other') ? Number(this.state.otherin) : 0);
+
   _requestQrCode = async (obj) => {
     this._setState('errorMessage', null);
+    const totalPrice = this._getResolvedOrderAmount();
+
+    const selectedQrContent = this.state.qrContent?.find(
+      item => String(item.QRCT_KEY) === String(this.state.qrContentItem) || String(item.QRCT_CODE) === String(this.state.qrContentItem)
+    );
+
+    const qrCodeSeedCandidates = [
+      obj,
+      selectedQrContent?.QRCT_CONTENT,
+      selectedQrContent?.QRCT_CODE,
+      selectedQrContent?.BNKAC_CODE,
+    ]
+      .map(value => String(value || '').trim())
+      .filter(Boolean)
+      .filter(value => value !== '0');
 
     if (
       this.state.groupofpaymentType.has('qrcode') && (this.state.qrin === null || Number(this.state.qrin) <= 0)
@@ -1698,7 +1883,6 @@ class CTPaymentForm extends Component {
       return;
     }
 
-
     if (
       this.state.groupofpaymentType.has('qrcode') && (this.state.qrContentItem === null)
     ) {
@@ -1707,86 +1891,58 @@ class CTPaymentForm extends Component {
     }
 
     let payin = (this.state.groupofpaymentType.has('cash') ? Number(this.state.cashin) : 0) +
-    (this.state.groupofpaymentType.has('transfer') ? Number(this.state.paymentTransfer.tranFerin) : 0) +
-    (this.state.groupofpaymentType.has('qrcode') ? Number(this.state.qrin) : 0) +
-    (this.state.groupofpaymentType.has('cheque') ? Number(this.state.paymentCheque.chequein) : 0) +
-    (this.state.groupofpaymentType.has('other') ? Number(this.state.otherin) : 0);
-
-    console.log("payin", Number(payin))
-    console.log("VDI_AMOUNT", Number(this.props.order.header.VDI_AF_DISC))
+      (this.state.groupofpaymentType.has('transfer') ? Number(this.state.paymentTransfer.tranFerin) : 0) +
+      (this.state.groupofpaymentType.has('qrcode') ? Number(this.state.qrin) : 0) +
+      (this.state.groupofpaymentType.has('cheque') ? Number(this.state.paymentCheque.chequein) : 0) +
+      (this.state.groupofpaymentType.has('other') ? Number(this.state.otherin) : 0);
 
     if (
-      this.state.groupofpaymentType.has('qrcode') && (Number(payin) < Number(this.props.order.header.VDI_AF_DISC) - this.state.differBy)
+      this.state.groupofpaymentType.has('qrcode') && (Number(payin) < Number(totalPrice) - this.state.differBy)
     ) {
       await this._setState('isQRCodeDialogOpen', false);
       this._setState('errorMessage', 'ยอดชำระยังไม่ครบ กรุณาตรวจสอบ ');
       return;
     }
 
-if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('qrcode')) {
-        if (
-          Number(payin) > Number(this.props.order.header.VDI_AF_DISC) &&
-          Number(this.props.order.header.VDI_AF_DISC - payin) <= Number(this.state.differBy)
-
-        ) {
-          await this._setState('reMainOption1', this.state.reMainOption_Over);
-          await this._setState('differValue', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
-          if (this.state.remainConfirm == false) {
-            await this._setState('isDialogOpen', true);
-            return;
-          }
-        } else if (
-          Number(payin) < Number(this.props.order.header.VDI_AF_DISC) &&
-          Number(this.state.differBy) >= Number(this.props.order.header.VDI_AF_DISC - payin)
-        ) {
-          await this._setState('reMainOption1', this.state.reMainOption_Under);
-          await this._setState('differValue', (Number(payin - this.props.order.header.VDI_AF_DISC).toFixed(2)));
-          if (this.state.remainConfirm == false) {
-            await this._setState('isDialogOpen', true);
-            return;
-          }
-        } else if (Number(payin) === Number(this.props.order.header.VDI_AF_DISC)) {
-          await this._setState('isDialogOpen', false);
+    if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('qrcode')) {
+      if (
+        Number(payin) > Number(totalPrice) &&
+        Number(totalPrice - payin) <= Number(this.state.differBy)
+      ) {
+        await this._setState('reMainOption1', this.state.reMainOption_Over);
+        await this._setState('differValue', (Number(payin - totalPrice).toFixed(2)));
+        if (this.state.remainConfirm == false) {
+          await this._setState('isDialogOpen', true);
+          return;
         }
+      } else if (
+        Number(payin) < Number(totalPrice) &&
+        Number(this.state.differBy) >= Number(totalPrice - payin)
+      ) {
+        await this._setState('reMainOption1', this.state.reMainOption_Under);
+        await this._setState('differValue', (Number(payin - totalPrice).toFixed(2)));
+        if (this.state.remainConfirm == false) {
+          await this._setState('isDialogOpen', true);
+          return;
+        }
+      } else if (Number(payin) === Number(totalPrice)) {
+        await this._setState('isDialogOpen', false);
       }
-
-      console.log('this.state.reMainOption OV ', this.state.reMainOption_Over);
-      console.log('this.state.reMainOption UD ', this.state.reMainOption_Under);
-
+    }
 
     try {
-      const qrAmount = this.state.qrin ? this.state.qrin.toString() : '0';
-      let qrPayload = null;
+      const isError = false;
+      const data = qrCodeSeedCandidates[0] || obj;
 
-      if (obj?.paymentChannels?.[0]?.billerId && obj?.paymentChannels?.[0]?.terminalId) {
-        const qrcode = await this.props.requestQrCodeSCB(obj, qrAmount);
-        const {isError, data} = qrcode || {};
-
-        if (!isError) {
-          qrPayload =
-            data?.qrCode ||
-            data?.result ||
-            data?.payload ||
-            data?.qrData ||
-            null;
-        }
+      if (isError || !data) {
+        this._setState('errorMessage', 'ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบการเชื่อมต่อหรือข้อมูล QR');
+        return;
       }
 
-      if (!qrPayload) {
-        qrPayload = qrAmount;
-      }
-
-      await this._setState('qrCode', qrPayload);
+      await this._setState('qrCode', data);
       await this._setState('isQRCodeDialogOpen', true);
-
-      console.log("qrCode ", qrPayload);
-      console.log("isQRCodeDialogOpen ", true);
     } catch (error) {
-      console.log('_requestQrCode error', error);
-      const fallbackQrAmount = this.state.qrin ? this.state.qrin.toString() : '0';
       this._setState('errorMessage', error);
-      await this._setState('qrCode', fallbackQrAmount);
-      await this._setState('isQRCodeDialogOpen', true);
     }
   };
 
@@ -2052,15 +2208,20 @@ if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('
   };
 
   _setqrContentItem = async (value) => {
-    console.log("_setqrContentItem value>>", value)
-    console.log("_setqrContentItem this.state.qrContent>>", this.state.qrContent)
+    if (value === false || value === undefined) {
+      return;
+    }
 
+    if (value === null) {
+      await this._setState('qrContentItem', null);
+      await this._setState('qrContentName', '');
+      return;
+    }
 
     const qrContent = this.state.qrContent?.find(
       item => String(item.QRCT_KEY) === String(value) || String(item.QRCT_CODE) === String(value)
     );
 
-    console.log("_setqrContentItem qrContent>> ", qrContent)
     const result = qrContent?.QRCT_NAME || '';
 
     await this.setState((oldState) => {
@@ -2343,9 +2504,7 @@ if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('
     //  console.log("headerProcessed header26", this.props.order.header);
 
 
-    const totalPrice = (this.props.order.header.VDI_AF_DISC !== null && this.props.order.header.VDI_AF_DISC !== undefined && !Number.isNaN(this.props.order.header.VDI_AF_DISC))
-      ? this.props.order.header.VDI_AF_DISC
-      : 0;
+    const totalPrice = this._getResolvedOrderAmount();
 
     //console.log("headerProcessed header25", totalPrice );
 

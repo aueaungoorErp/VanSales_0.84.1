@@ -1,27 +1,28 @@
 import React from 'react'
+import { Alert, Keyboard, Text, TouchableOpacity } from 'react-native'
 import { connect } from 'react-redux'
-import { Alert, Keyboard, TouchableOpacity, Text } from 'react-native'
-import ButtonGroup from '../presenter/ButtonGroup'
-import { 
-    orderOutStandingPreProcessButtonGroup, 
-    orderOutStandingKeyStepButtonGroup, 
-    orderOutStandingCreateStepButtonGroup, 
-    orderOutStandingSummaryStepButtonGroup,
-    MainTheme } from '../../../../constant/lov'
-import Navigator from '../../../../services/Navigator'
-import { 
-    customerPreProcessPayment, 
-    customerProcessPayment, 
-    customerCreatePayment,
-    setPrePocessHeader, 
-    setCreateInitialState,
- } from '../../../../action/outstanding-balance'
-import { validateOutstandingBalancePayment, validateOutstandingBalancePaymentCheque } from '../../../../utils/validation'
-import { authForGetAccessToken, requestQrCodeSCB } from '../../../../action/qrcode-payment'
 import { PAYMENT_CALL_BACK_END_POINT } from '../../../../../appConfig'
-import { BluetoothFinder, BplusPrinting, printPaymentReceipt  } from '../../../../module'
-import { getUserToken, getSettingConfig } from '../../../../utils/Token'
+import {
+    customerCreatePayment,
+    customerPreProcessPayment,
+    customerProcessPayment,
+    setCreateInitialState,
+    setPrePocessHeader,
+} from '../../../../action/outstanding-balance'
+import { authForGetAccessToken, requestQrCodeSCB } from '../../../../action/qrcode-payment'
 import { systemCheck } from '../../../../action/setting'
+import {
+    MainTheme,
+    orderOutStandingCreateStepButtonGroup,
+    orderOutStandingKeyStepButtonGroup,
+    orderOutStandingPreProcessButtonGroup,
+    orderOutStandingSummaryStepButtonGroup
+} from '../../../../constant/lov'
+import { BluetoothFinder, BplusPrinting, printPaymentReceipt } from '../../../../module'
+import Navigator from '../../../../services/Navigator'
+import { getSettingConfig, getUserToken } from '../../../../utils/Token'
+import { validateOutstandingBalancePayment, validateOutstandingBalancePaymentCheque } from '../../../../utils/validation'
+import ButtonGroup from '../presenter/ButtonGroup'
 
 class CTButtonGroup extends React.Component {
   _isMounted = false;
@@ -297,10 +298,25 @@ class CTButtonGroup extends React.Component {
       this._setState('errorMessage', null);
 
       try {
+        const latestUserToken = await getUserToken();
+        const activeUserToken = latestUserToken || this.state.userToken;
+
+        if (latestUserToken) {
+          await this._setState('userToken', latestUserToken);
+        }
+
+        const userName = activeUserToken?.VANCONFIG?.VANCNF_BANK_QRCODE_USERNAME;
+        const userPassword = activeUserToken?.VANCONFIG?.VANCNF_BANK_QRCODE_PASSWORD;
+
+        if (!userName || !userPassword) {
+          this._setState('errorMessage', 'ไม่พบ QR Code username/password ใน VANCONFIG กรุณา login ใหม่หรือตรวจสอบ config เครื่อง');
+          this._setState('isLoading', false);
+          return;
+        }
+
         const auth = await this.props.authForGetAccessToken({
-          userName: this.state.userToken.VANCONFIG.VANCNF_BANK_QRCODE_USERNAME,
-          userPassword: this.state.userToken.VANCONFIG
-            .VANCNF_BANK_QRCODE_PASSWORD,
+          userName,
+          userPassword,
         });
         const {data} = auth;
 

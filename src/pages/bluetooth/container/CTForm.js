@@ -24,8 +24,18 @@ class CTForm extends Component {
   constructor(props) {
     super(props);
 
+    this._clearTransientBluetoothState();
     this._requestPermissionsAndInit();
   }
+
+  _clearTransientBluetoothState = () => {
+    if (
+      this.props.bluetooth?.state === 'connect failed' ||
+      this.props.bluetooth?.state === 'connecting'
+    ) {
+      this.props.setState(null);
+    }
+  };
 
   _requestPermissionsAndInit = async () => {
     try {
@@ -52,7 +62,13 @@ class CTForm extends Component {
   };
 
   _getModelPrinters = () => {
-    this.props.setModelList(BluetoothModels.items);
+    if (BplusPrinting && BplusPrinting.getModelPrinters) {
+      BplusPrinting.getModelPrinters((result) => {
+        this.props.setModelList(result.modelList);
+      });
+    } else {
+      this.props.setModelList(BluetoothModels.items);
+    }
   };
 
   _fetchBluetoothList = () => {
@@ -143,8 +159,8 @@ class CTForm extends Component {
       VANCNF_FRM_WIDTH: parseFloat(userToken.VANCONFIG.VANCNF_FRM_WIDTH),
     };
 
-    //console.log('newVanCNF ', newVanCNF);
-    BplusPrinting && BplusPrinting.testPrinter(userToken.VANCONFIG);
+    console.log('newVanCNF ', newVanCNF);
+    BplusPrinting && BplusPrinting.testPrinter(newVanCNF);
   };
 
   _clearAll = () => {

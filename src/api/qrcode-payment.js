@@ -4,6 +4,7 @@ export const authForGetAccessTokenApi = (data) => {
     return new Promise((resolve, reject) => {
         Request.instance.post(`/Auth/Login`, data)
         .then(v => {
+            console.log('vv',v)
             Request.setHeaders({ userToken: v.data.token })
             resolve(v.data) 
         }).catch((err) => {

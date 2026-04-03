@@ -30,6 +30,17 @@ import DetailForm from '../presenter/DetailForm';
 class CTDetailForm extends Component {
   _isMounted = false;
   _scanBarcodeEnabled = true;
+
+  _getScanCandidates = (scanResult) => {
+    return [
+      scanResult?.data,
+      ...(Array.isArray(scanResult?.alternates) ? scanResult.alternates : []),
+      scanResult?.originalData,
+    ]
+      .map((value) => (value === null || value === undefined ? '' : String(value).trim()))
+      .filter((value, index, self) => value && self.indexOf(value) === index);
+  };
+
   constructor(props) {
     super(props);
 
@@ -161,21 +172,33 @@ class CTDetailForm extends Component {
     this._setIsLoading(false);
   };
 
-  _onSearchByGoodsCode = async () => {
+  _onSearchByGoodsCode = async (scanCandidates = null) => {
     try {
-      if (
-        this.props.product.criteria.GOODS_CODE !== null &&
-        this.props.product.criteria.GOODS_CODE !== ''
-      ) {
+      const candidates = Array.isArray(scanCandidates) && scanCandidates.length > 0
+        ? scanCandidates
+        : [this.props.product.criteria.GOODS_CODE].filter(Boolean);
+
+      if (candidates.length > 0) {
         this._setIsLoading(true);
         this._setErrorMessage(null);
         this._setSuccessMessage(null);
 
-        const response = await this.props.searchProductByGoodsCode();
-        const {RESULT_DATA, STATUS, ERROR_MESSAGES} = response;
+        let lastError = null;
 
-        if (STATUS === '00') {
-          this.textInputQtyRef && this.textInputQtyRef.focus();
+        for (const candidate of candidates) {
+          try {
+            await this.props.setGoodsCodeCriteria(candidate);
+            await this.props.searchProductByGoodsCode();
+            this.textInputQtyRef && this.textInputQtyRef.focus();
+            lastError = null;
+            break;
+          } catch (error) {
+            lastError = error;
+          }
+        }
+
+        if (lastError) {
+          this._setErrorMessage(lastError);
         }
       } else {
         this._setErrorMessage('กรุณากรอก รหัสสินค้า');
@@ -459,11 +482,12 @@ class CTDetailForm extends Component {
       onBarCodeRead: (scanResult) => {
         console.log('scanResult ', JSON.stringify(scanResult) );
         if (this._scanBarcodeEnabled) {
-          this._setGoodsCode(scanResult.data);
+          const scanCandidates = this._getScanCandidates(scanResult);
+          this._setGoodsCode(scanCandidates[0] || null);
           this._scanBarcodeEnabled = false;
 
           setTimeout(() => {
-            this._onSearchByGoodsCode();
+            this._onSearchByGoodsCode(scanCandidates);
           }, 500);
 
           Navigator.back();

@@ -65,7 +65,7 @@ class CTSetting extends Component {
   _renderItem = (item, key) => (
     <TouchableOpacity
       key={key}
-      style={[{paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, alignItems: 'center', justifyContent: 'center'}, item.buttonStyle]}
+      style={[{ paddingVertical: 10, borderRadius: 8, alignItems: 'center', justifyContent: 'center'}, item.buttonStyle]}
       onPress={() => {
         this._onPress(item);
       }}

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 import RNFS from 'react-native-fs'
 import Pdf from 'react-native-pdf'
@@ -11,7 +11,7 @@ import Share from 'react-native-share'
 
 class IPDFPreview extends React.Component {
 
-    state = { selectedPrinter: null }
+    state = { selectedPrinter: null, isSharing: false }
 
     printRemotePDF = () => async () => {
         console.log('printPDF ==>>', RNFS.DocumentDirectoryPath)
@@ -20,29 +20,72 @@ class IPDFPreview extends React.Component {
         await RNPrint.print({ filePath: path })
     }
 
-    loadAndSharePDF = () => async () => {
-        try {
-            const source = this.props.params.source;
-            // ดึงชื่อไฟล์จาก source เช่น bundle-assets://pdf/1.pdf -> 1.pdf
+    _resolveShareFile = async () => {
+        const source = this.props.params.source;
+
+        if (!source) {
+            throw new Error('ไม่พบไฟล์ PDF ที่ต้องการแชร์');
+        }
+
+        if (source.startsWith('bundle-assets://')) {
             const fileName = source.split('/').pop();
-            // ใช้ path ใน assets เช่น pdf/1.pdf
             const assetPath = source.replace('bundle-assets://', '');
-
-            // คัดลอกจาก bundle assets ไปยัง cache directory (ไม่ต้องขอ permission)
             const cachePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
-            await RNFS.copyFileAssets(assetPath, cachePath);
 
-            // แชร์ไฟล์ PDF
+            const exists = await RNFS.exists(cachePath);
+            if (!exists) {
+                await RNFS.copyFileAssets(assetPath, cachePath);
+            }
+
+            return {
+                fileName,
+                filePath: cachePath,
+            };
+        }
+
+        const normalizedPath = source.startsWith('file://')
+            ? source.replace('file://', '')
+            : source;
+
+        const exists = await RNFS.exists(normalizedPath);
+        if (!exists) {
+            throw new Error('ไม่พบไฟล์ PDF ที่ต้องการแชร์');
+        }
+
+        return {
+            fileName: normalizedPath.split('/').pop(),
+            filePath: normalizedPath,
+        };
+    }
+
+    loadAndSharePDF = async () => {
+        try {
+            this.setState({ isSharing: true });
+
+            const { fileName, filePath } = await this._resolveShareFile();
+            const fileBase64 = await RNFS.readFile(filePath, 'base64');
+
+            if (!fileBase64) {
+                throw new Error('ไม่สามารถอ่านไฟล์ PDF เพื่อแชร์ได้');
+            }
+
+            const shareUrl = `data:application/pdf;base64,${fileBase64}`;
+
             await Share.open({
                 title: fileName,
-                url: `file://${cachePath}`,
+                urls: [shareUrl],
+                filenames: [fileName],
+                failOnCancel: false,
+                useInternalStorage: true,
                 type: 'application/pdf',
-                showAppsToView: true,
             });
         } catch (error) {
-            if (error && error.message !== 'User did not share') {
+            if (error && error.message !== 'User did not share' && error.message !== 'User did not share data') {
                 console.log('Share error:', error);
+                Alert.alert('ประกาศ', error.message || 'ไม่สามารถแชร์ไฟล์ PDF ได้');
             }
+        } finally {
+            this.setState({ isSharing: false });
         }
     }
 
@@ -62,9 +105,9 @@ class IPDFPreview extends React.Component {
                 />
 
                 <View style={styles.bottomBar}>
-                    <TouchableOpacity style={styles.shareButton} onPress={this.loadAndSharePDF()} activeOpacity={0.7}>
+                    <TouchableOpacity style={[styles.shareButton, this.state.isSharing && styles.shareButtonDisabled]} onPress={this.loadAndSharePDF} activeOpacity={0.7} disabled={this.state.isSharing}>
                         <AntDesign name="sharealt" size={20} color="#fff" />
-                        <Text style={styles.shareText} allowFontScaling={false}>แชร์ไฟล์</Text>
+                        <Text style={styles.shareText} allowFontScaling={false}>{this.state.isSharing ? 'กำลังเตรียมไฟล์...' : 'แชร์ไฟล์'}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -101,6 +144,9 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.15,
         shadowRadius: 3,
+    },
+    shareButtonDisabled: {
+        opacity: 0.7,
     },
     shareText: {
         color: '#fff',

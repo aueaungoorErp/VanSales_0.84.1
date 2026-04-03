@@ -622,8 +622,6 @@ export const genenrateOrderForProcessToServer = (
   // console.log('genenrateOrderForProcessToServer item', item);
   // console.log('genenrateOrderForProcessToServer check', check);
   const { header, orderProductSummary, productListItems } = item;
-  console.log('header', header);
-  console.log('header.VDI_USER_REF 10');
   let result;
   if (!check) {
     result = {
@@ -730,7 +728,6 @@ export const genenrateOrderForCreateToServer = (
 
 export const genenrateOrderForUpdateToServer = (item, header) => {
   let { HEADER } = item;
-  console.log('genenrateOrderForUpdateToServer ');
   HEADER = {
     ...HEADER,
     VDI_REF: header.VDI_REF,
@@ -746,7 +743,6 @@ export const genenrateOrderForUpdateToServer = (item, header) => {
 };
 
 export const generateProductItemsToServer = (items) => {
-  console.log('generateProductItemsToServer items', items);
   return items.map((item, key) => {
     return {
       VTRD_CODE: item.GOODS_CODE,
@@ -774,16 +770,7 @@ export const generateProductItemsToServer = (items) => {
 };
 
 export const generateItemsProcessedFromServer = (items, productListItems) => {
-  console.log('generateItemsProcessedFromServer items', items);
-  console.log(
-    'generateItemsProcessedFromServer productListItems',
-    productListItems,
-  );
   return items.map((item, key) => {
-    console.log(
-      'generateItemsProcessedFromServer key',
-      productListItems[key].VTRD_NAMES,
-    );
     return {
       ...item,
       TRD_SH_NAME: productListItems[key].VTRD_NAMES,

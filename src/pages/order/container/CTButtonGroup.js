@@ -1,29 +1,29 @@
 import React, { Component } from 'react';
-import { Alert, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import {
-  addProduct,
-  addProducts,
-  calculateOrderProductSummary,
-  getProductListItemsFromLastBillByArCode,
-  removeAllProductItems,
-  removeAllSwipeList,
-  setSwipeCurrent,
+    addProduct,
+    addProducts,
+    calculateOrderProductSummary,
+    getProductListItemsFromLastBillByArCode,
+    removeAllProductItems,
+    removeAllSwipeList,
+    setSwipeCurrent,
 } from '../../../action/order';
 import { setInitialState } from '../../../action/product';
 import { serverReady } from '../../../api/setting';
 import {
-  MainTheme,
-  orderSalesButtonGroup,
-  orderSalesButtonGroupAddSCR,
-  orderSalesButtonGroupEditSCR,
-  orderSalesFooterButtonGroup,
-  orderSalesReturnButtonGroup,
+    MainTheme,
+    orderSalesButtonGroup,
+    orderSalesButtonGroupAddSCR,
+    orderSalesButtonGroupEditSCR,
+    orderSalesFooterButtonGroup,
+    orderSalesReturnButtonGroup,
 } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
 import {
-  convertProductItemToOrderItem,
-  convertProductItemToOrderItemSCR,
+    convertProductItemToOrderItem,
+    convertProductItemToOrderItemSCR,
 } from '../../../utils/Order';
 import { getLoginGuID, getSettingConfig, getUserToken } from '../../../utils/Token';
 import ButtonGroup from '../presenter/ButtonGroup';
@@ -103,8 +103,6 @@ class CTButtonGroup extends Component {
   };
 
   _onPress = async (item) => {
-    console.log('item===> 3' ,item);
-        
     this.props.order.errorMessage = null;
 
     if (item.methodType === 'new-page') {
@@ -169,8 +167,6 @@ class CTButtonGroup extends Component {
           actionType: 'orderProductSummary',
         });
       } else {
-        console.log('item.screen',item.screen)
-        console.log('this.props.order.header.AR_ORDER_TYPE',this.props.order.header.AR_ORDER_TYPE)
         Navigator.navigate(item.screen, {
           orderType: this.props.order.header.AR_ORDER_TYPE,
         });
@@ -203,7 +199,6 @@ class CTButtonGroup extends Component {
 
   _getProductListItemsFromLastBillByArCode = async () => {
     try {
-      console.log('_getProductListItemsFromLastBillByArCode 2');
       const v3GUID = await getLoginGuID();
       const userToken = await getUserToken();
       await this.props.getProductListItemsFromLastBillByArCode(
@@ -253,7 +248,6 @@ class CTButtonGroup extends Component {
   };
 
   render() {
-    console.log('orderSalesFooterButtonGroup', orderSalesFooterButtonGroup);
     if (this.props.hasFooterButton) {
       return (
         <ButtonGroup
@@ -270,20 +264,12 @@ class CTButtonGroup extends Component {
         buttonGroup = orderSalesReturnButtonGroup;
       } else {
         if (this._userToken.VANCONFIG.VANCNF_KEYIN_SCR != 1) {
-          console.log(
-            'orderSalesButtonGroupEditSCR',
-            this._userToken.VANCONFIG.VANCNF_KEYIN_SCR,
-          );
           if (this.props.order.productListItems.length > 0) {
             buttonGroup = orderSalesButtonGroupEditSCR;
           } else {
             buttonGroup = orderSalesButtonGroupAddSCR;
           }
         } else {
-          console.log(
-            'orderSalesButtonGroup KEYIN_SCR',
-            this._userToken.VANCONFIG.VANCNF_KEYIN_SCR,
-          );
           buttonGroup =  orderSalesButtonGroup;
         }
       }
