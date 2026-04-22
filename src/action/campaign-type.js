@@ -44,7 +44,6 @@ export const campaignTypeSearchList = () => (dispatch) => {
         // resolve(v)
       })
       .catch((err) => {
-        console.log('campaignTypeSearchList error', err.message);
         dispatch({
           type: types.CAMPAIGN_TYPE_SEARCH_LIST_FAIL,
           payload: err.message,

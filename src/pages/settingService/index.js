@@ -11,6 +11,7 @@ import { MainTheme } from '../../constant/lov';
 import { strings } from '../../locales/i18n';
 import Navigator from '../../services/Navigator';
 import { getListServiceSetting, saveListServiceSetting } from '../../utils/Token';
+import { normalizeWebServiceUrl } from '../../utils/webService';
 
 let listServiceSetting = [];
 const DEFAULT_SERVICE_URL = appConfig.API_ENDPOINT_V3;
@@ -43,7 +44,7 @@ const ServiceSetting = (props) => {
 
 
   const mode = service;
-  const [webURL, setWebURL] = useState(_webURL || DEFAULT_SERVICE_URL);
+  const [webURL, setWebURL] = useState(normalizeWebServiceUrl(_webURL || DEFAULT_SERVICE_URL));
 
   const [USER_CODE, setuser_code] = useState(_user_code || '');
   const [USER_PASSWORD, setuser_password] = useState(_user_password || '');
@@ -92,11 +93,12 @@ const ServiceSetting = (props) => {
       const config = await getListServiceSetting();
       setErrorMessage('');
       const list = [];
+      const normalizedWebURL = normalizeWebServiceUrl(webURL);
 
       try {
         setIsLoading(true);
-        console.log('sreviceSetting', webURL, number, USER_CODE, USER_PASSWORD);
-        const response = await systemCheckApi2(webURL, number, USER_CODE, USER_PASSWORD);
+        console.log('sreviceSetting', normalizedWebURL, number, USER_CODE, USER_PASSWORD);
+        const response = await systemCheckApi2(normalizedWebURL, number, USER_CODE, USER_PASSWORD);
         console.log('response from systemCheckApi=>', response);
         const {ResponseData, ResponseCode, ReasonString, RESPONSE_DATETIME} = response;
         let responseData =
@@ -115,7 +117,7 @@ const ServiceSetting = (props) => {
           list.push({
             label: serviceName,
             value: uuid,
-            webURL,
+            webURL: normalizedWebURL,
             serviceName,
             number,
             USER_CODE,
@@ -125,7 +127,7 @@ const ServiceSetting = (props) => {
           const savedService = {
             label: serviceName,
             value: uuid,
-            webURL,
+            webURL: normalizedWebURL,
             serviceName,
             number,
             USER_CODE,
@@ -166,16 +168,17 @@ const ServiceSetting = (props) => {
       const config = await getListServiceSetting();
       setErrorMessage('');
       let savedService = null;
+      const normalizedWebURL = normalizeWebServiceUrl(webURL);
       try {
         //Find index of specific object using findIndex method.
         const objIndex = config.findIndex((obj) => obj.value === _webServiceKey);
 
         console.log('Before update: ', config[objIndex]);
-        console.log('webURL ', webURL);
+        console.log('webURL ', normalizedWebURL);
         console.log('_webURL ', _webURL);
         console.log('config[objIndex].webURL ', config[objIndex].webURL);
 
-        if (_webURL != webURL) {
+        if (normalizeWebServiceUrl(_webURL) != normalizedWebURL) {
 
           const AsyncAlert = () => {
             return new Promise((resolve, reject) => {
@@ -218,7 +221,7 @@ const ServiceSetting = (props) => {
 
 
         console.log('responseData 33> ');
-        const response = await systemCheckApi2(webURL, number, USER_CODE, USER_PASSWORD);
+        const response = await systemCheckApi2(normalizedWebURL, number, USER_CODE, USER_PASSWORD);
         console.log('responseData 33> ', response);
 
 
@@ -236,7 +239,7 @@ const ServiceSetting = (props) => {
 
 
           //Update object's name property.
-          config[objIndex].webURL = webURL;
+          config[objIndex].webURL = normalizedWebURL;
           config[objIndex].label = serviceName;
           config[objIndex].serviceName = serviceName;
           config[objIndex].number = number;

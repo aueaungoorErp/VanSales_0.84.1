@@ -34,7 +34,6 @@ export const submit = () => (dispatch, getState) => {
 
 export const checkDistance = (arInfo, lat, lnt, range) => (dispatch) => {
   return new Promise((resolve, reject) => {
-    console.log('arInfo lat lnt range', arInfo, lat, lnt,range , arInfo.ADDB_GPS_LAT_S,arInfo.ADDB_GPS_LONG_S);
 
     let res = 0 ;
     if (arInfo.ADDB_GPS_LAT_S != null  ||  arInfo.ADDB_GPS_LONG_S != null)
@@ -46,7 +45,6 @@ export const checkDistance = (arInfo, lat, lnt, range) => (dispatch) => {
         );
     }
 
-    console.log('arInfo lat lnt range res', res);
     // const res = getDistance(
     //     {latitude: lat, longitude: lnt},
     //     {latitude: lat, longitude: lnt},

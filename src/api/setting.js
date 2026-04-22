@@ -8,6 +8,7 @@ import {
   getLoginGuID,
   setLoginGuID,
 } from '../utils/Token';
+import { getWebServiceLabel, normalizeWebServiceUrl } from '../utils/webService';
 
 const normalizeSettingErrorCode = (error) => {
   const errText = String(error?.message ?? error ?? '').trim();
@@ -67,8 +68,18 @@ export const unRegisterApi = async () => {
 
 export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
   const uniqueId = await getDeviceUniqeId();
+  const normalizedBaseUrl = normalizeWebServiceUrl(baseUrl);
   return new Promise(async (resolve, reject) => {
-    Request.setBaseV3Url(baseUrl);
+    Request.setBaseV3Url(normalizedBaseUrl);
+    console.log('[systemCheckApi2] init', {
+      baseUrl,
+      normalizedBaseUrl,
+      devUsersUrl: `${normalizedBaseUrl}/DevUsers`,
+      queryString,
+      user,
+      hasPassword: !!pass,
+      uniqueId,
+    });
 
     const bodyRequest = {
       'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
@@ -78,6 +89,10 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
     };
 
     let errret = ''
+    console.log('[systemCheckApi2] request UnRegister', {
+      url: `${normalizedBaseUrl}/DevUsers`,
+      functionName: bodyRequest['BPAPUS-FUNCTION'],
+    });
     await Request.instanceV3
       .post('/DevUsers', bodyRequest)
       .then(async (v) => {
@@ -86,6 +101,11 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
           ResponseCode,
           ReasonString
         } = v.data;
+        console.log('response data',v)
+        console.log('[systemCheckApi2] response UnRegister', {
+          responseCode: ResponseCode,
+          reasonString: ReasonString,
+        });
         if (ResponseCode == 200) {
           const bodyRequest = {
             'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
@@ -97,6 +117,10 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
               appConfig.BPAPUS_MOBILE +
               '"\r\n}',
           };
+          console.log('[systemCheckApi2] request Register', {
+            url: `${normalizedBaseUrl}/DevUsers`,
+            functionName: bodyRequest['BPAPUS-FUNCTION'],
+          });
           await Request.instanceV3
             .post('/DevUsers', bodyRequest)
             .then(async (j) => {
@@ -105,6 +129,10 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
                 ResponseCode,
                 ReasonString
               } = j.data;
+              console.log('[systemCheckApi2] response Register', {
+                responseCode: ResponseCode,
+                reasonString: ReasonString,
+              });
               if (ResponseCode == 200 && ReasonString == 'Completed') {
                 let x = moment(j.headers.date); //.add(7, 'hours');
                 const responseData = JSON.parse(ResponseData);
@@ -125,6 +153,12 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
                       //appConfig.fake_Password +
                       '"\r\n}',
                   };
+                  console.log('[systemCheckApi2] request Login', {
+                    url: `${normalizedBaseUrl}/DevUsers`,
+                    functionName: bodyRequest['BPAPUS-FUNCTION'],
+                    user,
+                    hasPassword: !!pass,
+                  });
                   await Request.instanceV3
                     .post('/DevUsers', bodyRequest)
                     .then(async (k) => {
@@ -133,6 +167,10 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
                         ResponseCode,
                         ReasonString
                       } = k.data;
+                      console.log('[systemCheckApi2] response Login', {
+                        responseCode: ResponseCode,
+                        reasonString: ReasonString,
+                      });
 
                       if (ResponseCode == 200) {
                         let responseData = JSON.parse(ResponseData);
@@ -147,32 +185,66 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
                           RESPONSE_DATETIME: x.format('LT'),
                         });
                       } else {
-                        reject(await return_Errmessage(ResponseCode));
+                        console.log('[systemCheckApi2] reject Login', {
+                          responseCode: ResponseCode,
+                          reasonString: ReasonString,
+                        });
+                        reject(await return_Errmessage(ResponseCode, normalizedBaseUrl));
                       }
                     })
                     .catch((err) => {
+                      console.log('[systemCheckApi2] error Login', {
+                        message: err?.message,
+                        code: err?.code,
+                        status: err?.response?.status,
+                        data: err?.response?.data,
+                      });
                       reject(err);
                     });
                 } else {
                   resolve(v.data);
                 }
               } else {
+                console.log('[systemCheckApi2] reject Register', {
+                  responseCode: ResponseCode,
+                  reasonString: ReasonString,
+                });
                 reject(ResponseCode);
               }
             })
             .catch((err) => {
+              console.log('[systemCheckApi2] error Register', {
+                message: err?.message,
+                code: err?.code,
+                status: err?.response?.status,
+                data: err?.response?.data,
+              });
               reject(err);
             });
         } else {
           //console.log('unRegister ELSE v.data', v.data);
+          console.log('[systemCheckApi2] reject UnRegister', {
+            responseCode: ResponseCode,
+            reasonString: ReasonString,
+          });
           reject(ResponseCode);
         }
       })
       .catch((err) => {
+        console.log('[systemCheckApi2] error UnRegister', {
+          message: err?.message,
+          code: err?.code,
+          status: err?.response?.status,
+          data: err?.response?.data,
+        });
         errret = normalizeSettingErrorCode(err);
       })
     if (errret != '') {
-      reject(await return_Errmessage(errret));
+      console.log('[systemCheckApi2] normalized error', {
+        errret,
+        normalizedBaseUrl,
+      });
+      reject(await return_Errmessage(errret, normalizedBaseUrl));
     }
     ;
   });
@@ -180,7 +252,7 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
 
 
 
-export const return_Errmessage = async (reecode) => {
+export const return_Errmessage = async (reecode, attemptedBaseUrl = appConfig.API_ENDPOINT_V3) => {
   return new Promise(function (resolve, reject) {
     setTimeout(function () {
       const normalizedCode = normalizeSettingErrorCode(reecode);
@@ -191,9 +263,8 @@ export const return_Errmessage = async (reecode) => {
         case '404':
         case '404-1':
 
-          var filename = appConfig.API_ENDPOINT_V3.replace(/^.*[\\\/]/, '')
-          let tempurl = filename.split('.dll');
-          errmessage = strings('error_ser.' + 404) + '\n' + strings('login_setting.UnableConnec1') + ' ' + tempurl[0] + ' ' + strings('login_setting.UnableConnec2');
+          const serviceLabel = getWebServiceLabel(attemptedBaseUrl);
+          errmessage = strings('error_ser.' + 404) + '\n' + strings('login_setting.UnableConnec1') + ' ' + serviceLabel + ' ' + strings('login_setting.UnableConnec2');
 
           Alert.alert(
             'พบข้อผิดพลาด', errmessage,
@@ -229,10 +300,11 @@ export const return_Errmessage = async (reecode) => {
 export const systemCheckApi = async (baseUrl, queryString) => {
   const uniqueId = await getDeviceUniqeId();
   let errret = ''
+  const normalizedBaseUrl = normalizeWebServiceUrl(baseUrl);
 
   return new Promise(async (resolve, reject) => {
 
-    Request.setBaseV3Url(baseUrl);
+    Request.setBaseV3Url(normalizedBaseUrl);
     const bodyRequest = {
       'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
       'BPAPUS-LOGIN-GUID': '',

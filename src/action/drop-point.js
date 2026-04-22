@@ -37,15 +37,12 @@ export const clearDropPointList = () => (dispatch) => {
 export const getDropPointListItems = () => (dispatch, getState) => {
   return new Promise(async (resolve, reject) => {
     const product = getState().product;
-    console.log('dsad >> ' , product);
     const userTokens = await getUserToken();
 
 //getDPWareLocationByVANCNF_KEY(product.item.SKU_CODE, userTokens.VANCONFIG)
 getDPWareLocationANDHoByVANCNF_KEY(product.item.SKU_CODE, userTokens.VANCONFIG)
    .then((v) => {
         const {ReasonString, ResponseCode, ResponseData} = v;
-        console.log('getDropPointListItems 5 ', v);
-        //console.log('userTokens.VANCONFIG ', userTokens.VANCONFIG);
         let responseData = JSON.parse(ResponseData);
         if (ResponseCode == 200) {
           const {
@@ -65,7 +62,6 @@ getDPWareLocationANDHoByVANCNF_KEY(product.item.SKU_CODE, userTokens.VANCONFIG)
             let RESULT = ShowSkuBalance
             .map((obj) => {
               {
-                console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ', obj);
                 return {...obj,QTY: parseFloat(obj.QTY)
                 ,good_inVan_qty : product.item.good_inVan_qty
                 ,UTQ_QTY : product.item.UTQ_QTY
@@ -73,7 +69,6 @@ getDPWareLocationANDHoByVANCNF_KEY(product.item.SKU_CODE, userTokens.VANCONFIG)
                 };
               }
             });
-            console.log('getDropPointListItems RESULT', RESULT);
             dispatch({
               type: types.DROP_POINT_GET_LIST_ITEMS_SUCCESS,
               payload: RESULT,
@@ -145,10 +140,8 @@ export const searchDropPointList = (textInput) => async (
   getState,
 ) => {
   dispatch({type: types.DROP_POINT_SEARCH_LIST_ITEMS});
-  console.log('text', textInput);
   const V3GUID = await getLoginGuID();
   const userTokens = await getUserToken();
-  console.log('userTokens', JSON.stringify(userTokens));
   // let dataObj1 = {
   //   'BPAPUS-BPAPSV': BPAPUS_BPAPSV,
   //   'BPAPUS-LOGIN-GUID': V3GUID,

@@ -76,6 +76,7 @@ class CTSetting extends Component {
 
   _onPress = async (item) => {
     if (item.methodName === 'confirm') {
+      console.log('aaaaa', this.state.config);
       if (
         this.state.config.vanCNFMachine === null ||
         this.state.config.vanCNFMachine.trim() === ''
@@ -142,11 +143,10 @@ class CTSetting extends Component {
   _systemCheck = async (configOverride = null) => {
     try {
       const currentConfig = configOverride ?? this.state.config;
-
+console.log('currentConfig',currentConfig)
       this._setIsLoading(true);
       this._setErrorMessage(null);
       this._setSuccessMessage(null);
-      console.log('_systemCheck this.state.config  systemCheck2.2', currentConfig);
       const response = await this.props.systemCheck2(currentConfig);
       console.log('response ', response);
       const {

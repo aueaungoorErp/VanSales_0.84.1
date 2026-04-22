@@ -39,8 +39,13 @@ export const systemCheck = (data) => async (dispatch) => {
   );
 };
 export const systemCheck2 = (data) => async (dispatch) => {
-  console.log('systemCheck2');
   const { baseUrl, vanCNFMachine, USER_CODE, USER_PASSWORD } = data;
+  console.log('[systemCheck2] start', {
+    baseUrl,
+    vanCNFMachine,
+    userCode: USER_CODE,
+    hasPassword: !!USER_PASSWORD,
+  });
   return await systemCheckApi2(baseUrl, vanCNFMachine, USER_CODE, USER_PASSWORD);
 };
 

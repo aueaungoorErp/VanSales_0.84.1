@@ -46,7 +46,6 @@ export const billTodayGetListItems = () => (dispatch, getState) => {
 
     dispatch({type: types.BILL_TODAY_GET_LIST_ITEMS});
 
-    // console.log(customer.item.INFO.AR_CODE)
     billTodayGetListItemsApi(customer.item.INFO.AR_CODE)
       .then((v) => {
         const {RESULT_DATA, STATUS, ERROR_MESSAGES} = v;
@@ -55,7 +54,6 @@ export const billTodayGetListItems = () => (dispatch, getState) => {
           const {RESULT} = RESULT_DATA;
 
           if (RESULT_DATA && RESULT && RESULT.length > 0) {
-            // console.log('RESULT_DATA billTodayGetListItemsApi', RESULT)
             dispatch({
               type: types.BILL_TODAY_GET_LIST_ITEMS_SUCCESS,
               payload: RESULT,
@@ -93,18 +91,10 @@ export const billSearchListItems = (nextPage) => (dispatch, getState) => {
     const bill = getState().bill;
     const config = await getUserToken();
     const vanCnf = config.VANCNF_MACHINE;
-    console.log(moment(bill.criteria.dateFrom).format('YYYY-MM-DD'));
     const fromDate = moment(bill.criteria.dateFrom).subtract(1, 'days');
 
     const toDate = moment(bill.criteria.dateTo);
-    console.log('billSearchListItems customer ', customer);
-    console.log('billSearchListItems nextPage ', nextPage);
-    console.log('billSearchListItems bill ', bill);
-    console.log(
-      'billSearchListItems fromDate ,toDate ',
-      fromDate.format('YYYY-MM-DD'),
-      toDate.format('YYYY-MM-DD'),
-    );
+    
     dispatch({type: types.BILL_TODAY_GET_LIST_ITEMS});
     let RESULT = [];
 
@@ -117,18 +107,12 @@ export const billSearchListItems = (nextPage) => (dispatch, getState) => {
         : (1 - 1) * bill.criteria.LIMIT,
       LIMIT: bill.criteria.LIMIT,
     };
-    console.log('billSearchListItems criteria ', criteria);
     await LookupErpCashSaleAPi(vanCnf, fromDate.format('YYYY-MM-DD'), toDate.format('YYYY-MM-DD')).then(async (v) => {
-      console.log('billSearchListItems VVVVVVVV ==>', v);
       if (v && v.length != 0) {
         for (let obj of v) {
           if (obj.DT_DOCCODE.includes('Q') || obj.DT_DOCCODE.includes('BK')) {
-            console.log('billSearchListItems obj.DT_DOCCODE1 ', obj.DT_DOCCODE);
             const response = await UpdateErpGetSellOrderDocInfoAPi(obj.DI_KEY);
-            console.log(
-              'billSearchListItems response',
-              JSON.stringify(response),
-            );
+          
             if (response.AROE?.AR_CODE == customer.item.INFO.AR_CODE) {
               RESULT.push({
                 ...response,
@@ -137,14 +121,10 @@ export const billSearchListItems = (nextPage) => (dispatch, getState) => {
               });
             }
           } else {
-            console.log('billSearchListItems obj.DT_DOCCODE2 ', obj.DT_DOCCODE);
             const response = await UpdateErpGetInvoiceOrderDocInfoAPi(
               obj.DI_KEY,
             );
-            console.log(
-              'billSearchListItems response-2',
-              JSON.stringify(response),
-            );
+          
             if (response.ARDETAIL?.AR_CODE == customer.item.INFO.AR_CODE) {
               RESULT.push({
                 ...response,
@@ -160,7 +140,6 @@ export const billSearchListItems = (nextPage) => (dispatch, getState) => {
             OFFSET: nextPage ? bill.criteria.OFFSET + 1 : 2,
           }),
         );
-        console.log(JSON.stringify(RESULT));
         dispatch({type: types.BILL_SEARCH_LIST_ITEMS_SUCCESS, payload: RESULT});
         resolve(RESULT);
       } else {

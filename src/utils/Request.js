@@ -2,6 +2,7 @@ import axios from 'axios';
 import moment from 'moment';
 import DeviceInfo from 'react-native-device-info';
 import * as appConfig from '../../appConfig';
+import { normalizeWebServiceUrl } from './webService';
 
 const instance = axios.create({
   baseURL: appConfig.API_ENDPOINT,
@@ -29,7 +30,7 @@ const setBaseUrl = (baseURL) => {
 };
 const setBaseV3Url = (baseURL) => {
   if (baseURL) {
-    instanceV3.defaults.baseURL = baseURL;
+    instanceV3.defaults.baseURL = normalizeWebServiceUrl(baseURL);
   }
 };
 
