@@ -100,16 +100,10 @@ const ServiceSetting = (props) => {
         console.log('sreviceSetting', normalizedWebURL, number, USER_CODE, USER_PASSWORD);
         const response = await systemCheckApi2(normalizedWebURL, number, USER_CODE, USER_PASSWORD);
         console.log('response from systemCheckApi=>', response);
-        const {ResponseData, ResponseCode, ReasonString, RESPONSE_DATETIME} = response;
+        const {ResponseData, ResponseCode, ReasonString} = response;
         let responseData =
           ResponseData != '' ? JSON.parse(ResponseData) : ResponseData;
-        const isConnected =
-          ResponseCode == '200' &&
-          ReasonString == 'Completed' &&
-          !!responseData &&
-          !!RESPONSE_DATETIME;
-
-        if (isConnected) {
+        if (responseData && responseData.RECORD_COUNT != 0) {
           if (config && config.length >= 0) {
             list.push(...config);
           }
@@ -225,16 +219,11 @@ const ServiceSetting = (props) => {
         console.log('responseData 33> ', response);
 
 
-        const {ResponseData, ResponseCode, ReasonString, RESPONSE_DATETIME} = response;
+        const {ResponseData, ResponseCode, ReasonString} = response;
         let responseData =
           ResponseData != '' ? JSON.parse(ResponseData) : ResponseData;
-        const isConnected =
-          ResponseCode == '200' &&
-          ReasonString == 'Completed' &&
-          !!responseData &&
-          !!RESPONSE_DATETIME;
-
-        if (isConnected) {
+        if (responseData && responseData.RECORD_COUNT != 0) {
+          console.log('responseData.RECORD_COUNT ', responseData.RECORD_COUNT);
           // if (config && config.length >= 0) {
 
 
@@ -246,12 +235,6 @@ const ServiceSetting = (props) => {
           config[objIndex].USER_CODE = USER_CODE;
           config[objIndex].USER_PASSWORD = USER_PASSWORD;
           savedService = {...config[objIndex]};
-        } else if (ResponseCode == '607') {
-          setErrorMessage('จำนวนสิทธิ์ใช้งานเกิน');
-          return;
-        } else {
-          setErrorMessage('Web Service หรือ หน่วยรถ ไม่ถูกต้อง');
-          return;
         }
 
         //Log object to console again.
