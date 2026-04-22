@@ -467,7 +467,7 @@ class Form extends Component {
                 secureTextEntry={this.state.isShow}
                 placeholderTextColor={MainTheme.placeholerTextInput}
                 value={password}
-                style={{fontSize: hp('1.7%')}}
+                style={{fontSize: hp('1.7%'), color: '#000000'}}
                 onChangeText={this._handleChangePassword}
               />
 
