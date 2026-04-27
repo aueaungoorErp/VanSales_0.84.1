@@ -19,7 +19,6 @@ export const campaignARCPGNTypeSearchList = (id) => dispatch => {
         campaignARCPGNTypeSearchListApi(id).then((v) => {
             const { RESULT_DATA, STATUS, ERROR_MESSAGES } = v
             const { RESULT } = RESULT_DATA
-            console.log('campaignARCPGNTypeSearchList v', v)
             if (STATUS === '00') {
                 
                 if(RESULT_DATA && (RESULT && RESULT.length > 0)) {
@@ -35,7 +34,6 @@ export const campaignARCPGNTypeSearchList = (id) => dispatch => {
 
             // resolve(v)
         }).catch((err) => {
-            console.log('campaignARCPGNTypeSearchList error', err.message)
             dispatch({ type: types.CAMPAIGN_ARCPGN_TYPE_SEARCH_LIST_FAIL, payload: err.message })
             // reject(err.message)
         })

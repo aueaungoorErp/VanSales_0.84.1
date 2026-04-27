@@ -1,15 +1,15 @@
 ﻿import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import {
-    clearProductList,
-    searchProductList,
-    searchProductSkuAltList,
-    setKeyword,
+  clearProductList,
+  searchProductList,
+  searchProductSkuAltList,
+  setKeyword,
 } from '../../../action/product';
 import {
-    searchProductCateGoryList,
-    setInitialState,
-    setProductCategory,
+  searchProductCateGoryList,
+  setInitialState,
+  setProductCategory,
 } from '../../../action/product-category';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
@@ -19,18 +19,6 @@ class CTSearchForm extends Component {
   _isMounted = false;
   _firstTime = true;
   _scanBarcodeEnabled = true;
-
-  _getScanKeyword = (scanResult) => {
-    const candidates = [
-      scanResult?.data,
-      ...(Array.isArray(scanResult?.alternates) ? scanResult.alternates : []),
-      scanResult?.originalData,
-    ]
-      .map((value) => (value === null || value === undefined ? '' : String(value).trim()))
-      .filter(Boolean);
-
-    return candidates[0] || null;
-  };
 
   constructor(props) {
     super(props);
@@ -152,8 +140,7 @@ class CTSearchForm extends Component {
       barcodeFinderVisible: true,
       onBarCodeRead: async (scanResult) => {
         if (this._scanBarcodeEnabled) {
-          const scanKeyword = this._getScanKeyword(scanResult);
-          await this._setTextSearch(scanKeyword);
+          await this._setTextSearch(scanResult.data);
           this._scanBarcodeEnabled = false;
 
           setTimeout(async () => {

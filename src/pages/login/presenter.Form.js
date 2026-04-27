@@ -274,7 +274,6 @@ class Form extends Component {
         );
       }
     } catch (error) {
-      console.log('_onChangeService error =', error);
       console.log('_onChangeService error response =', error?.response?.data);
 
       await this.setStateAsync({
@@ -468,7 +467,7 @@ class Form extends Component {
                 secureTextEntry={this.state.isShow}
                 placeholderTextColor={MainTheme.placeholerTextInput}
                 value={password}
-                style={{fontSize: hp('1.7%')}}
+                style={{fontSize: hp('1.7%'), color: '#000000'}}
                 onChangeText={this._handleChangePassword}
               />
 

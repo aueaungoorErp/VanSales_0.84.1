@@ -321,7 +321,6 @@ class Form extends Component {
         );
       }
     } catch (error) {
-      console.log('_onChangeService error =', error);
       console.log(
         '_onChangeService error response =',
         error?.response?.data,

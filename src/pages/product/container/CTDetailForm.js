@@ -2,27 +2,27 @@ import React, { Component } from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import {
-    clearItem,
-    processOrderItem,
-    searchProductByGoodsCode,
-    setGoodsCodeCriteria,
-    setInitialState,
-    setItemDiscount,
-    setItemFree,
-    setItemLot,
-    setItemNetPrice,
-    setItemQty,
-    setItemSerial,
-    setItemTotalDiscount,
-    setItemTotalPrice,
+  clearItem,
+  processOrderItem,
+  searchProductByGoodsCode,
+  setGoodsCodeCriteria,
+  setInitialState,
+  setItemDiscount,
+  setItemFree,
+  setItemLot,
+  setItemNetPrice,
+  setItemQty,
+  setItemSerial,
+  setItemTotalDiscount,
+  setItemTotalPrice,
 } from '../../../action/product';
 import { MainTheme, productDetailFormButtonGroup } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
 import {
-    calculateDiscount,
-    calculateOrderProductTotalDiscount,
-    discountFormat,
-    numberOnly,
+  calculateDiscount,
+  calculateOrderProductTotalDiscount,
+  discountFormat,
+  numberOnly,
 } from '../../../utils/Culculate';
 import { getUserToken } from '../../../utils/Token';
 import DetailForm from '../presenter/DetailForm';
@@ -30,16 +30,6 @@ import DetailForm from '../presenter/DetailForm';
 class CTDetailForm extends Component {
   _isMounted = false;
   _scanBarcodeEnabled = true;
-
-  _getScanCandidates = (scanResult) => {
-    return [
-      scanResult?.data,
-      ...(Array.isArray(scanResult?.alternates) ? scanResult.alternates : []),
-      scanResult?.originalData,
-    ]
-      .map((value) => (value === null || value === undefined ? '' : String(value).trim()))
-      .filter((value, index, self) => value && self.indexOf(value) === index);
-  };
 
   constructor(props) {
     super(props);
@@ -172,34 +162,19 @@ class CTDetailForm extends Component {
     this._setIsLoading(false);
   };
 
-  _onSearchByGoodsCode = async (scanCandidates = null) => {
+  _onSearchByGoodsCode = async () => {
     try {
-      const candidates = Array.isArray(scanCandidates) && scanCandidates.length > 0
-        ? scanCandidates
-        : [this.props.product.criteria.GOODS_CODE].filter(Boolean);
-
-      if (candidates.length > 0) {
+      if (
+        this.props.product.criteria.GOODS_CODE !== null &&
+        this.props.product.criteria.GOODS_CODE !== ''
+      ) {
         this._setIsLoading(true);
         this._setErrorMessage(null);
         this._setSuccessMessage(null);
+        this.props.clearItem();
 
-        let lastError = null;
-
-        for (const candidate of candidates) {
-          try {
-            await this.props.setGoodsCodeCriteria(candidate);
-            await this.props.searchProductByGoodsCode();
-            this.textInputQtyRef && this.textInputQtyRef.focus();
-            lastError = null;
-            break;
-          } catch (error) {
-            lastError = error;
-          }
-        }
-
-        if (lastError) {
-          this._setErrorMessage(lastError);
-        }
+        await this.props.searchProductByGoodsCode();
+        this.textInputQtyRef && this.textInputQtyRef.focus();
       } else {
         this._setErrorMessage('กรุณากรอก รหัสสินค้า');
       }
@@ -482,12 +457,11 @@ class CTDetailForm extends Component {
       onBarCodeRead: (scanResult) => {
         console.log('scanResult ', JSON.stringify(scanResult) );
         if (this._scanBarcodeEnabled) {
-          const scanCandidates = this._getScanCandidates(scanResult);
-          this._setGoodsCode(scanCandidates[0] || null);
+          this._setGoodsCode(scanResult.data);
           this._scanBarcodeEnabled = false;
 
           setTimeout(() => {
-            this._onSearchByGoodsCode(scanCandidates);
+            this._onSearchByGoodsCode();
           }, 500);
 
           Navigator.back();

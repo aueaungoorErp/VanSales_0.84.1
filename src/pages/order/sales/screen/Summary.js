@@ -15,8 +15,9 @@ const Summary = (props) => {
 
         const { routes, index } = Navigator.getCurrentRoute()
         const { printType } = routes[index].params
+        console.log('printTypeaaaaa', printType)
 
-        if (printType !== 'transfer') {
+        if (printType !== 'transfer' && printType) {
             Navigator.navigate('OrderChoice')
         } else {
             Navigator.navigate('Home')

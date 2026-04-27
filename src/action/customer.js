@@ -56,13 +56,11 @@ export const findCustomerById = (id) => (dispatch) => {
       'BPAPUS-FETCH': '0',
     };
 
-    console.log("bodyRequest >> ", bodyRequest)
     executiveV3Api(bodyRequest)
       .then(async (v) => {
         const { ReasonString, ResponseCode, ResponseData } = v;
         let responseData = JSON.parse(ResponseData);
         if (ResponseCode == 200) {
-          console.log('findCustomerById RESULT_DATA ', responseData?.SHOWARSUMMARY?.[0] || null);
           dispatch({
             type: types.CUSTOMER_SET_ARSUMMARY,
             payload: responseData?.SHOWARSUMMARY?.[0] || null,
@@ -83,17 +81,13 @@ export const findCustomerById = (id) => (dispatch) => {
             'BPAPUS-OFFSET': '0',
             'BPAPUS-FETCH': '0',
           };
-          console.log('findCustomerById bodyRequest2 ', bodyRequest2);
           await readErpV3Api(bodyRequest2).then(async (y) => {
             let responseData2 = JSON.parse(y.ResponseData);
             if (
               y.ResponseCode == 200 &&
               parseInt(responseData2.RECORD_COUNT) > 0
             ) {
-              console.log(
-                'findCustomerById responseData2.READARCDBYARKEY[0] ',
-                responseData2.READARCDBYARKEY[0],
-              );
+            
               const ARCD_KEY = responseData2.READARCDBYARKEY[0].ARCD_KEY;
               const bodyRequest3 = {
                 'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
@@ -116,7 +110,6 @@ export const findCustomerById = (id) => (dispatch) => {
                   z.ResponseCode == 200 &&
                   parseInt(responseData3.RECORD_COUNT) > 0
                 ) {
-                  console.log('findCustomerById responseData3 ', responseData3);
                   dispatch({
                     type: types.CUSTOMER_SET_ARPRB,
                     payload: responseData3,
@@ -141,7 +134,6 @@ export const findCustomerById = (id) => (dispatch) => {
 };
 
 export const searchCustomerList = (nextPage) => async (dispatch, getState) => {
-  console.log('searchCustomerList')
   dispatch({ type: types.CUSTOMER_SEARCH_LIST });
   let customer = await getState().customer;
   const customerType = await getState().customerType;
@@ -161,7 +153,6 @@ export const searchCustomerList = (nextPage) => async (dispatch, getState) => {
     .then(async (v) => {
       const { ReasonString, ResponseCode, ResponseData } = v;
       let responseData = JSON.parse(ResponseData);
-      console.log("customerSearchArLineListV3Api ", responseData);
 
       if (ResponseCode == 200) {
 
@@ -179,7 +170,6 @@ export const searchCustomerList = (nextPage) => async (dispatch, getState) => {
           let Response = [];
           let found = false;
           for (let i in additionalData) {
-            console.log(additionalData[i].AR_CODE);
             await customerSearchListV3Api(
               additionalData[i].AR_CODE,
               criteria.ARCAT_KEY,

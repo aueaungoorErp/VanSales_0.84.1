@@ -2,7 +2,7 @@ diff --git a/node_modules/@react-native-community/geolocation/package.json b/nod
 index 9ef6b7c..0c78d0f 100644
 --- a/node_modules/@react-native-community/geolocation/package.json
 +++ b/node_modules/@react-native-community/geolocation/package.json
-@@ -97,12 +97,5 @@
+@@ -131,15 +131,7 @@
          {
            "project": "tsconfig.build.json"
          }
@@ -16,5 +16,6 @@ index 9ef6b7c..0c78d0f 100644
 -    "android": {
 -      "javaPackageName": "com.reactnativecommunity.geolocation"
 -    }
-   }
+-  }
++  }
  }

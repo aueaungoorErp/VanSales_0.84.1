@@ -28,7 +28,6 @@ const elementsPath = 'src/component/elements';
 files.forEach(filePath => {
   const fullPath = path.join(process.cwd(), filePath);
   if (!fs.existsSync(fullPath)) {
-    console.log('SKIP (not found):', filePath);
     return;
   }
   let content = fs.readFileSync(fullPath, 'utf8');
@@ -41,9 +40,7 @@ files.forEach(filePath => {
   if (regex.test(content)) {
     content = content.replace(/from\s*['"]react-native-elements['"]/g, "from '" + relPath + "'");
     fs.writeFileSync(fullPath, content, 'utf8');
-    console.log('DONE:', filePath, '->', relPath);
   } else {
-    console.log('SKIP (no import):', filePath);
   }
 });
 
@@ -59,8 +56,6 @@ commentFiles.forEach(filePath => {
   const newContent = content.replace(/\/\/\s*import\s*\{[^}]+\}\s*from\s*['"]react-native-elements['"];?\n?/g, '');
   if (newContent !== content) {
     fs.writeFileSync(fullPath, newContent, 'utf8');
-    console.log('Removed comment import:', filePath);
   }
 });
 
-console.log('\nAll done!');

@@ -2,14 +2,36 @@ import DeviceInfo from 'react-native-device-info';
 import { v4 as uuidv4 } from 'uuid';
 import { getVanConfigV3Api } from '../api/setting';
 import { removeData, retrieveData, storeData } from '../utils/Storage';
+import { normalizeWebServiceUrl } from './webService';
 
 let _settingConfigVanTimeRefreshPromise = null;
+
+const normalizeServiceSetting = (item) => {
+  if (!item || typeof item !== 'object') {
+    return item;
+  }
+
+  return {
+    ...item,
+    webURL: normalizeWebServiceUrl(item.webURL),
+  };
+};
+
+const normalizeSettingConfig = (config) => {
+  if (!config || typeof config !== 'object') {
+    return config;
+  }
+
+  return {
+    ...config,
+    baseUrl: normalizeWebServiceUrl(config.baseUrl),
+  };
+};
 
 
 
 export const getDeviceUniqeId = async () => {
   try {
-    console.log('getDeviceUniqeId')
     /* Calling a function that is not defined in the code you posted. */
     let deviceId = await retrieveData('@mac');
     //deviceId = '02:00:00:00:00:00';
@@ -62,7 +84,11 @@ export const getDeviceUniqeId = async () => {
 
 export const saveListServiceSetting = async (list) => {
   try {
-    return await storeData('@ListServiceSetting', JSON.stringify(list));
+    const normalizedList = Array.isArray(list)
+      ? list.map(normalizeServiceSetting)
+      : list;
+
+    return await storeData('@ListServiceSetting', JSON.stringify(normalizedList));
   } catch (e) {
     return null;
   }
@@ -70,7 +96,9 @@ export const saveListServiceSetting = async (list) => {
 
 export const getListServiceSetting = async () => {
   try {
-    return JSON.parse(await retrieveData('@ListServiceSetting'));
+    const parsed = JSON.parse(await retrieveData('@ListServiceSetting'));
+
+    return Array.isArray(parsed) ? parsed.map(normalizeServiceSetting) : parsed;
   } catch (e) {
     return false;
   }
@@ -142,7 +170,7 @@ export const removeBluetoothToken = async () => {
 
 export const setSettingConfig = async (token) => {
   try {
-    return await storeData('@SettingConfig', JSON.stringify(token));
+    return await storeData('@SettingConfig', JSON.stringify(normalizeSettingConfig(token)));
   } catch (e) {
     return false;
   }
@@ -154,7 +182,7 @@ export const getSettingConfig = async () => {
       return false;
     }
 
-    const parsed = JSON.parse(tmp);
+    const parsed = normalizeSettingConfig(JSON.parse(tmp));
 
     // Return cached config immediately to avoid blocking app startup.
     // Refresh VANCONFIG time windows in the background (best-effort).
@@ -186,7 +214,7 @@ export const getSettingConfig = async () => {
   } catch (e) {
     try {
       const tmp = await retrieveData('@SettingConfig');
-      return tmp ? JSON.parse(tmp) : false;
+      return tmp ? normalizeSettingConfig(JSON.parse(tmp)) : false;
     } catch (e2) {
       return false;
     }
