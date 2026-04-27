@@ -63,8 +63,8 @@ export const BluetoothModels = {
 export const MOBILE5INCH = 370;
 
 //export const APP_VERSION_FULL = '3.0.10.0 (18/05/2023)';
-export const APP_VERSION_FULL = '3.1.0.33  (28/01/2026)';
-export const APP_VERSION = '3.1.0.33';
+export const APP_VERSION_FULL = '3.1.0.34  (23/04/2026)';
+export const APP_VERSION = '3.1.0.34';
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////// Theme Color /////////////////////////////////////
