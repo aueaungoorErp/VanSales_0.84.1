@@ -19,6 +19,7 @@ import {
   removeLoginInfo,
   setLoginGuID,
   setLoginInfo,
+  setSettingConfig,
   setUserToken
 } from '../../../utils/Token';
 import Form from '../presenter/Form';
@@ -331,20 +332,32 @@ class CTForm extends Component {
   _getVanConfigV3 = async (BPAPUS_GUID, VANCNF_MACHINE) => {
     try {
       const response = await this.props.getVanConfigV3(VANCNF_MACHINE);
-
+      const currentSetting = await getSettingConfig();
       const userToken = await getUserToken();
-      // console.log('getuserToken: ', userToken)
-      if (response) {
-        const response2 = await this.props.readCompanyInfoV3(BPAPUS_GUID, 0);
-        let responseData2 = this._safeJsonParse(response2.ResponseData);
-        if (
-          response2.ResponseCode == 200 &&
-          responseData2 && responseData2.RECORD_COUNT != '0'
-        ) {
-          await setUserToken({
-            ...(userToken ?? {}),
-            VANCONFIG: response,
-            COMPANYINFO: responseData2.READCOMPANYINFO[0],
+
+      const response2 = await this.props.readCompanyInfoV3(BPAPUS_GUID, 0);
+      let responseData2 = this._safeJsonParse(response2.ResponseData);
+      const companyInfo =
+        response2.ResponseCode == 200 &&
+        responseData2 && responseData2.RECORD_COUNT != '0'
+          ? responseData2.READCOMPANYINFO[0]
+          : userToken?.COMPANYINFO ?? currentSetting?.COMPANYINFO ?? null;
+      const nextVanConfig = response ?? userToken?.VANCONFIG ?? currentSetting?.VANCONFIG ?? null;
+
+      if (nextVanConfig || companyInfo) {
+        await setUserToken({
+          ...(userToken ?? {}),
+          SALESMAN: userToken?.SALESMAN ?? currentSetting?.SALESMAN ?? null,
+          VANCONFIG: nextVanConfig,
+          COMPANYINFO: companyInfo,
+        });
+
+        if (currentSetting) {
+          await setSettingConfig({
+            ...currentSetting,
+            VANCONFIG: nextVanConfig,
+            SALESMAN: userToken?.SALESMAN ?? currentSetting?.SALESMAN ?? null,
+            COMPANYINFO: companyInfo,
           });
         }
       }
@@ -364,8 +377,13 @@ class CTForm extends Component {
   _searchCustomerTypeList = async () => {
     try {
       const userToken = await getUserToken();
+      const vanConfig = userToken?.VANCONFIG;
+      if (!vanConfig) {
+        console.log('[Login] _searchCustomerTypeList skipped: missing VANCONFIG');
+        return;
+      }
       await this.props.searchCustomerTypeList(
-        userToken.VANCONFIG.VANCNF_ENABLE_ALLAR,
+        vanConfig.VANCNF_ENABLE_ALLAR,
       );
     } catch (error) {
       console.log(error);
@@ -375,8 +393,13 @@ class CTForm extends Component {
   _searchProductCateGoryList = async () => {
     try {
       const userToken = await getUserToken();
+      const vanConfig = userToken?.VANCONFIG;
+      if (!vanConfig) {
+        console.log('[Login] _searchProductCateGoryList skipped: missing VANCONFIG');
+        return;
+      }
       await this.props.searchProductCateGoryList(
-        userToken.VANCONFIG.VANCNF_ENABLE_ALLIC,
+        vanConfig.VANCNF_ENABLE_ALLIC,
       );
     } catch (error) {
       console.log(error);

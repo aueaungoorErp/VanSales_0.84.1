@@ -62,30 +62,10 @@ export const customerSearchListV3Api = async (arCode, arKey) => {
 };
 
 export const customerSearchArLineListV3Api = async (criteria) => {
-  //console.log('criteria ==>', criteria);
+
   const LoginGUID = await getLoginGuID();
   const { VANCONFIG } = await getUserToken();
-  // console.log('settingConfig.vanCNFMachine ', VANCONFIG.VANCNF_MACHINE);
-  // console.log('criteria.ARCAT_NAME >>> ', criteria.ARCAT_KEY.ARCAT_NAME);
-
-
-
-  // const KEYWORD = criteria.KEYWORD
-  //   ?
-  //     "and (AR_CODE like '%" +
-  //     criteria.KEYWORD.trim() + 
-  //     "%' OR AR_NAME like '%" +
-  //     criteria.KEYWORD.trim() +
-  //     "%') and VANCNF_MACHINE = '" +
-  //     VANCONFIG.VANCNF_MACHINE +
-  //     "'"
-  //   : "and VANCNF_MACHINE = '" + VANCONFIG.VANCNF_MACHINE + "'";
-
-  //  const KEYWORD = criteria.KEYWORD
-  //   ? ' and (' + criteria.KEYWORD.trim().split(/\s+/).map(word => 
-  //       ` (AR_CODE like '%${word}%' OR AR_NAME like '%${word}%')`
-  //     ).join(' AND ') + ')' + " and VANCNF_MACHINE = '" + VANCONFIG.VANCNF_MACHINE + "'" 
-  //   : "and VANCNF_MACHINE = '" + VANCONFIG.VANCNF_MACHINE + "'";
+ 
   console.log('bodyRequest keywords', criteria.KEYWORD);
 
   const keywordRaw = criteria.KEYWORD || '';  // ถ้า null/undefined ให้เป็น string ว่างแทน
@@ -96,10 +76,10 @@ export const customerSearchArLineListV3Api = async (criteria) => {
 
   let pattern = '';
   if (keywords.length === 1) {
-    // คำเดียว ค้นหาตรงไหนก็ได้
+
     pattern = `%${keywords[0]}%`;
   } else if (keywords.length >= 2) {
-    // สองคำขึ้นไป ค้นหาคำแรก + อะไรก็ได้ + คำสุดท้าย
+
     pattern = `${keywords[0]}%${keywords[keywords.length - 1]}`;
   } else {
     pattern = '%'; // กรณีไม่มี keyword

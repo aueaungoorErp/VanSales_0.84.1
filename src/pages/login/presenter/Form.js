@@ -16,7 +16,6 @@ import RNPickerSelect from 'react-native-picker-select';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { connect } from 'react-redux';
-import { getSaleManV3, systemCheck } from '../../../action/setting';
 import ILoading from '../../../component/loading/ILoading';
 import ITextWithErrorMessage from '../../../component/text/ITextWithErrorMessage';
 import ITextWithSuccessMessage from '../../../component/text/ITextWithSuccessMessage';
@@ -243,23 +242,12 @@ class Form extends Component {
       this.props.setPassword?.(service1.USER_PASSWORD);
     }
 
-    const config = {
-      baseUrl: finalBaseUrl,
-      vanCNFMachine,
-      SALESMAN: null,
-      VANCONFIG: null,
-      USER_CODE: resolvedUserCode,
-      USER_PASSWORD: resolvedPassword,
-    };
-
     this.props.setErrorMessage?.(null);
 
     await this.setStateAsync({
-      successMessage: null,
-      canLogin: false,
+      successMessage: strings('login_setting.connect_success'),
+      canLogin: true,
     });
-
-    
 
     if (!finalBaseUrl) {
       console.log('service1 invalid =', service1);
@@ -271,73 +259,12 @@ class Form extends Component {
       return;
     }
 
-    try {
-      this.props.setIsLoading?.(true);
-
-      const response = await this.props.systemCheck(config);
-      const responseDataRaw = response?.ResponseData;
-      const responseDateTime = response?.RESPONSE_DATETIME;
-
-      let responseData = null;
-
-      if (
-        typeof responseDataRaw === 'string' &&
-        responseDataRaw.trim()
-      ) {
-        responseData = JSON.parse(responseDataRaw);
-      } else if (
-        responseDataRaw &&
-        typeof responseDataRaw === 'object'
-      ) {
-        responseData = responseDataRaw;
-      }
-
-      if (
-        response?.ResponseCode == 200 &&
-        response?.ReasonString == 'Completed' &&
-        responseData &&
-        responseDateTime
-      ) {
-        await this.setStateAsync({
-          successMessage: strings('login_setting.connect_success'),
-          canLogin: true,
-        });
-
-        if (
-          autoContinue &&
-          String(resolvedUserCode).trim() &&
-          String(resolvedPassword).trim()
-        ) {
-          this.props.onLogin?.();
-        }
-      } else {
-        await this.setStateAsync({
-          successMessage: null,
-          canLogin: false,
-        });
-
-        this.props.setErrorMessage?.(
-          response?.ReasonString ?? 'ตรวจสอบการเชื่อมต่อไม่สำเร็จ',
-        );
-      }
-    } catch (error) {
-      console.log(
-        '_onChangeService error response =',
-        error?.response?.data,
-      );
-
-      await this.setStateAsync({
-        successMessage: null,
-        canLogin: false,
-      });
-
-      this.props.setErrorMessage?.(
-        error?.message ||
-          error?.response?.data?.ReasonString ||
-          'เชื่อมต่อระบบไม่สำเร็จ',
-      );
-    } finally {
-      this.props.setIsLoading?.(false);
+    if (
+      autoContinue &&
+      String(resolvedUserCode).trim() &&
+      String(resolvedPassword).trim()
+    ) {
+      this.props.onLogin?.();
     }
   };
 
@@ -557,13 +484,7 @@ class Form extends Component {
 
 const mapStateToProps = () => ({});
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    systemCheck: (data) => dispatch(systemCheck(data)),
-    getSaleManV3: (GUID, SLMN_KEY) =>
-      dispatch(getSaleManV3(GUID, SLMN_KEY)),
-  };
-};
+const mapDispatchToProps = () => ({});
 
 export default connect(mapStateToProps, mapDispatchToProps)(Form);
 

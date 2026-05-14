@@ -44,7 +44,8 @@ export const setKeyword = (criteria) => (dispatch) => {
 export const findCustomerById = (id) => (dispatch) => {
   return new Promise(async (resolve, reject) => {
     const LoginGUID = await getLoginGuID();
-    const { VANCONFIG } = await getUserToken();
+    const userToken = await getUserToken();
+    const VANCONFIG = userToken?.VANCONFIG ?? {};
     const bodyRequest = {
       'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
       'BPAPUS-LOGIN-GUID': LoginGUID,
@@ -137,7 +138,8 @@ export const searchCustomerList = (nextPage) => async (dispatch, getState) => {
   dispatch({ type: types.CUSTOMER_SEARCH_LIST });
   let customer = await getState().customer;
   const customerType = await getState().customerType;
-  const { VANCONFIG } = await getUserToken();
+  const userToken = await getUserToken();
+  const VANCONFIG = userToken?.VANCONFIG ?? {};
   const arLimit = Number(VANCONFIG?.VANCNF_AR_LIMIT);
 
   const criteria = {
@@ -219,15 +221,11 @@ export const searchCustomerList = (nextPage) => async (dispatch, getState) => {
                       }
                     }
 
-                    // console.log('customerSearchArLineListV3Api Response ', found);
 
 
-                    // console.log('AR_KEY ', Ar000131[0].AR_KEY);
-                    // console.log('found ', found);
                     if (!found) {
                       Response.push({ ...additionalData[i], ...temp });
                     }
-                    // console.log('customerSearchArLineListV3Api Response ', Response);
                   }
                 } else {
                   dispatch({
@@ -368,7 +366,8 @@ export const getCustomerNextDestination = (AR_CODE) => (dispatch) => {
     });
 
     const LoginGUID = await getLoginGuID();
-    const { VANCONFIG } = await getUserToken();
+    const userToken = await getUserToken();
+    const VANCONFIG = userToken?.VANCONFIG ?? {};
     // console.log('settingConfig.vanCNFMachine ', VANCONFIG.VANCNF_MACHINE);
 
 
@@ -717,13 +716,14 @@ export const getARCustomerLine = () => (dispatch) => {
     });
     console.log('getARLV3Api dispatch ', dispatch);
     const LoginGUID = await getLoginGuID();
-    const { VANCONFIG } = await getUserToken();
+    const userToken = await getUserToken();
+    const VANCONFIG = userToken?.VANCONFIG ?? {};
     // console.log('settingConfig.vanCNFMachine ', VANCONFIG.VANCNF_MACHINE);
 
 
 
     console.log('LoginGUID v ', LoginGUID);
-    console.log('LoginGUID VANCONFIG,VANCNF_AR_LIMIT ', VANCONFIG.VANCNF_AR_LIMIT);
+    console.log('LoginGUID VANCONFIG,VANCNF_AR_LIMIT ', VANCONFIG?.VANCNF_AR_LIMIT);
 
     var wsFunction = '';
     var wsorderby = '';

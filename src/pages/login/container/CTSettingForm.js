@@ -129,38 +129,33 @@ class CTSetting extends Component {
     });
 
     await setSettingConfig(nextConfig);
-
-    if (
-      nextConfig.baseUrl &&
-      nextConfig.vanCNFMachine &&
-      nextConfig.USER_CODE &&
-      nextConfig.USER_PASSWORD
-    ) {
-      await this._systemCheck(nextConfig);
-    }
   };
 
   _systemCheck = async (configOverride = null) => {
     try {
+      if (this.state.isLoading) {
+        return;
+      }
+
       const currentConfig = configOverride ?? this.state.config;
-console.log('currentConfig',currentConfig)
+
       this._setIsLoading(true);
       this._setErrorMessage(null);
       this._setSuccessMessage(null);
+
       const response = await this.props.systemCheck2(currentConfig);
-      console.log('response ', response);
       const {
         ResponseData,
-        ResponseCode,
-        ReasonString,
         RESPONSE_DATETIME,
       } = response;
       const responseData = JSON.parse(ResponseData);
+
       if (!RESPONSE_DATETIME) {
         this._setErrorMessage(
           'ไม่พบหน่วยรถ ' + currentConfig.vanCNFMachine,
         );
-      } else if (responseData.BPAPUS_KEY && responseData.BPAPUS_GUID) {
+      } else if (responseData?.BPAPUS_KEY && responseData?.BPAPUS_GUID) {
+
         const response2 = await this.props.getVanConfigV3(
           currentConfig.vanCNFMachine,
         );
@@ -169,14 +164,13 @@ console.log('currentConfig',currentConfig)
             responseData.BPAPUS_GUID,
             response2.VANCNF_SLMN,
           );
-
-          console.log('_systemCheck response3 ', response3);
           let responseData3 = JSON.parse(response3.ResponseData);
+
           if (
             response3.ResponseCode == 200 &&
             responseData3.RECORD_COUNT != '0'
           ) {
-            const SALESMAN = responseData3.SL000130[0];
+            const SALESMAN = responseData3.SaleMan;
             const userToken = await getUserToken();
             const nextConfig = {
               ...currentConfig,
@@ -184,7 +178,6 @@ console.log('currentConfig',currentConfig)
               VANCONFIG: response2,
             };
 
-            console.log('_systemCheck SALESMAN ', SALESMAN);
             await this.setStateAsync({config: nextConfig});
             await setSettingConfig(nextConfig);
             await setUserToken({
@@ -192,18 +185,23 @@ console.log('currentConfig',currentConfig)
               SALESMAN,
               VANCONFIG: response2,
             });
+
             this._setSuccessMessage(strings('login_setting.connect_success'));
 
-            //Keyboard.dismiss()
-            // Navigator.back();
 
             this.props.onConnnect(true);
-            await this.props.unRegister();
+            try {
+              await this.props.unRegister();
+            } catch (unregisterError) {
+              console.log('_systemCheck unRegister warning', unregisterError);
+            }
+            this._setIsLoading(false);
+            return;
           } else {
             this._setErrorMessage(response3.ReasonString);
           }
         } else {
-          this._setErrorMessage('ERROR getVanConfig');
+          this._setErrorMessage('ไม่พบข้อมูลหน่วยรถ ' + currentConfig.vanCNFMachine + ' กรุณาตรวจสอบการตั้งค่า');
         }
       } else {
         this._setErrorMessage(response.ReasonString);
@@ -211,7 +209,7 @@ console.log('currentConfig',currentConfig)
       this._setIsLoading(false);
     } catch (error) {
       this._setIsLoading(false);
-      this._setErrorMessage(error.message);
+      this._setErrorMessage(error?.message ?? 'เชื่อมต่อระบบไม่สำเร็จ');
       this.props.onConnnect(false);
     }
   };
@@ -351,6 +349,7 @@ console.log('currentConfig',currentConfig)
     this.setState((oldState) => {
       return {
         successMessage: value,
+        errorMessage: null,
       };
     });
   };
@@ -363,6 +362,7 @@ console.log('currentConfig',currentConfig)
     this.setState((oldState) => {
       return {
         errorMessage: value,
+        successMessage: null,
       };
     });
   };

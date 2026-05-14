@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Alert,
   Dimensions,
   Image,
   StyleSheet,
@@ -42,7 +41,7 @@ class CTMenuItems extends React.Component {
       Navigator.navigate(item.screen);
     } else if (item.methodType === 'function') {
       if (item.methodName === 'logout') {
-        this._confirmAlertDialog(item);
+        this._logout(item);
       }
     }
   };
@@ -71,20 +70,10 @@ class CTMenuItems extends React.Component {
     }
   };
 
-  _confirmAlertDialog = (item) =>
-    Alert.alert(
-      strings('announce.title_msg'),
-      strings('announce.logout_msg'),
-      [
-        { text: strings('announce.cancel'), onPress: () => { }, style: 'cancel' },
-        { text: strings('announce.confirm'), onPress: () => this._logout(item) },
-      ],
-      { cancelable: false },
-    );
-
   _logout = async (item) => {
     const settingConfig = await getSettingConfig();
 
+    Request.setTimeCutOff();
     await removeUserToken();
     await removeLoginInfo();
     await removeLoginGuID();
@@ -96,11 +85,14 @@ class CTMenuItems extends React.Component {
         USER_CODE: null,
         USER_PASSWORD: null,
         SALESMAN: null,
+        VANCONFIG: null,
+        COMPANYINFO: null,
       });
     }
 
     Request.removeAllHeaders();
-    Navigator.reset(item.screen || 'Auth', { screen: 'Login' });
+    Request.removeAllHeadersV3();
+    Navigator.reset('Auth');
   };
 
   _renderItem = ({ item }) => {

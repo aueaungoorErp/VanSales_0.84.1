@@ -10,7 +10,7 @@ class Index extends React.Component {
   
   render() {
     return (
-      <CTForm />
+      <CTForm navigation={this.props.navigation} />
     )
   }
 }

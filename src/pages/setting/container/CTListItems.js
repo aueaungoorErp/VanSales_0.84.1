@@ -1,5 +1,5 @@
 import React from 'react'
-import { Alert, Image, PermissionsAndroid, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Image, PermissionsAndroid, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5'
@@ -168,26 +168,17 @@ class CTListItems extends React.Component {
             Navigator.navigate(item.screen, item.params)
         } else if (item.methodType === 'function') {
             if (item.methodName === 'logout') {
-                this._confirmAlertDialog(item)
+                this._logout(item)
             } else if (item.methodName === 'syncUserConfig') {
                 Navigator.navigate('Splash')
             }
         }
     }
     
-    _confirmAlertDialog = (item) => Alert.alert(
-        strings('announce.title_msg'),
-        strings('announce.logout_msg'),
-        [
-            {text: strings('announce.cancel'), onPress: () => {}, style: 'cancel'},
-            {text: strings('announce.confirm'), onPress: () => this._logout(item)}
-        ],
-        { cancelable: false }
-    )
-    
     _logout = async (item) => {
         const settingConfig = await getSettingConfig()
 
+        Request.setTimeCutOff()
         await removeUserToken()
         await removeLoginInfo()
         await removeLoginGuID()
@@ -199,11 +190,14 @@ class CTListItems extends React.Component {
                 USER_CODE: null,
                 USER_PASSWORD: null,
                 SALESMAN: null,
+                VANCONFIG: null,
+                COMPANYINFO: null,
             })
         }
 
         Request.removeAllHeaders()
-        Navigator.reset(item.screen || 'Auth', { screen: 'Login' })
+        Request.removeAllHeadersV3()
+        Navigator.reset('Auth')
     }
 
     

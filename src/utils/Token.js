@@ -184,8 +184,7 @@ export const getSettingConfig = async () => {
 
     const parsed = normalizeSettingConfig(JSON.parse(tmp));
 
-    // Return cached config immediately to avoid blocking app startup.
-    // Refresh VANCONFIG time windows in the background (best-effort).
+   
     const VANCNF_MACHINE = parsed?.vanCNFMachine;
     if (VANCNF_MACHINE && !_settingConfigVanTimeRefreshPromise) {
       _settingConfigVanTimeRefreshPromise = (async () => {
@@ -203,7 +202,7 @@ export const getSettingConfig = async () => {
             await storeData('@SettingConfig', JSON.stringify(updated));
           }
         } catch (e) {
-          // Ignore refresh failures; cached config is still usable.
+         console.log('error',e)
         } finally {
           _settingConfigVanTimeRefreshPromise = null;
         }

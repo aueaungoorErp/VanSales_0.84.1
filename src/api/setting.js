@@ -386,7 +386,19 @@ export const getVanConfigV3Api = async (data, requestConfig = undefined) => {
           ReasonString
         } = v.data;
         const responseData = JSON.parse(ResponseData);
-        const VANCONFIG = responseData.Vans0103.find(item => item.VANCNF_MACHINE === data);
+        const vanConfigList = Array.isArray(responseData?.Vans0103)
+          ? responseData.Vans0103
+          : [];
+        const VANCONFIG = vanConfigList.find((item) => item.VANCNF_MACHINE === data)
+          ?? vanConfigList[0]
+          ?? null;
+
+        if (!VANCONFIG) {
+          console.log('[getVanConfigV3Api] no VANCONFIG for machine', data);
+          resolve(null);
+          return;
+        }
+
         let newVanCNF = {
           ...VANCONFIG,
           VANCNF_FRM_WIDTH: parseInt(VANCONFIG.VANCNF_FRM_WIDTH),
