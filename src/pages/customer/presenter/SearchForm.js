@@ -23,8 +23,7 @@ const SearchForm = (props) => {
     value: item.ARCAT_KEY ? item.ARCAT_KEY : '',
   }));
 
-  // console.log("userToken.VANCONFIG >> " , userToken.VANCONFIG )
-  //ดึงข้อมูลลูกค้า ตาม VAN_CNF VANCNF_AR_LIMIT โดย ค่า1 คือตามสายลูกค้า, ค่า 2 คือตามสายเดินรถ
+
 
 
   return (

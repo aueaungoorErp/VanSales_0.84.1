@@ -101,7 +101,8 @@ class IPDFPreview extends React.Component {
                         console.log(error)
                     }}
                     style={styles.pdf}
-                    scale={2.5}
+                    scale={3.2}
+                    initialOffsetX={1200}
                 />
 
                 <View style={styles.bottomBar}>

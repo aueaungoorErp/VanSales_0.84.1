@@ -4,10 +4,15 @@ import { Alert, Keyboard, Text, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import { BPAPUS_BPAPSV } from '../../../../appConfig';
 import {
+  clearCustomerList,
   closeCustomerAccount,
   createTempCus,
+  searchCustomerList,
+  searchCustomerNextDestination,
+  setInitialState as setCustomerInitialState,
   setCustomerTempCus,
 } from '../../../action/customer';
+import { setCustomerType } from '../../../action/customer-type';
 import { lookupErpV3Api } from '../../../api/bPlusApi';
 import {
   customerAddButtonGroup,
@@ -150,6 +155,7 @@ class CTButtonGroup extends React.Component {
       })
         .then((v) => {
           const { ResponseData, ResponseCode, ReasonString } = v.data;
+          console.log('ResponseData, ResponseCode, ReasonString ',ResponseData, ResponseCode, ReasonString )
           if (ResponseCode == 200) {
             let responseData = JSON.parse(ResponseData);
             SLMN_CODE = responseData.SL000130 ? responseData.SL000130[0].SLMN_CODE : '';
@@ -238,12 +244,28 @@ class CTButtonGroup extends React.Component {
       this._setState('loadingMessage', 'กำลังสร้างข้อมูลลูกค้า');
 
       await this.props.createTempCus(tempCus);
+      await this._refreshCustomerList(userToken);
       this._completeAlertDialog();
     } catch (error) {
       this._setState('errorMessage', 'เกิดข้อผิดพลาด: ' + error);
     }
 
     this._setState('loadingMessage', '');
+  };
+
+  _refreshCustomerList = async (userToken) => {
+    this._setState('loadingMessage', 'กำลังอัปเดตรายชื่อลูกค้า');
+
+    await this.props.setCustomerInitialState();
+    await this.props.clearCustomerList();
+    await this.props.setCustomerType({ ARCAT_KEY: null, ARCAT_NAME: null });
+
+    if (Number(userToken?.VANCONFIG?.VANCNF_AR_LIMIT) === 2) {
+      await this.props.searchCustomerNextDestination();
+      return;
+    }
+
+    await this.props.searchCustomerList(false);
   };
 
   _completeAlertDialog = () =>
@@ -316,12 +338,7 @@ class CTButtonGroup extends React.Component {
 
 
 
-    // if (obj.FAX === undefined || obj.FAX === null || obj.FAX === '') {
-    //     return 'กรุณากรอกเบอร์แฟกซ์'
-    // }
-    // if (obj.ARCONDITION === undefined || obj.ARCONDITION === null || obj.ARCONDITION === '') {
-    //     return strings('customer.error_province_is_required')
-    // }
+   
     if (obj.CONTACTNAME === undefined ||
       obj.CONTACTNAME === null ||
       obj.CONTACTNAME === ''
@@ -342,7 +359,6 @@ class CTButtonGroup extends React.Component {
       obj.ARC_NAME === ''
     ) {
       obj.ARC_NAME === ' ';
-      //return strings('customer.error_arc_name_is_required');
     }
 
     if (
@@ -350,12 +366,10 @@ class CTButtonGroup extends React.Component {
       obj.ARC_PAYMENT_PERIOD === null
     ) {
       obj.ARC_PAYMENT_PERIOD = 0;
-      //return strings('customer.error_arc_payment_period_is_required');
     }
 
     if (obj.ARC_VAT_TY === undefined || obj.ARC_VAT_TY === null) {
       obj.ARC_VAT_TY = 0;
-      //return strings('customer.error_arc_vat_ty_is_required');
     }
     console.log(
       'this.state.userToken.VANCONFIG.VANCNF_ARPRB_MODE ',
@@ -363,13 +377,7 @@ class CTButtonGroup extends React.Component {
     );
 
 
-    // เอา ข้อความแจ้งเตื่อน "กรุณากรอกรหัสตารางราคาขาย" ออก
-    // if (
-    //   this.state.userToken.VANCONFIG.VANCNF_ARPRB_MODE == 1 &&
-    //   (obj.PRICETABCODE === undefined || obj.PRICETABCODE === null)
-    // ) {
-    //   return strings('customer.error_ar_price_tab');
-    // }
+   
 
     return null;
   };
@@ -451,8 +459,14 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => {
   return {
+    clearCustomerList: () => dispatch(clearCustomerList()),
     createTempCus: (data) => dispatch(createTempCus(data)),
+    searchCustomerList: (nextPage) => dispatch(searchCustomerList(nextPage)),
+    searchCustomerNextDestination: () =>
+      dispatch(searchCustomerNextDestination()),
+    setCustomerInitialState: () => dispatch(setCustomerInitialState()),
     setCustomerTempCus: (data) => dispatch(setCustomerTempCus(data)),
+    setCustomerType: (data) => dispatch(setCustomerType(data)),
     closeCustomerAccount: (reason) => dispatch(closeCustomerAccount(reason)),
   };
 };

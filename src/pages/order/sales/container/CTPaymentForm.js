@@ -409,7 +409,7 @@ class CTPaymentForm extends Component {
       .then(async (v) => {
         const { ResponseData, ResponseCode, ReasonString } = v.data;
         if (ResponseCode == 200) {
-          console.log("responseData.Bk000200 1 ", JSON.parse(ResponseData));
+          console.log("responseData.Bk000200", JSON.parse(ResponseData));
           let responseData = JSON.parse(ResponseData);
           // console.log("responseData.Bk000200 2", responseData.Bk000200);
 
@@ -2193,6 +2193,8 @@ class CTPaymentForm extends Component {
   _setBankAccountItem = async (value) => {
     //const result = this.state.listbankAccountItem.find(item => item.BNKAC_CODE === value).BNKAC_NAME;
     const bankAccount = this.state.listbankAccountItem?.find(item => item.BNKAC_CODE === value);
+    console.log('valueaa',this.state.listbankAccountItem)
+    console.log('bankAccount',bankAccount)
     const result = bankAccount?.BNKAC_NAME || '';
 
     await this.setState((oldState) => {

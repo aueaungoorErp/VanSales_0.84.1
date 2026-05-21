@@ -95,6 +95,7 @@ class CTListItems extends React.Component {
     }
 
     _renderItem = ({ item }, key) => {
+        console.log('itemaaa',item)
         if (item.title === 'ปริ้นเตอร์' || item.title === 'printer') {
             return this._renderCustomPattern(item)
         } if (item.title === 'คู่มือการใช้งาน' || item.title === 'คำถามที่พบบ่อย' || item.title === 'ออกจากระบบ') {

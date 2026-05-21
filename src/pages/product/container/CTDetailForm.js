@@ -57,6 +57,27 @@ class CTDetailForm extends Component {
     this._isMounted = false;
   }
 
+  _getTransferNegativeBalanceMessage = () => {
+    const isTransferOrder =
+      this.props.order.header.AR_ORDER_TYPE === 'โอนย้ายสินค้า';
+    const preventNegativeBalance =
+      this.state.userToken?.VANCONFIG?.VANCNF_NOV_SKU_BAL === 1;
+    const hasSelectedGoods = !!this.props.product.item?.GOODS_CODE;
+    const goodsBalance = Number(this.props.product.item?.good_inVan_qty);
+
+    if (
+      isTransferOrder &&
+      preventNegativeBalance &&
+      hasSelectedGoods &&
+      Number.isFinite(goodsBalance) &&
+      goodsBalance < 0
+    ) {
+      return 'ไม่สามารถโอนย้ายสินค้าจำนวนติดลบได้';
+    }
+
+    return null;
+  };
+
   _renderItem = (item, key) => {
     // console.log('item ==>',item)
     // console.log('key ==>',key)
@@ -68,21 +89,18 @@ class CTDetailForm extends Component {
          "borderWidth": 0.3,
          "height": 60
        };
-      const graytStyle = {
-      backgroundColor: MainTheme.colorSecondary,
-      height: 60,
-      borderRadius: 0,
-      borderColor: MainTheme.colorQuaternary,
-      borderTopWidth: 0.3,
-      borderRightWidth: 0.3,
-      elevation: 0,
-    };
-       
+    const hasTransferNegativeBalance = !!this._getTransferNegativeBalanceMessage();
+    const isBlockedAction =
+      hasTransferNegativeBalance && item.methodName === 'confirm';
+    const disabled =
+      item.methodName === 'confirm'
+        ? this.state.submitDisabled || isBlockedAction
+        : this.state.disabledButton;
 
     return ( <>
-      <TouchableOpacity key={key} style={[ item.methodName === 'process' && this.state.submitDisabled == true ? greentStyle : item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, item.methodName === 'confirm' ? this.state.submitDisabled : this.state.disabledButton  ? {backgroundColor: MainTheme.colorNonary} : null]} onPress={() => {
+      <TouchableOpacity key={key} style={[ item.methodName === 'process' && this.state.submitDisabled == true ? greentStyle : item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, disabled ? {backgroundColor: MainTheme.colorNonary} : null]} onPress={() => {
           this._onPress(item);
-        }} disabled={item.methodName === 'confirm' ? this.state.submitDisabled : this.state.disabledButton } activeOpacity={0.7}>
+        }} disabled={disabled} activeOpacity={0.7}>
               <Text style={item.methodName === 'process'  && this.state.submitDisabled == true ?  {titleStyle: {color: MainTheme.colorSecondary}} :item.titleStyle}>{item.title}</Text>
             </TouchableOpacity>
    </> );   
@@ -230,6 +248,13 @@ class CTDetailForm extends Component {
   };
 
   _validateItem = () => {
+    const transferNegativeBalanceMessage = this._getTransferNegativeBalanceMessage();
+
+    if (transferNegativeBalanceMessage) {
+      this._setErrorMessage(transferNegativeBalanceMessage);
+      return false;
+    }
+
     const {
       GOODS_CODE,
       GOODS_QTY,

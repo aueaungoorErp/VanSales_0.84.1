@@ -90,7 +90,7 @@ export const customerSearchArLineListV3Api = async (criteria) => {
     : `AND VANCNF_MACHINE = '${VANCONFIG.VANCNF_MACHINE}'`;
 
   console.log(KEYWORD);
-  console.log('bodyRequest KEYWORD', KEYWORD);
+  console.log('bbbbb', KEYWORD);
 
 
   const ARCAT_KEY =
@@ -109,14 +109,14 @@ export const customerSearchArLineListV3Api = async (criteria) => {
     'BPAPUS-FILTER': KEYWORD, //+ ARCAT_KEY,
     'BPAPUS-ORDERBY': ' ORDER BY ARL_KEY,AR_CODE  ',
     'BPAPUS-OFFSET': OFFSET,
-    'BPAPUS-FETCH': LIMIT,
+    'BPAPUS-FETCH': 10,
   };
   console.log('bodyRequest bbbb', bodyRequest);
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post('/LookupErp', bodyRequest)
       .then((v) => {
-        // console.log("v.data" , v.data);
+        console.log("v.data" , v.data);
         resolve(v.data);
       })
       .catch((err) => {

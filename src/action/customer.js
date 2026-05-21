@@ -1,3 +1,4 @@
+import { Alert } from 'react-native';
 import moment from 'moment';
 import qs from 'qs';
 import * as appConfig from '../../appConfig';
@@ -19,6 +20,10 @@ import {
 } from '../api/customer';
 import * as types from '../constant/customer';
 import { getLoginGuID, getUserToken } from '../utils/Token';
+
+const hasKongInName = (item) =>
+  String(item?.AR_NAME || '').toLowerCase().includes('kong');
+
 export const setInitialState = () => (dispatch) => {
   dispatch({ type: types.CUSTOMER_SET_INITIAL_STATE });
 };
@@ -135,6 +140,7 @@ export const findCustomerById = (id) => (dispatch) => {
 };
 
 export const searchCustomerList = (nextPage) => async (dispatch, getState) => {
+  console.log('aaaaa')
   dispatch({ type: types.CUSTOMER_SEARCH_LIST });
   let customer = await getState().customer;
   const customerType = await getState().customerType;
@@ -150,23 +156,34 @@ export const searchCustomerList = (nextPage) => async (dispatch, getState) => {
       : (1 - 1) * customer.criteria.LIMIT,
     LIMIT: customer.criteria.LIMIT,
   };
-
+console.log('aaaa')
   await customerSearchArLineListV3Api(criteria)
     .then(async (v) => {
       const { ReasonString, ResponseCode, ResponseData } = v;
       let responseData = JSON.parse(ResponseData);
 
+      console.log('responseDatabb',responseData)
+
       if (ResponseCode == 200) {
 
-
+        console.log('arLimit',arLimit)
         let RECORD_COUNT, OFFSET, FETCH, additionalData;
-        //  const { RECORD_COUNT, OFFSET, FETCH, Vans0104 } = responseData;
 
         if (arLimit === 2) {
           ({ RECORD_COUNT, OFFSET, FETCH, Vans0107: additionalData } = responseData);
         } else {
           ({ RECORD_COUNT, OFFSET, FETCH, Vans0104: additionalData } = responseData);
         }
+
+        console.log('searchCustomerList raw route data', {
+          arLimit,
+          recordCount: RECORD_COUNT,
+          offset: OFFSET,
+          fetch: FETCH,
+          additionalData: Array.isArray(additionalData)
+            ? additionalData.filter(hasKongInName)
+            : [],
+        });
 
         if (responseData && additionalData && parseInt(RECORD_COUNT) > 0) {
           let Response = [];
@@ -242,6 +259,10 @@ export const searchCustomerList = (nextPage) => async (dispatch, getState) => {
               });
           }
           if (Response && Response.length > 0) {
+            console.log(
+              'searchCustomerList merged customer data',
+              Response.filter(hasKongInName),
+            );
             // console.log('Response 2222if  ', JSON.stringify(Response));
             dispatch(
               setCriteria({
@@ -326,6 +347,10 @@ export const searchCustomerNextDestination = () => (dispatch, getState) => {
     .then((v) => {
       //console.log("customerSearchListApi(criteria) v", JSON.stringify(v) + "customerSearchListApi(criteria) v");
       let responseData = (v);
+      console.log(
+        'searchCustomerNextDestination responseData',
+        Array.isArray(responseData) ? responseData.filter(hasKongInName) : [],
+      );
       //if (ResponseCode == 200) 
       {
         console.log('responseData.length ', responseData[0]);
@@ -413,6 +438,17 @@ export const getCustomerNextDestination = (AR_CODE) => (dispatch) => {
         } else {
           ({ RECORD_COUNT, OFFSET, FETCH, Vans0104: additionalData } = responseData);
         }
+
+        console.log('getCustomerNextDestination route data', {
+          arLimit,
+          machine: VANCONFIG.VANCNF_MACHINE,
+          recordCount: RECORD_COUNT,
+          offset: OFFSET,
+          fetch: FETCH,
+          additionalData: Array.isArray(additionalData)
+            ? additionalData.filter(hasKongInName)
+            : [],
+        });
 
         //const { RECORD_COUNT, OFFSET, FETCH, Vans0107 } = responseData;
 
@@ -532,8 +568,10 @@ export const createTempCus = (data) => (dispatch) => {
       'BPAPUS-OFFSET': '0',
       'BPAPUS-FETCH': '0',
     };
+    console.log('bodyRequest99',bodyRequest99)
     getARL_KEY99(bodyRequest99)
       .then((v) => {
+        console.log('vvv',v)
         const { ReasonString, ResponseCode, ResponseData } = v;
         let responseData = JSON.parse(ResponseData);
         const { RECORD_COUNT, OFFSET, FETCH, Ar000312 } = responseData;
@@ -542,6 +580,7 @@ export const createTempCus = (data) => (dispatch) => {
         let _CTname = _CONTACT[0];
         let _CTsurname = _CONTACT[1] ? (_CONTACT[1] != '' ? _CONTACT[1] : '').replace('undefined', '') : _CTname;
 
+       
 
         if (ResponseCode == '200' && parseInt(RECORD_COUNT) > 0) {
           ARL_KEY = Ar000312[0].ARL_KEY;
@@ -587,6 +626,7 @@ export const createTempCus = (data) => (dispatch) => {
             'BPAPUS-OFFSET': '0',
             'BPAPUS-FETCH': '0',
           };
+          console.log('bodyRequestaa',bodyRequest)
 
           NewArFileV3Api(bodyRequest)
             .then((v) => {
@@ -612,6 +652,10 @@ export const createTempCus = (data) => (dispatch) => {
             });
 
         }
+        else {
+          reject('ไม่พบสายรหัสลูกค้า');
+        }
+      
       })
 
     // เข้ากลุ่ม 99

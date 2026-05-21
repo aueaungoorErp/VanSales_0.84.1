@@ -1,0 +1,94 @@
+diff --git a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfManager.java b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfManager.java
+index d4b6638..664abf2 100644
+--- a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfManager.java
++++ b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfManager.java
+@@ -75,6 +75,11 @@ public class PdfManager extends SimpleViewManager<PdfView> implements RNPDFPdfVi
+     public void setMaxScale(PdfView pdfView, float maxScale) {
+         pdfView.setMaxScale(maxScale);
+     }
++
++    @ReactProp(name = "initialOffsetX")
++    public void setInitialOffsetX(PdfView pdfView, float initialOffsetX) {
++        pdfView.setInitialOffsetX(initialOffsetX);
++    }
+ 
+     @ReactProp(name = "horizontal")
+     public void setHorizontal(PdfView pdfView, boolean horizontal) {
+diff --git a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
+index 78f2a02..9980f80 100644
+--- a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
++++ b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
+@@ -66,6 +66,7 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+     private float scale = 1;
+     private float minScale = 1;
+     private float maxScale = 3;
++    private float initialOffsetX = 0;
+     private String path;
+     private int spacing = 10;
+     private String password = "";
+@@ -155,6 +156,10 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+         float height = pageSize.getHeight();
+ 
+         this.zoomTo(this.scale);
++        if (this.initialOffsetX != 0) {
++            this.moveTo(-this.initialOffsetX, this.getCurrentYOffset());
++            this.loadPages();
++        }
+         WritableMap event = Arguments.createMap();
+ 
+         //create a new json Object for the TableOfContents
+@@ -403,6 +408,10 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+     public void setMaxScale(float maxScale) {
+         this.maxScale = maxScale;
+     }
++
++    public void setInitialOffsetX(float initialOffsetX) {
++        this.initialOffsetX = Math.max(initialOffsetX, 0);
++    }
+ 
+     public void setHorizontal(boolean horizontal) {
+         this.horizontal = horizontal;
+diff --git a/node_modules/react-native-pdf/index.d.ts b/node_modules/react-native-pdf/index.d.ts
+index 53054ca..8e4c34f 100644
+--- a/node_modules/react-native-pdf/index.d.ts
++++ b/node_modules/react-native-pdf/index.d.ts
+@@ -34,6 +34,7 @@ export interface PdfProps {
+     scale?: number,
+     minScale?: number,
+     maxScale?: number,
++    initialOffsetX?: number,
+     horizontal?: boolean,
+     showsHorizontalScrollIndicator?: boolean,
+     showsVerticalScrollIndicator?: boolean,
+diff --git a/node_modules/react-native-pdf/index.js b/node_modules/react-native-pdf/index.js
+index 4b026f6..df5096f 100644
+--- a/node_modules/react-native-pdf/index.js
++++ b/node_modules/react-native-pdf/index.js
+@@ -34,6 +34,7 @@ export default class Pdf extends Component {
+         page: PropTypes.number,
+         scale: PropTypes.number,
+         minScale: PropTypes.number,
++        initialOffsetX: PropTypes.number,
+         maxScale: PropTypes.number,
+         horizontal: PropTypes.bool,
+         spacing: PropTypes.number,
+@@ -74,6 +75,7 @@ export default class Pdf extends Component {
+         scale: 1,
+         minScale: 1,
+         maxScale: 3,
++        initialOffsetX: 0,
+         spacing: 10,
+         fitPolicy: 2, //fit both
+         horizontal: false,
+diff --git a/node_modules/react-native-pdf/fabric/RNPDFPdfNativeComponent.js b/node_modules/react-native-pdf/fabric/RNPDFPdfNativeComponent.js
+index 295c6b6..8cdbd1e 100644
+--- a/node_modules/react-native-pdf/fabric/RNPDFPdfNativeComponent.js
++++ b/node_modules/react-native-pdf/fabric/RNPDFPdfNativeComponent.js
+@@ -14,6 +14,7 @@ export type NativeProps = $ReadOnly<{|
+     scale: ?Float,
+     minScale: ?Float,
+     maxScale: ?Float,
++   initialOffsetX: ?Float,
+     horizontal: ?boolean,
+     enablePaging: ?boolean,
+     enableRTL: ?boolean,

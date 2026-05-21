@@ -22,6 +22,16 @@ const Input = ({style, ...props}) => (
   />
 );
 
+const formatAmount = (value) => {
+  const parsedValue = Number(value ?? 0);
+
+  if (!Number.isFinite(parsedValue)) {
+    return '0.00';
+  }
+
+  return parsedValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+
 const FinalizeDetail = (props) => {
   const {
     setVDIRemark,
@@ -96,6 +106,8 @@ const FinalizeDetail = (props) => {
     }
   }, [arOrderType, paymentItems, paymentType, setPaymentType]);
 
+  console.log('processResult',processResult)
+
   useEffect(() => {
     if (
       arOrderType === 'รับคืนสินค้า' &&
@@ -154,9 +166,7 @@ const FinalizeDetail = (props) => {
                         .toFixed(2)
                         .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                     : props.orderProductSummary
-                    ? JSON.parse(props.orderProductSummary.totalPrice)
-                        .toFixed(2)
-                        .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                    ? formatAmount(JSON.parse(props.orderProductSummary.totalPrice))
                     : '0.00'}
                 </Text>
               </Form>
@@ -229,20 +239,14 @@ const FinalizeDetail = (props) => {
 
                       processResult && processResult.AROE
                         ? processResult.AROE.AROE_TDSC_KEYINV
-                          ? parseFloat(processResult.AROE.AROE_TDSC_KEYINV)
-                              .toFixed(2)
-                              .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                          ? formatAmount(processResult.AROE.AROE_TDSC_KEYINV)
                           : '0.00'
                         : processResult && processResult.ARDETAIL
-                        ? parseFloat(processResult.ARDETAIL.ARD_TDSC_KEYINV)
-                            .toFixed(2)
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                        ? formatAmount(processResult.ARDETAIL.ARD_TDSC_KEYINV)
                         : '0.00'
                         :
                       DIS_BILL_1 &&
-                        parseFloat(DIS_BILL_1)
-                          .toFixed(2)
-                          .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        formatAmount(DIS_BILL_1)}
                            
                     </Text>
                   </Form>
@@ -282,18 +286,11 @@ const FinalizeDetail = (props) => {
                         processResult != null &&
                         processResult?.ARDETAIL
                           ? 
-                           ((DIS_BILL_1 / 100) *
-                              parseFloat(processResult?.ARDETAIL?.ARD_G_KEYIN||0)                              
-                            )
-                              .toFixed(2)
-                              .replace(/\B(?=(\d{3})+(?!\d))/g, ',')                              
-                              : (
-                              (DIS_BILL_1 / 100) *
-                               parseFloat(processResult?.AROE?.AROE_G_KEYIN||0)
-                            )
-                              .toFixed(2)
-                              .replace(/\B(?=(\d{3})+(?!\d))/g, ',') 
-                            }
+                           formatAmount((DIS_BILL_1 / 100) *
+                              parseFloat(processResult?.ARDETAIL?.ARD_G_KEYIN||0))                              
+                            : 
+                              formatAmount((DIS_BILL_1 / 100) *
+                             parseFloat(processResult?.AROE?.AROE_G_KEYIN||0))}
                       </Text>
                     </Form>
                   </View>
@@ -328,22 +325,18 @@ const FinalizeDetail = (props) => {
                          processResult && processResult != null &&
                            processResult ?.AROE &&
                            processResult ?.AROE ?.AROE_G_KEYIN ?
-                           (
+                           formatAmount(
                              (DIS_BILL_2 / 100) *
                              (parseFloat(processResult ?.AROE ?.AROE_G_KEYIN) -
                                (DIS_BILL_1 / 100) *
                                parseFloat(processResult ?.AROE.AROE_G_KEYIN))
-                           )
-                           .toFixed(2)
-                           .replace(/\B(?=(\d{3})+(?!\d))/g, ',') :
-                           (
+                           ) :
+                           formatAmount(
                              (DIS_BILL_2 / 100) *
                              (parseFloat(processResult ?.ARDETAIL?.ARD_G_KEYIN) -
                                (DIS_BILL_1 / 100) *
                                parseFloat(processResult ?.ARDETAIL.ARD_G_KEYIN))
                            )
-                           .toFixed(2)
-                           .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                        }
                       </Text>
                     </Form>
@@ -372,9 +365,7 @@ const FinalizeDetail = (props) => {
                       color: '#000000',
                     }}>
                     {orderProductSummaryProcessed.VDI_DISC_CP
-                      ? orderProductSummaryProcessed.VDI_DISC_CP.toFixed(
-                          2,
-                        ).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                      ? formatAmount(orderProductSummaryProcessed.VDI_DISC_CP)
                       : null}
                   </Text>
                 </Form>
@@ -400,9 +391,7 @@ const FinalizeDetail = (props) => {
                       color: '#000000',
                     }}>
                     {processResult
-                      ? JSON.parse(processResult.DOCINFO.DI_AMOUNT)
-                          .toFixed(2)
-                          .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                      ? formatAmount(JSON.parse(processResult.DOCINFO.DI_AMOUNT))
                       : '0.00'}
                   </Text>
                 </Form>
@@ -425,9 +414,7 @@ const FinalizeDetail = (props) => {
                   }}>
                   {orderProductSummaryProcessed.orderProductSummary &&
                   orderProductSummaryProcessed.orderProductSummary.totalItems
-                    ? orderProductSummaryProcessed.orderProductSummary.totalItems
-                        .toFixed(2)
-                        .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                    ? formatAmount(orderProductSummaryProcessed.orderProductSummary.totalItems)
                     : '0.00'}
                 </Text>
               </Form>
@@ -449,9 +436,7 @@ const FinalizeDetail = (props) => {
                   }}>
                   {orderProductSummaryProcessed.orderProductSummary &&
                   orderProductSummaryProcessed.orderProductSummary.totalQty
-                    ? orderProductSummaryProcessed.orderProductSummary.totalQty
-                        .toFixed(2)
-                        .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                    ? formatAmount(orderProductSummaryProcessed.orderProductSummary.totalQty)
                     : '0.00'}
                 </Text>
               </Form>
@@ -478,9 +463,7 @@ const FinalizeDetail = (props) => {
                     }}>
                     {orderProductSummaryProcessed.orderProductSummary &&
                     orderProductSummaryProcessed.orderProductSummary.totalFree
-                      ? orderProductSummaryProcessed.orderProductSummary.totalFree
-                          .toFixed(2)
-                          .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                      ? formatAmount(orderProductSummaryProcessed.orderProductSummary.totalFree)
                       : '0.00'}
                   </Text>
                 </Form>

@@ -244,6 +244,7 @@ export const processOrderSale = (data, order, vanConfig) => (
   dispatch,
   getState,
 ) => {
+  console.log('vanConfigvanConfig',vanConfig)
   return new Promise(async (resolve, reject) => {
     dispatch({ type: types.ORDER_PROCESS });
     const LoginGUID = await getLoginGuID();
@@ -741,8 +742,11 @@ export const createOrderSaleV3 = (data, V3GUID, vanConfig , paymentType) => (
 
     let VANCNF_BOOK_DT = null;
     let DT_PROPERTIES = null;
+
+    console.log('dataObj1aaa',dataObj1)
     await lookupErpV3Api(dataObj1)
       .then((v) => {
+        console.log('vvv',v)
         const { ResponseData, ResponseCode, ReasonString } = v.data;
 
         console.log("ResponseCode >>>> " ,v.data);
@@ -751,6 +755,7 @@ export const createOrderSaleV3 = (data, V3GUID, vanConfig , paymentType) => (
         if (ResponseCode == 200) {
           
           let responseData = JSON.parse(ResponseData);
+          console.log('responseDatatt',responseData)
           VANCNF_BOOK_DT = responseData.Dc000110
             ? responseData.Dc000110[0].DT_DOCCODE
             : null;
@@ -2217,6 +2222,7 @@ export const orderReturn = (data, type, vanConfig, V3GUID) => (
 export const getProductListItemsFromLastBillByArCode = (
   V3GUID,
   vancnf_machine,
+  goodsCodes,
 ) => (dispatch, getState) => {
   return new Promise(async (resolve, reject) => {
     const customer = getState().customer;
@@ -2423,10 +2429,16 @@ export const getProductListItemsFromLastBillByArCode = (
                   });
                   console.log('responseData1.Oe002304[0].DI_REF ', responseData.TRANSTKD);
 
+                  const filteredTranstkd = Array.isArray(goodsCodes)
+                    ? responseData.TRANSTKD.filter((item) =>
+                        goodsCodes.includes(item.GOODS_CODE),
+                      )
+                    : responseData.TRANSTKD;
+
                   let responseBazz = [];
                   let good_inVan = 0;
 
-                  for (let obj of responseData.TRANSTKD) {
+                  for (let obj of filteredTranstkd) {
 
                     good_inVan = getWareLocationStockBalance(obj.GOODS_CODE, VANCONFIG,)
                       .then((v2) => {

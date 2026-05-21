@@ -1,6 +1,6 @@
 import moment from 'moment';
 import React, { Component } from 'react';
-import { Alert, Keyboard, Text, TouchableOpacity } from 'react-native';
+import { Alert, Keyboard, Text, TouchableOpacity , View } from 'react-native';
 import { connect } from 'react-redux';
 import { BluetoothFinder, BluetoothPrinter } from '../../../../module';
 
@@ -56,6 +56,8 @@ import { setIsSubmit as setMileIsSubmit } from '../../../../action/mile';
 import FinalizeDetail from '../presenter/FinalizeDetail';
 
 class CTFinalizeDetail extends Component {
+  _isMounted = false;
+
   constructor(props) {
     super(props);
 
@@ -72,12 +74,16 @@ class CTFinalizeDetail extends Component {
       returnDisable: false,
       userToken: null,
       processResult: null,
+      isAbleoverLimit: false,
+      iaAbleOverLimit: false,
+      overLimitMessage: null,
     };
-
-    this._getUserToken();
   }
 
   componentDidMount = async (props) => {
+    this._isMounted = true;
+
+    await this._getUserToken();
 
     await this._getActiveUserToken();
 
@@ -111,7 +117,11 @@ class CTFinalizeDetail extends Component {
 
   };
 
-  componentDidUpdate(prevProps) {
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
+  componentDidUpdate(prevProps, prevState) {
     const nextProcessFail = this.props.order?.orderProductSummary?.ORDER_PROCESS_FAIL;
     const prevProcessFail = prevProps.order?.orderProductSummary?.ORDER_PROCESS_FAIL;
     const shouldShowProcessFail =
@@ -123,12 +133,23 @@ class CTFinalizeDetail extends Component {
     if (nextProcessFail !== prevProcessFail && shouldShowProcessFail) {
       this._setErrorMessage(nextProcessFail);
     }
+
+    const processResultChanged =
+      prevState.processResult !== this.state.processResult;
+    const paymentTypeChanged =
+      prevState.paymentType !== this.state.paymentType;
+    const customerChanged =
+      prevProps.customer?.item?.AR_SUMMARY !== this.props.customer?.item?.AR_SUMMARY;
+
+    if (processResultChanged || paymentTypeChanged || customerChanged) {
+      this._validateCreditLimit();
+    }
   }
 
   _getUserToken = async () => {
     const userToken = await getUserToken();
 
-    if (userToken) {
+    if (userToken && this._isMounted) {
       await this.setState((oldState) => {
         return {
           userToken: userToken,
@@ -141,7 +162,7 @@ class CTFinalizeDetail extends Component {
     const latestUserToken = await getUserToken();
     const activeUserToken = latestUserToken || this.state.userToken;
 
-    if (latestUserToken) {
+    if (latestUserToken && this._isMounted) {
       await this.setState((oldState) => {
         return {
           userToken: latestUserToken,
@@ -170,6 +191,110 @@ class CTFinalizeDetail extends Component {
     }
   };
 
+
+  _parseAmount = (value) => {
+    const parsedValue = parseFloat(value);
+
+    return Number.isFinite(parsedValue) ? parsedValue : 0;
+  };
+
+  _formatAmount = (value) =>
+    this._parseAmount(value)
+      .toFixed(2)
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  _getProcessedOrderAmount = (processResult = this.state.processResult) => {
+    if (!processResult) {
+      return 0;
+    }
+
+    const amountCandidates = [
+      processResult?.ARDETAIL?.ARD_A_AMT,
+      processResult?.AROE?.AROE_A_AMT,
+      processResult?.DOCINFO?.DI_AMOUNT,
+    ];
+
+    for (const amount of amountCandidates) {
+      const parsedAmount = parseFloat(amount);
+
+      if (Number.isFinite(parsedAmount)) {
+        return parsedAmount;
+      }
+    }
+
+    return 0;
+  };
+
+  _setCreditLimitState = (isAbleoverLimit, overLimitMessage = null) => {
+    if (
+      this.state.isAbleoverLimit === isAbleoverLimit &&
+      this.state.overLimitMessage === overLimitMessage
+    ) {
+      return;
+    }
+
+    this._isMounted && this.setState({
+      isAbleoverLimit,
+      overLimitMessage,
+    });
+  };
+
+  _validateCreditLimit = (processResult = this.state.processResult) => {
+    const isSalesOrder = this.props.order?.header?.AR_ORDER_TYPE === 'ขายสินค้า';
+    const isCashPayment = this.state.paymentType === '1';
+    const iaAbleOverLimit = false;
+    const creditSummary = this.props.customer?.item?.AR_SUMMARY;
+    const creditLimit = this._parseAmount(creditSummary?.ARS_CRE_LIM);
+    const creditRemain = this._parseAmount(creditSummary?.ARS_CRE_REMAIN_NPDC);
+    const processedAmount = this._getProcessedOrderAmount(processResult);
+
+    if (this.state.iaAbleOverLimit !== iaAbleOverLimit) {
+      this._isMounted && this.setState({ iaAbleOverLimit });
+      return false;
+    }
+
+    if (!isSalesOrder || isCashPayment) {
+      this._setCreditLimitState(true, null);
+      return true;
+    }
+
+    if (!processResult || processedAmount <= 0) {
+      this._setCreditLimitState(false, null);
+      return false;
+    }
+
+    if (creditLimit <= 0) {
+      this._setCreditLimitState(true, null);
+      return true;
+    }
+
+    console.log('credit-limit-check', {
+      customerCode: this.props.customer?.item?.INFO?.AR_CODE,
+      customerName: this.props.customer?.item?.INFO?.AR_NAME,
+      iaAbleOverLimit,
+      creditLimit,
+      creditRemain,
+      processedAmount,
+    });
+
+    if (iaAbleOverLimit) {
+      this._setCreditLimitState(true, null);
+      return true;
+    }
+
+    if (processedAmount > creditRemain) {
+      this._setCreditLimitState(
+        false,
+        'เกินกว่าวงเงินคงเหลือที่กำหนด (คงเหลือ ' +
+          this._formatAmount(creditRemain) +
+          ' บาท)',
+      );
+      return false;
+    }
+
+    this._setCreditLimitState(true, null);
+    return true;
+  };
   _setDisBill1 = async (value) => {
     this._setSubmitDisabled(true);
     await this.props.setDisBill1(discountFormat(value));
@@ -226,6 +351,12 @@ class CTFinalizeDetail extends Component {
       this._setSuccessMessage(null);
       if (item.methodType === 'function') {
         if (item.methodName === 'confirm') {
+          if (!this.state.isAbleoverLimit) {
+            this._validateCreditLimit();
+            Keyboard.dismiss();
+            return;
+          }
+
           if (this.props.order.header.AR_ORDER_TYPE === 'ขายสินค้า') {
 
             console.log(
@@ -1063,7 +1194,8 @@ class CTFinalizeDetail extends Component {
         if (this.props.order.header.AR_ORDER_TYPE != 'โอนย้ายสินค้า') {
           const ddd = await generateResponseFromServer(responseData);
           // console.log('dddddddddddddddd2 ', ddd);
-          await this.setState({ processResult: ddd });
+          this._isMounted && await this.setState({ processResult: ddd });
+          this._validateCreditLimit(ddd);
           // await this.props.calculateOrderProductProcessSummary();
 
 
@@ -1153,7 +1285,7 @@ class CTFinalizeDetail extends Component {
   };
 
   _setIsLoading = (value) => {
-    this.setState((oldState) => {
+    this._isMounted && this.setState((oldState) => {
       return {
         isLoading: value,
       };
@@ -1161,7 +1293,7 @@ class CTFinalizeDetail extends Component {
   };
 
   _setSuccessMessage = (value) => {
-    this.setState((oldState) => {
+    this._isMounted && this.setState((oldState) => {
       return {
         successMessage: value,
       };
@@ -1169,7 +1301,7 @@ class CTFinalizeDetail extends Component {
   };
 
   _setErrorMessage = (value) => {
-    this.setState((oldState) => {
+    this._isMounted && this.setState((oldState) => {
       return {
         errorMessage: value,
       };
@@ -1177,7 +1309,7 @@ class CTFinalizeDetail extends Component {
   };
 
   _setSubmitDisabled = (bool) => {
-    this.setState((oldState) => {
+    this._isMounted && this.setState((oldState) => {
       return {
         submitDisabled: bool,
       };
@@ -1217,7 +1349,7 @@ class CTFinalizeDetail extends Component {
       value == 1
     ) {
       this._setErrorMessage(null);
-      this.setState((oldState) => {
+      this._isMounted && this.setState((oldState) => {
         return {
           paymentType: value,
         };
@@ -1227,7 +1359,7 @@ class CTFinalizeDetail extends Component {
       value == 0
     ) {
       this._setErrorMessage(null);
-      this.setState((oldState) => {
+      this._isMounted && this.setState((oldState) => {
         return {
           paymentType: value,
         };
@@ -1250,7 +1382,7 @@ class CTFinalizeDetail extends Component {
   };
 
   _setReturnType = (value) => {
-    this.setState((oldState) => {
+    this._isMounted && this.setState((oldState) => {
       return {
         returnType: value,
       };
@@ -1258,7 +1390,7 @@ class CTFinalizeDetail extends Component {
   };
 
   _setShipDate = async (value) => {
-    await this.setState((oldState) => {
+    this._isMounted && await this.setState((oldState) => {
       // console.log('shipDate 1' , value) ; 
       // console.log('shipDate 2' , processResult) ; 
 
@@ -1274,7 +1406,7 @@ class CTFinalizeDetail extends Component {
   };
 
   _setSaleDisable = async (value) => {
-    await this.setState((oldState) => {
+    this._isMounted && await this.setState((oldState) => {
       return {
         saleDisable: value,
       };
@@ -1282,7 +1414,7 @@ class CTFinalizeDetail extends Component {
   };
 
   _setReturnDisable = async (value) => {
-    await this.setState((oldState) => {
+    this._isMounted && await this.setState((oldState) => {
       return {
         returnDisable: value,
       };
@@ -1330,11 +1462,15 @@ class CTFinalizeDetail extends Component {
       elevation: 0,
     };
 
+    const confirmDisabled =
+      item.methodName === 'confirm' &&
+      (this.state.submitDisabled || !this.state.isAbleoverLimit);
+
 
     return (<>
-      <TouchableOpacity key={key} style={[item.methodName === 'process' && this.state.submitDisabled == true ? greentStyle : item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, item.methodName === 'confirm' ? this.state.submitDisabled : this.state.disabledButton ? { backgroundColor: MainTheme.colorNonary } : null]} onPress={() => {
+      <TouchableOpacity key={key} style={[item.methodName === 'process' && this.state.submitDisabled == true ? greentStyle : item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, confirmDisabled || this.state.disabledButton ? { backgroundColor: MainTheme.colorNonary } : null]} onPress={() => {
           this._onPress(item);
-        }} disabled={item.methodName === 'confirm' ? this.state.submitDisabled : this.state.disabledButton} activeOpacity={0.7}>
+        }} disabled={confirmDisabled ? confirmDisabled : this.state.disabledButton} activeOpacity={0.7}>
               <Text style={item.methodName === 'process' && this.state.submitDisabled == true ? { titleStyle: { color: MainTheme.colorSecondary } } : item.titleStyle}>{item.title}</Text>
             </TouchableOpacity>
     </>);
@@ -1392,7 +1528,7 @@ class CTFinalizeDetail extends Component {
         buttonListItems={productFinalizeFormButtonGroup}
         renderItem={this._renderItem}
         successMessage={this.state.successMessage}
-        errorMessage={this.state.errorMessage}
+        errorMessage={this.state.overLimitMessage || this.state.errorMessage}
         isLoading={this.state.isLoading}
         paymentItems={paymentLOVItems}
         paymentType={this.state.paymentType}
@@ -1407,6 +1543,7 @@ class CTFinalizeDetail extends Component {
         changePaymentType={this._changePaymentType}
 
       />
+   
     );
   }
 }

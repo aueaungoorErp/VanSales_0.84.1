@@ -1317,9 +1317,62 @@ export const searchProductByGoodsCode = () => (dispatch, getState) => {
     const product = getState().product;
     const customer = getState().customer;
     const order = getState().order;
+    const userToken = await getUserToken();
+    const { VANCONFIG } = userToken || {};
     const LoginGUID = await getLoginGuID();
     console.log('searchProductByGoodsCode customer ', customer);
     console.log('searchProductByGoodsCode order ', order);
+
+    if (
+      VANCONFIG &&
+      (parseInt(VANCONFIG.VANCNF_SKU_LIMIT) === 3 ||
+        parseInt(VANCONFIG.VANCNF_SKU_LIMIT) === 4)
+    ) {
+      const previousKeyword = product.criteria.KEYWORD;
+      const previousListItems = Array.isArray(product.listItems)
+        ? product.listItems
+        : [];
+
+      try {
+        dispatch({
+          type: types.PRODUCT_SET_KEYWORD,
+          payload: product.criteria.GOODS_CODE,
+        });
+        dispatch({ type: types.PRODUCT_SET_LIST_ITEMS, payload: [] });
+        await dispatch(searchProductList('ProductAddTo', false));
+
+        const filteredProduct = getState().product;
+        const matchedItem = Array.isArray(filteredProduct.listItems)
+          ? filteredProduct.listItems.find(
+              (item) => item.GOODS_CODE === product.criteria.GOODS_CODE,
+            )
+          : null;
+
+        if (matchedItem) {
+          dispatch({
+            type: types.PRODUCT_SET_ITEM,
+            payload: { type: 'add', item: matchedItem },
+          });
+          resolve(matchedItem);
+        } else {
+          reject('ไม่พบข้อมูลสินค้า');
+        }
+      } catch (error) {
+        reject(error);
+      } finally {
+        dispatch({
+          type: types.PRODUCT_SET_KEYWORD,
+          payload: previousKeyword,
+        });
+        dispatch({
+          type: types.PRODUCT_SET_LIST_ITEMS,
+          payload: previousListItems,
+        });
+      }
+
+      return;
+    }
+
     const AR_CODE =
       order.header.AR_ORDER_TYPE === 'โอนย้ายสินค้า'
         ? order.header.AR_CODE

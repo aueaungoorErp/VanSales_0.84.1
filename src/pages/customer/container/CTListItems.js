@@ -52,28 +52,19 @@ class CTListItems extends Component {
     const userToken = await getUserToken();
 
     if (userToken) {
-      // console.log('userToken 1', userToken);
       await this._setState('userToken', userToken);
     }
   };
 
   _renderItem = ({item, index}) => {
-    // console.log("Bazz this.props.customer.listItems" , this.props.customer.listItems )
-    // console.log('Bazz this.props.customer.item', item);
-
+   
     return (
       <ListItem
         key={item.AR_KEY || index}
         containerStyle={mainDivider}
         bottomDivider
         onPress={async () => {
-           const {VANCONFIG} = await getUserToken();
-
-           if (VANCONFIG.VANCNF_ARPRB_MODE === 0 && String(item.ARPRB_KEY).trim() !==  String(VANCONFIG.VANCNF_ARPRB).trim()) {
-            this._setState('errorMessage', 'ไม่สามารถเลือกลูกหนี้ รายนี้ได้เนื่องจากตารางราคาขายในข้อตกลงหลัก ไม่ตรงเงื่อนไข');
-           } else {
-             this._onListItemPress(item, index);
-           }
+           this._onListItemPress(item, index);
         }}
       >
         <ListItem.Content key="content">
@@ -164,7 +155,12 @@ class CTListItems extends Component {
 
   _onRefresh = async () => {
     await this.props.clearCustomerList();
-    await this.props.setCustomerType({ ARCAT_KEY: null, ARCAT_NAME: null });
+    const selectedCustomerType =
+      this.props.customerType.listItems.find(
+        (item) => item.ARCAT_KEY == this.props.customerType.item?.ARCAT_KEY,
+      ) ?? this.props.customerType.item ?? { ARCAT_KEY: null, ARCAT_NAME: null };
+
+    await this.props.setCustomerType(selectedCustomerType);
 
 
 
@@ -182,9 +178,7 @@ class CTListItems extends Component {
   };
 
   _onScroll = (event) => {
-    // console.log('_onScroll 2'  , event.nativeEvent.layoutMeasurement);
-    // console.log('_onScroll 2' ,  event.nativeEvent.contentSize.height);
-    // console.log('_onScroll 2' ,  this.props.screen );
+
 
 
     if (this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT != 2) {
@@ -192,7 +186,6 @@ class CTListItems extends Component {
       const contentHeight = event.nativeEvent.contentSize.height;
       const maxOffset = 0.95 * parseInt(contentHeight - frameHeight);
       const currentOffset = parseInt(event.nativeEvent.contentOffset.y);
-          // console.log('ตรวจสอบตรงนี้ >> 3');
       currentOffset >= maxOffset && !this.props.customer.isLoading
         ? this.props.searchCustomerList(true)
         : null;

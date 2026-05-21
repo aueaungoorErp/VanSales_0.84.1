@@ -5,6 +5,7 @@ import HeaderDetail from '../presenter/HeaderDetail'
 const CTHeaderDetail = (props) => {
     return (
         <HeaderDetail header={props.order.header} customer={props.customer.item} />
+    // <View></View>
     )
 }
 

@@ -109,6 +109,7 @@ class CTForm extends Component {
 
   _getWSv3SettingConfig = async () => {
     const config = await getSettingConfig();
+    console.log('configaaa',config)
     if (config) {
       this.setState((oldState) => {
         return {
@@ -123,6 +124,7 @@ class CTForm extends Component {
       this._setErrorMessage(null);
 
       let { service, USER_CODE, USER_PASSWORD } = this.state.userLogin;
+      console.log('serviceaaa', service);
       if (service === null || service.trim() === '') {
         this._setErrorMessage('กรุณาตั้งค่า Service');
         return;

@@ -280,6 +280,8 @@ class CTForm extends React.Component {
           throw new Error('incomplete startup payload');
         }
 
+        console.log('payloadState',payloadState)
+
         this._log('startupRelogin:success', {
           attempt,
           hasCompanyInfo: payloadState.hasCompanyInfo,

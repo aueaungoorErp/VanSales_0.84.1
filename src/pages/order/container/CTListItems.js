@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Dimensions, Text, View } from 'react-native';
+import { Alert, Dimensions, Modal, Text, TouchableOpacity, View } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import {
@@ -19,6 +19,10 @@ import {
   convertOrderItemToProductItem,
   convertProductItemToOrderItem,
 } from '../../../utils/Order';
+import {
+  LAST_BILL_QUOTATION_WARNING_MESSAGE,
+  getLatestSoldQuotationGoodsCodes,
+} from '../../../utils/LastBillValidation';
 import { getLoginGuID, getUserToken } from '../../../utils/Token';
 import ListItems from '../presenter/ListItems';
 
@@ -30,6 +34,8 @@ class CTListItems extends Component {
 
     this.state = {
       userToken: null,
+      isLatestItemModalVisible: false,
+      latestItemModalMessage: null,
     };
 
     this._getUserToken();
@@ -67,14 +73,41 @@ class CTListItems extends Component {
       !disabledAutoLoad === true &&
       userToken.VANCONFIG.VANCNF_AS_PREVIOUS == 2 &&
       userToken.VANCONFIG.VANCNF_KEYIN_SCR == 1 &&
-      this.props.order.header.AR_ORDER_TYPE === 'ขายสินค้า' &&
+      (this.props.order.header.AR_ORDER_TYPE === 'ขายสินค้า' ||
+        this.props.order.header.AR_ORDER_TYPE === 'จองสินค้า') &&
       this.props.order.header.VDI_USER_REF === null
     ) {
-      this._getProductListItemsFromLastBillByArCode();
+      const validationResult = await getLatestSoldQuotationGoodsCodes({
+        v3GUID: await getLoginGuID(),
+        vanConfig: userToken.VANCONFIG,
+        arCode: this.props.customer.item.INFO.AR_CODE,
+        arprbCode: this.props.customer.item?.ARPRB?.ARPRB_CODE,
+        orderType: this.props.order.header.AR_ORDER_TYPE,
+      });
+
+      if (!validationResult.allowed) {
+        this.setState({
+          isLatestItemModalVisible: true,
+          latestItemModalMessage:
+            validationResult.message || LAST_BILL_QUOTATION_WARNING_MESSAGE,
+        });
+        return;
+      }
+
+      this._getProductListItemsFromLastBillByArCode(
+        validationResult.goodsCodes,
+      );
     }
   };
 
-  _getProductListItemsFromLastBillByArCode = async () => {
+  _closeLatestItemModal = () => {
+    this.setState({
+      isLatestItemModalVisible: false,
+      latestItemModalMessage: null,
+    });
+  };
+
+  _getProductListItemsFromLastBillByArCode = async (goodsCodes = null) => {
     // try {
     const v3GUID = await getLoginGuID();
     const userToken = await getUserToken();
@@ -82,7 +115,9 @@ class CTListItems extends Component {
     await this.props.getProductListItemsFromLastBillByArCode(
       v3GUID,
       userToken.VANCONFIG.VANCNF_MACHINE,
+      goodsCodes,
     );
+    await this.props.calculateOrderProductSummary();
     // } catch (error) {
     //   console.log("Lastbills",error);
     // }
@@ -423,23 +458,92 @@ class CTListItems extends Component {
 
   render() {
     return (
-      <ListItems
-        listItems={this.props.order.productListItems}
-        renderItem={
-          Dimensions.get('window').width > MOBILE5INCH
-            ? this._renderItem
-            : this._renderItem5INCH
-        }
-        refreshing={this.props.order.isLoading}
-        errorMessage={this.props.order.errorMessage}
-        onRefresh={this._onRefresh}
-      />
+      <>
+        <ListItems
+          listItems={this.props.order.productListItems}
+          renderItem={
+            Dimensions.get('window').width > MOBILE5INCH
+              ? this._renderItem
+              : this._renderItem5INCH
+          }
+          refreshing={this.props.order.isLoading}
+          errorMessage={this.props.order.errorMessage}
+          onRefresh={this._onRefresh}
+        />
+        <Modal
+          transparent={true}
+          visible={this.state.isLatestItemModalVisible}
+          animationType="fade"
+          onRequestClose={this._closeLatestItemModal}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <Text style={styles.modalTitle}>ประกาศ</Text>
+              <Text style={styles.modalMessage}>
+                {this.state.latestItemModalMessage}
+              </Text>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={this._closeLatestItemModal}
+                activeOpacity={0.7}>
+                <Text style={styles.modalButtonText}>ตกลง</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </>
     );
   }
 }
 
+const styles = {
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#000000',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  modalButton: {
+    minWidth: 100,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: MainTheme.colorPrimary,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+};
+
 const mapStateToProps = (state) => ({
   order: state.order,
+  customer: state.customer,
 });
 
 const mapDispatchToProps = (dispatch) => {
@@ -468,8 +572,8 @@ const mapDispatchToProps = (dispatch) => {
     setGoodsCodeCriteria: (value) => {
       dispatch(setGoodsCodeCriteria(value));
     },
-    getProductListItemsFromLastBillByArCode: (V3GUID, vancnf_machine) =>
-      dispatch(getProductListItemsFromLastBillByArCode(V3GUID, vancnf_machine)),
+    getProductListItemsFromLastBillByArCode: (V3GUID, vancnf_machine, goodsCodes) =>
+      dispatch(getProductListItemsFromLastBillByArCode(V3GUID, vancnf_machine, goodsCodes)),
   };
 };
 

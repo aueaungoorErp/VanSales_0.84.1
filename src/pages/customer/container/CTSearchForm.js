@@ -69,7 +69,12 @@ class CTSearchForm extends Component {
 
   _onRefresh = async () => {
     const userToken = await getUserToken();
-    await this.props.setCustomerType({ ARCAT_KEY: null, ARCAT_NAME: null });
+    const selectedCustomerType =
+      this.props.customerType.listItems.find(
+        (item) => item.ARCAT_KEY == this.state.ARCAT_KEY,
+      ) ?? { ARCAT_KEY: null, ARCAT_NAME: null };
+
+    await this.props.setCustomerType(selectedCustomerType);
 
     if (userToken) {
       //console.log('userToken 2', userToken);
@@ -109,6 +114,7 @@ class CTSearchForm extends Component {
 
   _onSearch = async () => {
     await this._getUserToken();
+    console.log('cccc')
 
     if (!this.props.customer.isLoading) {
       if (this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT != 2) {

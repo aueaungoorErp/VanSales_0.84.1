@@ -1,0 +1,151 @@
+CREATE TABLE VANSKU
+   (VANSKU_KEY           INTEGER NOT NULL,
+    CONSTRAINT VANSKUPRIMARY  PRIMARY KEY (VANSKU_KEY));
+CREATE TABLE VANGOODS
+   (VANGOODS_KEY         INTEGER NOT NULL,
+    CONSTRAINT VANGOODSPRIMARY  PRIMARY KEY (VANGOODS_KEY));
+
+CREATE TABLE VANCONFIG
+   (VANCNF_KEY           INTEGER NOT NULL,
+    VANCNF_MACHINE       VARCHAR (3),         // รหัสหน่วยรถ   
+    VANCNF_NAME          VARCHAR (50),         // ชื่อหน่วยรถ
+    VANCNF_REG_NAME      VARCHAR (20),     // ทะเบียนรถ
+    VANCNF_INV_HEAD      VARCHAR (100),    // ข้อความที่พิมพ์ ใบส่งของ ชื่อหัวเอกสาร 
+    VANCNF_INV_TRAIL     VARCHAR (100),    // ข้อความที่พิมพ์ ใบส่งของ ข้อความท้ายเอกสาร
+    VANCNF_INV_ISSBY     VARCHAR (100),   // ข้อความที่พิมพ์ ใบส่งของ ชื่อผู้ส่งของ
+    VANCNF_BOOK_HEAD     VARCHAR (100),  // ข้อความที่พิมพ์ ใบจองสินค้า ชื่อหัวเอกสาร 
+    VANCNF_BOOK_TRAIL    VARCHAR (100),   // ข้อความที่พิมพ์ ใบจองสินค้า ข้อความท้ายเอกสาร
+    VANCNF_BOOK_ISSBY    VARCHAR (100),  // ข้อความที่พิมพ์ ใบจองสินค้า ชื่อผู้รับจอง
+    VANCNF_RTN_HEAD      VARCHAR (100),  // ข้อความที่พิมพ์ ใบรับคืน ชื่อหัวเอกสาร 
+    VANCNF_RTN_TRAIL     VARCHAR (100),   // ข้อความที่พิมพ์ ใบรับคืน ข้อความท้ายเอกสาร
+    VANCNF_RTN_ISSBY     VARCHAR (100),  // ข้อความที่พิมพ์ ใบรับคืน ชื่อผู้รับคืน
+    VANCNF_ASYNC         VARCHAR(15),       // หมายเลข IP ช่องทางติดต่อ
+    VANCNF_WIFI_1        VARCHAR(15),      // หมายเลข IP ช่องทางติดต่อ
+    VANCNF_WIFI_2        VARCHAR(15),     // หมายเลข IP ช่องทางติดต่อ
+    VANCNF_WIFI_3        VARCHAR(15),    // หมายเลข IP ช่องทางติดต่อ
+    VANCNF_WEB           VARCHAR(100),   // ชื่อ URL
+    VANCNF_TRANS_PORT    INTEGER,         // ชื่อช่องทางที่ใช้ติดต่อส่งยอดขายประจำ
+    VANCNF_ENQRE_PORT    INTEGER,        // ชื่อช่องทางที่ใช้สอบถามประจำ
+    VANCNF_ENABLE_INV    VARCHAR(1),          // Y-N สามารถบันทึกใบส่งของ
+    VANCNF_ENABLE_RTN    VARCHAR(1),         // Y-N สามารถบันทึกใบรับคืนสินค้า  
+    VANCNF_ENABLE_BOOK   VARCHAR(1),        // Y-N สามารถบันทึกใบจองสินค้า 
+    VANCNF_ENABLE_STATUS VARCHAR(1),       // Y-N สามารถบันทึกจำนวนสินค้าลูกค้าคงเหลือ
+
+    VANCNF_INVOIVCE_DT   INTEGER,             // ประเภทเอกสารใบขายเชื่อ
+    VANCNF_CASHSELL_DT   INTEGER,            // ประเภทเอกสารใบขายสด
+    VANCNF_BOOK_DT       INTEGER,              // ประเภทเอกสารใบจองสินค้า
+    VANCNF_RETURN_DT     INTEGER,            // ประเภทเอกสารใบรับคืนเชื่อ
+    VANCNF_CASHRTN_DT    INTEGER,          // ประเภทเอกสารใบรับคืนสด
+    VANCNF_STATUS_DT     INTEGER,           // ประเภทเอกสารจำนวนสินค้าลูกค้าคงเหลือ
+    VANCNF_QUOTATION     INTEGER,            // ประเภทเอกสารเสนอราคา ใช้เตรียมสินค้า
+
+    VANCNF_WL            INTEGER,                  // ชื่อตำแหน่งเก็บสินค้าบนรถ
+    VANCNF_ARPRB         INTEGER,                // ตารางราคาขาย
+    VANCNF_CASHAC        INTEGER,               // สมุดบันทึกเงินสด
+    VANCNF_SLMN          INTEGER,                // พนง.ขาย
+    VANCNF_VAT_RATE      MONEY,                // อัตราภาษีมูลค่าเพิ่ม
+    VANCNF_SHOW_VAT      INTEGER,           // พิมพ์ยอด ภพ.ท้ายเอกสาร 1=พิมพ์, 2=ไม่พิมพ์
+    VANCNF_ENQ_WL        INTEGER,             // สอบถามสินค้าคงเหลือ 1=แสดงทุกตำแหน่งเก็บ, 2=แสดงเฉพาะตำแหน่งของตนเอง
+    VANCNF_BILL_ADDB     INTEGER,            // พิมพ์ที่อยู่บนเอกสารที่พิมพ์ 1=พิมพ์, 2=ไม่พิมพ์
+    VANCNF_FORCE_MILE    INTEGER,           // บันทึกเลขไมล์ก่อนขาย 1=ต้องบันทึกทุกครั้ง 2=ไม่ต้องบันทึก
+    VANCNF_LAST_BILL     INTEGER,              // ประวัติสินค้าที่เคยขาย 1=เฉพาะบิลสุดท้าย 2=ทั้งหมด 3=เฉพาะช่วงบิลที่เลือก
+    VANCNF_SKU_LIMIT     INTEGER,            // จำกัดชนิดสินค้าขึ้นรถ โดยวิธีใด 1=ตามยี่ห้อ 2=อ้างอิงในตน.เก็บ 3=ตามใบเสนอราคาที่เคยเสนอ 4=ตามใบโอนย้าย
+    VANCNF_NEED_BAL      INTEGER,           // ต้องการยอดสินค้าคงเหลือบนรถ 1=ไม่ได้ใช้ 2=แสดงยอดคงเหลือ
+
+    VANCNF_AS_PREVIOUS   INTEGER,        // ขายเหมือนบิลสุดท้าย 1=ทำการขายสินค้าที่ไม่เหมือนสินค้าที่เคยขาย, 2=ทำการขายสินค้าเหมือนที่เคยขายแต่เปลี่ยนจำนวน
+
+    VANCNF_ENABLE_UPRC   INTEGER,       // ราคาขายต่อหน่วยลดตามจำนวน 1=ไม่ได้ใช้งาน, 2=ใช้งานได้
+    VANCNF_ENABLE_UDSC   INTEGER,      // สามารถบันทึกส่วนลดแต่ละรายการ 1=ไม่ได้ใช้งาน, 2=ใช้งานได้
+    VANCNF_ENABLE_TDSC   INTEGER,      // สามารถบันทึกส่วนลดท้ายบิล 1=ไม่ใช้ใช้งาน, 2=ใช้งานได้
+    VANCNF_ENABLE_KTDSC  INTEGER,     // แก้ไขส่วนลดท้ายบิล 1=ไม่ได้ใช้งาน, 2=ใช้งานได้
+
+    VANCNF_ENABLE_CASH   INTEGER,      // รับชำระด้วยเงินสด 1=ไม่ได้ใช้งาน, 2=ใช้งานได้
+    VANCNF_ENABLE_AR     INTEGER,       // รับชำระโดยโอนเข้าลูกหนี้ 1=ไม่ได้ใช้งาน, 2=ใช้งานได้
+    VANCNF_CHEQUE           INTEGER,     // รับชำระด้วยเงินเช็ค 1=ไม่ได้ใช้งาน, 2=ใช้งานได้
+
+    VANCNF_ENABLE_ALLAR  INTEGER,      // สามารถแสดงทุกลูกค้าขณะค้นหา 1=ไม่สามารถใช้ได้, 2=สามารถใช้ได้
+    VANCNF_ENABLE_ALLIC  INTEGER,      // สามารถแสดงทุกสินค้าขณะค้นหา  1=ไม่สามารถใช้ได้ 2=สามารถใช้ได้
+    VANCNF_3RD_PARTY     INTEGER,      // แหล่งข้อมูลยอดหนี้ และ สินค้าคงเหลือ 1=จาก Bplus, 2=จากโปรแกรมอื่น
+
+    VANCNF_ENABLE_CPSKU  INTEGER,   // แคมเปญขาย ซื่อสินค้าเดียวครบลดแถม 1=ไม่ได้ใช้งาน, 2=สามารถใช้ได้
+    VANCNF_ENABLE_CPALT  INTEGER,   // แคมเปญขาย ซื้อทดแทนครบลดแถม  1=ไม่ได้ใช้งาน, 2=สามารถใช้ได้
+    VANCNF_ENABLE_CPAKU  INTEGER,   // แคมเปญขาย ซื้อทดแทนครบลดแถม  1=ไม่ได้ใช้งาน, 2=สามารถใช้ได้
+
+    VANCNF_RPT_SKUCAT    INTEGER,     // รูปแบบรายงานสรุปตามประเภทสินค้า 1=ไม่พิมพ์, 2=พิมพ์หน้ากว้าง 2", 3=พิมพ์หน้ากว้าง 3"
+    VANCNF_RPT_SKU       INTEGER,       // รูปแบบรายงานสรุปตามสินค้า 1=ไม่พิมพ์, 2=พิมพ์หน้ากว้าง 2", 3=พิมพ์หน้ากว้าง 3"
+    VANCNF_RPT_ARL       INTEGER,       // รูปแบบรายงานสรุปตามสายลูกค้า 1=ไม่พิมพ์, 2=พิมพ์หน้ากว้าง 2", 3=พิมพ์หน้ากว้าง 3"
+    VANCNF_RPT_DT        INTEGER,       // รูปแบบรายงานสรุปตามประเภทเอกสาร 1=ไม่พิมพ์, 2=พิมพ์หน้ากว้าง 2", 3=พิมพ์หน้ากว้าง 3"
+    VANCNF_RPT_DI        INTEGER,       // รูปแบบรายงานสรุปตามเอกสาร 1=ไม่พิมพ์, 2=พิมพ์หน้ากว้าง 2", 3=พิมพ์หน้ากว้าง 3"
+    VANCNF_RPT_EFF       INTEGER,      // รูปแบบรายงานสรุปเพิ่มประสิทธิผล 1=ไม่พิมพ์, 2=พิมพ์หน้ากว้าง 2", 3=พิมพ์หน้ากว้าง 3"
+    VANCNF_RPT_TRD       INTEGER,     // รูปแบบรายงานรายละเอียดแต่ละเอกสาร 1=ไม่พิมพ์, 2=พิมพ์หน้ากว้าง 2", 3=พิมพ์หน้ากว้าง 3"
+    VANCNF_RPT_SKB       INTEGER,     // รูปแบบรายงานรายละเอียดสินค้าคงเหลือ 1=ไม่พิมพ์, 2=พิมพ์หน้ากว้าง 2", 3=พิมพ์หน้ากว้าง 3"
+    VANCNF_RPT_INVOICE   INTEGER,  // รูปแบบฟอร์มบิล 1=ไม่พิมพ์, 2=พิมพ์หน้ากว้าง 2", 3=พิมพ์หน้ากว้าง 3"
+    VANCNF_PSZ_SKUCAT    INTEGER,  // จำนวนบรรทัดต่อหน้า รายงานสรุปตามประเภทสินค้า
+    VANCNF_PSZ_SKU       INTEGER,    // จำนวนบรรทัดต่อหน้า รายงานสรุปตามสินค้า
+    VANCNF_PSZ_ARL       INTEGER,    // จำนวนบรรทัดต่อหน้า รายงานสรุปตามสายลูกค้า
+    VANCNF_PSZ_DT        INTEGER,    // จำนวนบรรทัดต่อหน้า รายงานสรุปตามประเภทเอกสาร
+    VANCNF_PSZ_DI        INTEGER,    // จำนวนบรรทัดต่อหน้า รายงานสรุปตามเอกสาร
+    VANCNF_PSZ_EFF       INTEGER,    // จำนวนบรรทัดต่อหน้า รายงานสรุปเพิ่มประสิทธิผล 
+    VANCNF_PSZ_TRD       INTEGER,    // จำนวนบรรทัดต่อหน้า รายงานรายละเอียดแต่ละเอกสาร
+    VANCNF_PSZ_SKB       INTEGER,    // จำนวนบรรทัดต่อหน้า รายงานรายละเอียดสินค้าคงเหลือ
+    VANCNF_PSZ_INVOICE   INTEGER,   // จำนวนบรรทัดต่อหน้า ฟอร์มบิล
+    VANCNF_FORCAST       MONEY,                     // เป้าเดือน
+    VANCNF_TIME_FM       DATETIME,                // จำกัดเวลาขาย ตั้งแต่เวลา
+    VANCNF_TIME_TO       DATETIME,                // จำกัดเวลาขาย ถึงเวลา
+    VANCNF_KEYIN_SCR     INTEGER,                // รูปแบบจอภาพขายสินค้า 1=ทีละสินค้า 2=ทีละประเภททดแทนเรียงตามชื่อ 3=ทีละประเภททดแทนเรียงตามรหัส
+    VANCNF_ROUND         INTEGER,                 // ปัดเศษ สะดวกทอน 0=ไม่ต้องปัด, 1=ขึ้นลงเป็นบาท, 2=ขึ้นลงเป็นสลึง, 11=ขึ้นเป็นบาท, 12=ขึ้นเป็นสลึง, 21=ลงเป็นบาท, 22=ลงเป็นสลึง
+    VANCNF_SHOW_SKU      INTEGER,               // ชื่อสินค้าที่แสดงในรถ 1=ชื่อหลัก 2=ชื่อสำรอง 
+     VANCNF_FORCE_GPS     INTEGER,              // บันทึกพิกัดในเอกสารขาย 1=ต้องบันทึกทุกครั้ง, 2=ไม่ต้อง
+    CONSTRAINT VANCNFPRIMARY  PRIMARY KEY (VANCNF_KEY));
+
+VANCNF_ENABLE_VISIT VARCHAR(1),       // Y-N สามารถบันทึกใบเยี่ยม
+VANCNF_REPRT_INV_MSG VARCHAR(100), // ข้อความที่พิมพ์กรณีพิมพ์ใบส่งของซ้ำ
+VANCNF_REPRT_INV  INTEGER,  // 1=ไม่สามารถพิมพ์ซ้ำ 2=สามารถพิมพ์ซ้ำ
+VANCNF_VISIT_DT INTEGER,   // ประเภทเอกสารบันทึกใบเยี่ยม
+VANCNF_NOV_CRE_LIM INTEGER,  // ขายเกินวงเงินเครดิต 1=ไม่สามารถขายเกินวงเงินเครดิต 2=สามารถขายเกินวงเงินเครดิต
+VANCNF_NOV_SKU_BAL INTEGER, // ขายสินค้าจำนวนเป็นลบ 1=ไม่สามารถขายสินค้าจำนวนเป็นลบ 2=สามารถขายสินค้าจำนวนเป็นลบ
+VANCNF_AR_LIMIT     INTEGER,     // จำกัดชื่อลูกค้า โดยวิธีใด 1=ตามสายลูกค้า 2=ตามตารางสายเดินทาง
+VANCNF_AUTO_FREECP  INTEGER,   // แสดงจำนวนแถมอัตโนมัติ 1=บันทึกจำนวนแถมเอง, 2=แสดงจำนวนแถมอัตโนมัติ
+
+CREATE TABLE VANARLINE
+   (VANARL_KEY           INTEGER NOT NULL,
+    VANARL_VANCNF        INTEGER NOT NULL,
+    VANARL_ARL           INTEGER NOT NULL,
+    CONSTRAINT VANARLPRIMARY PRIMARY KEY (VANARL_KEY),
+    CONSTRAINT VANARL2VANCNF FOREIGN KEY (VANARL_VANCNF)
+                             REFERENCES VANCONFIG(VANCNF_KEY),
+    CONSTRAINT VANARL2ARL    FOREIGN KEY (VANARL_ARL)
+                             REFERENCES ARLINE(ARL_KEY));
+
+CREATE TABLE VANBRAND
+   (VANBRN_KEY           INTEGER NOT NULL,
+    VANBRN_VANCNF        INTEGER NOT NULL,
+    VANBRN_BRN           INTEGER NOT NULL,
+    CONSTRAINT VANBRNPRIMARY PRIMARY KEY (VANBRN_KEY),
+    CONSTRAINT VANBRN2VANCNF FOREIGN KEY (VANBRN_VANCNF)
+                             REFERENCES VANCONFIG(VANCNF_KEY),
+    CONSTRAINT VANBRN2BRN    FOREIGN KEY (VANBRN_BRN)
+                             REFERENCES BRAND(BRN_KEY));
+
+CREATE TABLE V3RDSKUONHAND
+   (SKM_KEY              INTEGER NOT NULL,
+    SKM_SKU              INTEGER NOT NULL,
+    SKM_WL               INTEGER NOT NULL,
+    SKM_QTY              MONEY,
+    CONSTRAINT V3RDSKMPRIMARY PRIMARY KEY (SKM_KEY));
+
+CREATE TABLE V3RDARDETAIL
+   (DI_KEY               INTEGER NOT NULL,
+    DI_DATE              DATETIME,
+    DI_REF               VARCHAR(16),
+    ARD_A_AMT            MONEY,
+    ARD_PAID             MONEY,
+    ARD_AR               INTEGER NOT NULL,
+    CONSTRAINT V3RDARDPRIMARY PRIMARY KEY (DI_KEY));
+
+CREATE TABLE BPLUSLICENSE
+   (LIC_KEY               INTEGER NOT NULL,
+    LIC_DATA             VARCHAR(250),
+   CONSTRAINT LICPRIMARY PRIMARY KEY (LIC_KEY));
+
+

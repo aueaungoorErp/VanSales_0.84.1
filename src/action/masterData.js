@@ -5,6 +5,7 @@ import {
   closeDatabaseQueue,
   isDatabaseOpen,
 } from 'react-native-nitro-sqlite/lib/module/DatabaseQueue';
+import { searchMasterDataBankFileListApi } from '../api/masterData';
 import * as types from '../constant/masterData';
 
 const PROVINCES_DB_NAME = 'provinces.db';
@@ -120,7 +121,37 @@ export const clearMasterBankFileList = () => (dispatch) => {
 };
 
 export const searchMasterDataBankFileList = (GUID) => (dispatch) => {
-  return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    dispatch({type: types.MASTER_DATA_SEARCH_BANK_FILE_LIST});
+
+    searchMasterDataBankFileListApi(GUID)
+      .then((response) => {
+        const payload = response?.data ?? response;
+        const {ResponseData, ResponseCode, ReasonString} = payload || {};
+        const responseData = ResponseData ? JSON.parse(ResponseData) : null;
+        const result = responseData?.Bk000201 || [];
+
+        if (String(ResponseCode) === '200' && result.length > 0) {
+          dispatch({
+            type: types.MASTER_DATA_SEARCH_BANK_FILE_LIST_SUCCESS,
+            payload: result,
+          });
+          resolve(result);
+          return;
+        }
+
+        dispatch({type: types.MASTER_DATA_SEARCH_BANK_FILE_LIST_FAIL});
+        reject(
+          Array.isArray(ReasonString) && ReasonString[0]
+            ? ReasonString[0]
+            : 'ไม่พบข้อมูลธนาคาร',
+        );
+      })
+      .catch((error) => {
+        dispatch({type: types.MASTER_DATA_SEARCH_BANK_FILE_LIST_FAIL});
+        reject(error?.message || error || 'ไม่สามารถโหลดข้อมูลธนาคารได้');
+      });
+  });
 };
 
 export const searchMasterDataVanVisRList = () => (dispatch) => {

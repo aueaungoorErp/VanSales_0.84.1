@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { connect } from 'react-redux';
 import {
     addProduct,
@@ -25,6 +25,10 @@ import {
     convertProductItemToOrderItem,
     convertProductItemToOrderItemSCR,
 } from '../../../utils/Order';
+import {
+  LAST_BILL_QUOTATION_WARNING_MESSAGE,
+  getLatestSoldQuotationGoodsCodes,
+} from '../../../utils/LastBillValidation';
 import { getLoginGuID, getSettingConfig, getUserToken } from '../../../utils/Token';
 import ButtonGroup from '../presenter/ButtonGroup';
 class CTButtonGroup extends Component {
@@ -35,7 +39,9 @@ class CTButtonGroup extends Component {
 
     this.state = {
       userToken: null,
-      _errormsg: null
+      _errormsg: null,
+      isLatestItemModalVisible: false,
+      latestItemModalMessage: null,
     };
 
     this._getUserToken();
@@ -197,15 +203,61 @@ class CTButtonGroup extends Component {
       {cancelable: false},
     );
 
-  _getProductListItemsFromLastBillByArCode = async () => {
+  _getProductListItemsFromLastBillByArCode = async (goodsCodes = null) => {
     try {
       const v3GUID = await getLoginGuID();
       const userToken = await getUserToken();
       await this.props.getProductListItemsFromLastBillByArCode(
         v3GUID,
         userToken.VANCONFIG.VANCNF_MACHINE,
+        goodsCodes,
       );
       await this.props.calculateOrderProductSummary();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  _closeLatestItemModal = () => {
+    this.setState({
+      isLatestItemModalVisible: false,
+      latestItemModalMessage: null,
+    });
+  };
+
+  _showLatestItemModal = (message) => {
+    this.setState({
+      isLatestItemModalVisible: true,
+      latestItemModalMessage: message,
+    });
+  };
+
+  _handleLastBillPress = async () => {
+    try {
+      const latestUserToken = await getUserToken();
+      const activeUserToken = latestUserToken || this.state.userToken || this._userToken;
+      const vanConfig = activeUserToken?.VANCONFIG;
+
+      const validationResult = await getLatestSoldQuotationGoodsCodes({
+        v3GUID: await getLoginGuID(),
+        vanConfig,
+        arCode: this.props.customer.item.INFO.AR_CODE,
+        arprbCode: this.props.customer.item?.ARPRB?.ARPRB_CODE,
+        orderType: this.props.order.header.AR_ORDER_TYPE,
+      });
+
+      if (!validationResult.allowed) {
+        this._showLatestItemModal(
+          validationResult.message || LAST_BILL_QUOTATION_WARNING_MESSAGE,
+        );
+        return;
+      }
+
+      this.props.order.errorMessage = null;
+      this._removeAll();
+      this._getProductListItemsFromLastBillByArCode(
+        validationResult.goodsCodes,
+      );
     } catch (error) {
       console.log(error);
     }
@@ -220,9 +272,7 @@ class CTButtonGroup extends Component {
         {
           text: 'ยืนยัน',
           onPress: () => {
-               this.props.order.errorMessage = null;
-               this._removeAll();
-               this._getProductListItemsFromLastBillByArCode();
+               this._handleLastBillPress();
           }
         },
       ],
@@ -278,6 +328,26 @@ class CTButtonGroup extends Component {
       <ButtonGroup listItems={this.state._errormsg?   null : buttonGroup} renderItem={this._renderItem} /> : 
       <Text  style={styles.red}>{'\n\n'}{this.state._errormsg}</Text>       
       }
+      <Modal
+        transparent={true}
+        visible={this.state.isLatestItemModalVisible}
+        animationType="fade"
+        onRequestClose={this._closeLatestItemModal}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>ประกาศ</Text>
+            <Text style={styles.modalMessage}>
+              {this.state.latestItemModalMessage}
+            </Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={this._closeLatestItemModal}
+              activeOpacity={0.7}>
+              <Text style={styles.modalButtonText}>ตกลง</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       </>);
     }
   }
@@ -296,12 +366,56 @@ const styles = StyleSheet.create({
     color: 'red',
    textAlign: 'center', 
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#000000',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  modalButton: {
+    minWidth: 100,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: MainTheme.colorPrimary,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
 
 
 
 const mapStateToProps = (state) => ({
   order: state.order,
+  customer: state.customer,
 });
 
 const mapDispatchToProps = (dispatch) => {

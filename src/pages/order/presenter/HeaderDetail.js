@@ -75,8 +75,7 @@ const HeaderDetail = (props) => {
           </>
         )}
 
-        {/*
-         */}
+       
       </View>
     </View>
   );

@@ -268,15 +268,10 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
   });
 
   const toggleCheckBox = (item) => {
-
-
     setCheckedItems((prevState) => ({
       ...prevState,
       [item]: !prevState[item],
     }));
-
-
-
   };
 
   const nottoggleCheckBox = (item, notitem) => {
@@ -456,7 +451,6 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
   };
 
   _onCancel = () => {
-    // this._setState('errorMessage', '');
     setState('isQRCodeDialogOpen', false)
   }
 
@@ -464,10 +458,7 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
 
   _onPress = async (item) => {
     this._setState('errorMessage', '');
-    // console.log("item methodType", item.methodType)
-    // console.log("item item.methodName", item.methodName)
 
-    //this.state.paymentType = "qrcode"   // เอาออกด้วย
     if (item.methodType === 'function') {
       if (item.methodName === 'confirm') {
         if (this.state.groupofpaymentType.size === 0) {
