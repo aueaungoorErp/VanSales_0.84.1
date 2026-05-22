@@ -69,6 +69,7 @@ class CTFinalizeDetail extends Component {
       paymentType: null,
       returnType: null,
       shipDate: moment().format('DD/MM/YYYY'),
+      expiryDate: moment().format('DD/MM/YYYY'),
       saleDisable: false,
       returnDisable: false,
       userToken: null,
@@ -449,8 +450,8 @@ class CTFinalizeDetail extends Component {
         // console.log('shipDate 31' , this.props.order.header.VDI_SHIP_DATE) ; 
 
 
-        this.state.processResult.TRANSTKH.TRH_SHIP_DATE = moment(this.state.shipDate, 'DD/MM/YYYY').format('YYYYMMDDHHmm');
-        this.props.order.header.VDI_SHIP_DATE = moment(this.state.shipDate, 'DD/MM/YYYY').format('YYYYMMDDHHmm');
+        this.state.processResult.TRANSTKH.TRH_SHIP_DATE = moment(this.state.shipDate, 'DD/MM/YYYY').format('YYYYMMDD');
+        this.props.order.header.VDI_SHIP_DATE = moment(this.state.shipDate, 'DD/MM/YYYY').format('YYYYMMDD');
         const v3GUID = await getLoginGuID();
 
         let res = null;
@@ -636,6 +637,22 @@ class CTFinalizeDetail extends Component {
         this._setErrorMessage('กรุณากรอกจำนวนสินค้า');
         return;
       }
+
+      this.props.order.header.VDI_SHIP_DATE = moment(
+        this.state.shipDate,
+        'DD/MM/YYYY',
+      ).format('YYYYMMDD');
+      this.props.order.header.VDI_EXP_DATE = moment(
+        this.state.expiryDate,
+        'DD/MM/YYYY',
+      ).format('YYYYMMDD');
+      console.log('quotation selected expiry before summary', {
+        shipDateInput: this.state.shipDate,
+        expiryDateInput: this.state.expiryDate,
+        VDI_SHIP_DATE: this.props.order.header.VDI_SHIP_DATE,
+        VDI_EXP_DATE: this.props.order.header.VDI_EXP_DATE,
+        VDI_DATE: this.props.order.header.VDI_DATE,
+      });
 
       // await this.props.setOrderItems(listItems);
       // this._setState('remarkDialogVisible', true);
@@ -1270,11 +1287,41 @@ class CTFinalizeDetail extends Component {
 
       // console.log('shipDate 3' , this.state.processResult.TRANSTKH.TRH_SHIP_DATE) ; 
 
-      this.state.processResult.TRANSTKH.TRH_SHIP_DATE = moment(value, 'DD/MM/YYYY').format('YYYYMMDDHHmm');
+      const formattedShipDate = moment(value, 'DD/MM/YYYY').format(
+        'YYYYMMDD',
+      );
+
+      this.state.processResult.TRANSTKH.TRH_SHIP_DATE = formattedShipDate;
+      this.props.order.header.VDI_SHIP_DATE = formattedShipDate;
+      console.log('quotation setShipDate', {
+        shipDateInput: value,
+        formattedShipDate,
+        VDI_SHIP_DATE: this.props.order.header?.VDI_SHIP_DATE,
+        processTRHShipDate: this.state.processResult?.TRANSTKH?.TRH_SHIP_DATE,
+      });
       // console.log('shipDate 4' , this.state.processResult.TRANSTKH.TRH_SHIP_DATE) ; 
 
       return {
         shipDate: value,
+      };
+    });
+  };
+
+  _setExpiryDate = async (value) => {
+    await this.setState((oldState) => {
+      const formattedExpiryDate = moment(value, 'DD/MM/YYYY').format(
+        'YYYYMMDD',
+      );
+
+      this.props.order.header.VDI_EXP_DATE = formattedExpiryDate;
+      console.log('quotation setExpiryDate', {
+        expiryDateInput: value,
+        formattedExpiryDate,
+        VDI_EXP_DATE: this.props.order.header?.VDI_EXP_DATE,
+      });
+
+      return {
+        expiryDate: value,
       };
     });
   };
@@ -1400,6 +1447,7 @@ class CTFinalizeDetail extends Component {
         setDisType1={this._setDisType1}
         setDisType2={this._setDisType2}
         setShipDate={this._setShipDate}
+        setExpiryDate={this._setExpiryDate}
         setVDIRemark={this._setVDIRemark} //หมายเหตุ
         buttonListItems={productFinalizeFormButtonGroup}
         renderItem={this._renderItem}
@@ -1410,6 +1458,7 @@ class CTFinalizeDetail extends Component {
         paymentType={this.state.paymentType}
         setPaymentType={this._setPaymentType}
         shipDate={this.state.shipDate}
+        expiryDate={this.state.expiryDate}
         setReturnType={this._setReturnType}
         returnType={this.state.returnType}
         returnItems={returnLOVItems}

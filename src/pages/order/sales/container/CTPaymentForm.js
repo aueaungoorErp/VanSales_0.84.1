@@ -4,7 +4,12 @@ import { Keyboard, Text, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import { setIsSubmit as setCheckInIsSubmit } from '../../../../action/check-in';
 import { getCurrentPosition } from '../../../../action/geolocation';
-import { auth, getQRCode, postinvoice, subscription } from '../../../../action/ktb-payment';
+import {
+  auth,
+  getQRCode,
+  postinvoice,
+  subscription,
+} from '../../../../action/ktb-payment';
 import { setIsSubmit as setMileIsSubmit } from '../../../../action/mile';
 import {
   createOrderSaleV3,
@@ -26,7 +31,7 @@ import Navigator from '../../../../services/Navigator';
 import { numberOnlyCanZeroFirst } from '../../../../utils/Culculate';
 import {
   genenrateAttachImageToServer,
-  genenrateOrderForCreateToServer
+  genenrateOrderForCreateToServer,
 } from '../../../../utils/Order';
 import { getLoginGuID, getUserToken } from '../../../../utils/Token';
 import PaymentForm from '../presenter/PaymentForm';
@@ -37,12 +42,8 @@ import {
   BPAPUS_LOOKUP_OT_REC_CODE,
   BPAPUS_LOOKUP_QR_CODE,
   BPAPUS_REMAIN_OPTION_OVER,
-  BPAPUS_REMAIN_OPTION_UNDER
+  BPAPUS_REMAIN_OPTION_UNDER,
 } from '../../../../constant/bPlusApi';
-
-
-
-
 
 class CTPaymentForm extends Component {
   constructor(props) {
@@ -90,7 +91,6 @@ class CTPaymentForm extends Component {
       qrContentItem: null,
       qrContentName: null,
 
-
       dscfTxnId: null,
       accessToken: null,
       otherPaymentType: [],
@@ -104,8 +104,8 @@ class CTPaymentForm extends Component {
       reMainOption_Over: [],
       reMainOption1: [],
       remainoptiontItem: null,
-      differBy: 1,  // จำนวนเงิน บวกลบ Remain Option
-      differValue: 0
+      differBy: 1, // จำนวนเงิน บวกลบ Remain Option
+      differValue: 0,
     };
 
     this._getUserToken();
@@ -113,8 +113,8 @@ class CTPaymentForm extends Component {
     this._getbankAccount();
     this._getQRContent();
     this._getCashAccount();
-     this._getRemainOtipn_Under();
-     this._getRemainOtipn_Over();
+    this._getRemainOtipn_Under();
+    this._getRemainOtipn_Over();
   }
 
   _getResolvedOrderAmount = () => {
@@ -138,19 +138,28 @@ class CTPaymentForm extends Component {
   _getCurrentPayin = (state = this.state) => {
     const paymentTypes = state?.groupofpaymentType || new Set();
 
-    return (paymentTypes.has('cash') ? Number(state?.cashin || 0) : 0) +
-      (paymentTypes.has('transfer') ? Number(state?.paymentTransfer?.tranFerin || 0) : 0) +
+    return (
+      (paymentTypes.has('cash') ? Number(state?.cashin || 0) : 0) +
+      (paymentTypes.has('transfer')
+        ? Number(state?.paymentTransfer?.tranFerin || 0)
+        : 0) +
       (paymentTypes.has('qrcode') ? Number(state?.qrin || 0) : 0) +
-      (paymentTypes.has('cheque') ? Number(state?.paymentCheque?.chequein || 0) : 0) +
-      (paymentTypes.has('other') ? Number(state?.otherin || 0) : 0);
+      (paymentTypes.has('cheque')
+        ? Number(state?.paymentCheque?.chequein || 0)
+        : 0) +
+      (paymentTypes.has('other') ? Number(state?.otherin || 0) : 0)
+    );
   };
 
-  _isPaymentAmountErrorMessage = (message) => {
+  _isPaymentAmountErrorMessage = message => {
     if (typeof message !== 'string') {
       return false;
     }
 
-    return message.includes('ยอดชำระยังไม่ครบ') || message.includes('ไม่สามารถชำระเกินยอดเงินทั้งหมด');
+    return (
+      message.includes('ยอดชำระยังไม่ครบ') ||
+      message.includes('ไม่สามารถชำระเกินยอดเงินทั้งหมด')
+    );
   };
 
   _syncPaymentAmountError = () => {
@@ -171,14 +180,21 @@ class CTPaymentForm extends Component {
   componentDidUpdate(prevProps, prevState) {
     const previousAmount = this._getCurrentPayin(prevState);
     const currentAmount = this._getCurrentPayin(this.state);
-    const previousTypes = Array.from(prevState.groupofpaymentType || []).sort().join('|');
-    const currentTypes = Array.from(this.state.groupofpaymentType || []).sort().join('|');
-    const previousTotal = [
-      prevProps.processResult?.DOCINFO?.DI_AMOUNT,
-      prevProps.order?.headerProcessed?.VDI_AF_DISC,
-      prevProps.order?.orderProductSummary?.totalPrice,
-      prevProps.order?.header?.VDI_AF_DISC,
-    ].map(value => parseFloat(value)).find(value => Number.isFinite(value) && value > 0) || 0;
+    const previousTypes = Array.from(prevState.groupofpaymentType || [])
+      .sort()
+      .join('|');
+    const currentTypes = Array.from(this.state.groupofpaymentType || [])
+      .sort()
+      .join('|');
+    const previousTotal =
+      [
+        prevProps.processResult?.DOCINFO?.DI_AMOUNT,
+        prevProps.order?.headerProcessed?.VDI_AF_DISC,
+        prevProps.order?.orderProductSummary?.totalPrice,
+        prevProps.order?.header?.VDI_AF_DISC,
+      ]
+        .map(value => parseFloat(value))
+        .find(value => Number.isFinite(value) && value > 0) || 0;
     const currentTotal = this._getResolvedOrderAmount();
 
     if (
@@ -191,16 +207,16 @@ class CTPaymentForm extends Component {
     }
   }
 
-//   componentDidMount() {
-//      this._getRemainOtipn_Under();
-//      this._getRemainOtipn_Over();
-// }
+  //   componentDidMount() {
+  //      this._getRemainOtipn_Under();
+  //      this._getRemainOtipn_Over();
+  // }
 
   _getUserToken = async () => {
     const userToken = await getUserToken();
 
     if (userToken) {
-      await this.setState((oldState) => {
+      await this.setState(oldState => {
         return {
           userToken: userToken,
         };
@@ -210,43 +226,48 @@ class CTPaymentForm extends Component {
     console.log('userToken', userToken);
   };
 
-
   _getOtherPaymentType = async () => {
     const LoginGUID = await getLoginGuID();
-
 
     let dataObj2 = {
       'BPAPUS-BPAPSV': BPAPUS_BPAPSV,
       'BPAPUS-LOGIN-GUID': LoginGUID,
       'BPAPUS-FUNCTION': BPAPUS_LOOKUP_OT_REC_CODE,
       'BPAPUS-PARAM': '',
-      'BPAPUS-FILTER': "",
+      'BPAPUS-FILTER': '',
       'BPAPUS-ORDERBY': '',
       'BPAPUS-OFFSET': '0',
       'BPAPUS-FETCH': '0',
     };
     let WL_CODE = null;
     await lookupErpV3Api(dataObj2)
-      .then(async (v) => {
+      .then(async v => {
         const { ResponseData, ResponseCode, ReasonString } = v.data;
         if (ResponseCode == 200) {
-          console.log("responseData.Ps000103 1 ", JSON.parse(ResponseData));
+          console.log('responseData.Ps000103 1 ', JSON.parse(ResponseData));
           let responseData = JSON.parse(ResponseData);
-          console.log("responseData.Ps000103 2", responseData.Ps000103);
+          console.log('responseData.Ps000103 2', responseData.Ps000103);
 
           //this.state.otherPaymentType = Object.values(responseData.Ps000103);
-          await this._setState('otherPaymentType', Object.values(responseData.Ps000103));
-          console.log("responseData.Ps000103 3", Object.values(responseData.Ps000103));
-          console.log("this.state.otherPaymentType", this.state.otherPaymentType);
-
+          await this._setState(
+            'otherPaymentType',
+            Object.values(responseData.Ps000103),
+          );
+          console.log(
+            'responseData.Ps000103 3',
+            Object.values(responseData.Ps000103),
+          );
+          console.log(
+            'this.state.otherPaymentType',
+            this.state.otherPaymentType,
+          );
         } else {
           //console.log('ERROR lookupErpV3Api', ReasonString);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         //console.log('ERROR lookupErpV3Api', err);
       });
-
 
     // const userToken = await getUserToken();
 
@@ -259,38 +280,35 @@ class CTPaymentForm extends Component {
     // }
   };
 
-
   _getCashAccount = async () => {
     //21.หาสมุดเงินสด (Bk000500)
     const LoginGUID = await getLoginGuID();
 
-
     let dataObj2 = {
       'BPAPUS-BPAPSV': BPAPUS_BPAPSV,
       'BPAPUS-LOGIN-GUID': LoginGUID,
-      'BPAPUS-FUNCTION': "Bk000500",
+      'BPAPUS-FUNCTION': 'Bk000500',
       'BPAPUS-PARAM': '',
-      'BPAPUS-FILTER': "",
+      'BPAPUS-FILTER': '',
       'BPAPUS-ORDERBY': '',
       'BPAPUS-OFFSET': '0',
       'BPAPUS-FETCH': '0',
     };
     await lookupErpV3Api(dataObj2)
-      .then(async (v) => {
+      .then(async v => {
         const { ResponseData, ResponseCode, ReasonString } = v.data;
         if (ResponseCode == 200) {
           let responseData = JSON.parse(ResponseData);
-          await this._setState('cashaccount', Object.values(responseData.Bk000500));
+          await this._setState(
+            'cashaccount',
+            Object.values(responseData.Bk000500),
+          );
           console.log('_getCashAccount', Object.values(responseData.Bk000500));
-
         } else {
         }
       })
-      .catch((err) => {
-      });
-
+      .catch(err => {});
   };
-
 
   _getQRContent = async () => {
     //24.หาประเภท QR Code (Bk000620)
@@ -300,13 +318,13 @@ class CTPaymentForm extends Component {
       'BPAPUS-LOGIN-GUID': LoginGUID,
       'BPAPUS-FUNCTION': BPAPUS_LOOKUP_QR_CODE,
       'BPAPUS-PARAM': '',
-      'BPAPUS-FILTER': "and QRCT_KEY > 0",
+      'BPAPUS-FILTER': 'and QRCT_KEY > 0',
       'BPAPUS-ORDERBY': '',
       'BPAPUS-OFFSET': '0',
       'BPAPUS-FETCH': '0',
     };
     await lookupErpV3Api(dataObj2)
-      .then(async (v) => {
+      .then(async v => {
         const { ResponseData, ResponseCode, ReasonString } = v.data;
 
         if (ResponseCode == 200) {
@@ -315,7 +333,10 @@ class CTPaymentForm extends Component {
           await this._setState('qrContent', qrContentItems);
           if (!this.state.qrContentItem && qrContentItems.length > 0) {
             await this._setState('qrContentItem', qrContentItems[0].QRCT_KEY);
-            await this._setState('qrContentName', qrContentItems[0].QRCT_NAME || '');
+            await this._setState(
+              'qrContentName',
+              qrContentItems[0].QRCT_NAME || '',
+            );
           }
           //     console.log("Bk000620" , result); // Log the result to see if it's null or has any issues
           //     console.log("Bk000620" , Object.values(responseData.Bk000620)); // Log the result to see if it's null or has any issues
@@ -323,115 +344,104 @@ class CTPaymentForm extends Component {
         } else {
         }
       })
-      .catch((err) => {
-      });
-
+      .catch(err => {});
   };
-
-
 
   _getRemainOtipn_Under = async () => {
     //82.วิธีจัดการการจ่ายชำระขาด (Rm001200)
     const LoginGUID = await getLoginGuID();
-
 
     let dataObj2 = {
       'BPAPUS-BPAPSV': BPAPUS_BPAPSV,
       'BPAPUS-LOGIN-GUID': LoginGUID,
       'BPAPUS-FUNCTION': BPAPUS_REMAIN_OPTION_UNDER,
       'BPAPUS-PARAM': '',
-      'BPAPUS-FILTER': "",
+      'BPAPUS-FILTER': '',
       'BPAPUS-ORDERBY': '',
       'BPAPUS-OFFSET': '0',
       'BPAPUS-FETCH': '0',
     };
     await lookupErpV3Api(dataObj2)
-      .then(async (v) => {
+      .then(async v => {
         const { ResponseData, ResponseCode, ReasonString } = v.data;
         if (ResponseCode == 200) {
           let responseData = JSON.parse(ResponseData);
-          await this._setState('reMainOption_Under', Object.values(responseData.Rm001200));
+          await this._setState(
+            'reMainOption_Under',
+            Object.values(responseData.Rm001200),
+          );
         } else {
         }
       })
-      .catch((err) => {
-      });
+      .catch(err => {});
   };
-
-
 
   _getRemainOtipn_Over = async () => {
     //83.วิธีจัดการการจ่ายชำระเกิน (Rm001300)
     const LoginGUID = await getLoginGuID();
-
 
     let dataObj2 = {
       'BPAPUS-BPAPSV': BPAPUS_BPAPSV,
       'BPAPUS-LOGIN-GUID': LoginGUID,
       'BPAPUS-FUNCTION': BPAPUS_REMAIN_OPTION_OVER,
       'BPAPUS-PARAM': '',
-      'BPAPUS-FILTER': "",
+      'BPAPUS-FILTER': '',
       'BPAPUS-ORDERBY': '',
       'BPAPUS-OFFSET': '0',
       'BPAPUS-FETCH': '0',
     };
     await lookupErpV3Api(dataObj2)
-      .then(async (v) => {
+      .then(async v => {
         const { ResponseData, ResponseCode, ReasonString } = v.data;
         if (ResponseCode == 200) {
           let responseData = JSON.parse(ResponseData);
-          await this._setState('reMainOption_Over', Object.values(responseData.Rm001300));
+          await this._setState(
+            'reMainOption_Over',
+            Object.values(responseData.Rm001300),
+          );
         } else {
         }
       })
-      .catch((err) => {
-      });
-
+      .catch(err => {});
   };
-
 
   _getbankAccount = async () => {
     const LoginGUID = await getLoginGuID();
 
-
     let dataObj2 = {
       'BPAPUS-BPAPSV': BPAPUS_BPAPSV,
       'BPAPUS-LOGIN-GUID': LoginGUID,
-      'BPAPUS-FUNCTION': "Bk000200",
+      'BPAPUS-FUNCTION': 'Bk000200',
       'BPAPUS-PARAM': '',
-      'BPAPUS-FILTER': "",
+      'BPAPUS-FILTER': '',
       'BPAPUS-ORDERBY': '',
       'BPAPUS-OFFSET': '0',
       'BPAPUS-FETCH': '0',
     };
     let WL_CODE = null;
     await lookupErpV3Api(dataObj2)
-      .then(async (v) => {
+      .then(async v => {
         const { ResponseData, ResponseCode, ReasonString } = v.data;
         if (ResponseCode == 200) {
-          console.log("responseData.Bk000200", JSON.parse(ResponseData));
+          console.log('responseData.Bk000200', JSON.parse(ResponseData));
           let responseData = JSON.parse(ResponseData);
           // console.log("responseData.Bk000200 2", responseData.Bk000200);
 
           //this.state.otherPaymentType = Object.values(responseData.Ps000103);
-          await this._setState('listbankAccountItem', Object.values(responseData.Bk000200));
+          await this._setState(
+            'listbankAccountItem',
+            Object.values(responseData.Bk000200),
+          );
           // console.log("responseData.Bk000200 3", Object.values(responseData.Bk000200));
           // console.log("this.state.otherPaymentType", this.state.otherPaymentType);
-
         } else {
           //console.log('ERROR lookupErpV3Api', ReasonString);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         //console.log('ERROR lookupErpV3Api', err);
       });
-
-
-
   };
-
-
-
 
   // let dataObj2 = {
   //   'BPAPUS-BPAPSV': BPAPUS_BPAPSV,
@@ -475,7 +485,7 @@ class CTPaymentForm extends Component {
   //     : this._setDisabledPaymentTransfer();
   // };
 
-  _setPaymentType = async (value) => {
+  _setPaymentType = async value => {
     const nextPaymentTypes = new Set(this.state.groupofpaymentType);
 
     if (nextPaymentTypes.has(value)) {
@@ -541,7 +551,9 @@ class CTPaymentForm extends Component {
       .map(value => String(value || '').trim())
       .filter(Boolean);
 
-    return candidates.find(value => /\d{13}/.test(value)) || candidates[0] || null;
+    return (
+      candidates.find(value => /\d{13}/.test(value)) || candidates[0] || null
+    );
   };
 
   _logMissingCustomerTaxId = () => {
@@ -556,7 +568,10 @@ class CTPaymentForm extends Component {
     });
   };
 
-  _prepareKtbSession = async ({ showError = false, setQrRefer = false } = {}) => {
+  _prepareKtbSession = async ({
+    showError = false,
+    setQrRefer = false,
+  } = {}) => {
     const customerTaxId = this._getCustomerTaxId();
 
     if (!customerTaxId) {
@@ -572,14 +587,21 @@ class CTPaymentForm extends Component {
       if (setQrRefer) {
         await this.props.setHeaderProcessedVdiQRRefer(this.state.dscfTxnId);
       }
-      return { ok: true, accessToken: this.state.accessToken, dscfTxnId: this.state.dscfTxnId };
+      return {
+        ok: true,
+        accessToken: this.state.accessToken,
+        dscfTxnId: this.state.dscfTxnId,
+      };
     }
 
     const auth = await this.props.auth();
     const { txnStatusCode, message, result } = auth || {};
 
     if (txnStatusCode !== 200 || !result?.accessToken) {
-      const errorMessage = this._getReadableErrorMessage(message, 'ไม่สามารถเชื่อมต่อ KTB ได้');
+      const errorMessage = this._getReadableErrorMessage(
+        message,
+        'ไม่สามารถเชื่อมต่อ KTB ได้',
+      );
       if (showError) {
         this._setState('errorMessage', errorMessage);
       }
@@ -643,22 +665,20 @@ class CTPaymentForm extends Component {
       this._setState('errorMessage', null);
       this._setState('buttonDisabled', false);
       this._setState('isLoading', false);
-      // เวฟ
       const setting = await getSettingConfig();
       if (setting && setting.baseUrl) {
         Request.setHeaders({
-          vanCNFMachine: setting.vanCNFMachine
+          vanCNFMachine: setting.vanCNFMachine,
         });
-        Request.setBaseUrl(setting.baseUrl)
+        Request.setBaseUrl(setting.baseUrl);
       }
-      // เวฟ
       await this._orderCash1(null);
     } else if (prepared.errorMessage) {
       this._setState('buttonDisabled', false);
       this._setState('isLoading', false);
       return false;
     } else {
-      await this._orderCash1(null)
+      await this._orderCash1(null);
     }
   };
 
@@ -689,12 +709,8 @@ class CTPaymentForm extends Component {
       return false;
     }
 
-    const {
-      VDI_REF,
-      VDI_AF_DISC,
-      VDI_AF_DISC_VAT_EXP_VAT,
-      VDI_MACHINE,
-    } = this.props.order.headerProcessed;
+    const { VDI_REF, VDI_AF_DISC, VDI_AF_DISC_VAT_EXP_VAT, VDI_MACHINE } =
+      this.props.order.headerProcessed;
     if (this.state.dscfTxnId && VDI_REF) {
       console.log('VDI_REF+++ ', VDI_REF);
 
@@ -713,7 +729,7 @@ class CTPaymentForm extends Component {
         this._setState('buttonDisabled', false);
         this._setState('isLoading', false);
 
-        const newArray = ITEMS.map((item) => {
+        const newArray = ITEMS.map(item => {
           return {
             itemId: item.VTRD_CODE,
             itemName: item.VTRD_NAMES,
@@ -812,33 +828,58 @@ class CTPaymentForm extends Component {
   };
 
   _renderItem = (item, key) => (
-    <TouchableOpacity key={key} style={[item.buttonStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {
+    <TouchableOpacity
+      key={key}
+      style={[
+        item.buttonStyle,
+        {
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingVertical: 12,
+          paddingHorizontal: 16,
+        },
+      ]}
+      onPress={() => {
         this._onPress(item);
-      }} disabled={item.title === 'ตกลง' ? this.state.buttonDisabled : false} activeOpacity={0.7}>
-              <Text style={item.titleStyle}>{item.title}</Text>
-            </TouchableOpacity>
+      }}
+      disabled={item.title === 'ตกลง' ? this.state.buttonDisabled : false}
+      activeOpacity={0.7}
+    >
+      <Text style={item.titleStyle}>{item.title}</Text>
+    </TouchableOpacity>
   );
 
   _renderItemRemainOption = (item, key) => (
-    <TouchableOpacity key={key} style={[item.buttonStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {
+    <TouchableOpacity
+      key={key}
+      style={[
+        item.buttonStyle,
+        {
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingVertical: 12,
+          paddingHorizontal: 16,
+        },
+      ]}
+      onPress={() => {
         this._onPressRemainOption(item);
-      }} disabled={item.title === 'ตกลง' ? this.state.buttonDisabled : false} activeOpacity={0.7}>
-              <Text style={item.titleStyle}>{item.title}</Text>
-            </TouchableOpacity>
+      }}
+      disabled={item.title === 'ตกลง' ? this.state.buttonDisabled : false}
+      activeOpacity={0.7}
+    >
+      <Text style={item.titleStyle}>{item.title}</Text>
+    </TouchableOpacity>
   );
 
-
-
-  _onPress = async (item) => {
+  _onPress = async item => {
     const totalPrice = this._getResolvedOrderAmount();
 
-
     this._setState('errorMessage', '');
-    console.log("item methodType", item)
+    console.log('item methodType', item);
 
-    console.log("item methodType", item.methodType)
-    console.log("item item.methodName", item.methodName)
-    //this.state.paymentType = "qrcode"   // เอาออกด้วย
+    console.log('item methodType', item.methodType);
+    console.log('item item.methodName', item.methodName);
+    this.state.paymentType = 'qrcode'; // เอาออกด้วย
     if (item.methodType === 'function') {
       if (item.methodName === 'confirm') {
         if (this.state.groupofpaymentType.size === 0) {
@@ -853,23 +894,36 @@ class CTPaymentForm extends Component {
           this.state.groupofpaymentType.has('transfer') ||
           this.state.groupofpaymentType.has('other')
         ) {
-
-
-          let payin = (this.state.groupofpaymentType.has('cash') ? Number(this.state.cashin) : 0) +
-            (this.state.groupofpaymentType.has('transfer') ? Number(this.state.paymentTransfer.tranFerin) : 0) +
-            (this.state.groupofpaymentType.has('qrcode') ? Number(this.state.qrin) : 0) +
-            (this.state.groupofpaymentType.has('cheque') ? Number(this.state.paymentCheque.chequein) : 0) +
-            (this.state.groupofpaymentType.has('other') ? Number(this.state.otherin) : 0);
-
+          let payin =
+            (this.state.groupofpaymentType.has('cash')
+              ? Number(this.state.cashin)
+              : 0) +
+            (this.state.groupofpaymentType.has('transfer')
+              ? Number(this.state.paymentTransfer.tranFerin)
+              : 0) +
+            (this.state.groupofpaymentType.has('qrcode')
+              ? Number(this.state.qrin)
+              : 0) +
+            (this.state.groupofpaymentType.has('cheque')
+              ? Number(this.state.paymentCheque.chequein)
+              : 0) +
+            (this.state.groupofpaymentType.has('other')
+              ? Number(this.state.otherin)
+              : 0);
 
           if (this.state.remainoptiontItem === null) {
             if (
               Number(payin) > Number(totalPrice) &&
               Number(totalPrice - payin) <= Number(this.state.differBy)
-
             ) {
-              await this._setState('reMainOption1', this.state.reMainOption_Over);
-              await this._setState('differValue', (Number(payin - totalPrice).toFixed(2)));
+              await this._setState(
+                'reMainOption1',
+                this.state.reMainOption_Over,
+              );
+              await this._setState(
+                'differValue',
+                Number(payin - totalPrice).toFixed(2),
+              );
               if (this.state.remainConfirm == false) {
                 await this._setState('isDialogOpen', true);
                 return false;
@@ -878,8 +932,14 @@ class CTPaymentForm extends Component {
               Number(payin) < Number(totalPrice) &&
               Number(this.state.differBy) >= Number(totalPrice - payin)
             ) {
-              await this._setState('reMainOption1', this.state.reMainOption_Under);
-              await this._setState('differValue', (Number(payin - totalPrice).toFixed(2)));
+              await this._setState(
+                'reMainOption1',
+                this.state.reMainOption_Under,
+              );
+              await this._setState(
+                'differValue',
+                Number(payin - totalPrice).toFixed(2),
+              );
               if (this.state.remainConfirm == false) {
                 await this._setState('isDialogOpen', true);
                 return false;
@@ -892,15 +952,22 @@ class CTPaymentForm extends Component {
             }
           }
 
-          console.log('this.state.reMainOption OV ', this.state.reMainOption_Over);
-          console.log('this.state.reMainOption UD ', this.state.reMainOption_Under);
+          console.log(
+            'this.state.reMainOption OV ',
+            this.state.reMainOption_Over,
+          );
+          console.log(
+            'this.state.reMainOption UD ',
+            this.state.reMainOption_Under,
+          );
 
-
-
-          if (this.state.groupofpaymentType.has('qrcode') && this.state.qrConfirm == false) {
-
+          if (
+            this.state.groupofpaymentType.has('qrcode') &&
+            this.state.qrConfirm == false
+          ) {
             if (
-              this.state.groupofpaymentType.has('qrcode') && (this.state.qrin === null || Number(this.state.qrin) <= 0)
+              this.state.groupofpaymentType.has('qrcode') &&
+              (this.state.qrin === null || Number(this.state.qrin) <= 0)
             ) {
               await this._setState('isQRCodeDialogOpen', false);
 
@@ -909,14 +976,15 @@ class CTPaymentForm extends Component {
             }
 
             if (
-              this.state.groupofpaymentType.has('qrcode') && (this.state.qrContentItem === null)
+              this.state.groupofpaymentType.has('qrcode') &&
+              this.state.qrContentItem === null
             ) {
               this._setState('errorMessage', 'กรุณาระบุธนาคาร (QrCode) ');
               return false;
             }
             const isValid = await this._validateAll(null);
           } else {
-            console.log("_orderCash", item.methodType)
+            console.log('_orderCash', item.methodType);
             if (this.state.remainConfirm == false) {
               const isValid = await this._validateAll(null);
               if (isValid) {
@@ -924,15 +992,10 @@ class CTPaymentForm extends Component {
               }
             }
           }
-
         }
         // else if (this.state.groupofpaymentType.has('qrcode')) {
         //   //  await this._requestQrCode();
         //   //   console.log('this.state.qrin', this.state.qrin ? this.state.qrin.toString() : "0");
-
-
-
-
 
         //   // await this._setState('qrCode', this.state.qrin ? this.state.qrin.toString() : "0");
         //   // await this._setState('isQRCodeDialogOpen', true);
@@ -940,17 +1003,15 @@ class CTPaymentForm extends Component {
         //   // return;
         // }
       } else if (item.methodName === 'cancel') {
-
         Navigator.back();
       }
     }
-    Keyboard.dismiss();
+    // Keyboard.dismiss();
   };
 
-
-  _onPressRemainOption = async (item) => {
+  _onPressRemainOption = async item => {
     this._setState('errorMessage', '');
-    console.log("this.state.remainoptiontItem", this.state.remainoptiontItem)
+    console.log('this.state.remainoptiontItem', this.state.remainoptiontItem);
     // console.log("item item.methodName", item.methodName)
 
     //this.state.paymentType = "qrcode"   // เอาออกด้วย
@@ -962,7 +1023,6 @@ class CTPaymentForm extends Component {
         }
 
         if (
-
           this.state.groupofpaymentType.has('cash') ||
           this.state.groupofpaymentType.has('cheque') ||
           this.state.groupofpaymentType.has('qrcode') ||
@@ -972,21 +1032,20 @@ class CTPaymentForm extends Component {
           // console.log("_orderCash", item.methodType)
           // await this._setState('remainoptiontItem', false);
         }
-
       } else if (item.methodName === 'cancel') {
-
         this._setState('remainoptiontItem', null);
         this._setState('remainConfirm', false);
-        console.log("this.state.remainoptiontItem cancel", this.state.remainoptiontItem)
-        console.log("remainConfirm cancel", this.state.remainConfirm)
+        console.log(
+          'this.state.remainoptiontItem cancel',
+          this.state.remainoptiontItem,
+        );
+        console.log('remainConfirm cancel', this.state.remainConfirm);
         // this._removeSettingConfig();
       }
       await this._setState('isDialogOpen', false);
     }
     Keyboard.dismiss();
   };
-
-
 
   _getCurrentPosition = async () => {
     try {
@@ -999,35 +1058,36 @@ class CTPaymentForm extends Component {
     return true;
   };
 
-
-  _validateAll = async (_value) => {
+  _validateAll = async _value => {
     const totalPrice = this._getResolvedOrderAmount();
 
-      this._setState('errorMessage', '');
+    this._setState('errorMessage', '');
 
     if (
-      this.state.groupofpaymentType.has('cash') && this.state.userToken.VANCONFIG.VANCNF_ENABLE_CASH == 1
+      this.state.groupofpaymentType.has('cash') &&
+      this.state.userToken.VANCONFIG.VANCNF_ENABLE_CASH == 1
     ) {
       console.log('_orderCash cash ');
       this._setState('errorMessage', 'ไม่สามารถชำระด้วยเงินสด');
       return false;
     }
-    if (this.state.groupofpaymentType.has('cash') && (this.state.cashin === null || Number(this.state.cashin) <= 0)) {
-     // await this._setState('remainConfirm', true);
+    if (
+      this.state.groupofpaymentType.has('cash') &&
+      (this.state.cashin === null || Number(this.state.cashin) <= 0)
+    ) {
+      // await this._setState('remainConfirm', true);
       await this._setState('errorMessage', 'กรุณาระบุจำนวนเงิน (เงินสด)');
       return false;
     }
 
-
-    if ( this.state.groupofpaymentType.has('transfer') && !this._validatePaymentByTransfer())
-    {
+    if (
+      this.state.groupofpaymentType.has('transfer') &&
+      !this._validatePaymentByTransfer()
+    ) {
       return false;
     }
 
     // alert (this.state.groupofpaymentType.has('qrcode') && (this.state.qrin === null || Number(this.state.qrin) <= 0))
-
-    
-
 
     if (
       this.state.groupofpaymentType.has('cheque') &&
@@ -1041,24 +1101,37 @@ class CTPaymentForm extends Component {
       this.state.groupofpaymentType.has('cheque') &&
       !this._validatePaymentByCheque()
     )
-    return false;
-
+      return false;
 
     if (
       this.state.groupofpaymentType.has('other') &&
       !this._validatePaymentByOther()
     )
-    return false;
+      return false;
 
-      let payin = (this.state.groupofpaymentType.has('cash') ?  Number(this.state.cashin) : 0) +
-      (this.state.groupofpaymentType.has('transfer') ? Number(this.state.paymentTransfer.tranFerin) : 0) +
-      (this.state.groupofpaymentType.has('qrcode') ? Number(this.state.qrin) : 0) +
-      (this.state.groupofpaymentType.has('cheque') ? Number(this.state.paymentCheque.chequein) : 0) +
-      (this.state.groupofpaymentType.has('other') ? Number(this.state.otherin) : 0);
+    let payin =
+      (this.state.groupofpaymentType.has('cash')
+        ? Number(this.state.cashin)
+        : 0) +
+      (this.state.groupofpaymentType.has('transfer')
+        ? Number(this.state.paymentTransfer.tranFerin)
+        : 0) +
+      (this.state.groupofpaymentType.has('qrcode')
+        ? Number(this.state.qrin)
+        : 0) +
+      (this.state.groupofpaymentType.has('cheque')
+        ? Number(this.state.paymentCheque.chequein)
+        : 0) +
+      (this.state.groupofpaymentType.has('other')
+        ? Number(this.state.otherin)
+        : 0);
 
     console.log('_orderCash this.state.paymentType ', this.state.paymentType);
     console.log('SUNNNMMM payin', payin);
-    console.log('SUNNNMMM totalPrice - differBy', Number(totalPrice) - this.state.differBy);
+    console.log(
+      'SUNNNMMM totalPrice - differBy',
+      Number(totalPrice) - this.state.differBy,
+    );
     console.log('SUNNNMMM totalPrice', Number(totalPrice));
 
     // if (this.state.groupofpaymentType.has('qrcode')) {
@@ -1069,23 +1142,27 @@ class CTPaymentForm extends Component {
     // }
 
     if (Number(payin) > Number(totalPrice) + this.state.differBy) {
-
-      this._setState('errorMessage', 'ไม่สามารถชำระเกินยอดเงินทั้งหมด ' + (Number(totalPrice)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' บาท');
-      setTimeout(() => {
-      }, 5000); // หน่วงเวลา 5 วินาที
+      this._setState(
+        'errorMessage',
+        'ไม่สามารถชำระเกินยอดเงินทั้งหมด ' +
+          Number(totalPrice)
+            .toFixed(2)
+            .replace(/\B(?=(\d{3})+(?!\d))/g, ',') +
+          ' บาท',
+      );
+      setTimeout(() => {}, 5000); // หน่วงเวลา 5 วินาที
       return false;
     }
 
     if (Number(payin) < Number(totalPrice) - this.state.differBy) {
       this._setState('errorMessage', 'ยอดชำระยังไม่ครบ กรุณาตรวจสอบ ');
-            setTimeout(() => {
-      }, 5000); // หน่วงเวลา 5 วินาที
+      setTimeout(() => {}, 5000); // หน่วงเวลา 5 วินาที
       return false;
     }
 
-    console.log('_remain_option1   ', (Number(payin).toFixed(2)));
-    console.log('_remain_option1   ', (Number(totalPrice).toFixed(2)));
-    console.log('_remain_option1   ', (Number(payin - totalPrice).toFixed(2)));
+    console.log('_remain_option1   ', Number(payin).toFixed(2));
+    console.log('_remain_option1   ', Number(totalPrice).toFixed(2));
+    console.log('_remain_option1   ', Number(payin - totalPrice).toFixed(2));
 
     // if ( this.state.remainConfirm == false) {
     //   await this._requestQrCode(this.state.qrin ? this.state.qrin.toString() : "0");
@@ -1093,12 +1170,15 @@ class CTPaymentForm extends Component {
     //   await this._orderCash();
     // }
 
-
-    if (this.state.groupofpaymentType.has('qrcode') && this.state.qrConfirm == false) {
-      await this._requestQrCode(this.state.qrin ? this.state.qrin.toString() : '0');
+    if (
+      this.state.groupofpaymentType.has('qrcode') &&
+      this.state.qrConfirm == false
+    ) {
+      await this._requestQrCode(
+        this.state.qrin ? this.state.qrin.toString() : '0',
+      );
       return false;
     }
-
 
     // Bazz เอาออกด้วย
     console.log('ผ่านทุกเงื่อนไข ');
@@ -1106,13 +1186,10 @@ class CTPaymentForm extends Component {
     //return;
     // Bazz เอาออกด้วย
     return true; // ✅ ผ่านทุกเงื่อนไข
-   
-  }
+  };
 
   _orderCash1 = async () => {
     try {
-
-
       this._setState('isLoading', true);
       this._setState('errorMessage', null);
       this._setState('successMessage', null);
@@ -1123,10 +1200,18 @@ class CTPaymentForm extends Component {
           this.state.paymentCheque.bankFileItem,
         );
 
-        console.log("this.state.paymentCheque.chequeDate >>>", JSON.stringify(this.state.paymentCheque.chequeDate));
-        console.log("this.state.paymentCheque.chequeDate >>>", JSON.stringify(moment(this.state.paymentCheque.chequeDate, 'DD/MM/YYYY')
-          .add(1, 'days')
-          .toJSON()));
+        console.log(
+          'this.state.paymentCheque.chequeDate >>>',
+          JSON.stringify(this.state.paymentCheque.chequeDate),
+        );
+        console.log(
+          'this.state.paymentCheque.chequeDate >>>',
+          JSON.stringify(
+            moment(this.state.paymentCheque.chequeDate, 'DD/MM/YYYY')
+              .add(1, 'days')
+              .toJSON(),
+          ),
+        );
 
         await this.props.setHeaderProcessedVdiChequeDate(
           moment(this.state.paymentCheque.chequeDate, 'DD/MM/YYYY')
@@ -1159,10 +1244,11 @@ class CTPaymentForm extends Component {
         this.state.groupofpaymentType.has('qrcode')
         //this.state.paymentType === 'cash' || this.state.paymentType === 'qrcode'
       ) {
-
         //console.log('_remain_option2 ', _remain_option);
-        console.log('this.state.remainoptiontItem ', this.state.remainoptiontItem);
-
+        console.log(
+          'this.state.remainoptiontItem ',
+          this.state.remainoptiontItem,
+        );
 
         const { VANCONFIG } = await getUserToken();
         const v3GUID = await getLoginGuID();
@@ -1171,81 +1257,178 @@ class CTPaymentForm extends Component {
         // console.log("this.state.paymentCheque.chequeDate 4 >>>", moment(this.state.paymentCheque.chequeDate, "DD/MM/YYYY").utc().format("YYYYMMDDTHH:mm:ss.SSS[Z]"));
 
         // console.log("this.state.paymentCheque.>>>", JSON.stringify(this.state.paymentCheque));
-        console.log("istbankAccountItem >>>", JSON.stringify(this.state.qrin ? this.state.qrContentItem : "0"));
+        console.log(
+          'istbankAccountItem >>>',
+          JSON.stringify(this.state.qrin ? this.state.qrContentItem : '0'),
+        );
 
-        console.log("istbankAccountItem >>>", JSON.stringify(this.state.qrin ? this.state.qrin.toString() : "0"));
-        console.log("istbankAccountItem qrContent >>>", JSON.stringify(this.state.qrContent));
+        console.log(
+          'istbankAccountItem >>>',
+          JSON.stringify(this.state.qrin ? this.state.qrin.toString() : '0'),
+        );
+        console.log(
+          'istbankAccountItem qrContent >>>',
+          JSON.stringify(this.state.qrContent),
+        );
 
-        console.log("listbankAccountItem >>>", JSON.stringify(this.state.qrContent.filter(item => item.QRCT_KEY === this.state.qrContentItem)[0]?.BNKAC_CODE));
-        console.log("listbankAccountItem >>>", JSON.stringify(this.state.qrContent.filter(item => item.QRCT_KEY === this.state.qrContentItem)[0]?.BNKAC_NAME));
+        console.log(
+          'listbankAccountItem >>>',
+          JSON.stringify(
+            this.state.qrContent.filter(
+              item => item.QRCT_KEY === this.state.qrContentItem,
+            )[0]?.BNKAC_CODE,
+          ),
+        );
+        console.log(
+          'listbankAccountItem >>>',
+          JSON.stringify(
+            this.state.qrContent.filter(
+              item => item.QRCT_KEY === this.state.qrContentItem,
+            )[0]?.BNKAC_NAME,
+          ),
+        );
 
+        this.props.order.paymentMethod = [
+          {
+            CASHAC_CODE:
+              this.state.cashin > 0
+                ? this.state.cashaccount.filter(
+                    item =>
+                      item.CASHAC_KEY ===
+                      this.state.userToken.VANCONFIG.VANCNF_CASHAC,
+                  )[0]?.CASHAC_CODE || ''
+                : '',
+            CASHAC_NAME:
+              this.state.cashin > 0
+                ? this.state.cashaccount.filter(
+                    item =>
+                      item.CASHAC_KEY ===
+                      this.state.userToken.VANCONFIG.VANCNF_CASHAC,
+                  )[0]?.CASHAC_NAME || ''
+                : '',
+            CASHAC_AMT:
+              this.state.cashin > 0 ? this.state.cashin.toString() : '0',
 
-        this.props.order.paymentMethod = [{
-          "CASHAC_CODE": this.state.cashin > 0 ? this.state.cashaccount.filter(item => item.CASHAC_KEY === this.state.userToken.VANCONFIG.VANCNF_CASHAC)[0]?.CASHAC_CODE || "" : "",
-          "CASHAC_NAME": this.state.cashin > 0 ? this.state.cashaccount.filter(item => item.CASHAC_KEY === this.state.userToken.VANCONFIG.VANCNF_CASHAC)[0]?.CASHAC_NAME || "" : "",
-          "CASHAC_AMT": this.state.cashin > 0 ? this.state.cashin.toString() : "0",
+            // "BNKAC_CODE": "",
+            // "BNKAC_NAME":  "",
+            // "BNKAC_AMT": "0",
 
+            // "QRCT_CODE": this.state.paymentTransfer.tranFerin > 0 ? this.state.paymentTransfer.bankAccountItem : this.state.qrin > 0 ? this.state.qrContent.filter(item => item.QRCT_KEY === '103')[0].QRCT_CODE || "" : "",
+            // "QRCT_NAME": this.state.paymentTransfer.tranFerin > 0 ? this.state.listbankAccountItem.filter(item => item.BNKAC_CODE === this.state.paymentTransfer.bankAccountItem)[0].BNKAC_NAME || "" : this.state.qrin > 0 ? this.state.qrContent.filter(item => item.QRCT_KEY === '103')[0].QRCT_NAME || "" : "", //;      [this.state.paymentTransfer.bankAccountItem] , //    "บัญชีกระแสรายวัน ธ.กรุงเทพฯ สาขาตลิ่งชัน #003-1-91234-5",
+            // "QRCT_AMT": this.state.paymentTransfer.tranFerin > 0 ? this.state.paymentTransfer.tranFerin.toString() : this.state.qrin > 0 ? this.state.qrin.toString() : "0",
 
-          // "BNKAC_CODE": "",
-          // "BNKAC_NAME":  "",
-          // "BNKAC_AMT": "0",
+            BNKAC_CODE:
+              this.state.paymentTransfer.tranFerin > 0
+                ? this.state.paymentTransfer.bankAccountItem
+                : this.state.qrin > 0
+                ? this.state.qrContent.filter(
+                    item => item.QRCT_KEY === this.state.qrContentItem,
+                  )[0]?.BNKAC_CODE || ''
+                : '',
+            BNKAC_NAME:
+              this.state.paymentTransfer.tranFerin > 0
+                ? this.state.listbankAccountItem.filter(
+                    item =>
+                      item.BNKAC_CODE ===
+                      this.state.paymentTransfer.bankAccountItem,
+                  )[0]?.BNKAC_NAME || ''
+                : this.state.qrin > 0
+                ? this.state.qrContent.filter(
+                    item => item.QRCT_KEY === this.state.qrContentItem,
+                  )[0]?.BNKAC_NAME || ''
+                : '', //;      [this.state.paymentTransfer.bankAccountItem] , //    "บัญชีกระแสรายวัน ธ.กรุงเทพฯ สาขาตลิ่งชัน #003-1-91234-5",
+            BNKAC_AMT:
+              this.state.paymentTransfer.tranFerin > 0
+                ? this.state.paymentTransfer.tranFerin.toString()
+                : this.state.qrin > 0
+                ? this.state.qrin.toString()
+                : '0',
 
+            QRCT_CODE: '',
+            QRCT_NAME: '',
+            QRCT_AMT: '0',
 
-          // "QRCT_CODE": this.state.paymentTransfer.tranFerin > 0 ? this.state.paymentTransfer.bankAccountItem : this.state.qrin > 0 ? this.state.qrContent.filter(item => item.QRCT_KEY === '103')[0].QRCT_CODE || "" : "",
-          // "QRCT_NAME": this.state.paymentTransfer.tranFerin > 0 ? this.state.listbankAccountItem.filter(item => item.BNKAC_CODE === this.state.paymentTransfer.bankAccountItem)[0].BNKAC_NAME || "" : this.state.qrin > 0 ? this.state.qrContent.filter(item => item.QRCT_KEY === '103')[0].QRCT_NAME || "" : "", //;      [this.state.paymentTransfer.bankAccountItem] , //    "บัญชีกระแสรายวัน ธ.กรุงเทพฯ สาขาตลิ่งชัน #003-1-91234-5",
-          // "QRCT_AMT": this.state.paymentTransfer.tranFerin > 0 ? this.state.paymentTransfer.tranFerin.toString() : this.state.qrin > 0 ? this.state.qrin.toString() : "0",
+            // "QRCT_CODE": this.state.qrin > 0 ? this.state.qrContent.filter(item => item.QRCT_KEY === this.state.qrContentItem)[0]?.QRCT_KEY || "" : "",
+            // "QRCT_NAME": this.state.qrin > 0 ? this.state.qrContent.filter(item => item.QRCT_KEY === this.state.qrContentItem)[0]?.QRCT_CONTENT || "" : "",
+            // "QRCT_AMT": this.state.qrin > 0 ? this.state.qrin.toString() : "0",
 
-          "BNKAC_CODE": this.state.paymentTransfer.tranFerin > 0 ? this.state.paymentTransfer.bankAccountItem : this.state.qrin > 0 ? this.state.qrContent.filter(item => item.QRCT_KEY === this.state.qrContentItem)[0]?.BNKAC_CODE || "" : "",
-          "BNKAC_NAME": this.state.paymentTransfer.tranFerin > 0 ? this.state.listbankAccountItem.filter(item => item.BNKAC_CODE === this.state.paymentTransfer.bankAccountItem)[0]?.BNKAC_NAME || "" : this.state.qrin > 0 ? this.state.qrContent.filter(item => item.QRCT_KEY === this.state.qrContentItem)[0]?.BNKAC_NAME || "" : "", //;      [this.state.paymentTransfer.bankAccountItem] , //    "บัญชีกระแสรายวัน ธ.กรุงเทพฯ สาขาตลิ่งชัน #003-1-91234-5",
-          "BNKAC_AMT": this.state.paymentTransfer.tranFerin > 0 ? this.state.paymentTransfer.tranFerin.toString() : this.state.qrin > 0 ? this.state.qrin.toString() : "0",
+            CQIN_1_OWNER:
+              this.state.paymentCheque.chequein > 0
+                ? this.props.order.header.AR_NAME.toString()
+                : '',
+            CQIN_1_BANK_INTL:
+              this.state.paymentCheque.chequein > 0
+                ? this.props.masterData.bankFileListItems.filter(
+                    item =>
+                      item.BANK_KEY ===
+                      this.state.paymentCheque.bankFileItem.toString(),
+                  )[0].BANK_INITIAL || ''
+                : '',
+            CQIN_1_BRANCH: '',
+            CQIN_1_CHEQUE_NO:
+              this.state.paymentCheque.chequein > 0
+                ? this.state.paymentCheque.chequeNo.toString()
+                : '',
+            CQIN_1_CHEQUE_DD:
+              this.state.paymentCheque.chequein > 0 &&
+              this.state.paymentCheque.chequeDate
+                ? moment(
+                    this.state.paymentCheque.chequeDate,
+                    'DD/MM/YYYY',
+                  ).format('YYYYMMDDTHH:mm:ss.SSS[Z]')
+                : '',
+            CQIN_1_AMT:
+              this.state.paymentCheque.chequein > 0
+                ? this.state.paymentCheque.chequein.toString()
+                : '0',
 
+            CQIN_2_OWNER: '',
+            CQIN_2_BANK_INTL: '',
+            CQIN_2_BRANCH: '',
+            CQIN_2_CHEQUE_NO: '',
+            CQIN_2_CHEQUE_DD: '',
+            CQIN_2_AMT: '0',
+            CQIN_3_OWNER: '',
+            CQIN_3_BANK_INTL: '',
+            CQIN_3_BRANCH: '',
+            CQIN_3_CHEQUE_NO: '',
+            CQIN_3_CHEQUE_DD: '',
+            CQIN_3_AMT: '0',
 
-          "QRCT_CODE": "",
-          "QRCT_NAME": "",
-          "QRCT_AMT": "0",
+            PMT_1_CODE:
+              this.state.otherin > 0
+                ? this.state.otherPaymentType.filter(
+                    item => item.PMT_KEY === this.state.otherPaymentItem,
+                  )[0]?.PMT_CODE || ''
+                : '', // "002",
+            PMT_1_NAME:
+              this.state.otherin > 0
+                ? this.state.otherPaymentType.filter(
+                    item => item.PMT_KEY === this.state.otherPaymentItem,
+                  )[0]?.PMT_NAME || ''
+                : '', //  "คูปองส่งเสริมการขาย",
+            PMT_1_AMT:
+              this.state.otherin > 0 ? this.state.otherin.toString() : '0',
+            PMT_2_CODE: '',
+            PMT_2_NAME: '',
+            PMT_2_AMT: '0',
 
-          // "QRCT_CODE": this.state.qrin > 0 ? this.state.qrContent.filter(item => item.QRCT_KEY === this.state.qrContentItem)[0]?.QRCT_KEY || "" : "",
-          // "QRCT_NAME": this.state.qrin > 0 ? this.state.qrContent.filter(item => item.QRCT_KEY === this.state.qrContentItem)[0]?.QRCT_CONTENT || "" : "",
-          // "QRCT_AMT": this.state.qrin > 0 ? this.state.qrin.toString() : "0",
-
-
-          "CQIN_1_OWNER": this.state.paymentCheque.chequein > 0 ? this.props.order.header.AR_NAME.toString() : "",
-          "CQIN_1_BANK_INTL": this.state.paymentCheque.chequein > 0 ? this.props.masterData.bankFileListItems.filter(item => item.BANK_KEY === this.state.paymentCheque.bankFileItem.toString())[0].BANK_INITIAL || "" : "",
-          "CQIN_1_BRANCH": "",
-          "CQIN_1_CHEQUE_NO": this.state.paymentCheque.chequein > 0 ? this.state.paymentCheque.chequeNo.toString() : "",
-          "CQIN_1_CHEQUE_DD": (this.state.paymentCheque.chequein > 0 && this.state.paymentCheque.chequeDate) ? moment(this.state.paymentCheque.chequeDate, "DD/MM/YYYY").format("YYYYMMDDTHH:mm:ss.SSS[Z]") : "",
-          "CQIN_1_AMT": this.state.paymentCheque.chequein > 0 ? this.state.paymentCheque.chequein.toString() : "0",
-
-          "CQIN_2_OWNER": "",
-          "CQIN_2_BANK_INTL": "",
-          "CQIN_2_BRANCH": "",
-          "CQIN_2_CHEQUE_NO": "",
-          "CQIN_2_CHEQUE_DD": "",
-          "CQIN_2_AMT": "0",
-          "CQIN_3_OWNER": "",
-          "CQIN_3_BANK_INTL": "",
-          "CQIN_3_BRANCH": "",
-          "CQIN_3_CHEQUE_NO": "",
-          "CQIN_3_CHEQUE_DD": "",
-          "CQIN_3_AMT": "0",
-
-          "PMT_1_CODE": this.state.otherin > 0 ? this.state.otherPaymentType.filter(item => item.PMT_KEY === this.state.otherPaymentItem)[0]?.PMT_CODE || "" : "", // "002",
-          "PMT_1_NAME": this.state.otherin > 0 ? this.state.otherPaymentType.filter(item => item.PMT_KEY === this.state.otherPaymentItem)[0]?.PMT_NAME || "" : "", //  "คูปองส่งเสริมการขาย",
-          "PMT_1_AMT": this.state.otherin > 0 ? this.state.otherin.toString() : "0",
-          "PMT_2_CODE": "",
-          "PMT_2_NAME": "",
-          "PMT_2_AMT": "0",
-
-          "REMAIN_OPTION": this.state.remainoptiontItem != null ? this.state.remainoptiontItem : ""
-        }];
+            REMAIN_OPTION:
+              this.state.remainoptiontItem != null
+                ? this.state.remainoptiontItem
+                : '',
+          },
+        ];
 
         console.log('_remain_option3 ', this.state.remainoptiontItem);
-        console.log("this.props.order.paymentMethod >>>", JSON.stringify(this.props.order.paymentMethod));
+        console.log(
+          'this.props.order.paymentMethod >>>',
+          JSON.stringify(this.props.order.paymentMethod),
+        );
 
         // Bazz เอาออกด้วย
         //return;
         // Bazz เอาออกด้วย
-
 
         await this.props.createOrderSaleV3(
           genenrateOrderForCreateToServer(
@@ -1256,7 +1439,7 @@ class CTPaymentForm extends Component {
           ),
           v3GUID,
           VANCONFIG,
-          'สด'
+          'สด',
         );
       } else {
         console.log('_orderCash asdassa ', this.state.dscfTxnId);
@@ -1313,12 +1496,8 @@ class CTPaymentForm extends Component {
 
       if (this.state.dscfTxnId) {
         console.log('_orderCash this.state.dscfTxnId ', this.state.dscfTxnId);
-        const {
-          VDI_REF,
-          VDI_AF_DISC,
-          VDI_AF_DISC_VAT_EXP_VAT,
-          VDI_MACHINE,
-        } = this.props.order.headerProcessed;
+        const { VDI_REF, VDI_AF_DISC, VDI_AF_DISC_VAT_EXP_VAT, VDI_MACHINE } =
+          this.props.order.headerProcessed;
 
         const { RESPONSE_DATETIME, RESULT_DATA } = this.props.processResult;
         const { RESULT } = RESULT_DATA;
@@ -1327,7 +1506,7 @@ class CTPaymentForm extends Component {
         if (VDI_REF) {
           console.log('_orderCash VDI_REF');
           console.log('ITEMS', ITEMS);
-          const newArray = ITEMS.map((item) => {
+          const newArray = ITEMS.map(item => {
             return {
               itemId: item.VTRD_CODE,
               itemName: item.VTRD_NAMES,
@@ -1477,7 +1656,6 @@ class CTPaymentForm extends Component {
     this._setState('isLoading', false);
   };
 
-
   // _orderCash_BK = async () => {
   //   try {
   //     console.log('_orderCash this.state.paymentType ', this.state.paymentType);
@@ -1487,8 +1665,6 @@ class CTPaymentForm extends Component {
   //     // this.state.groupofpaymentType.has('transfer') ||
   //     // this.state.groupofpaymentType.has('other') ||
   //     // this.state.groupofpaymentType.has('qrcode')
-
-
 
   //     if (this.state.paymentType == null) {
   //       this._setState('errorMessage', 'กรุณาเลือกวิธีการชำระเงิน');
@@ -1530,13 +1706,11 @@ class CTPaymentForm extends Component {
   //       //return;
   //     }
 
-
   //     if (
   //       this.state.paymentType === 'other' &&
   //       !this._validatePaymentByTransfer()
   //     )
   //       return;
-
 
   //     this._setState('isLoading', true);
   //     this._setState('errorMessage', null);
@@ -1821,7 +1995,9 @@ class CTPaymentForm extends Component {
         await this._setState('userToken', latestUserToken);
       }
 
-      await this._requestQrCode(this.state.qrin ? this.state.qrin.toString() : '0');
+      await this._requestQrCode(
+        this.state.qrin ? this.state.qrin.toString() : '0',
+      );
     } catch (error) {
       console.log('_qrcodePayment error', error);
       this._setState('errorMessage', error);
@@ -1831,38 +2007,38 @@ class CTPaymentForm extends Component {
     this._setState('buttonDisabled', false);
   };
 
+  //   _requestQrCode = async (obj) => {
+  //     this._setState('errorMessage', null);
 
-//   _requestQrCode = async (obj) => {
-//     this._setState('errorMessage', null);
+  //     if (
+  //       this.state.groupofpaymentType.has('qrcode') && (this.state.qrin === null || Number(this.state.qrin) <= 0)
+  //     ) {
+  //       await this._setState('isQRCodeDialogOpen', false);
+  //       this._setState('errorMessage', 'กรุณาระบุจำนวนเงิน (QrCode)');
+  //       return;
+  //     }
 
-//     if (
-//       this.state.groupofpaymentType.has('qrcode') && (this.state.qrin === null || Number(this.state.qrin) <= 0)
-//     ) {
-//       await this._setState('isQRCodeDialogOpen', false);
-//       this._setState('errorMessage', 'กรุณาระบุจำนวนเงิน (QrCode)');
-//       return;
-//     }
+  //     if (
+  //       this.state.groupofpaymentType.has('qrcode') && (this.state.qrContentItem === null)
+  //     ) {
+  //       this._setState('errorMessage', 'กรุณาระบุธนาคาร (QrCode) ');
+  //       return;
+  //     }
 
+  //     let payin = (this.state.groupofpaymentType.has('cash') ? Number(this.state.cashin) : 0) +
+  //     (this.state.groupofpaymentType.has('transfer') ? Number(this.state.paymentTransfer.tranFerin) : 0) +
+  //     (this.state.groupofpaymentType.has('qrcode') ? Number(this.state.qrin) : 0) +
+  //     (this.state.groupofpaymentType.has('cheque') ? Number(this.state.paymentCheque.chequein) : 0) +
+  //     (this.state.groupofpaymentType.has('other') ? Number(this.state.otherin) : 0);
 
-//     if (
-//       this.state.groupofpaymentType.has('qrcode') && (this.state.qrContentItem === null)
-//     ) {
-//       this._setState('errorMessage', 'กรุณาระบุธนาคาร (QrCode) ');
-//       return;
-//     }
-
-//     let payin = (this.state.groupofpaymentType.has('cash') ? Number(this.state.cashin) : 0) +
-//     (this.state.groupofpaymentType.has('transfer') ? Number(this.state.paymentTransfer.tranFerin) : 0) +
-//     (this.state.groupofpaymentType.has('qrcode') ? Number(this.state.qrin) : 0) +
-//     (this.state.groupofpaymentType.has('cheque') ? Number(this.state.paymentCheque.chequein) : 0) +
-//     (this.state.groupofpaymentType.has('other') ? Number(this.state.otherin) : 0);
-
-  _requestQrCode = async (obj) => {
+  _requestQrCode = async obj => {
     this._setState('errorMessage', null);
     const totalPrice = this._getResolvedOrderAmount();
 
     const selectedQrContent = this.state.qrContent?.find(
-      item => String(item.QRCT_KEY) === String(this.state.qrContentItem) || String(item.QRCT_CODE) === String(this.state.qrContentItem)
+      item =>
+        String(item.QRCT_KEY) === String(this.state.qrContentItem) ||
+        String(item.QRCT_CODE) === String(this.state.qrContentItem),
     );
 
     const qrCodeSeedCandidates = [
@@ -1876,7 +2052,8 @@ class CTPaymentForm extends Component {
       .filter(value => value !== '0');
 
     if (
-      this.state.groupofpaymentType.has('qrcode') && (this.state.qrin === null || Number(this.state.qrin) <= 0)
+      this.state.groupofpaymentType.has('qrcode') &&
+      (this.state.qrin === null || Number(this.state.qrin) <= 0)
     ) {
       await this._setState('isQRCodeDialogOpen', false);
       this._setState('errorMessage', 'กรุณาระบุจำนวนเงิน (QrCode)');
@@ -1884,33 +2061,52 @@ class CTPaymentForm extends Component {
     }
 
     if (
-      this.state.groupofpaymentType.has('qrcode') && (this.state.qrContentItem === null)
+      this.state.groupofpaymentType.has('qrcode') &&
+      this.state.qrContentItem === null
     ) {
       this._setState('errorMessage', 'กรุณาระบุธนาคาร (QrCode) ');
       return;
     }
 
-    let payin = (this.state.groupofpaymentType.has('cash') ? Number(this.state.cashin) : 0) +
-      (this.state.groupofpaymentType.has('transfer') ? Number(this.state.paymentTransfer.tranFerin) : 0) +
-      (this.state.groupofpaymentType.has('qrcode') ? Number(this.state.qrin) : 0) +
-      (this.state.groupofpaymentType.has('cheque') ? Number(this.state.paymentCheque.chequein) : 0) +
-      (this.state.groupofpaymentType.has('other') ? Number(this.state.otherin) : 0);
+    let payin =
+      (this.state.groupofpaymentType.has('cash')
+        ? Number(this.state.cashin)
+        : 0) +
+      (this.state.groupofpaymentType.has('transfer')
+        ? Number(this.state.paymentTransfer.tranFerin)
+        : 0) +
+      (this.state.groupofpaymentType.has('qrcode')
+        ? Number(this.state.qrin)
+        : 0) +
+      (this.state.groupofpaymentType.has('cheque')
+        ? Number(this.state.paymentCheque.chequein)
+        : 0) +
+      (this.state.groupofpaymentType.has('other')
+        ? Number(this.state.otherin)
+        : 0);
 
     if (
-      this.state.groupofpaymentType.has('qrcode') && (Number(payin) < Number(totalPrice) - this.state.differBy)
+      this.state.groupofpaymentType.has('qrcode') &&
+      Number(payin) < Number(totalPrice) - this.state.differBy
     ) {
       await this._setState('isQRCodeDialogOpen', false);
       this._setState('errorMessage', 'ยอดชำระยังไม่ครบ กรุณาตรวจสอบ ');
       return;
     }
 
-    if (this.state.remainoptiontItem === null && this.state.groupofpaymentType.has('qrcode')) {
+    if (
+      this.state.remainoptiontItem === null &&
+      this.state.groupofpaymentType.has('qrcode')
+    ) {
       if (
         Number(payin) > Number(totalPrice) &&
         Number(totalPrice - payin) <= Number(this.state.differBy)
       ) {
         await this._setState('reMainOption1', this.state.reMainOption_Over);
-        await this._setState('differValue', (Number(payin - totalPrice).toFixed(2)));
+        await this._setState(
+          'differValue',
+          Number(payin - totalPrice).toFixed(2),
+        );
         if (this.state.remainConfirm == false) {
           await this._setState('isDialogOpen', true);
           return;
@@ -1920,7 +2116,10 @@ class CTPaymentForm extends Component {
         Number(this.state.differBy) >= Number(totalPrice - payin)
       ) {
         await this._setState('reMainOption1', this.state.reMainOption_Under);
-        await this._setState('differValue', (Number(payin - totalPrice).toFixed(2)));
+        await this._setState(
+          'differValue',
+          Number(payin - totalPrice).toFixed(2),
+        );
         if (this.state.remainConfirm == false) {
           await this._setState('isDialogOpen', true);
           return;
@@ -1935,7 +2134,10 @@ class CTPaymentForm extends Component {
       const data = qrCodeSeedCandidates[0] || obj;
 
       if (isError || !data) {
-        this._setState('errorMessage', 'ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบการเชื่อมต่อหรือข้อมูล QR');
+        this._setState(
+          'errorMessage',
+          'ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบการเชื่อมต่อหรือข้อมูล QR',
+        );
         return;
       }
 
@@ -1945,8 +2147,6 @@ class CTPaymentForm extends Component {
       this._setState('errorMessage', error);
     }
   };
-
-
 
   // _requestQrCodeSCB = async (obj) => {
   //   this._setState('errorMessage', null);
@@ -2049,27 +2249,41 @@ class CTPaymentForm extends Component {
     console.log('this.state.paymentCheque', this.state.paymentCheque);
 
     if (
-      this.state.groupofpaymentType.has('cheque') && (this.state.paymentCheque.chequein === null || Number(this.state.paymentCheque.chequein) <= 0)
+      this.state.groupofpaymentType.has('cheque') &&
+      (this.state.paymentCheque.chequein === null ||
+        Number(this.state.paymentCheque.chequein) <= 0)
     ) {
       this._setState('errorMessage', 'กรุณาระบุจำนวนเงิน (เช็ค)');
       return;
     }
 
-    if (this.state.groupofpaymentType.has('cheque') && this.state.paymentCheque.bankFileItem === null) {
+    if (
+      this.state.groupofpaymentType.has('cheque') &&
+      this.state.paymentCheque.bankFileItem === null
+    ) {
       this._setState('errorMessage', 'กรุณาเลือกธนาคาร (เช็ค) ');
       return false;
     }
 
-    if (this.state.groupofpaymentType.has('cheque') && this.state.paymentCheque.chequeNo === null) {
+    if (
+      this.state.groupofpaymentType.has('cheque') &&
+      this.state.paymentCheque.chequeNo === null
+    ) {
       this._setState('errorMessage', 'กรุณากรอกเลขที่เช็ค');
       return false;
     }
 
-    if (this.state.groupofpaymentType.has('cheque') && this.state.paymentCheque.chequeNo.length < 8) {
+    if (
+      this.state.groupofpaymentType.has('cheque') &&
+      this.state.paymentCheque.chequeNo.length < 8
+    ) {
       this._setState('errorMessage', 'กรุณากรอกเลขที่เช็คให้ครบ 8 หลัก');
       return false;
     }
-    if (this.state.groupofpaymentType.has('cheque') && this.state.paymentCheque.chequeDate === null) {
+    if (
+      this.state.groupofpaymentType.has('cheque') &&
+      this.state.paymentCheque.chequeDate === null
+    ) {
       this._setState('errorMessage', 'กรุณาเลือกวันที่เช็ค');
       return false;
     }
@@ -2078,19 +2292,20 @@ class CTPaymentForm extends Component {
   };
 
   _validatePaymentByTransfer = () => {
-
     // console.log('this.state.paymentCheque', this.state.paymentCheque);
     // console.log('this.state.paymentCheque', this.state.paymentTransfer);
 
-
     if (
-      this.state.groupofpaymentType.has('transfer') && (this.state.paymentTransfer.tranFerin === null || Number(this.state.paymentTransfer.tranFerin) <= 0)
+      this.state.groupofpaymentType.has('transfer') &&
+      (this.state.paymentTransfer.tranFerin === null ||
+        Number(this.state.paymentTransfer.tranFerin) <= 0)
     ) {
       this._setState('errorMessage', 'กรุณาระบุจำนวนเงิน (โอน)');
       return;
     }
     if (
-      this.state.groupofpaymentType.has('transfer') && (this.state.paymentTransfer.bankAccountItem === null)
+      this.state.groupofpaymentType.has('transfer') &&
+      this.state.paymentTransfer.bankAccountItem === null
     ) {
       this._setState('errorMessage', 'กรุณาระบุธนาคาร (โอน) ');
       return;
@@ -2106,29 +2321,25 @@ class CTPaymentForm extends Component {
     return true;
   };
 
-
   _validatePaymentByOther = () => {
     //console.log('this.state.paymentCheque', this.state.otherPaymentItem);
 
     if (
-      this.state.groupofpaymentType.has('other') && (this.state.otherin === null || Number(this.state.otherin) <= 0)
+      this.state.groupofpaymentType.has('other') &&
+      (this.state.otherin === null || Number(this.state.otherin) <= 0)
     ) {
       this._setState('errorMessage', 'กรุณาระบุจำนวนเงิน (อื่นๆ)');
       return;
     }
     if (
-      this.state.groupofpaymentType.has('other') && (this.state.otherPaymentItem === null)
+      this.state.groupofpaymentType.has('other') &&
+      this.state.otherPaymentItem === null
     ) {
       this._setState('errorMessage', 'กรุณาระบุประเภทการชำระ (อื่นๆ) ');
       return;
     }
     return true;
   };
-
-
-
-
-
 
   _orderAttachImage = async () => {
     try {
@@ -2171,15 +2382,15 @@ class CTPaymentForm extends Component {
   };
 
   _setState = async (key, value) => {
-    await this.setState((oldState) => {
+    await this.setState(oldState => {
       return {
         [key]: value,
       };
     });
   };
 
-  _setBankFileItem = async (value) => {
-    await this.setState((oldState) => {
+  _setBankFileItem = async value => {
+    await this.setState(oldState => {
       return {
         ...this.state,
         paymentCheque: {
@@ -2190,14 +2401,16 @@ class CTPaymentForm extends Component {
     });
   };
 
-  _setBankAccountItem = async (value) => {
+  _setBankAccountItem = async value => {
     //const result = this.state.listbankAccountItem.find(item => item.BNKAC_CODE === value).BNKAC_NAME;
-    const bankAccount = this.state.listbankAccountItem?.find(item => item.BNKAC_CODE === value);
-    console.log('valueaa',this.state.listbankAccountItem)
-    console.log('bankAccount',bankAccount)
+    const bankAccount = this.state.listbankAccountItem?.find(
+      item => item.BNKAC_CODE === value,
+    );
+    console.log('valueaa', this.state.listbankAccountItem);
+    console.log('bankAccount', bankAccount);
     const result = bankAccount?.BNKAC_NAME || '';
 
-    await this.setState((oldState) => {
+    await this.setState(oldState => {
       return {
         ...this.state,
         paymentTransfer: {
@@ -2209,7 +2422,7 @@ class CTPaymentForm extends Component {
     });
   };
 
-  _setqrContentItem = async (value) => {
+  _setqrContentItem = async value => {
     if (value === false || value === undefined) {
       return;
     }
@@ -2221,12 +2434,14 @@ class CTPaymentForm extends Component {
     }
 
     const qrContent = this.state.qrContent?.find(
-      item => String(item.QRCT_KEY) === String(value) || String(item.QRCT_CODE) === String(value)
+      item =>
+        String(item.QRCT_KEY) === String(value) ||
+        String(item.QRCT_CODE) === String(value),
     );
 
     const result = qrContent?.QRCT_NAME || '';
 
-    await this.setState((oldState) => {
+    await this.setState(oldState => {
       return {
         ...this.state,
         // paymentTransfer: {
@@ -2236,14 +2451,11 @@ class CTPaymentForm extends Component {
         // },
       };
     });
-
-
-
   };
 
-  _setqrConfirm = async (value) => {
-    console.log("_setqrConfirm value>>", value)
-    await this.setState((oldState) => {
+  _setqrConfirm = async value => {
+    console.log('_setqrConfirm value>>', value);
+    await this.setState(oldState => {
       return {
         ...this.state,
         qrConfirm: value,
@@ -2253,33 +2465,29 @@ class CTPaymentForm extends Component {
     await this._orderCash1(null);
   };
 
-
-  _setremainConfirm = async (value) => {
-    console.log("_setRemainConfirm value>>", value)
-    await this.setState((oldState) => {
+  _setremainConfirm = async value => {
+    console.log('_setRemainConfirm value>>', value);
+    await this.setState(oldState => {
       return {
         ...this.state,
         remainConfirm: value,
       };
     });
-    console.log("_setqrContentItem value>> ", value)
-    if (value) { await this._orderCash1(null) };
-   
+    console.log('_setqrContentItem value>> ', value);
+    if (value) {
+      await this._orderCash1(null);
+    }
   };
 
-
-
-
-
-  _setCashin = async (value) => {
-
+  _setCashin = async value => {
     await this._setState('reMainOption1', []);
     await this._setState('remainConfirm', false);
     this._setState('errorMessage', null);
 
-    await this.setState((oldState) => {
+    await this.setState(oldState => {
       return {
-        ...this.state, cashin: value,
+        ...this.state,
+        cashin: value,
       };
     });
 
@@ -2287,23 +2495,18 @@ class CTPaymentForm extends Component {
     // //console.log("444  totalPrice >>>", Number(totalPrice));
     // console.log("444  value >>>", value);
 
-
-
     const isValid = await this._validateAll(null);
     if (isValid) {
       console.log('ผ่านทุกเงื่อนไข');
     }
-  }
+  };
 
-
-  _settranFerin = async (value) => {
-
+  _settranFerin = async value => {
     await this._setState('reMainOption1', []);
     await this._setState('remainConfirm', false);
-     this._setState('errorMessage', null);
+    this._setState('errorMessage', null);
 
-
-    await this.setState((oldState) => {
+    await this.setState(oldState => {
       return {
         ...this.state,
         paymentTransfer: {
@@ -2319,19 +2522,18 @@ class CTPaymentForm extends Component {
     if (isValid) {
       console.log('ผ่านทุกเงื่อนไข');
     }
-
   };
 
-
-  _setQrin = async (value) => {
+  _setQrin = async value => {
     await this._setState('reMainOption1', []);
     await this._setState('remainConfirm', false);
     this._setState('errorMessage', null);
 
-    console.log('_setQrin', value)
-    await this.setState((oldState) => {
+    console.log('_setQrin', value);
+    await this.setState(oldState => {
       return {
-        ...this.state, qrin: value,
+        ...this.state,
+        qrin: value,
       };
     });
 
@@ -2346,59 +2548,55 @@ class CTPaymentForm extends Component {
     // }
 
     // console.log('_setQrin', this.state.qrin)
-   //  if (value) { this._orderCash1(null) };
+    //  if (value) { this._orderCash1(null) };
   };
 
-  _setOtherin = async (value) => {
+  _setOtherin = async value => {
     await this._setState('reMainOption1', []);
     await this._setState('remainConfirm', false);
-     this._setState('errorMessage', null);
+    this._setState('errorMessage', null);
 
-
-    await this.setState((oldState) => {
+    await this.setState(oldState => {
       return {
-        ...this.state, otherin: value,
+        ...this.state,
+        otherin: value,
       };
     });
-  
+
     const isValid = await this._validateAll(null);
     if (isValid) {
       console.log('ผ่านทุกเงื่อนไข');
     }
   };
 
-  _setOtherItem = async (value) => {
-    console.log('_setOtherItem', value)
-    await this.setState((oldState) => {
+  _setOtherItem = async value => {
+    console.log('_setOtherItem', value);
+    await this.setState(oldState => {
       return {
-        ...this.state, otherPaymentItem: value,
+        ...this.state,
+        otherPaymentItem: value,
       };
     });
-    console.log('_setOtherItem', this.state.otherPaymentItem)
+    console.log('_setOtherItem', this.state.otherPaymentItem);
   };
 
-
-  _setremainoptionItem = async (value) => {
-    console.log('_setremainoptionItem', value)
-    await this.setState((oldState) => {
+  _setremainoptionItem = async value => {
+    console.log('_setremainoptionItem', value);
+    await this.setState(oldState => {
       return {
-        ...this.state, remainoptiontItem: value,
+        ...this.state,
+        remainoptiontItem: value,
       };
     });
-    console.log('_setremainoptionItem', this.state.remainoptiontItem)
+    console.log('_setremainoptionItem', this.state.remainoptiontItem);
   };
 
-
-
-
-  _setchequein = async (value) => {
+  _setchequein = async value => {
     await this._setState('reMainOption1', []);
     await this._setState('remainConfirm', false);
     this._setState('errorMessage', null);
 
-
-
-    await this.setState((oldState) => {
+    await this.setState(oldState => {
       return {
         ...this.state,
         paymentCheque: {
@@ -2412,11 +2610,11 @@ class CTPaymentForm extends Component {
     if (isValid) {
       console.log('ผ่านทุกเงื่อนไข');
     }
-   // console.log('_setchequein2', this.state.paymentCheque)
+    // console.log('_setchequein2', this.state.paymentCheque)
   };
 
-  _setChequeDate = async (value) => {
-    await this.setState((oldState) => {
+  _setChequeDate = async value => {
+    await this.setState(oldState => {
       return {
         ...this.state,
         paymentCheque: {
@@ -2427,8 +2625,8 @@ class CTPaymentForm extends Component {
     });
   };
 
-  _setChequeNo = async (value) => {
-    await this.setState((oldState) => {
+  _setChequeNo = async value => {
+    await this.setState(oldState => {
       return {
         ...this.state,
         paymentCheque: {
@@ -2440,7 +2638,7 @@ class CTPaymentForm extends Component {
   };
 
   _setEnabledPaymentCheque = async () => {
-    await this.setState((oldState) => {
+    await this.setState(oldState => {
       return {
         ...this.state,
         paymentCheque: {
@@ -2455,7 +2653,7 @@ class CTPaymentForm extends Component {
   };
 
   _setEnabledPaymentTransfer = async () => {
-    await this.setState((oldState) => {
+    await this.setState(oldState => {
       return {
         ...this.state,
         paymentTransfer: {
@@ -2467,7 +2665,7 @@ class CTPaymentForm extends Component {
   };
 
   _setDisabledPaymentCheque = async () => {
-    await this.setState((oldState) => {
+    await this.setState(oldState => {
       return {
         ...this.state,
         paymentCheque: {
@@ -2484,7 +2682,7 @@ class CTPaymentForm extends Component {
   };
 
   _setDisabledPaymentTransfer = async () => {
-    await this.setState((oldState) => {
+    await this.setState(oldState => {
       return {
         ...this.state,
         paymentTransfer: {
@@ -2505,11 +2703,9 @@ class CTPaymentForm extends Component {
     //  console.log("headerProcessed header24", this.props.order.headerProcessed);
     //  console.log("headerProcessed header26", this.props.order.header);
 
-
     const totalPrice = this._getResolvedOrderAmount();
 
     //console.log("headerProcessed header25", totalPrice );
-
 
     return (
       <>
@@ -2519,8 +2715,6 @@ class CTPaymentForm extends Component {
           paymentType={this.state.paymentType}
           setPaymentType={this._setPaymentType}
           //setcashin={this._setcashin}
-
-
 
           buttonListItems={paymentButtonGroup}
           renderItem={this._renderItem}
@@ -2534,29 +2728,20 @@ class CTPaymentForm extends Component {
           setBankAccountItem={this._setBankAccountItem}
           //  setBankAccountItemName={this._setBankAccountItemName}
 
-
-
           setAmtcashin={this._setCashin}
           setAmttranferin={this._settranFerin}
           setAmtQrin={this._setQrin}
           setAmtchequein={this._setchequein}
           setAmtOtherin={this._setOtherin}
-
           setotherPaymentItem={this._setOtherItem}
           otherPaymentItem={this.state.otherPaymentItem}
-
           setremainoptionItem={this._setremainoptionItem}
           remainoptiontItem={this.state.remainoptiontItem}
-
           bankFileItem={this.state.paymentCheque.bankFileItem}
           bankAccountItem={this.state.paymentTransfer.bankAccountItem}
           bankAccountItemName={this.state.paymentTransfer.bankAccountItemName}
-
-
-
           qrContentListItem={this.state.qrContent}
           qrContentItem={this.state.qrContentItem}
-
           listbankAccountItem={this.state.listbankAccountItem}
           tranFerin={this.state.paymentTransfer.tranFerin}
           setChequeDate={this._setChequeDate}
@@ -2569,11 +2754,9 @@ class CTPaymentForm extends Component {
           }
           chequeDateDisabled={this.state.paymentCheque.chequeDateDisabled}
           chequeNoEditable={this.state.paymentCheque.chequeNoEditable}
-
           setqrContentItem={this._setqrContentItem}
           setqrConfirm={this._setqrConfirm}
           setremainConfirm={this._setremainConfirm}
-
           isQRCodeDialogOpen={this.state.isQRCodeDialogOpen}
           isDialogOpen={this.state.isDialogOpen}
           setState={this._setState}
@@ -2585,14 +2768,13 @@ class CTPaymentForm extends Component {
           remainOptionItem={this.state.reMainOption1}
           differBy={this.state.differBy}
           differValue={this.state.differValue}
-
         />
       </>
     );
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   order: state.order,
   customer: state.customer,
   masterData: state.masterData,
@@ -2601,25 +2783,25 @@ const mapStateToProps = (state) => ({
   checkin: state.checkin,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
-    orderCreateCash: (value) => dispatch(orderCreateCash(value)),
-    orderUpdateCash: (value) => dispatch(orderUpdateCash(value)),
-    setHeaderProcessedVdiChequeBank: (value) =>
+    orderCreateCash: value => dispatch(orderCreateCash(value)),
+    orderUpdateCash: value => dispatch(orderUpdateCash(value)),
+    setHeaderProcessedVdiChequeBank: value =>
       dispatch(setHeaderProcessedVdiChequeBank(value)),
-    setHeaderProcessedVdiChequeDate: (value) =>
+    setHeaderProcessedVdiChequeDate: value =>
       dispatch(setHeaderProcessedVdiChequeDate(value)),
-    setHeaderProcessedVdiChequeNo: (value) =>
+    setHeaderProcessedVdiChequeNo: value =>
       dispatch(setHeaderProcessedVdiChequeNo(value)),
-    setHeaderProcessedVdiBankTransfer: (value) =>
+    setHeaderProcessedVdiBankTransfer: value =>
       dispatch(setHeaderProcessedVdiBankTransfer(value)),
-    setHeaderProcessedVdiQRRefer: (value) =>
+    setHeaderProcessedVdiQRRefer: value =>
       dispatch(setHeaderProcessedVdiQRRefer(value)),
     getCurrentPosition: () => dispatch(getCurrentPosition()),
-    setCheckInIsSubmit: (bool) => dispatch(setCheckInIsSubmit(bool)),
-    setMileIsSubmit: (bool) => dispatch(setMileIsSubmit(bool)),
-    orderAttachImage: (data) => dispatch(orderAttachImage(data)),
-    authForGetAccessToken: (auth) => dispatch(authForGetAccessToken(auth)),
+    setCheckInIsSubmit: bool => dispatch(setCheckInIsSubmit(bool)),
+    setMileIsSubmit: bool => dispatch(setMileIsSubmit(bool)),
+    orderAttachImage: data => dispatch(orderAttachImage(data)),
+    authForGetAccessToken: auth => dispatch(authForGetAccessToken(auth)),
     requestQrCodeSCB: (data, amount) =>
       dispatch(requestQrCodeSCB(data, amount)),
     auth: () => dispatch(auth()),

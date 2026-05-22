@@ -85,7 +85,6 @@ export default HeaderDetail;
 
 const styles = StyleSheet.create({
   container: {
-    // height: 250
     flex: 1,
   },
   slide1: {

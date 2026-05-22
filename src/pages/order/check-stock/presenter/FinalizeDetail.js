@@ -22,6 +22,14 @@ const Input = ({style, ...props}) => (
   />
 );
 
+const toNumber = (value) => {
+  const parsed = parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const formatAmount = (value) =>
+  toNumber(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
 const FinalizeDetail = (props) => {
   const {
     setVDIRemark,
@@ -40,6 +48,8 @@ const FinalizeDetail = (props) => {
     vdiRemark,
     setShipDate,
     shipDate,
+    setExpiryDate,
+    expiryDate,
     setReturnType,
     returnType,
     returnItems,
@@ -67,6 +77,12 @@ const FinalizeDetail = (props) => {
     DIS_COUNT_TYPE2,
     ORDER_PROCESS_FAIL
   } = props.orderProductSummary;
+  const discountBaseAmount = processResult?.ARDETAIL
+    ? toNumber(processResult?.ARDETAIL?.ARD_G_KEYIN)
+    : toNumber(processResult?.AROE?.AROE_G_KEYIN);
+  const discount1Amount = (toNumber(DIS_BILL_1) / 100) * discountBaseAmount;
+  const discount2Amount =
+    (toNumber(DIS_BILL_2) / 100) * (discountBaseAmount - discount1Amount);
   // console.log('processResult FinalizeDetail', processResult);
   // console.log('processResult successMessage', successMessage);
   // console.log('processResult errorMessage', errorMessage);
@@ -130,6 +146,31 @@ const FinalizeDetail = (props) => {
                   <IDatePicker value={shipDate} onDateChange={setShipDate} />
                 </View>
               </View>
+            ) : null}
+
+            {arOrderType === 'ใบเสนอราคา' ? (
+              <>
+                <View style={styles.lineSection}>
+                  <Text
+                    style={{flex: 0.2, fontSize: hp('1.7%')}}
+                    allowFontScaling={false}>
+                    กำหนดส่ง
+                  </Text>
+                  <View style={{flex: 0.8}}>
+                    <IDatePicker value={shipDate} onDateChange={setShipDate} />
+                  </View>
+                </View>
+                <View style={styles.lineSection}>
+                  <Text
+                    style={{flex: 0.2, fontSize: hp('1.7%')}}
+                    allowFontScaling={false}>
+                    วันหมดอายุ
+                  </Text>
+                  <View style={{flex: 0.8}}>
+                    <IDatePicker value={expiryDate} onDateChange={setExpiryDate} />
+                  </View>
+                </View>
+              </>
             ) : null}
 
             <View style={styles.lineSection}>
@@ -246,10 +287,7 @@ const FinalizeDetail = (props) => {
                             .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                         : '0.00'
                         :
-                      DIS_BILL_1 &&
-                        parseFloat(DIS_BILL_1)
-                          .toFixed(2)
-                          .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                      formatAmount(DIS_BILL_1)}
                            
                     </Text>
                   </Form>
@@ -285,22 +323,7 @@ const FinalizeDetail = (props) => {
                         }}>
                        
                         {/* {console.log('FinalizeDetail.js -Bazz processResult- ', processResult )} */}
-                        {processResult &&
-                        processResult != null &&
-                        processResult?.ARDETAIL
-                          ? 
-                           ((DIS_BILL_1 / 100) *
-                              parseFloat(processResult?.ARDETAIL?.ARD_G_KEYIN||0)                              
-                            )
-                              .toFixed(2)
-                              .replace(/\B(?=(\d{3})+(?!\d))/g, ',')                              
-                              : (
-                              (DIS_BILL_1 / 100) *
-                               parseFloat(processResult?.AROE?.AROE_G_KEYIN||0)
-                            )
-                              .toFixed(2)
-                              .replace(/\B(?=(\d{3})+(?!\d))/g, ',') 
-                            }
+                        {formatAmount(discount1Amount)}
                       </Text>
                     </Form>
                   </View>
@@ -331,27 +354,7 @@ const FinalizeDetail = (props) => {
                           textAlign: 'right',
                           color: '#000000',
                         }}>
-                       {
-                         processResult && processResult != null &&
-                           processResult ?.AROE &&
-                           processResult ?.AROE ?.AROE_G_KEYIN ?
-                           (
-                             (DIS_BILL_2 / 100) *
-                             (parseFloat(processResult ?.AROE ?.AROE_G_KEYIN) -
-                               (DIS_BILL_1 / 100) *
-                               parseFloat(processResult ?.AROE.AROE_G_KEYIN))
-                           )
-                           .toFixed(2)
-                           .replace(/\B(?=(\d{3})+(?!\d))/g, ',') :
-                           (
-                             (DIS_BILL_2 / 100) *
-                             (parseFloat(processResult ?.ARDETAIL?.ARD_G_KEYIN) -
-                               (DIS_BILL_1 / 100) *
-                               parseFloat(processResult ?.ARDETAIL.ARD_G_KEYIN))
-                           )
-                           .toFixed(2)
-                           .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-                       }
+                        {formatAmount(discount2Amount)}
                       </Text>
                     </Form>
                   </View>

@@ -31,6 +31,7 @@ const initialState = {
     VDI_PMT: null,
     VDI_MILE: null,
     VDI_SHIP_DATE: null,
+    VDI_EXP_DATE: null,
     VDI_MACHINE: null,
     VDI_DISC_1: null,
     VDI_DISC_2: null,

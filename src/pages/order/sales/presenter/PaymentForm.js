@@ -1,7 +1,14 @@
 //import React from 'react';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import React, { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import QRCode from 'react-native-qrcode-svg';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -20,31 +27,34 @@ const runIfFunction = async (fn, ...args) => {
   }
 };
 
-const Container = ({children}) => <View style={styles.screen}>{children}</View>;
-const Content = ({children}) => (
+const Container = ({ children }) => (
+  <View style={styles.screen}>{children}</View>
+);
+const Content = ({ children }) => (
   <ScrollView
     style={styles.contentScroll}
-    contentContainerStyle={styles.contentContainer}>
+    contentContainerStyle={styles.contentContainer}
+  >
     {children}
   </ScrollView>
 );
-const Form = ({style, children}) => <View style={style}>{children}</View>;
-const Item = ({style, children}) => (
-  <View style={[{flexDirection: 'row', alignItems: 'center'}, style]}>{children}</View>
+const Form = ({ style, children }) => <View style={style}>{children}</View>;
+const Item = ({ style, children }) => (
+  <View style={[{ flexDirection: 'row', alignItems: 'center' }, style]}>
+    {children}
+  </View>
 );
-const Input = ({style, ...props}) => (
+const Input = ({ style, ...props }) => (
   <TextInput
     {...props}
     style={[
-      {flex: 1, color: '#000000', paddingVertical: 8, paddingHorizontal: 0},
+      { flex: 1, color: '#000000', paddingVertical: 8, paddingHorizontal: 0 },
       style,
     ]}
   />
 );
 
-
-
-const PaymentForm = (props) => {
+const PaymentForm = props => {
   const {
     paymentType,
     groupofpaymentType,
@@ -67,17 +77,14 @@ const PaymentForm = (props) => {
 
     qrContentItem,
 
-
     bankFileItem,
     bankAccountItem,
-
 
     setAmttranferin,
     setAmtcashin,
     setAmtQrin,
     setAmtchequein,
     setAmtOtherin,
-
 
     setqrConfirm,
     setremainConfirm,
@@ -91,7 +98,6 @@ const PaymentForm = (props) => {
     listbankAccountItem,
     setBankAccountTransferItem,
     bankAccountTransferItem,
-
 
     setChequeDate,
     setChequeNo,
@@ -112,41 +118,54 @@ const PaymentForm = (props) => {
     // setcashin,
     remainOptionItem,
     differBy,
-    differValue
+    differValue,
   } = props;
   // const [isDialogOpen, setisDialogOpen] =  useState(false);
 
-  const safeRemainOptionItems = Array.isArray(remainOptionItem) ? remainOptionItem : [];
-  const safeBankFileListItems = Array.isArray(bankFileListItems) ? bankFileListItems : [];
-  const safeQrContentListItems = Array.isArray(qrContentListItem) ? qrContentListItem : [];
-  const safeOtherPaymentType = Array.isArray(otherPaymentType) ? otherPaymentType : [];
-  const safeListBankAccountItem = Array.isArray(listbankAccountItem) ? listbankAccountItem : [];
-  const safeUserToken = userToken && userToken.VANCONFIG ? userToken : {
-    VANCONFIG: {
-      VANCNF_ENABLE_CASH: null,
-      VANCNF_BANK_TRANSFER_USE: null,
-      VANCNF_CHEQUE: null,
-      VANCNF_BANK_QRCODE_USE: null,
-    },
-  };
-  const safeTotalPrice = Number.isFinite(Number(totalPrice)) ? Number(totalPrice) : 0;
+  const safeRemainOptionItems = Array.isArray(remainOptionItem)
+    ? remainOptionItem
+    : [];
+  const safeBankFileListItems = Array.isArray(bankFileListItems)
+    ? bankFileListItems
+    : [];
+  const safeQrContentListItems = Array.isArray(qrContentListItem)
+    ? qrContentListItem
+    : [];
+  const safeOtherPaymentType = Array.isArray(otherPaymentType)
+    ? otherPaymentType
+    : [];
+  const safeListBankAccountItem = Array.isArray(listbankAccountItem)
+    ? listbankAccountItem
+    : [];
+  const safeUserToken =
+    userToken && userToken.VANCONFIG
+      ? userToken
+      : {
+          VANCONFIG: {
+            VANCNF_ENABLE_CASH: null,
+            VANCNF_BANK_TRANSFER_USE: null,
+            VANCNF_CHEQUE: null,
+            VANCNF_BANK_QRCODE_USE: null,
+          },
+        };
+  const safeTotalPrice = Number.isFinite(Number(totalPrice))
+    ? Number(totalPrice)
+    : 0;
 
   //console.log("remainOption >>", remainOptionItem)
   // console.log("bankAccountItem >>", listbankAccountItem)
 
-  const remainoption = safeRemainOptionItems.map((item) => ({
+  const remainoption = safeRemainOptionItems.map(item => ({
     label: item.SYSLKUP_T_DESC,
     value: item.SYSLKUP_KEY,
   }));
 
-  const normalizeQrAmount = (amount) => {
+  const normalizeQrAmount = amount => {
     if (amount === null || amount === undefined || amount === '') {
       return null;
     }
 
-
-
-const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
+    const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
     if (numericAmount <= 0) {
       return null;
     }
@@ -154,41 +173,47 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
     return numericAmount.toFixed(2);
   };
 
+  const bankFiles = safeBankFileListItems
+    .filter(item => !item.BANK_T_NAME.includes('(ยกเลิก)'))
+    .sort((a, b) => {
+      if (a.BANK_T_NAME < b.BANK_T_NAME) return -1;
+      if (a.BANK_T_NAME > b.BANK_T_NAME) return 1;
+      return 0;
+    })
+    .map(item => ({
+      label: item.BANK_T_NAME,
+      value: item.BANK_KEY,
+    }));
+  // console.log("bankAccount4 >>", bankFiles)
 
-  const bankFiles = safeBankFileListItems.filter(item => !item.BANK_T_NAME.includes("(ยกเลิก)")).sort((a, b) => {
-    if (a.BANK_T_NAME < b.BANK_T_NAME) return -1;
-    if (a.BANK_T_NAME > b.BANK_T_NAME) return 1;
-    return 0;
-  }).map((item) => ({
-    label: item.BANK_T_NAME,
-    value: item.BANK_KEY,
-  }));
- // console.log("bankAccount4 >>", bankFiles)
-
-  const bankAccount = Object.values(safeListBankAccountItem.sort((a, b) => {
-    if (a.BNKAC_CODE < b.BNKAC_CODE) return -1;
-    if (a.BNKAC_CODE > b.BNKAC_CODE) return 1;
-    return 0;
-  }).map((item) => ({
-    label: item.BNKAC_CODE + "." + item.BNKAC_NAME,
-    value: item.BNKAC_CODE,
-  })));
-
-
-  const qrCodeContent = Object.values(safeQrContentListItems.map((item) => ({
-    label: item.QRCT_NAME,
-    value: item.QRCT_KEY,
-  }))
+  const bankAccount = Object.values(
+    safeListBankAccountItem
+      .sort((a, b) => {
+        if (a.BNKAC_CODE < b.BNKAC_CODE) return -1;
+        if (a.BNKAC_CODE > b.BNKAC_CODE) return 1;
+        return 0;
+      })
+      .map(item => ({
+        label: item.BNKAC_CODE + '.' + item.BNKAC_NAME,
+        value: item.BNKAC_CODE,
+      })),
   );
 
-
-  const otherPayment = Object.values(safeOtherPaymentType.map((item) => ({
-    label: item.PMT_NAME,
-    value: item.PMT_KEY,
-  }))
+  const qrCodeContent = Object.values(
+    safeQrContentListItems.map(item => ({
+      label: item.QRCT_NAME,
+      value: item.QRCT_KEY,
+    })),
   );
 
-  const getSelectedQrContent = (promptPay) => {
+  const otherPayment = Object.values(
+    safeOtherPaymentType.map(item => ({
+      label: item.PMT_NAME,
+      value: item.PMT_KEY,
+    })),
+  );
+
+  const getSelectedQrContent = promptPay => {
     if (promptPay === null || promptPay === undefined || promptPay === '') {
       return null;
     }
@@ -204,16 +229,17 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
 
   const defaultQrContent = safeQrContentListItems[0] || null;
 
-  const isQrTemplatePayload = (content) => {
+  const isQrTemplatePayload = content => {
     const normalizedContent = String(content || '').trim();
 
     return (
       normalizedContent.startsWith('000201') ||
-      (normalizedContent.includes('5303764') && normalizedContent.includes('5802TH'))
+      (normalizedContent.includes('5303764') &&
+        normalizedContent.includes('5802TH'))
     );
   };
 
-  const isDirectQrPayload = (content) => {
+  const isDirectQrPayload = content => {
     const normalizedContent = String(content || '').trim();
 
     if (!normalizedContent) {
@@ -239,12 +265,13 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
     .toFixed(2)
     .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const showCashCard = safeUserToken.VANCONFIG.VANCNF_ENABLE_CASH === 2;
-  const showTransferQrCard = safeUserToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
+  const showTransferQrCard =
+    safeUserToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
   const showQrCodeOption = false;
   const showChequeCard = safeUserToken.VANCONFIG.VANCNF_CHEQUE === 2;
   const showOtherCard = safeUserToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
 
-  const getBorderlessPickerStyle = (enabled) => ({
+  const getBorderlessPickerStyle = enabled => ({
     iconContainer: {
       top: 10,
       right: 0,
@@ -267,32 +294,30 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
     },
   });
 
-  const toggleCheckBox = (item) => {
-    setCheckedItems((prevState) => ({
+  const toggleCheckBox = item => {
+    setCheckedItems(prevState => ({
       ...prevState,
       [item]: !prevState[item],
     }));
   };
 
   const nottoggleCheckBox = (item, notitem) => {
-
-
-    if (item == "item2" && groupofpaymentType.has("transfer") || item == "item3" && groupofpaymentType.has("qrcode")) {
-      setCheckedItems((prevState) => ({
+    if (
+      (item == 'item2' && groupofpaymentType.has('transfer')) ||
+      (item == 'item3' && groupofpaymentType.has('qrcode'))
+    ) {
+      setCheckedItems(prevState => ({
         ...prevState,
         [item]: false,
-        [notitem]: false
+        [notitem]: false,
       }));
     } else {
-      setCheckedItems((prevState) => ({
+      setCheckedItems(prevState => ({
         ...prevState,
         [item]: !prevState[item],
-        [notitem]: prevState[item]
+        [notitem]: prevState[item],
       }));
     }
-
-
-
   };
 
   // const [cashin, setcashin] = useState(totalPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','));
@@ -308,11 +333,6 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
   const [chequein, setchequein] = useState(0);
   const [otherin, setotherin] = useState(0);
 
-
-
-
-
-
   //const cleanedValue = item.replace(/-$/, '').replace(/\.$/, '');
 
   // const setTextcashin = (item) => { setcashin(item); setAmtcashin(item); };
@@ -321,70 +341,148 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
   // const setTextchequein = (item) => { setchequein(item); setAmtchequein(item); };
   // const setTextotherin = (item) => { setotherin(item); setAmtOtherin(item); };
 
-  const setTextcashin = (item) => { setcashin(item); setAmtcashin(item.replace(/,/g, '').replace(/-$/, '').replace(/\.$/, '')); };
-  const setTexttranFerin = (item) => { settranFerin(item); setAmttranferin(item.replace(/,/g, '').replace(/-$/, '').replace(/\.$/, '')); };
-  const setTextqRCodein = (item) => { setqRCodein(item); setAmtQrin(item.replace(/,/g, '').replace(/-$/, '').replace(/\.$/, '')); };
-  const setTextchequein = (item) => { setchequein(item); setAmtchequein(item.replace(/,/g, '').replace(/-$/, '').replace(/\.$/, '')); };
-  const setTextotherin = (item) => { setotherin(item); setAmtOtherin(item.replace(/,/g, '').replace(/-$/, '').replace(/\.$/, '')); };
+  const setTextcashin = item => {
+    setcashin(item);
+    setAmtcashin(item.replace(/,/g, '').replace(/-$/, '').replace(/\.$/, ''));
+  };
+  const setTexttranFerin = item => {
+    settranFerin(item);
+    setAmttranferin(
+      item.replace(/,/g, '').replace(/-$/, '').replace(/\.$/, ''),
+    );
+  };
+  const setTextqRCodein = item => {
+    setqRCodein(item);
+    setAmtQrin(item.replace(/,/g, '').replace(/-$/, '').replace(/\.$/, ''));
+  };
+  const setTextchequein = item => {
+    setchequein(item);
+    setAmtchequein(item.replace(/,/g, '').replace(/-$/, '').replace(/\.$/, ''));
+  };
+  const setTextotherin = item => {
+    setotherin(item);
+    setAmtOtherin(item.replace(/,/g, '').replace(/-$/, '').replace(/\.$/, ''));
+  };
 
+  const handleBlur = param => {
+    let numericValue1 = groupofpaymentType.has('cash')
+      ? isNaN(parseFloat((cashin || '').replace(/,/g, '')))
+        ? 0
+        : parseFloat((cashin || '').replace(/,/g, ''))
+      : 0;
+    let numericValue2 = groupofpaymentType.has('transfer')
+      ? isNaN(parseFloat((tranFerin || '').replace(/,/g, '')))
+        ? 0
+        : parseFloat((tranFerin || '').replace(/,/g, ''))
+      : 0;
+    let numericValue3 = groupofpaymentType.has('qrcode')
+      ? isNaN(parseFloat((qRCodein || '').replace(/,/g, '')))
+        ? 0
+        : parseFloat((qRCodein || '').replace(/,/g, ''))
+      : 0;
+    let numericValue4 = groupofpaymentType.has('cheque')
+      ? isNaN(parseFloat((chequein || '').replace(/,/g, '')))
+        ? 0
+        : parseFloat((chequein || '').replace(/,/g, ''))
+      : 0;
+    let numericValue5 = groupofpaymentType.has('other')
+      ? isNaN(parseFloat((otherin || '').replace(/,/g, '')))
+        ? 0
+        : parseFloat((otherin || '').replace(/,/g, ''))
+      : 0;
 
-
-
-
-  const handleBlur = (param) => {
-
-
-
-
-
-    let numericValue1 = groupofpaymentType.has('cash') ? isNaN(parseFloat((cashin || '').replace(/,/g, ''))) ? 0 : parseFloat((cashin || '').replace(/,/g, '')) : 0;
-    let numericValue2 = groupofpaymentType.has('transfer') ? isNaN(parseFloat((tranFerin || '').replace(/,/g, ''))) ? 0 : parseFloat((tranFerin || '').replace(/,/g, '')) : 0;
-    let numericValue3 = groupofpaymentType.has('qrcode') ? isNaN(parseFloat((qRCodein || '').replace(/,/g, ''))) ? 0 : parseFloat((qRCodein || '').replace(/,/g, '')) : 0;
-    let numericValue4 = groupofpaymentType.has('cheque') ? isNaN(parseFloat((chequein || '').replace(/,/g, ''))) ? 0 : parseFloat((chequein || '').replace(/,/g, '')) : 0;
-    let numericValue5 = groupofpaymentType.has('other') ? isNaN(parseFloat((otherin || '').replace(/,/g, ''))) ? 0 : parseFloat((otherin || '').replace(/,/g, '')) : 0;
-
-    let payin = numericValue5 + numericValue4 + numericValue3 + numericValue2 + numericValue1;
-
+    let payin =
+      numericValue5 +
+      numericValue4 +
+      numericValue3 +
+      numericValue2 +
+      numericValue1;
 
     switch (param) {
       case 'cash':
-
-
-        if (numericValue5 + numericValue4 + numericValue3 + numericValue2 + numericValue1 >= totalPrice + differBy) {
-
-          if (numericValue1 <= (totalPrice + differBy - numericValue2 - numericValue3 - numericValue4 - numericValue5)) {
-            numericValue1 = (totalPrice + differBy - numericValue2 - numericValue3 - numericValue4 - numericValue5);
+        if (
+          numericValue5 +
+            numericValue4 +
+            numericValue3 +
+            numericValue2 +
+            numericValue1 >=
+          totalPrice + differBy
+        ) {
+          if (
+            numericValue1 <=
+            totalPrice +
+              differBy -
+              numericValue2 -
+              numericValue3 -
+              numericValue4 -
+              numericValue5
+          ) {
+            numericValue1 =
+              totalPrice +
+              differBy -
+              numericValue2 -
+              numericValue3 -
+              numericValue4 -
+              numericValue5;
           } else {
-            numericValue1 = (totalPrice) - numericValue2 - numericValue3 - numericValue4 - numericValue5
+            numericValue1 =
+              totalPrice -
+              numericValue2 -
+              numericValue3 -
+              numericValue4 -
+              numericValue5;
           }
         }
 
-
         if (!isNaN(numericValue1) && numericValue1 > 0) {
-          setcashin(numericValue1.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')); // ฟอร์แมตให้มี 2 ตำแหน่งทศนิยม
+          setcashin(
+            numericValue1.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+          ); // ฟอร์แมตให้มี 2 ตำแหน่งทศนิยม
           setAmtcashin(numericValue1);
-
         } else {
           setcashin(''); // ถ้าไม่ใช่ตัวเลขให้เคลียร์ค่า
           setAmtcashin(0);
-
         }
         break; // Exit the switch
       case 'transfer':
-
-        if (numericValue5 + numericValue4 + numericValue3 + numericValue2 + numericValue1 >= totalPrice + differBy) {
-
-          if (numericValue2 <= (totalPrice + differBy - numericValue1 - numericValue3 - numericValue4 - numericValue5)) {
-            numericValue2 = (totalPrice + differBy - numericValue1 - numericValue3 - numericValue4 - numericValue5);
+        if (
+          numericValue5 +
+            numericValue4 +
+            numericValue3 +
+            numericValue2 +
+            numericValue1 >=
+          totalPrice + differBy
+        ) {
+          if (
+            numericValue2 <=
+            totalPrice +
+              differBy -
+              numericValue1 -
+              numericValue3 -
+              numericValue4 -
+              numericValue5
+          ) {
+            numericValue2 =
+              totalPrice +
+              differBy -
+              numericValue1 -
+              numericValue3 -
+              numericValue4 -
+              numericValue5;
           } else {
-            numericValue2 = (totalPrice) - numericValue1 - numericValue3 - numericValue4 - numericValue5
+            numericValue2 =
+              totalPrice -
+              numericValue1 -
+              numericValue3 -
+              numericValue4 -
+              numericValue5;
           }
         }
 
-
-
         if (!isNaN(numericValue2) && numericValue2 > 0) {
-          settranFerin(numericValue2.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')); // ฟอร์แมตให้มี 2 ตำแหน่งทศนิยม
+          settranFerin(
+            numericValue2.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+          ); // ฟอร์แมตให้มี 2 ตำแหน่งทศนิยม
           setAmttranferin(numericValue2);
         } else {
           settranFerin(''); // ถ้าไม่ใช่ตัวเลขให้เคลียร์ค่า
@@ -393,55 +491,137 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
 
         break; // Exit the switch
       case 'qrcode':
-        if (numericValue5 + numericValue4 + numericValue3 + numericValue2 + numericValue1 >= totalPrice + differBy) {
-          if (numericValue3 <= (totalPrice + differBy - numericValue1 - numericValue2 - numericValue4 - numericValue5)) {
-            numericValue3 = (totalPrice + differBy - numericValue1 - numericValue2 - numericValue4 - numericValue5);
+        if (
+          numericValue5 +
+            numericValue4 +
+            numericValue3 +
+            numericValue2 +
+            numericValue1 >=
+          totalPrice + differBy
+        ) {
+          if (
+            numericValue3 <=
+            totalPrice +
+              differBy -
+              numericValue1 -
+              numericValue2 -
+              numericValue4 -
+              numericValue5
+          ) {
+            numericValue3 =
+              totalPrice +
+              differBy -
+              numericValue1 -
+              numericValue2 -
+              numericValue4 -
+              numericValue5;
           } else {
-            numericValue3 = (totalPrice) - numericValue1 - numericValue2 - numericValue4 - numericValue5
+            numericValue3 =
+              totalPrice -
+              numericValue1 -
+              numericValue2 -
+              numericValue4 -
+              numericValue5;
           }
         }
         if (!isNaN(numericValue3) && numericValue3 > 0) {
-          setqRCodein(numericValue3.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')); // ฟอร์แมตให้มี 2 ตำแหน่งทศนิยม
+          setqRCodein(
+            numericValue3.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+          ); // ฟอร์แมตให้มี 2 ตำแหน่งทศนิยม
           setAmtQrin(numericValue3);
-          if ((numericValue3 > 0) && (numericValue3 <= totalPrice + differBy)) {
-            setState('qrCode', numericValue3.toString())
+          if (numericValue3 > 0 && numericValue3 <= totalPrice + differBy) {
+            setState('qrCode', numericValue3.toString());
           }
-
         } else {
           setqRCodein(''); // ถ้าไม่ใช่ตัวเลขให้เคลียร์ค่า
           setAmtQrin(0);
-          setState('qrCode', '0')
+          setState('qrCode', '0');
           // setState('isQRCodeDialogOpen', false)
         }
         break; // Exit the switch
       case 'cheque':
-        if (numericValue5 + numericValue4 + numericValue3 + numericValue2 + numericValue1 >= totalPrice + differBy) {
-          if (numericValue4 <= (totalPrice + differBy - numericValue2 - numericValue3 - numericValue1 - numericValue5)) {
-            numericValue4 = (totalPrice + differBy - numericValue2 - numericValue3 - numericValue1 - numericValue5);
+        if (
+          numericValue5 +
+            numericValue4 +
+            numericValue3 +
+            numericValue2 +
+            numericValue1 >=
+          totalPrice + differBy
+        ) {
+          if (
+            numericValue4 <=
+            totalPrice +
+              differBy -
+              numericValue2 -
+              numericValue3 -
+              numericValue1 -
+              numericValue5
+          ) {
+            numericValue4 =
+              totalPrice +
+              differBy -
+              numericValue2 -
+              numericValue3 -
+              numericValue1 -
+              numericValue5;
           } else {
-            numericValue4 = (totalPrice) - numericValue1 - numericValue2 - numericValue3 - numericValue5
+            numericValue4 =
+              totalPrice -
+              numericValue1 -
+              numericValue2 -
+              numericValue3 -
+              numericValue5;
           }
         }
 
         if (!isNaN(numericValue4) && numericValue4 > 0) {
-          setchequein(numericValue4.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')); // ฟอร์แมตให้มี 2 ตำแหน่งทศนิยม
+          setchequein(
+            numericValue4.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+          ); // ฟอร์แมตให้มี 2 ตำแหน่งทศนิยม
           setAmtchequein(numericValue4);
         } else {
           setchequein(''); // ถ้าไม่ใช่ตัวเลขให้เคลียร์ค่า
           setAmtchequein(0);
-
         }
         break; // Exit the switch
       case 'other':
-        if (numericValue5 + numericValue4 + numericValue3 + numericValue2 + numericValue1 >= totalPrice + differBy) {
-          if (numericValue5 <= (totalPrice + differBy - numericValue2 - numericValue3 - numericValue1 - numericValue4)) {
-            numericValue5 = (totalPrice + differBy - numericValue2 - numericValue3 - numericValue1 - numericValue4);
+        if (
+          numericValue5 +
+            numericValue4 +
+            numericValue3 +
+            numericValue2 +
+            numericValue1 >=
+          totalPrice + differBy
+        ) {
+          if (
+            numericValue5 <=
+            totalPrice +
+              differBy -
+              numericValue2 -
+              numericValue3 -
+              numericValue1 -
+              numericValue4
+          ) {
+            numericValue5 =
+              totalPrice +
+              differBy -
+              numericValue2 -
+              numericValue3 -
+              numericValue1 -
+              numericValue4;
           } else {
-            numericValue5 = (totalPrice) - numericValue2 - numericValue3 - numericValue1 - numericValue4
+            numericValue5 =
+              totalPrice -
+              numericValue2 -
+              numericValue3 -
+              numericValue1 -
+              numericValue4;
           }
         }
         if (!isNaN(numericValue5) && numericValue5 > 0) {
-          setotherin(numericValue5.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')); // ฟอร์แมตให้มี 2 ตำแหน่งทศนิยม
+          setotherin(
+            numericValue5.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+          ); // ฟอร์แมตให้มี 2 ตำแหน่งทศนิยม
           setAmtOtherin(numericValue5);
         } else {
           setotherin(''); // ถ้าไม่ใช่ตัวเลขให้เคลียร์ค่า
@@ -451,12 +631,10 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
   };
 
   _onCancel = () => {
-    setState('isQRCodeDialogOpen', false)
-  }
+    setState('isQRCodeDialogOpen', false);
+  };
 
-
-
-  _onPress = async (item) => {
+  _onPress = async item => {
     this._setState('errorMessage', '');
 
     if (item.methodType === 'function') {
@@ -467,13 +645,11 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
         }
 
         if (
-
           this.state.groupofpaymentType.has('cash') ||
           this.state.groupofpaymentType.has('cheque') ||
           this.state.groupofpaymentType.has('qrcode') ||
           this.state.groupofpaymentType.has('transfer') ||
           this.state.groupofpaymentType.has('other')
-
         ) {
           await this._orderCash();
         } //else if (this.state.groupofpaymentType.has('qrcode')) {
@@ -501,17 +677,23 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
 
     const result = String(qrContent?.QRCT_SOURCE || '').trim();
     const rawQrContent = String(qrContent?.QRCT_CONTENT || '').trim();
-    const isUsableQrSeed = (value) => {
+    const isUsableQrSeed = value => {
       const normalizedValue = String(value || '').trim();
       if (!normalizedValue || normalizedValue === '0') {
         return false;
       }
 
-      if (isDirectQrPayload(normalizedValue) || isQrTemplatePayload(normalizedValue)) {
+      if (
+        isDirectQrPayload(normalizedValue) ||
+        isQrTemplatePayload(normalizedValue)
+      ) {
         return true;
       }
 
-      if (/^qr\s*code$/i.test(normalizedValue) || /^qrcode$/i.test(normalizedValue)) {
+      if (
+        /^qr\s*code$/i.test(normalizedValue) ||
+        /^qrcode$/i.test(normalizedValue)
+      ) {
         return false;
       }
 
@@ -536,7 +718,9 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
     }
 
     if (result === '4' || isQrTemplatePayload(qrSourceValue)) {
-      return genQrPaymentFromQrCode(normalizedAmount, qrSourceValue) || qrSourceValue;
+      return (
+        genQrPaymentFromQrCode(normalizedAmount, qrSourceValue) || qrSourceValue
+      );
     }
 
     const generatedPromptPay = genQrPayment(normalizedAmount, qrSourceValue);
@@ -551,13 +735,9 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
     return qrSourceValue;
   };
 
-
-
-
   const genQrPaymentFromQrCode = (amount, qrTemplate) => {
-
-    let pp_amount = "";
-    let pp_chksum = "";
+    let pp_amount = '';
+    let pp_chksum = '';
 
     //console.log("promptPay pp_str =>", qrTemplate);
     if (qrTemplate === null || qrTemplate === undefined) return null;
@@ -567,17 +747,17 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
 
     //console.log("promptPay pp_str =>", qrCode);
 
-    const startIndex = qrCode.indexOf("5303764");
-    const endIndex = qrCode.indexOf("5802TH");
+    const startIndex = qrCode.indexOf('5303764');
+    const endIndex = qrCode.indexOf('5802TH');
     if (startIndex === -1 || endIndex === -1) {
       return null;
     }
-    const part1 = qrCode.substring(0, startIndex + "5303764".length);
+    const part1 = qrCode.substring(0, startIndex + '5303764'.length);
     const part2 = qrCode.substring(endIndex, qrCode.length - 4);
 
     // process amount
-    if (amount !== "") {
-      pp_amount = "54" + ("0" + amount.length).slice(-2) + amount;
+    if (amount !== '') {
+      pp_amount = '54' + ('0' + amount.length).slice(-2) + amount;
     }
     // build pp string
     let pp_str = part1 + pp_amount + part2;
@@ -586,14 +766,11 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
     pp_str += pp_chksum;
     // console.log("genQrPaymentFromQrCode pp_str =>", pp_str);
     return pp_str;
-  }
+  };
 
   const genQrPayment = (amount, promptPay) => {
     // console.log("genQrPayment =>", amount);
     // console.log("genQrPayment =>", promptPay);
-
-
-
 
     //console.log("promptPay pp_str =>", promptPay);
     if (promptPay === null || promptPay === undefined) return null;
@@ -601,23 +778,21 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
 
     const result = String(promptPay || '').trim();
 
-
-
-    let pp_acc_id = "";
-    let pp_amount = "";
-    let pp_chksum = "";
+    let pp_acc_id = '';
+    let pp_amount = '';
+    let pp_chksum = '';
 
     // process acc_id
     let acc_id = result.replace(/[^0-9]/g, ''); //3130200142805
     if (acc_id.length === 15) {
       // truemoney e-wallet
-      pp_acc_id = "0315" + acc_id;
+      pp_acc_id = '0315' + acc_id;
     } else if (acc_id.length === 13) {
       // card-id
-      pp_acc_id = "0213" + acc_id;
+      pp_acc_id = '0213' + acc_id;
     } else if (acc_id.length === 10) {
       // tel-no
-      pp_acc_id = "01130066" + acc_id.substring(1);
+      pp_acc_id = '01130066' + acc_id.substring(1);
     } else {
       // invalid acc_id
       return null;
@@ -625,39 +800,40 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
 
     // process amount
 
-    if (amount !== "") {
-      pp_amount = "54" + ("0" + amount.length).slice(-2) + amount;
+    if (amount !== '') {
+      pp_amount = '54' + ('0' + amount.length).slice(-2) + amount;
     }
 
     // build pp string
-    let field_29 = "0016A000000677010111" + pp_acc_id;
+    let field_29 = '0016A000000677010111' + pp_acc_id;
     let pp_str =
-      "000201010211" +
-      "29" +
+      '000201010211' +
+      '29' +
       field_29.length +
       field_29 +
-      "5303764" +
+      '5303764' +
       pp_amount +
-      "5802TH" +
-      "6304";
+      '5802TH' +
+      '6304';
 
     // process checksum
     pp_chksum = checksumCRC16(pp_str);
     pp_str += pp_chksum;
     //console.log("genQrPayment pp_str =>", pp_str);
     return pp_str;
-  }
+  };
 
-  console.log('qrCode',qrCode)
+  console.log('qrCode', qrCode);
 
   const qrPaymentValue = isDirectQrPayload(qrCode)
     ? String(qrCode).trim()
     : checkpayment(qrAmount, qrContentItem) || checkpayment(qrAmount, qrCode);
-  const qrDisplayAmount = normalizeQrAmount(qrAmount) || normalizeQrAmount(qrCode) || '0.00';
+  const qrDisplayAmount =
+    normalizeQrAmount(qrAmount) || normalizeQrAmount(qrCode) || '0.00';
 
-  console.log('qrPaymentValue',qrPaymentValue)
+  console.log('qrPaymentValue', qrPaymentValue);
 
-  checksumCRC16 = (input) => {
+  checksumCRC16 = input => {
     let crc = 0xffff; // initial value
     let polynomial = 0x1021; // 0001 0000 0010 0001  (0, 5, 12)
     let bytes = new Uint8Array(input.length);
@@ -673,8 +849,8 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
       }
     }
     crc &= 0xffff;
-    return ("0000" + crc.toString(16).toUpperCase()).slice(-4);
-  }
+    return ('0000' + crc.toString(16).toUpperCase()).slice(-4);
+  };
 
   return (
     <Container>
@@ -713,218 +889,293 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
               <Text style={styles.paymentCardTitle} allowFontScaling={false}>
                 เงินสด
               </Text>
-             
             </View>
-            <Item style={[styles.checkBoxSection,
-            { backgroundColor: checkedItems.item1 ? '#f0ffff' : 'white', }
-            ]}>
+            <Item
+              style={[
+                styles.checkBoxSection,
+                { backgroundColor: checkedItems.item1 ? '#f0ffff' : 'white' },
+              ]}
+            >
               <Item style={{ flex: 0.3, borderBottomWidth: 0 }}>
                 <CheckBox
                   title="เงินสด"
                   //checked={paymentType === 'cash'}
                   checked={checkedItems.item1}
                   checkedColor={MainTheme.colorTertiary}
-                  containerStyle={[styles.checkBoxStyle,
-                  { backgroundColor: checkedItems.item1 ? '#f0ffff' : 'white', }]}
+                  containerStyle={[
+                    styles.checkBoxStyle,
+                    {
+                      backgroundColor: checkedItems.item1 ? '#f0ffff' : 'white',
+                    },
+                  ]}
                   textStyle={{ fontSize: hp('1.6%') }}
                   onPress={async () => {
                     await runIfFunction(setPaymentType, 'cash');
                     toggleCheckBox('item1');
                     setremainConfirm(false);
                     setremainoptionItem(null);
-                     setAmtcashin(0);
-                     setcashin(0);
+                    setAmtcashin(0);
+                    setcashin(0);
                   }}
                 />
               </Item>
 
-
-              <Item style={[styles.inputSection,
-              { backgroundColor: checkedItems.item1 ? '#f0ffff' : 'white', }
-              ]}>
+              <Item
+                style={[
+                  styles.inputSection,
+                  { backgroundColor: checkedItems.item1 ? '#f0ffff' : 'white' },
+                ]}
+              >
                 <Input
                   editable={checkedItems.item1}
                   placeholder="ยอดเงิน"
                   //placeholderTextColor={MainTheme.placeholerTextInput}
-                  placeholderTextColor={checkedItems.item1 ? '#808080' : MainTheme.placeholerTextInput}
-
-                  value={(checkedItems.item1 === true) ? cashin : ""}  // Number(cashin).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ""} //.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
+                  placeholderTextColor={
+                    checkedItems.item1
+                      ? '#808080'
+                      : MainTheme.placeholerTextInput
+                  }
+                  value={checkedItems.item1 === true ? cashin : ''} // Number(cashin).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ""} //.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
                   maxLength={14}
                   style={{ fontSize: 14, paddingVertical: 0, height: 30 }}
                   keyboardType="numeric"
-                  onBlur={() => handleBlur("cash")}
-                  onChangeText={(value) => {
+                  onBlur={() => handleBlur('cash')}
+                  onChangeText={value => {
                     setTextcashin(value);
                     setremainConfirm(false);
                     setremainoptionItem(null);
-                
+                  }}
+                />
+              </Item>
+            </Item>
+          </View>
+        ) : null}
+        <View style={styles.line} />
+
+        {/* transfer is locked 24/09/2019 */}
+
+        {showTransferQrCard ? (
+          <View style={styles.paymentCard}>
+            <View style={styles.paymentCardHeader}>
+              <Text style={styles.paymentCardTitle} allowFontScaling={false}>
+                โอนและ QR Code
+              </Text>
+            </View>
+            <Item
+              style={[
+                styles.checkBoxSection,
+                { backgroundColor: checkedItems.item2 ? '#f0ffff' : 'white' },
+              ]}
+            >
+              <Item style={{ flex: 0.3, borderBottomWidth: 0 }}>
+                <CheckBox
+                  title="โอน"
+                  // checked={paymentType === 'transfer'}
+                  checked={checkedItems.item2}
+                  checkedColor={MainTheme.colorTertiary}
+                  containerStyle={[
+                    styles.checkBoxStyle,
+                    {
+                      backgroundColor: checkedItems.item2 ? '#f0ffff' : 'white',
+                    },
+                  ]}
+                  textStyle={{ fontSize: hp('1.6%') }}
+                  onPress={async () => {
+                    await runIfFunction(setPaymentType, 'transfer');
+                    nottoggleCheckBox('item2', 'item3');
+                    setremainConfirm(false);
+                    setremainoptionItem(null);
+                    setAmttranferin(0);
+                    settranFerin(0);
+                  }}
+                />
+              </Item>
+
+              <Item
+                style={[
+                  styles.inputSection,
+                  { backgroundColor: checkedItems.item2 ? '#f0ffff' : 'white' },
+                ]}
+              >
+                <Input
+                  editable={checkedItems.item2}
+                  placeholder="ยอดเงิน"
+                  placeholderTextColor={
+                    checkedItems.item2
+                      ? '#808080'
+                      : MainTheme.placeholerTextInput
+                  }
+                  //value={checkedItems.item2 == true ? (Number(totalPrice) - Number(tranFerin) - Number(cashin)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
+                  value={checkedItems.item2 === true ? tranFerin : ''}
+                  maxLength={14}
+                  style={{ fontSize: 14, paddingVertical: 0, height: 30 }}
+                  keyboardType="numeric"
+                  onBlur={() => handleBlur('transfer')}
+                  onChangeText={value => {
+                    setTexttranFerin(value);
+                    setremainConfirm(false);
+                    setremainoptionItem(null);
                   }}
                 />
               </Item>
             </Item>
 
+            {showQrCodeOption &&
+            safeUserToken.VANCONFIG.VANCNF_BANK_QRCODE_USE !== 2 ? (
+              <Item
+                style={[
+                  styles.checkBoxSection,
+                  { backgroundColor: checkedItems.item3 ? '#f0ffff' : 'white' },
+                ]}
+              >
+                <Item style={{ flex: 0.3, borderBottomWidth: 0 }}>
+                  <CheckBox
+                    title="QRCode"
+                    //checked={paymentType === 'qrcode'}
+                    checked={checkedItems.item3}
+                    checkedColor={MainTheme.colorTertiary}
+                    containerStyle={[
+                      styles.checkBoxStyle,
+                      {
+                        backgroundColor: checkedItems.item3
+                          ? '#f0ffff'
+                          : 'white',
+                      },
+                    ]}
+                    textStyle={{ fontSize: hp('1.6%') }}
+                    onPress={async () => {
+                      await runIfFunction(setPaymentType, 'qrcode');
+                      nottoggleCheckBox('item3', 'item2');
+                      setremainConfirm(false);
+                      setremainoptionItem(null);
+                      setAmtQrin(0);
+                      setqRCodein(0);
+                    }}
+                  />
+                </Item>
+                <Item
+                  style={[
+                    styles.inputSection,
+                    {
+                      backgroundColor: checkedItems.item3 ? '#f0ffff' : 'white',
+                    },
+                  ]}
+                >
+                  <Input
+                    editable={checkedItems.item3}
+                    placeholder="ยอดเงิน"
+                    placeholderTextColor={
+                      checkedItems.item3
+                        ? '#808080'
+                        : MainTheme.placeholerTextInput
+                    }
+                    //disabled = { setState ? setState('isDialogOpen', false) : null; }   {setqrConfirm}
+                    //value={checkedItems.item3 == true ? totalPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
+                    value={checkedItems.item3 === true ? qRCodein : ''} // Number(cashin).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ""} //.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
+                    maxLength={14}
+                    style={{ fontSize: 14, paddingVertical: 0, height: 30 }}
+                    keyboardType="numeric"
+                    onBlur={() => handleBlur('qrcode')}
+                    onChangeText={value => {
+                      setTextqRCodein(value);
+                      setremainConfirm(false);
+                      setremainoptionItem(null);
+                    }}
+                  />
+                </Item>
+              </Item>
+            ) : null}
+            <View style={styles.line} />
+
+            <Item
+              style={[
+                styles.otherPickerSection,
+                {
+                  backgroundColor: checkedItems.item2
+                    ? '#f0ffff'
+                    : checkedItems.item3
+                    ? '#f0ffff'
+                    : 'transparent',
+                },
+              ]}
+            >
+              <Form
+                style={[
+                  styles.inputSection2,
+                  {
+                    borderBottomColor: 'transparent',
+                    borderBottomWidth: 0,
+                    height: 40,
+                    padding: 0,
+                  },
+                ]}
+              >
+                <RNPickerSelect
+                  items={
+                    checkedItems.item2 == true
+                      ? bankAccount
+                      : checkedItems.item3 == true && showQrCodeOption
+                      ? qrCodeContent
+                      : []
+                  }
+                  disabled={
+                    checkedItems.item2 == true
+                      ? !checkedItems.item2
+                      : checkedItems.item3 == true && showQrCodeOption
+                      ? !checkedItems.item3
+                      : true
+                  }
+                  onValueChange={value => {
+                    checkedItems.item2 == true
+                      ? setBankAccountItem
+                        ? setBankAccountItem(value)
+                        : null
+                      : checkedItems.item3 == true && showQrCodeOption
+                      ? setqrContentItem
+                        ? setqrContentItem(value)
+                        : null
+                      : null;
+                  }}
+                  value={
+                    checkedItems.item2 == true
+                      ? bankAccountItem
+                      : checkedItems.item3 == true && showQrCodeOption
+                      ? qrContentItem
+                      : null
+                  }
+                  style={getBorderlessPickerStyle(
+                    checkedItems.item2 ||
+                      (checkedItems.item3 && showQrCodeOption),
+                  )}
+                  placeholder={{ label: 'เลือก', value: null }}
+                  placeholderTextColor={
+                    checkedItems.item2
+                      ? '#808080'
+                      : MainTheme.placeholerTextInput
+                  }
+                  textInputProps={{
+                    underlineColorAndroid: 'transparent',
+                    underlineColor: 'transparent',
+                  }}
+                  useNativeAndroidPickerStyle={false}
+                  Icon={() => {
+                    return (
+                      <AntDesign
+                        name="down"
+                        size={20}
+                        color={MainTheme.colorPrimary}
+                        style={{ marginTop: 0 }}
+                      />
+                    );
+                  }}
+                />
+              </Form>
+            </Item>
           </View>
         ) : null}
         <View style={styles.line} />
 
-
-        {/* transfer is locked 24/09/2019 */}
-
-        {
-          showTransferQrCard ?
-            (
-              <View style={styles.paymentCard}>
-                <View style={styles.paymentCardHeader}>
-                  <Text style={styles.paymentCardTitle} allowFontScaling={false}>
-                    โอนและ QR Code
-                  </Text>
-                
-                </View>
-                <Item style={[styles.checkBoxSection,
-                { backgroundColor: checkedItems.item2 ? '#f0ffff' : 'white', }
-                ]}>
-                  <Item style={{ flex: 0.3, borderBottomWidth: 0 }}>
-                    <CheckBox
-                      title='โอน'
-                      // checked={paymentType === 'transfer'}
-                      checked={checkedItems.item2}
-                      checkedColor={MainTheme.colorTertiary}
-                      containerStyle={[styles.checkBoxStyle,
-                      { backgroundColor: checkedItems.item2 ? '#f0ffff' : 'white', }]}
-                      textStyle={{ fontSize: hp('1.6%') }}
-                      onPress={async () => {
-                        await runIfFunction(setPaymentType, 'transfer');
-                        nottoggleCheckBox('item2', 'item3');
-                        setremainConfirm(false);
-                        setremainoptionItem(null);
-                        setAmttranferin(0);
-                        settranFerin(0);
-                      }} />
-                  </Item>
-
-
-                  <Item style={[styles.inputSection,
-                  { backgroundColor: checkedItems.item2 ? '#f0ffff' : 'white', }
-                  ]}>
-                    <Input
-                      editable={checkedItems.item2}
-                      placeholder="ยอดเงิน"
-                      placeholderTextColor={checkedItems.item2 ? '#808080' : MainTheme.placeholerTextInput}
-                      //value={checkedItems.item2 == true ? (Number(totalPrice) - Number(tranFerin) - Number(cashin)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
-                      value={(checkedItems.item2 === true) ? tranFerin : ""}
-                      maxLength={14}
-                      style={{ fontSize: 14, paddingVertical: 0, height: 30 }}
-                      keyboardType="numeric"
-                      onBlur={() => handleBlur("transfer")}
-                      onChangeText={(value) => {
-                        setTexttranFerin(value);
-                        setremainConfirm(false);
-                        setremainoptionItem(null);
-                      }}
-                    />
-                  </Item>
-
-                </Item>
-
-
-                {
-                  showQrCodeOption && safeUserToken.VANCONFIG.VANCNF_BANK_QRCODE_USE !== 2 ?
-                    <Item style={[styles.checkBoxSection, { backgroundColor: checkedItems.item3 ? '#f0ffff' : 'white', }]}>
-                      <Item style={{ flex: 0.3, borderBottomWidth: 0 }}>
-                        <CheckBox
-                          title='QRCode'
-                          //checked={paymentType === 'qrcode'}
-                          checked={checkedItems.item3}
-                          checkedColor={MainTheme.colorTertiary}
-                          containerStyle={[styles.checkBoxStyle,
-                          { backgroundColor: checkedItems.item3 ? '#f0ffff' : 'white', }]}
-
-                          textStyle={{ fontSize: hp('1.6%') }}
-                          onPress={async () => {
-                            await runIfFunction(setPaymentType, 'qrcode');
-                            nottoggleCheckBox('item3', 'item2');
-                            setremainConfirm(false);
-                            setremainoptionItem(null);
-                            setAmtQrin(0);
-                            setqRCodein(0)
-
-
-                          }} />
-
-                      </Item>
-                      <Item style={[styles.inputSection,
-                      { backgroundColor: checkedItems.item3 ? '#f0ffff' : 'white', }
-                      ]}>
-                        <Input
-                          editable={checkedItems.item3}
-                          placeholder="ยอดเงิน"
-                          placeholderTextColor={checkedItems.item3 ? '#808080' : MainTheme.placeholerTextInput}
-                          //disabled = { setState ? setState('isDialogOpen', false) : null; }   {setqrConfirm}
-                          //value={checkedItems.item3 == true ? totalPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
-                          value={(checkedItems.item3 === true) ? qRCodein : ""}  // Number(cashin).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ""} //.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
-                          maxLength={14}
-                          style={{ fontSize: 14, paddingVertical: 0, height: 30 }}
-                          keyboardType="numeric"
-                          onBlur={() => handleBlur("qrcode")}
-                          onChangeText={(value) => {
-                            setTextqRCodein(value);
-                            setremainConfirm(false);
-                            setremainoptionItem(null);
-                          }}
-                        />
-                      </Item>
-                    </Item> : null
-                }
-                <View style={styles.line} />
-
-
-
-
-
-
-                <Item style={[styles.otherPickerSection,
-                { backgroundColor: checkedItems.item2 ? '#f0ffff' : checkedItems.item3 ? '#f0ffff' : 'transparent', }
-                ]}>
-                  <Form style={[styles.inputSection2, { borderBottomColor: 'transparent', borderBottomWidth: 0, height: 40, padding: 0 }]}>
-                    <RNPickerSelect
-                      items={checkedItems.item2 == true ? bankAccount : checkedItems.item3 == true && showQrCodeOption ? qrCodeContent : []}
-                      disabled={checkedItems.item2 == true ? !checkedItems.item2 : checkedItems.item3 == true && showQrCodeOption ? !checkedItems.item3 : true}
-                      onValueChange={(value) => {
-                        checkedItems.item2 == true ?
-                          (setBankAccountItem ? setBankAccountItem(value) : null)
-                          :
-                          checkedItems.item3 == true && showQrCodeOption ?
-                            (setqrContentItem ? setqrContentItem(value) : null)
-                            : null
-                      }
-                      }
-                      value={checkedItems.item2 == true ? bankAccountItem : checkedItems.item3 == true && showQrCodeOption ? qrContentItem : null}
-                      style={getBorderlessPickerStyle(checkedItems.item2 || (checkedItems.item3 && showQrCodeOption))}
-                      placeholder={{ label: 'เลือก', value: null }}
-                      placeholderTextColor={checkedItems.item2 ? '#808080' : MainTheme.placeholerTextInput}
-                      textInputProps={{ underlineColorAndroid: 'transparent', underlineColor: 'transparent' }}
-                      useNativeAndroidPickerStyle={false}
-                      Icon={() => {
-                        return <AntDesign
-                          name='down'
-                          size={20} color={MainTheme.colorPrimary} style={{marginTop: 0}} />
-                      }} />
-
-
-
-                  </Form>
-                </Item>
-
-              </View>
-            ) : null}
-        <View style={styles.line} />
-
-
-
-
         {/* qrcode is locked 24/09/2019 */}
-
-
 
         {showChequeCard ? (
           <View style={styles.paymentCard}>
@@ -932,117 +1183,189 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
               <Text style={styles.paymentCardTitle} allowFontScaling={false}>
                 เช็ค
               </Text>
-              
             </View>
             {safeUserToken.VANCONFIG.VANCNF_CHEQUE === 2 ? (
-          <>
-            <Item style={[styles.checkBoxSection,
-            { backgroundColor: checkedItems.item4 ? '#f0ffff' : 'white', }
-            ]}>
-              <Item style={{ flex: 0.3, borderBottomWidth: 0 }}>
-                <CheckBox
-                  title="เช็ค"
-                  //checked={paymentType === 'cheque'}
-                  checked={checkedItems.item4}
-                  checkedColor={MainTheme.colorTertiary}
-                  containerStyle={[styles.checkBoxStyle,
-                  { backgroundColor: checkedItems.item4 ? '#f0ffff' : 'white', }]}
-                  textStyle={{ fontSize: hp('1.6%') }}
-                  onPress={async () => {
-                    await runIfFunction(setPaymentType, 'cheque');
-                    toggleCheckBox('item4');
-                    setremainConfirm(false);
-                    setremainoptionItem(null);
-                    setAmtchequein(0);
-                    setchequein(0);
-                  }}
-                />
-              </Item>
+              <>
+                <Item
+                  style={[
+                    styles.checkBoxSection,
+                    {
+                      backgroundColor: checkedItems.item4 ? '#f0ffff' : 'white',
+                    },
+                  ]}
+                >
+                  <Item style={{ flex: 0.3, borderBottomWidth: 0 }}>
+                    <CheckBox
+                      title="เช็ค"
+                      //checked={paymentType === 'cheque'}
+                      checked={checkedItems.item4}
+                      checkedColor={MainTheme.colorTertiary}
+                      containerStyle={[
+                        styles.checkBoxStyle,
+                        {
+                          backgroundColor: checkedItems.item4
+                            ? '#f0ffff'
+                            : 'white',
+                        },
+                      ]}
+                      textStyle={{ fontSize: hp('1.6%') }}
+                      onPress={async () => {
+                        await runIfFunction(setPaymentType, 'cheque');
+                        toggleCheckBox('item4');
+                        setremainConfirm(false);
+                        setremainoptionItem(null);
+                        setAmtchequein(0);
+                        setchequein(0);
+                      }}
+                    />
+                  </Item>
 
-              <Item style={[styles.inputSection,
-              { backgroundColor: checkedItems.item4 ? '#f0ffff' : 'white', }
-              ]}>
-                <Input
-                  editable={checkedItems.item4}
-                  placeholder="ยอดเงิน"
-                  placeholderTextColor={checkedItems.item4 ? '#808080' : MainTheme.placeholerTextInput}
-                  //value={checkedItems.item4 == true ? totalPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
-                  value={(checkedItems.item4 === true) ? chequein : ""}  // Number(cashin).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ""} //.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
-                  maxLength={14}
-                  style={{ fontSize: 14, paddingVertical: 0, height: 30 }}
-                  keyboardType="numeric"
-                  onBlur={() => handleBlur("cheque")}
-                  onChangeText={(value) => {
-                    setTextchequein(value);
-                    setremainConfirm(false);
-                    setremainoptionItem(null);
-                  }}
-                />
-              </Item>
-            </Item>
-            <Item style={[styles.otherPickerSection,
-            { backgroundColor: checkedItems.item4 ? '#f0ffff' : 'transparent', }
-            ]}>
-              <Form style={[styles.inputSection2, { borderBottomColor: 'transparent', borderBottomWidth: 0, height: 40, padding: 0 }]}>
-                <RNPickerSelect
-                  items={bankFiles}
-                  disabled={!checkedItems.item4}
-                  onValueChange={(value) => { setBankFileItem ? setBankFileItem(value) : null }}
-                  value={checkedItems.item4 == true ? bankFileItem : null}
-                  style={getBorderlessPickerStyle(checkedItems.item4)}
-                  placeholder={{ label: 'เลือก', value: null }}
-                  placeholderTextColor={checkedItems.item4 ? '#808080' : MainTheme.placeholerTextInput}
-                  textInputProps={{ underlineColorAndroid: 'transparent', underlineColor: 'transparent' }}
-                  useNativeAndroidPickerStyle={false}
-                  Icon={() => {
-                    return <AntDesign
-                      name='down'
-                      size={20} color={MainTheme.colorPrimary} style={{marginTop: 0}} />
-                  }} />
-              </Form>
-            </Item>
+                  <Item
+                    style={[
+                      styles.inputSection,
+                      {
+                        backgroundColor: checkedItems.item4
+                          ? '#f0ffff'
+                          : 'white',
+                      },
+                    ]}
+                  >
+                    <Input
+                      editable={checkedItems.item4}
+                      placeholder="ยอดเงิน"
+                      placeholderTextColor={
+                        checkedItems.item4
+                          ? '#808080'
+                          : MainTheme.placeholerTextInput
+                      }
+                      //value={checkedItems.item4 == true ? totalPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
+                      value={checkedItems.item4 === true ? chequein : ''} // Number(cashin).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ""} //.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
+                      maxLength={14}
+                      style={{ fontSize: 14, paddingVertical: 0, height: 30 }}
+                      keyboardType="numeric"
+                      onBlur={() => handleBlur('cheque')}
+                      onChangeText={value => {
+                        setTextchequein(value);
+                        setremainConfirm(false);
+                        setremainoptionItem(null);
+                      }}
+                    />
+                  </Item>
+                </Item>
+                <Item
+                  style={[
+                    styles.otherPickerSection,
+                    {
+                      backgroundColor: checkedItems.item4
+                        ? '#f0ffff'
+                        : 'transparent',
+                    },
+                  ]}
+                >
+                  <Form
+                    style={[
+                      styles.inputSection2,
+                      {
+                        borderBottomColor: 'transparent',
+                        borderBottomWidth: 0,
+                        height: 40,
+                        padding: 0,
+                      },
+                    ]}
+                  >
+                    <RNPickerSelect
+                      items={bankFiles}
+                      disabled={!checkedItems.item4}
+                      onValueChange={value => {
+                        setBankFileItem ? setBankFileItem(value) : null;
+                      }}
+                      value={checkedItems.item4 == true ? bankFileItem : null}
+                      style={getBorderlessPickerStyle(checkedItems.item4)}
+                      placeholder={{ label: 'เลือก', value: null }}
+                      placeholderTextColor={
+                        checkedItems.item4
+                          ? '#808080'
+                          : MainTheme.placeholerTextInput
+                      }
+                      textInputProps={{
+                        underlineColorAndroid: 'transparent',
+                        underlineColor: 'transparent',
+                      }}
+                      useNativeAndroidPickerStyle={false}
+                      Icon={() => {
+                        return (
+                          <AntDesign
+                            name="down"
+                            size={20}
+                            color={MainTheme.colorPrimary}
+                            style={{ marginTop: 0 }}
+                          />
+                        );
+                      }}
+                    />
+                  </Form>
+                </Item>
 
-            <Item style={[styles.checkBoxSection,
-            { backgroundColor: checkedItems.item4 ? '#f0ffff' : 'white', }
-            ]}>
-              <Item style={{ flex: 0.3, borderBottomWidth: 0 }}></Item>
-              <Item style={styles.inputSection}>
-                <Input
-                  //editable={chequeNoEditable}
-                  placeholder="เลขที่เช็ค"
-                  placeholderTextColor={checkedItems.item4 ? '#808080' : MainTheme.placeholerTextInput}
+                <Item
+                  style={[
+                    styles.checkBoxSection,
+                    {
+                      backgroundColor: checkedItems.item4 ? '#f0ffff' : 'white',
+                    },
+                  ]}
+                >
+                  <Item style={{ flex: 0.3, borderBottomWidth: 0 }}></Item>
+                  <Item style={styles.inputSection}>
+                    <Input
+                      //editable={chequeNoEditable}
+                      placeholder="เลขที่เช็ค"
+                      placeholderTextColor={
+                        checkedItems.item4
+                          ? '#808080'
+                          : MainTheme.placeholerTextInput
+                      }
+                      value={chequeNo}
+                      maxLength={8}
+                      style={{ fontSize: 14, paddingVertical: 0, height: 35 }}
+                      keyboardType="numeric"
+                      onChangeText={value => {
+                        setChequeNo ? setChequeNo(value) : null;
+                      }}
+                    />
+                  </Item>
+                </Item>
 
-                  value={chequeNo}
-                  maxLength={8}
-                  style={{ fontSize: 14, paddingVertical: 0, height: 35 }}
-                  keyboardType="numeric"
-                  onChangeText={(value) => {
-                    setChequeNo ? setChequeNo(value) : null;
-                  }}
-                />
-              </Item>
-            </Item>
-
-            <Item style={[styles.checkBoxSection,
-            { backgroundColor: checkedItems.item4 ? '#f0ffff' : 'white', }
-            ]}>
-              <Item style={{ flex: 0.3, borderBottomWidth: 0 }}></Item>
-              <Item style={[styles.inputSection, { borderBottomColor: 'white', borderWidth: 0, height: 35 }]} >
-                <View style={{ flex: 1 }}>
-                  <IDatePicker
-                    disabled={!checkedItems.item4}
-                    value={chequeDate}
-                    onDateChange={setChequeDate}
-                    style={{ fontSize: 14, paddingVertical: 0 }}
-                  />
-                </View>
-              </Item>
-            </Item>
-
-
-          </>
-        ) : null}
-
+                <Item
+                  style={[
+                    styles.checkBoxSection,
+                    {
+                      backgroundColor: checkedItems.item4 ? '#f0ffff' : 'white',
+                    },
+                  ]}
+                >
+                  <Item style={{ flex: 0.3, borderBottomWidth: 0 }}></Item>
+                  <Item
+                    style={[
+                      styles.inputSection,
+                      {
+                        borderBottomColor: 'white',
+                        borderWidth: 0,
+                        height: 35,
+                      },
+                    ]}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <IDatePicker
+                        disabled={!checkedItems.item4}
+                        value={chequeDate}
+                        onDateChange={setChequeDate}
+                        style={{ fontSize: 14, paddingVertical: 0 }}
+                      />
+                    </View>
+                  </Item>
+                </Item>
+              </>
+            ) : null}
           </View>
         ) : null}
         <View style={styles.line} />
@@ -1053,22 +1376,30 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
               <Text style={styles.paymentCardTitle} allowFontScaling={false}>
                 ช่องทางอื่นๆ
               </Text>
-             
             </View>
-        {
-          safeUserToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2 ?
-            (
+            {safeUserToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2 ? (
               <>
-                <Item style={[styles.checkBoxSection,
-                { backgroundColor: checkedItems.item5 ? '#f0ffff' : 'white', }
-                ]}>
+                <Item
+                  style={[
+                    styles.checkBoxSection,
+                    {
+                      backgroundColor: checkedItems.item5 ? '#f0ffff' : 'white',
+                    },
+                  ]}
+                >
                   <Item style={{ flex: 0.3, borderBottomWidth: 0 }}>
                     <CheckBox
-                      title='อื่นๆ'
+                      title="อื่นๆ"
                       checked={checkedItems.item5}
                       checkedColor={MainTheme.colorTertiary}
-                      containerStyle={[styles.checkBoxStyle,
-                      { backgroundColor: checkedItems.item5 ? '#f0ffff' : 'white', }]}
+                      containerStyle={[
+                        styles.checkBoxStyle,
+                        {
+                          backgroundColor: checkedItems.item5
+                            ? '#f0ffff'
+                            : 'white',
+                        },
+                      ]}
                       textStyle={{ fontSize: hp('1.6%') }}
                       onPress={async () => {
                         await runIfFunction(setPaymentType, 'other');
@@ -1076,24 +1407,35 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
                         setremainConfirm(false);
                         setremainoptionItem(null);
                         setAmtOtherin(0);
-                        setotherin(0)
-                      }} />
+                        setotherin(0);
+                      }}
+                    />
                   </Item>
 
-                  <Item style={[styles.inputSection,
-                  { backgroundColor: checkedItems.item5 ? '#f0ffff' : 'white', }
-                  ]}>
+                  <Item
+                    style={[
+                      styles.inputSection,
+                      {
+                        backgroundColor: checkedItems.item5
+                          ? '#f0ffff'
+                          : 'white',
+                      },
+                    ]}
+                  >
                     <Input
                       editable={checkedItems.item5}
                       placeholder="ยอดเงิน"
-                      placeholderTextColor={checkedItems.item5 ? '#808080' : MainTheme.placeholerTextInput}
-
-                      value={(checkedItems.item5 === true) ? otherin : ""}  // Number(cashin).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ""} //.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
+                      placeholderTextColor={
+                        checkedItems.item5
+                          ? '#808080'
+                          : MainTheme.placeholerTextInput
+                      }
+                      value={checkedItems.item5 === true ? otherin : ''} // Number(cashin).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ""} //.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : null}
                       maxLength={14}
                       style={{ fontSize: 14, paddingVertical: 0, height: 30 }}
                       keyboardType="numeric"
                       onBlur={() => handleBlur('other')}
-                      onChangeText={(value) => {
+                      onChangeText={value => {
                         setTextotherin(value);
                         setremainConfirm(false);
                         setremainoptionItem(null);
@@ -1101,52 +1443,64 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
                     />
                   </Item>
                 </Item>
-                <Item style={[styles.otherPickerSection,
-                { backgroundColor: checkedItems.item5 ? '#f0ffff' : 'transparent', }
-                ]}>
-                  <Form style={[styles.inputSection2, { borderBottomColor: 'transparent', borderBottomWidth: 0, height: 40, padding: 0 }]}>
+                <Item
+                  style={[
+                    styles.otherPickerSection,
+                    {
+                      backgroundColor: checkedItems.item5
+                        ? '#f0ffff'
+                        : 'transparent',
+                    },
+                  ]}
+                >
+                  <Form
+                    style={[
+                      styles.inputSection2,
+                      {
+                        borderBottomColor: 'transparent',
+                        borderBottomWidth: 0,
+                        height: 40,
+                        padding: 0,
+                      },
+                    ]}
+                  >
                     <RNPickerSelect
                       items={otherPayment}
                       disabled={!checkedItems.item5}
-                      onValueChange={(value) => {
-                        setotherPaymentItem ? setotherPaymentItem(value) : null
+                      onValueChange={value => {
+                        setotherPaymentItem ? setotherPaymentItem(value) : null;
                       }}
                       style={getBorderlessPickerStyle(checkedItems.item5)}
-                      value={checkedItems.item5 == true ? otherPaymentItem : null}
+                      value={
+                        checkedItems.item5 == true ? otherPaymentItem : null
+                      }
                       placeholder={{
                         label: 'เลือก',
-                        value: null
+                        value: null,
                       }}
-                      textInputProps={{ underlineColorAndroid: 'transparent', underlineColor: 'transparent' }}
+                      textInputProps={{
+                        underlineColorAndroid: 'transparent',
+                        underlineColor: 'transparent',
+                      }}
                       useNativeAndroidPickerStyle={false}
                       Icon={() => {
-                        return <AntDesign
-                          name='down'
-                          size={20} color={MainTheme.colorPrimary} style={{marginTop: 0}} />
-                      }} />
+                        return (
+                          <AntDesign
+                            name="down"
+                            size={20}
+                            color={MainTheme.colorPrimary}
+                            style={{ marginTop: 0 }}
+                          />
+                        );
+                      }}
+                    />
                   </Form>
                 </Item>
-
-
-
-
-
-
-
               </>
             ) : null}
           </View>
         ) : null}
         <View style={styles.line} />
-
-
-
-
-
-
-
-
-
 
         {/* {userToken.VANCONFIG.VANCNF_ENABLE_CASH === 2 ? (
           <Item style={styles.checkBoxSection}>
@@ -1171,62 +1525,81 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
           <ILoading isLoading={isLoading} />
         </View>
 
-        <View style={{flexDirection: 'row', justifyContent: 'center' , alignItems:'center',}}>
-          
-
-        <IButtonGroupCustom
-          listItems={buttonListItems}
-          renderItem={renderItem}
-          style={{flexDirection: 'row', justifyContent: 'space-between'}}
-        />
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <IButtonGroupCustom
+            listItems={buttonListItems}
+            renderItem={renderItem}
+            style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+          />
         </View>
-
-
 
         <Modal
           transparent={true}
           visible={isDialogOpen}
-          onRequestClose={() => { setState ? setState('isDialogOpen', false) : null; }}
+          onRequestClose={() => {
+            setState ? setState('isDialogOpen', false) : null;
+          }}
         >
           <View style={styles.modalBackdrop}>
             <View style={styles.remainModalCard}>
               <View style={styles.remainModalHeader}>
-                <Text style={styles.remainModalHeaderText} allowFontScaling={false}>
-                  ระบุหมายเหตุการชำระ{differValue < 0 ? "ขาด" : "เกิน"}  {Math.abs(differValue).toFixed(2)} บาท
+                <Text
+                  style={styles.remainModalHeaderText}
+                  allowFontScaling={false}
+                >
+                  ระบุหมายเหตุการชำระ{differValue < 0 ? 'ขาด' : 'เกิน'}{' '}
+                  {Math.abs(differValue).toFixed(2)} บาท
                 </Text>
               </View>
               <View style={styles.remainModalBody}>
                 {
-                  (
-                    <>
-                      <Item style={styles.remainModalPickerWrapper}>
-                        <Form style={styles.remainModalPickerForm}>
-                          <RNPickerSelect
-                            items={remainoption}
-                            //disabled={!true}
-                            onValueChange={(value) => {
-                              setremainoptionItem ? setremainoptionItem(value) : null;
-                            }}
-                            value={remainoptiontItem}
-                            style={{
-                              iconContainer: { top: -3, right: 0, },
-                              inputAndroid: { color: '#000000', paddingRight: 28 },
-                              inputIOS: { color: '#000000', paddingRight: 28 }
-                            }}
-                            placeholder={{ label: 'เลือก', value: null }}
-                            placeholderTextColor={'#808080'}
-                            textInputProps={{ underlineColorAndroid: 'transparent', underlineColor: 'transparent' }}
-                            useNativeAndroidPickerStyle={false}
-                            Icon={() => {
-                              return <AntDesign
-                                name='down'
-                                size={20} color={MainTheme.colorPrimary} style={{marginTop: 5}} />
-                            }}
-                          />
-                        </Form>
-                      </Item>
-                    </>
-                  )
+                  <>
+                    <Item style={styles.remainModalPickerWrapper}>
+                      <Form style={styles.remainModalPickerForm}>
+                        <RNPickerSelect
+                          items={remainoption}
+                          //disabled={!true}
+                          onValueChange={value => {
+                            setremainoptionItem
+                              ? setremainoptionItem(value)
+                              : null;
+                          }}
+                          value={remainoptiontItem}
+                          style={{
+                            iconContainer: { top: -3, right: 0 },
+                            inputAndroid: {
+                              color: '#000000',
+                              paddingRight: 28,
+                            },
+                            inputIOS: { color: '#000000', paddingRight: 28 },
+                          }}
+                          placeholder={{ label: 'เลือก', value: null }}
+                          placeholderTextColor={'#808080'}
+                          textInputProps={{
+                            underlineColorAndroid: 'transparent',
+                            underlineColor: 'transparent',
+                          }}
+                          useNativeAndroidPickerStyle={false}
+                          Icon={() => {
+                            return (
+                              <AntDesign
+                                name="down"
+                                size={20}
+                                color={MainTheme.colorPrimary}
+                                style={{ marginTop: 5 }}
+                              />
+                            );
+                          }}
+                        />
+                      </Form>
+                    </Item>
+                  </>
                 }
               </View>
               <IButtonGroupCustom
@@ -1238,15 +1611,14 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
           </View>
         </Modal>
 
-
-
         <Modal
           animationType="fade"
           transparent={true}
           visible={showQrCodeOption && isQRCodeDialogOpen}
           onRequestClose={() => {
             setState ? setState('isQRCodeDialogOpen', false) : null;
-          }}>
+          }}
+        >
           <View
             style={{
               width: '100%',
@@ -1254,14 +1626,16 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
               backgroundColor: 'rgba(0, 0, 0, 0.30)',
               alignItems: 'center',
               justifyContent: 'center',
-            }}>
+            }}
+          >
             <View
               style={{
                 width: '80%',
                 height: '80%',
                 backgroundColor: '#FFFFFF',
                 borderRadius: 5,
-              }}>
+              }}
+            >
               <View
                 style={{
                   flex: 0.1,
@@ -1273,10 +1647,12 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
                   padding: 10,
                   alignItems: 'center',
                   justifyContent: 'center',
-                }}>
+                }}
+              >
                 <Text
                   style={{ fontSize: hp('1.7%'), color: '#FFFFFF' }}
-                  allowFontScaling={false}>
+                  allowFontScaling={false}
+                >
                   Thai QR Payment
                 </Text>
               </View>
@@ -1287,7 +1663,8 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
                   padding: 5,
                   alignItems: 'center',
                   justifyContent: 'center',
-                }}>
+                }}
+              >
                 <Text style={{ fontSize: hp('1.7%') }} allowFontScaling={false}>
                   Thai QR Payment
                 </Text>
@@ -1301,7 +1678,8 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
                   justifyContent: 'center',
                   // paddingTop: 15,
                   // paddingBottom: 30,
-                }}>
+                }}
+              >
                 {/* <View style={{ position: 'absolute', zIndex: 998, width: 60, height: 60, borderRadius: 60/2, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
                                         <Text style={{  }}>QR</Text>
                                     </View> */}
@@ -1315,7 +1693,10 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
                     logoBackgroundColor="transparent"
                   />
                 ) : (
-                  <Text style={{fontSize: hp('1.7%'), color: '#666666'}} allowFontScaling={false}>
+                  <Text
+                    style={{ fontSize: hp('1.7%'), color: '#666666' }}
+                    allowFontScaling={false}
+                  >
                     ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบข้อมูลการชำระ
                   </Text>
                 )}
@@ -1335,7 +1716,8 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
                   paddingBottom: 30,
                   borderBottomRightRadius: 5,
                   borderBottomLeftRadius: 5,
-                }}>
+                }}
+              >
                 {/* <View style={{
                                     flexDirection: 'row', 
                                     justifyContent: 'space-between', 
@@ -1354,16 +1736,23 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
                     marginHorizontal: 10,
                     paddingVertical: 10,
                     borderBottomWidth: 0.3,
-                  }}>
-                  <Text style={{ fontSize: hp('1.7%') }} allowFontScaling={false}>
+                  }}
+                >
+                  <Text
+                    style={{ fontSize: hp('1.7%') }}
+                    allowFontScaling={false}
+                  >
                     จำนวนเงิน
                   </Text>
-                  <Text style={{ fontSize: hp('1.7%') }} allowFontScaling={false}>
-                    {Number(qrDisplayAmount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                    {' '}
+                  <Text
+                    style={{ fontSize: hp('1.7%') }}
+                    allowFontScaling={false}
+                  >
+                    {Number(qrDisplayAmount)
+                      .toFixed(2)
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}{' '}
                     บาท
                   </Text>
-
                 </View>
                 {/* <IButtonGroupCustom
                 listItems={buttonListItems}
@@ -1372,8 +1761,6 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
               /> */}
 
                 <View
-
-                
                   style={{
                     flex: 1.9,
                     flexDirection: 'row',
@@ -1382,13 +1769,8 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
                     alignItems: 'center',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                  }}>
-
-
-
-
-
-
+                  }}
+                >
                   <Button
                     large
                     buttonStyle={{
@@ -1400,29 +1782,28 @@ const numericAmount = parseFloat(String(amount).replace(/[^\d.]/g, ''));
                       borderWidth: 0.3,
                     }}
                     title={'ตกลง'}
-                   
                     onPress={() => {
-                      (setqrConfirm ? setqrConfirm(true) : false);
+                      setqrConfirm ? setqrConfirm(true) : false;
                       setState ? setState('isQRCodeDialogOpen', false) : null;
-                     
                     }}
                   />
 
                   <Button
                     large
-                    buttonStyle={
-                      {
-                        backgroundColor: MainTheme.colorSecondary,
-                        borderRadius: 0,
-                        width: 110,
-                        borderColor: MainTheme.colorButtonBorder,
-                        borderWidth: 0.3
-                      }
-                    }
+                    buttonStyle={{
+                      backgroundColor: MainTheme.colorSecondary,
+                      borderRadius: 0,
+                      width: 110,
+                      borderColor: MainTheme.colorButtonBorder,
+                      borderWidth: 0.3,
+                    }}
                     title={'ยกเลิก'}
                     containerStyle={{ marginLeft: 1 }} // กำหนดระยะห่างระหว่างปุ่มที่ 100px
                     titleStyle={{ color: '#000000' }}
-                    onPress={() => { setState ? setState('isQRCodeDialogOpen', false) : null; }} />
+                    onPress={() => {
+                      setState ? setState('isQRCodeDialogOpen', false) : null;
+                    }}
+                  />
                 </View>
               </View>
             </View>
@@ -1570,7 +1951,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
     shadowColor: '#000000',
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 2,
@@ -1609,7 +1990,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#FFFFFF',
     shadowColor: '#000000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 6,
     elevation: 1,

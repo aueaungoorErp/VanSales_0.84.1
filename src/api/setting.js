@@ -3,14 +3,13 @@ import { Alert } from 'react-native';
 import * as appConfig from '../../appConfig';
 import { strings } from '../locales/i18n';
 import Request from '../utils/Request';
+import { getDeviceUniqeId, getLoginGuID, setLoginGuID } from '../utils/Token';
 import {
-  getDeviceUniqeId,
-  getLoginGuID,
-  setLoginGuID,
-} from '../utils/Token';
-import { getWebServiceLabel, normalizeWebServiceUrl } from '../utils/webService';
+  getWebServiceLabel,
+  normalizeWebServiceUrl,
+} from '../utils/webService';
 
-const normalizeSettingErrorCode = (error) => {
+const normalizeSettingErrorCode = error => {
   const errText = String(error?.message ?? error ?? '').trim();
 
   if (!errText) {
@@ -36,7 +35,6 @@ const normalizeSettingErrorCode = (error) => {
   return errText;
 };
 
-
 export const unRegisterApi = async () => {
   const uniqueId = await getDeviceUniqeId();
   return new Promise(async (resolve, reject) => {
@@ -44,23 +42,20 @@ export const unRegisterApi = async () => {
       'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
       'BPAPUS-LOGIN-GUID': '',
       'BPAPUS-FUNCTION': 'UnRegister',
-      'BPAPUS-PARAM': '{\r\n    "BPAPUS-MACHINE": ' + JSON.stringify(uniqueId) + ',\r\n}',
+      'BPAPUS-PARAM':
+        '{\r\n    "BPAPUS-MACHINE": ' + JSON.stringify(uniqueId) + ',\r\n}',
     };
     await Request.instanceV3
       .post('/DevUsers', bodyRequest)
-      .then(async (v) => {
-        const {
-          ResponseData,
-          ResponseCode,
-          ReasonString
-        } = v.data;
+      .then(async v => {
+        const { ResponseData, ResponseCode, ReasonString } = v.data;
         if (ResponseCode == 200 && ReasonString == 'Completed') {
           resolve(true);
         } else {
           reject(ReasonString);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });
@@ -85,23 +80,20 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
       'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
       'BPAPUS-LOGIN-GUID': '',
       'BPAPUS-FUNCTION': 'UnRegister',
-      'BPAPUS-PARAM': '{\r\n    "BPAPUS-MACHINE": ' + JSON.stringify(uniqueId) + '\r\n}',
+      'BPAPUS-PARAM':
+        '{\r\n    "BPAPUS-MACHINE": ' + JSON.stringify(uniqueId) + '\r\n}',
     };
 
-    let errret = ''
+    let errret = '';
     console.log('[systemCheckApi2] request UnRegister', {
       url: `${normalizedBaseUrl}/DevUsers`,
       functionName: bodyRequest['BPAPUS-FUNCTION'],
     });
     await Request.instanceV3
       .post('/DevUsers', bodyRequest)
-      .then(async (v) => {
-        const {
-          ResponseData,
-          ResponseCode,
-          ReasonString
-        } = v.data;
-        console.log('response data',v)
+      .then(async v => {
+        const { ResponseData, ResponseCode, ReasonString } = v.data;
+        console.log('response data', v);
         console.log('[systemCheckApi2] response UnRegister', {
           responseCode: ResponseCode,
           reasonString: ReasonString,
@@ -111,7 +103,8 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
             'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
             'BPAPUS-LOGIN-GUID': '',
             'BPAPUS-FUNCTION': 'Register',
-            'BPAPUS-PARAM': '{\r\n    "BPAPUS-MACHINE": ' +
+            'BPAPUS-PARAM':
+              '{\r\n    "BPAPUS-MACHINE": ' +
               JSON.stringify(uniqueId) +
               ',\r\n    "BPAPUS-CNTRY-CODE": "66",\r\n    "BPAPUS-MOBILE": "' +
               appConfig.BPAPUS_MOBILE +
@@ -123,12 +116,8 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
           });
           await Request.instanceV3
             .post('/DevUsers', bodyRequest)
-            .then(async (j) => {
-              const {
-                ResponseData,
-                ResponseCode,
-                ReasonString
-              } = j.data;
+            .then(async j => {
+              const { ResponseData, ResponseCode, ReasonString } = j.data;
               console.log('[systemCheckApi2] response Register', {
                 responseCode: ResponseCode,
                 reasonString: ReasonString,
@@ -143,7 +132,8 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
                     'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
                     'BPAPUS-LOGIN-GUID': '',
                     'BPAPUS-FUNCTION': 'Login',
-                    'BPAPUS-PARAM': '{\r\n    "BPAPUS-MACHINE": ' +
+                    'BPAPUS-PARAM':
+                      '{\r\n    "BPAPUS-MACHINE": ' +
                       JSON.stringify(uniqueId) +
                       ',\r\n    "BPAPUS-USERID": "' +
                       user +
@@ -161,12 +151,9 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
                   });
                   await Request.instanceV3
                     .post('/DevUsers', bodyRequest)
-                    .then(async (k) => {
-                      const {
-                        ResponseData,
-                        ResponseCode,
-                        ReasonString
-                      } = k.data;
+                    .then(async k => {
+                      const { ResponseData, ResponseCode, ReasonString } =
+                        k.data;
                       console.log('[systemCheckApi2] response Login', {
                         responseCode: ResponseCode,
                         reasonString: ReasonString,
@@ -189,10 +176,15 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
                           responseCode: ResponseCode,
                           reasonString: ReasonString,
                         });
-                        reject(await return_Errmessage(ResponseCode, normalizedBaseUrl));
+                        reject(
+                          await return_Errmessage(
+                            ResponseCode,
+                            normalizedBaseUrl,
+                          ),
+                        );
                       }
                     })
-                    .catch((err) => {
+                    .catch(err => {
                       console.log('[systemCheckApi2] error Login', {
                         message: err?.message,
                         code: err?.code,
@@ -212,7 +204,7 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
                 reject(ResponseCode);
               }
             })
-            .catch((err) => {
+            .catch(err => {
               console.log('[systemCheckApi2] error Register', {
                 message: err?.message,
                 code: err?.code,
@@ -230,7 +222,7 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
           reject(ResponseCode);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         console.log('[systemCheckApi2] error UnRegister', {
           message: err?.message,
           code: err?.code,
@@ -238,7 +230,7 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
           data: err?.response?.data,
         });
         errret = normalizeSettingErrorCode(err);
-      })
+      });
     if (errret != '') {
       console.log('[systemCheckApi2] normalized error', {
         errret,
@@ -246,34 +238,44 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
       });
       reject(await return_Errmessage(errret, normalizedBaseUrl));
     }
-    ;
   });
 };
 
-
-
-export const return_Errmessage = async (reecode, attemptedBaseUrl = appConfig.API_ENDPOINT_V3) => {
+export const return_Errmessage = async (
+  reecode,
+  attemptedBaseUrl = appConfig.API_ENDPOINT_V3,
+) => {
   return new Promise(function (resolve, reject) {
     setTimeout(function () {
       const normalizedCode = normalizeSettingErrorCode(reecode);
 
-      let errmessage = "";
+      let errmessage = '';
 
       switch (normalizedCode) {
         case '404':
         case '404-1':
-
           const serviceLabel = getWebServiceLabel(attemptedBaseUrl);
-          errmessage = strings('error_ser.' + 404) + '\n' + strings('login_setting.UnableConnec1') + ' ' + serviceLabel + ' ' + strings('login_setting.UnableConnec2');
+          errmessage =
+            strings('error_ser.' + 404) +
+            '\n' +
+            strings('login_setting.UnableConnec1') +
+            ' ' +
+            serviceLabel +
+            ' ' +
+            strings('login_setting.UnableConnec2');
 
           Alert.alert(
-            'พบข้อผิดพลาด', errmessage,
-            [{
-              text: 'ตกลง',
-              onPress: () => null
-            }], {
-            cancelable: false
-          },
+            'พบข้อผิดพลาด',
+            errmessage,
+            [
+              {
+                text: 'ตกลง',
+                onPress: () => null,
+              },
+            ],
+            {
+              cancelable: false,
+            },
           );
           errmessage = '';
           break;
@@ -281,7 +283,10 @@ export const return_Errmessage = async (reecode, attemptedBaseUrl = appConfig.AP
           errmessage = strings('error_ser.' + normalizedCode);
           break;
         default:
-          if (strings(`error_ser.${normalizedCode}`) !== `missing ${'"'}th.error_ser.${normalizedCode}${'"'} translation`) {
+          if (
+            strings(`error_ser.${normalizedCode}`) !==
+            `missing ${'"'}th.error_ser.${normalizedCode}${'"'} translation`
+          ) {
             errmessage = strings('error_ser.' + normalizedCode);
           } else {
             errmessage = normalizedCode;
@@ -289,27 +294,24 @@ export const return_Errmessage = async (reecode, attemptedBaseUrl = appConfig.AP
           break;
       }
 
-      resolve(errmessage)
-    }, 1000)
-  })
-}
-
-
-
+      resolve(errmessage);
+    }, 1000);
+  });
+};
 
 export const systemCheckApi = async (baseUrl, queryString) => {
   const uniqueId = await getDeviceUniqeId();
-  let errret = ''
+  let errret = '';
   const normalizedBaseUrl = normalizeWebServiceUrl(baseUrl);
 
   return new Promise(async (resolve, reject) => {
-
     Request.setBaseV3Url(normalizedBaseUrl);
     const bodyRequest = {
       'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
       'BPAPUS-LOGIN-GUID': '',
       'BPAPUS-FUNCTION': 'Register',
-      'BPAPUS-PARAM': '{\r\n    "BPAPUS-MACHINE": ' +
+      'BPAPUS-PARAM':
+        '{\r\n    "BPAPUS-MACHINE": ' +
         JSON.stringify(uniqueId) +
         ',\r\n    "BPAPUS-CNTRY-CODE": "66",\r\n    "BPAPUS-MOBILE": "' +
         appConfig.BPAPUS_MOBILE +
@@ -318,12 +320,8 @@ export const systemCheckApi = async (baseUrl, queryString) => {
 
     await Request.instanceV3
       .post('/DevUsers', bodyRequest)
-      .then(async (v) => {
-        const {
-          ResponseData,
-          ResponseCode,
-          ReasonString
-        } = v.data;
+      .then(async v => {
+        const { ResponseData, ResponseCode, ReasonString } = v.data;
         if (ResponseCode == 200 && ReasonString == 'Completed') {
           let x = moment(v.headers.date); //.add(7, 'hours');
 
@@ -340,13 +338,12 @@ export const systemCheckApi = async (baseUrl, queryString) => {
           resolve(v.data);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         errret = normalizeSettingErrorCode(err);
       });
     if (errret != '') {
       //reject(await return_Errmessage(errret));//.then(val => console.log('oooo>',val)));
     }
-    ;
   });
 };
 
@@ -354,10 +351,10 @@ export const getVanConfigApi = () => {
   return new Promise((resolve, reject) => {
     Request.instance
       .get(`/MasterData/VanConfig`)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((error) => {
+      .catch(error => {
         reject(error);
       });
   });
@@ -379,25 +376,25 @@ export const getVanConfigV3Api = async (data, requestConfig = undefined) => {
   return new Promise(async (resolve, reject) => {
     await Request.instanceV3
       .post('/LookupErp', bodyRequest, requestConfig)
-      .then((v) => {
-        const {
-          ResponseData,
-          ResponseCode,
-          ReasonString
-        } = v.data;
+      .then(v => {
+        const { ResponseData, ResponseCode, ReasonString } = v.data;
         const responseData = JSON.parse(ResponseData);
         const vanConfigList = Array.isArray(responseData?.Vans0103)
           ? responseData.Vans0103
           : [];
-        const VANCONFIG = vanConfigList.find((item) => item.VANCNF_MACHINE === data)
-          ?? vanConfigList[0]
-          ?? null;
+        const VANCONFIG =
+          vanConfigList.find(item => item.VANCNF_MACHINE === data) ??
+          vanConfigList[0] ??
+          null;
 
         if (!VANCONFIG) {
           console.log('[getVanConfigV3Api] no VANCONFIG for machine', data);
           resolve(null);
           return;
         }
+
+        console.log('VANCONFIG all keys:', Object.keys(VANCONFIG));
+        console.log('VANCONFIG raw:', JSON.stringify(VANCONFIG));
 
         let newVanCNF = {
           ...VANCONFIG,
@@ -437,7 +434,9 @@ export const getVanConfigV3Api = async (data, requestConfig = undefined) => {
           VANCNF_CHEQUE: parseInt(VANCONFIG.VANCNF_CHEQUE),
           VANCNF_ENABLE_AR: parseInt(VANCONFIG.VANCNF_ENABLE_AR),
           VANCNF_CASHSALES_ADDB: parseInt(VANCONFIG.VANCNF_CASHSALES_ADDB),
-          VANCNF_CASHSALES_SHOWVAT: parseInt(VANCONFIG.VANCNF_CASHSALES_SHOWVAT),
+          VANCNF_CASHSALES_SHOWVAT: parseInt(
+            VANCONFIG.VANCNF_CASHSALES_SHOWVAT,
+          ),
           VANCNF_REPRT_CASHSALES: parseInt(VANCONFIG.VANCNF_REPRT_CASHSALES),
           VANCNF_INV_ADDB: parseInt(VANCONFIG.VANCNF_INV_ADDB),
           VANCNF_INV_SHOWVAT: parseInt(VANCONFIG.VANCNF_INV_SHOWVAT),
@@ -448,45 +447,44 @@ export const getVanConfigV3Api = async (data, requestConfig = undefined) => {
         };
         resolve(newVanCNF);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });
 };
 
-export const lookupErpV3Api = (data) => {
+export const lookupErpV3Api = data => {
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post(`/LookupErp`, data)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((error) => {
+      .catch(error => {
         reject(error);
       });
   });
 };
-export const readErpV3Api = (data) => {
+export const readErpV3Api = data => {
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post(`/ReadErp`, data)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((error) => {
+      .catch(error => {
         reject(error);
       });
   });
 };
 
-
-export const serverReady = (baseUrl) => async (dispatch) => {
+export const serverReady = baseUrl => async dispatch => {
   return new Promise((resolve, reject) => {
     Request.setBaseV3Url(baseUrl);
 
     Request.instance
       .get(baseUrl + `/ServerReady`)
-      .then((v) => {
+      .then(v => {
         if (v.data) {
           let x = moment(v.headers.date);
           resolve({
@@ -497,14 +495,13 @@ export const serverReady = (baseUrl) => async (dispatch) => {
         // else{
         //     dispatch({RESULT_DATA: [], RESPONSE_DATETIME: '00:00'});
         //    // reject(ERROR_MESSAGES[0]);
-        // }        
-
+        // }
       })
-      .catch((error) => {
+      .catch(error => {
         // dispatch({  RESULT_DATA: [], RESPONSE_DATETIME: '00:00'});
         dispatch({
           type: 'RESPONSE_DATETIME',
-          payload: '00:00'
+          payload: '00:00',
         });
         reject(error);
       });
