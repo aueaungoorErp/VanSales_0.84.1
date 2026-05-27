@@ -302,23 +302,51 @@ export const processOrderSale =
             console.log('ERROR lookupErpV3Api', err);
           });
         // ไม่สามารถขายสินค้าจำนวนติดลบได้
+        const requestedQtyByGoodsCode = data.ITEMS.reduce((result, item) => {
+          const goodsCode = item?.VTRD_CODE;
+          const requestedQty = parseFloat(item?.VTRD_QTY);
 
-        for (let i in data.ITEMS) {
-          await getWareLocationStockBalance(
-            data.ITEMS[i].VTRD_CODE,
-            vanConfig,
-          ).then(v => {
-            const { ReasonString, ResponseCode, ResponseData } = v;
+          if (
+            !goodsCode ||
+            !Number.isFinite(requestedQty) ||
+            requestedQty <= 0
+          ) {
+            return result;
+          }
+
+          result[goodsCode] = (result[goodsCode] || 0) + requestedQty;
+          return result;
+        }, {});
+
+        for (const [goodsCode, requestedQty] of Object.entries(
+          requestedQtyByGoodsCode,
+        )) {
+          await getWareLocationStockBalance(goodsCode, vanConfig).then(v => {
+            const { ResponseCode, ResponseData } = v;
             let responseData = JSON.parse(ResponseData);
+
             if (ResponseCode == 200) {
               for (let obj of responseData.ShowSkuBalance) {
-                if (obj.WL_CODE == WL_CODE && parseInt(obj.QTY) < 0) {
-                  isNegative = true;
-                  good_inVan_qty = parseInt(obj.QTY) + ':';
+                if (obj.WL_CODE == WL_CODE) {
+                  const currentQty = parseFloat(obj.QTY);
+
+                  if (
+                    Number.isFinite(currentQty) &&
+                    currentQty - requestedQty < 0
+                  ) {
+                    isNegative = true;
+                    good_inVan_qty = parseFloat(currentQty)
+                      .toFixed(2)
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                  }
                 }
               }
             }
           });
+
+          if (isNegative) {
+            break;
+          }
         }
       }
       if (order.header.AR_ORDER_TYPE !== 'ขายสินค้า') {
@@ -463,7 +491,8 @@ export const processOrderSale =
                     data.PROCESS_DETAIL == 'ใบเสนอราคา'
                       ? quotationShipMoment.format('YYYYMMDD')
                       : moment(order.header.VDI_SHIP_DATE).format('YYYYMMDD'),
-                  ...(data.PROCESS_DETAIL == 'ใบเสนอราคา'
+                  ...(data.PROCESS_DETAIL == 'จองสินค้า' ||
+                  data.PROCESS_DETAIL == 'ใบเสนอราคา'
                     ? {
                         TRH_CANCEL_DATE:
                           quotationExpiryMoment.format('YYYYMMDD'),
@@ -474,6 +503,7 @@ export const processOrderSale =
                   ARPRB_CODE: customer.item.ARPRB.ARPRB_CODE,
                   AROE_TDSC_KEYIN: ARD_TDSC_KEYIN,
                   AROE_DUE_DA:
+                    data.PROCESS_DETAIL == 'จองสินค้า' ||
                     data.PROCESS_DETAIL == 'ใบเสนอราคา'
                       ? quotationExpiryMoment.format('YYYYMMDD')
                       : moment(
@@ -1423,6 +1453,8 @@ export const orderReservV3 =
         }
       }
 
+      const reservationExpiryMoment = getQuotationExpiryMoment(order.header);
+
       console.log('orderReservV3 param order.header', order.header);
 
       let param = {
@@ -1441,15 +1473,14 @@ export const orderReservV3 =
               VAT_RFR_REF: '<เลขเดียวกัน>',
               // TRH_SHIP_DATE: moment(order.header.VDI_SHIP_DATE,'DD/MM/YYYY').format('YYYYMMDD'),
               TRH_SHIP_DATE: order.header.VDI_SHIP_DATE,
+              TRH_CANCEL_DATE: reservationExpiryMoment.format('YYYYMMDD'),
 
               SLMN_CODE: SLMN_CODE,
               AR_CODE: order.header.AR_CODE,
               ARPRB_CODE: customer.item.ARPRB.ARPRB_CODE,
               AROE_ARCD: ARCD_KEY, //ข้อตกลงเจ้าหนี้
               AROE_TDSC_KEYIN: AROE_TDSC_KEYIN,
-              ARD_DUE_DA: moment(
-                moment(order.header.VDI_DATE).add(1, 'months'),
-              ).format('YYYYMMDD'),
+              AROE_DUE_DA: reservationExpiryMoment.format('YYYYMMDD'),
               DI_REMARK: order.header.VDI_REMARK,
             },
             ImpTrhDetail: ImpTrhDetail,
@@ -1677,6 +1708,19 @@ export const orderTransferV3 =
         });
       let ImpTrhDetail = [];
       console.log('data.ITEMS', data.ITEMS);
+      const fromWarehouse = order.header?.FROM ?? {};
+      const toWarehouse = order.header?.TO ?? {};
+      const transferFromWarehouse = fromWarehouse.WL_CODE ?? '';
+      const transferToWarehouse = toWarehouse.WL_CODE ?? '';
+      console.log(
+        'transferFromWarehouse',
+        transferFromWarehouse,
+        'transferToWarehouse',
+        transferToWarehouse,
+      );
+      console.log('FROM object', JSON.stringify(fromWarehouse));
+      console.log('TO object', JSON.stringify(toWarehouse));
+
       for (let i in data.ITEMS) {
         let newObj = {
           KEY: '',
@@ -1721,15 +1765,17 @@ export const orderTransferV3 =
             ? parseFloat(data.ITEMS[i].VTRD_QTY).toFixed(2)
             : data.ITEMS[i].TRD_QTY,
           X_MODEL: 7,
-          TRD_WL: order.header.FROM.WL_CODE,
-          TRD_TO_WL: order.header.TO.WL_CODE,
+          TRD_WL: transferFromWarehouse,
+          TRD_TO_WL: transferToWarehouse,
           TRD_K_U_PRC: data.ITEMS[i].VTRD_U_PRC
             ? parseFloat(data.ITEMS[i].VTRD_U_PRC).toFixed(2)
             : data.ITEMS[i].TRD_K_U_PRC,
 
           // toWarehouse: true,
           // TRD_U_VATIO: undefined,
-          AMOUNT: parseFloat(data.ITEMS[i].VTRD_AF_VALUES).toFixed(2),
+          AMOUNT: parseFloat(
+            data.ITEMS[i].VTRD_AF_VALUES ?? data.ITEMS[i].TRD_G_AMT ?? 0,
+          ).toFixed(2),
 
           TRD_U_VATIO: data.ITEMS[i].TRD_U_VATIO
             ? data.ITEMS[i].TRD_U_VATIO

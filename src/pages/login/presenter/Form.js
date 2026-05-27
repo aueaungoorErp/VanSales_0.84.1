@@ -21,14 +21,11 @@ import ITextWithErrorMessage from '../../../component/text/ITextWithErrorMessage
 import ITextWithSuccessMessage from '../../../component/text/ITextWithSuccessMessage';
 import { APP_VERSION, MainTheme } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';
-import {
-  getListServiceSetting,
-  getLoginInfo,
-} from '../../../utils/Token';
+import { getListServiceSetting, getLoginInfo } from '../../../utils/Token';
 
 const window = Dimensions.get('window');
 
-const toInputValue = (value) => {
+const toInputValue = value => {
   if (value === null || value === undefined) {
     return '';
   }
@@ -87,8 +84,8 @@ class Form extends Component {
     }
   }
 
-  setStateAsync = (nextState) =>
-    new Promise((resolve) => {
+  setStateAsync = nextState =>
+    new Promise(resolve => {
       if (!this._isMounted) {
         resolve();
         return;
@@ -131,11 +128,17 @@ class Form extends Component {
       );
 
       const loginInfo = await getLoginInfo();
+      const shouldRestorePassword = !!loginInfo?.rememberPassword;
 
       if (loginInfo) {
         this.props.setUserName?.(loginInfo.USER_CODE ?? '');
-        this.props.setPassword?.(loginInfo.USER_PASSWORD ?? '');
-        this.props.setIsRememberPassword?.(!!loginInfo.rememberPassword);
+        this.props.setPassword?.(
+          shouldRestorePassword ? loginInfo.USER_PASSWORD ?? '' : '',
+        );
+        this.props.setIsRememberPassword?.(shouldRestorePassword);
+      } else {
+        this.props.setPassword?.('');
+        this.props.setIsRememberPassword?.(false);
       }
 
       const selectedService =
@@ -170,7 +173,7 @@ class Form extends Component {
     });
   };
 
-  _keyboardDidShow = (event) => {
+  _keyboardDidShow = event => {
     Animated.timing(this._headerHeight, {
       duration: event?.duration ?? 250,
       toValue: 0,
@@ -197,7 +200,7 @@ class Form extends Component {
     this.props.setErrorMessage?.('โปรดตรวจสอบการตั้งค่าเว็ปเซอร์วิส');
   };
 
-  _handleChangePassword = (input) => {
+  _handleChangePassword = input => {
     const capitalizedInput = (input ?? '').toUpperCase();
     this.props.setPassword?.(capitalizedInput.trim());
   };
@@ -219,9 +222,7 @@ class Form extends Component {
     await this.setStateAsync({ service: value });
 
     const service1 =
-      _.find(list, ['value', value]) ||
-      _.find(list, ['number', value]) ||
-      null;
+      _.find(list, ['value', value]) || _.find(list, ['number', value]) || null;
 
     const finalBaseUrl =
       service1?.webURL ?? service1?.baseUrl ?? service1?.baseURL ?? '';
@@ -229,17 +230,19 @@ class Form extends Component {
     const vanCNFMachine =
       service1?.number ?? service1?.vanCNFMachine ?? service1?.value ?? '';
 
-    const resolvedUserCode =
-      this.props.username ?? service1?.USER_CODE ?? '';
-    const resolvedPassword =
-      this.props.password ?? service1?.USER_PASSWORD ?? '';
+    const resolvedUserCode = this.props.username ?? service1?.USER_CODE ?? '';
+    const currentPassword = this.props.password ?? '';
+    const shouldRestorePassword = !!this.props.isRememberPassword;
+    const resolvedPassword = String(currentPassword).trim()
+      ? currentPassword
+      : '';
 
     if (!String(this.props.username ?? '').trim() && service1?.USER_CODE) {
       this.props.setUserName?.(service1.USER_CODE);
     }
 
-    if (!String(this.props.password ?? '').trim() && service1?.USER_PASSWORD) {
-      this.props.setPassword?.(service1.USER_PASSWORD);
+    if (!shouldRestorePassword && !String(this.props.password ?? '').trim()) {
+      this.props.setPassword?.('');
     }
 
     this.props.setErrorMessage?.(null);
@@ -253,9 +256,7 @@ class Form extends Component {
       console.log('service1 invalid =', service1);
       console.log('listServiceSettings =', list);
 
-      this.props.setErrorMessage?.(
-        'ไม่พบ webURL/baseUrl ของ service ที่เลือก',
-      );
+      this.props.setErrorMessage?.('ไม่พบ webURL/baseUrl ของ service ที่เลือก');
       return;
     }
 
@@ -279,7 +280,7 @@ class Form extends Component {
 
         <View style={styles.pickerWrapper}>
           <RNPickerSelect
-            onValueChange={(value) => {
+            onValueChange={value => {
               this._onChangeService(value);
             }}
             items={this.state.listServiceSettings}
@@ -355,7 +356,6 @@ class Form extends Component {
             </Pressable>
           </View>
 
-
           <View style={styles.headerCurved}>
             <View style={styles.headerTitle}>
               <View style={styles.headerTitleInner}>
@@ -393,7 +393,7 @@ class Form extends Component {
                 autoCapitalize="characters"
                 style={styles.textInput}
                 underlineColorAndroid="transparent"
-                onChangeText={(value) => {
+                onChangeText={value => {
                   setUserName?.(value.trim());
                 }}
               />
@@ -417,9 +417,7 @@ class Form extends Component {
               />
 
               <AntDesign
-                name={
-                  this.state.isShow ? 'eyeo' : 'eye'
-                }
+                name={this.state.isShow ? 'eyeo' : 'eye'}
                 size={28}
                 color={MainTheme.colorTertiary}
                 onPress={this._toggleShow}
@@ -430,16 +428,18 @@ class Form extends Component {
               <Pressable
                 accessibilityRole="checkbox"
                 accessibilityLabel="remember password"
-                accessibilityState={{checked: !!isRememberPassword}}
+                accessibilityState={{ checked: !!isRememberPassword }}
                 onPress={() => {
                   toggleRememberPassword?.();
                 }}
-                style={styles.checkboxPressable}>
+                style={styles.checkboxPressable}
+              >
                 <View
                   style={[
                     styles.checkboxBox,
                     isRememberPassword ? styles.checkboxBoxChecked : null,
-                  ]}>
+                  ]}
+                >
                   {isRememberPassword ? (
                     <AntDesign name="check" size={14} color="#ffffff" />
                   ) : null}
@@ -451,17 +451,14 @@ class Form extends Component {
               </Text>
             </View>
 
-            <View style={[styles.loginButtonWrap ]}>
+            <View style={[styles.loginButtonWrap]}>
               <TouchableOpacity
                 style={styles.loginButton}
                 onPress={this._onLogin}
                 activeOpacity={0.8}
               >
                 <View style={styles.loginButtonInner}>
-                  <Text
-                    style={styles.loginButtonText}
-                    allowFontScaling={false}
-                  >
+                  <Text style={styles.loginButtonText} allowFontScaling={false}>
                     {strings('login.login')}
                   </Text>
                 </View>
@@ -470,9 +467,7 @@ class Form extends Component {
 
             <View style={styles.messageBox}>
               <ITextWithErrorMessage message={errorMessage} />
-              <ITextWithSuccessMessage
-                message={this.state.successMessage}
-              />
+              <ITextWithSuccessMessage message={this.state.successMessage} />
               <ILoading isLoading={isLoading} />
             </View>
           </View>
@@ -624,7 +619,6 @@ const styles = StyleSheet.create({
   },
   loginButtonWrap: {
     marginTop: 20,
-    
   },
   loginButton: {
     width: '60%',

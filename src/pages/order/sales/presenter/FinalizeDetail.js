@@ -50,6 +50,8 @@ const FinalizeDetail = (props) => {
     vdiRemark,
     setShipDate,
     shipDate,
+    setExpiryDate,
+    expiryDate,
     setReturnType,
     returnType,
     returnItems,
@@ -125,16 +127,31 @@ const FinalizeDetail = (props) => {
         <View style={{flex: 1, padding: 5}}>
           <View>
             {arOrderType === 'จองสินค้า' ? (
-              <View style={styles.lineSection}>
-                <Text
-                  style={{flex: 0.2, fontSize: hp('1.7%')}}
-                  allowFontScaling={false}>
-                  วันที่ส่งของ
-                </Text>
-                <View style={{flex: 0.8}}>
-                  <IDatePicker value={shipDate} onDateChange={setShipDate} />
+              <>
+                <View style={styles.lineSection}>
+                  <Text
+                    style={{flex: 0.2, fontSize: hp('1.7%')}}
+                    allowFontScaling={false}>
+                    วันที่ส่งของ
+                  </Text>
+                  <View style={{flex: 0.8}}>
+                    <IDatePicker value={shipDate} onDateChange={setShipDate} />
+                  </View>
                 </View>
-              </View>
+                <View style={styles.lineSection}>
+                  <Text
+                    style={{flex: 0.2, fontSize: hp('1.7%')}}
+                    allowFontScaling={false}>
+                    วันหมดอายุ
+                  </Text>
+                  <View style={{flex: 0.8}}>
+                    <IDatePicker
+                      value={expiryDate}
+                      onDateChange={setExpiryDate}
+                    />
+                  </View>
+                </View>
+              </>
             ) : null}
 
             <View style={styles.lineSection}>

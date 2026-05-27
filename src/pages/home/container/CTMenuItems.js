@@ -13,6 +13,7 @@ import { strings } from '../../../locales/i18n';
 import Navigator from '../../../services/Navigator';
 import Request from '../../../utils/Request';
 import {
+  getLoginInfo,
   getLoginGuID,
   getSettingConfig,
   getUserToken,
@@ -20,6 +21,7 @@ import {
   removeLoginInfo,
   removeUserToken,
   setAccessTimeToken,
+  setLoginInfo,
   setSettingConfig,
 } from '../../../utils/Token';
 import MenuItems from '../presenter/MenuItems';
@@ -35,9 +37,8 @@ class CTMenuItems extends React.Component {
     this._getLoginGuID();
   }
 
-  _onPress = async (item) => {
+  _onPress = async item => {
     if (item.methodType === 'new-page') {
-
       Navigator.navigate(item.screen);
     } else if (item.methodType === 'function') {
       if (item.methodName === 'logout') {
@@ -50,7 +51,7 @@ class CTMenuItems extends React.Component {
     const userToken = await getUserToken();
 
     if (userToken) {
-      await this.setState((oldState) => {
+      await this.setState(oldState => {
         return {
           userToken: userToken,
         };
@@ -62,7 +63,7 @@ class CTMenuItems extends React.Component {
     const loginGUID = await getLoginGuID();
     console.log('loginGUID ', loginGUID);
     if (loginGUID) {
-      await this.setState((oldState) => {
+      await this.setState(oldState => {
         return {
           loginGUID: loginGUID,
         };
@@ -70,12 +71,21 @@ class CTMenuItems extends React.Component {
     }
   };
 
-  _logout = async (item) => {
+  _logout = async item => {
     const settingConfig = await getSettingConfig();
+    const loginInfo = await getLoginInfo();
 
     Request.setTimeCutOff();
     await removeUserToken();
-    await removeLoginInfo();
+    if (loginInfo?.rememberPassword) {
+      await setLoginInfo({
+        ...loginInfo,
+        USER_PASSWORD: '',
+        rememberPassword: true,
+      });
+    } else {
+      await removeLoginInfo();
+    }
     await removeLoginGuID();
     await setAccessTimeToken('0');
 
@@ -98,16 +108,16 @@ class CTMenuItems extends React.Component {
   _renderItem = ({ item }) => {
     return (
       <View style={styles.itemShell}>
-        <TouchableOpacity onPress={() => this._onPress(item)} style={styles.touchable}>
+        <TouchableOpacity
+          onPress={() => this._onPress(item)}
+          style={styles.touchable}
+        >
           <Image
             style={styles.image}
             resizeMode="contain"
             source={item.imgSrc}
           />
-          <Text
-            style={styles.title}
-            numberOfLines={2}
-            allowFontScaling={false}>
+          <Text style={styles.title} numberOfLines={2} allowFontScaling={false}>
             {item.title}
           </Text>
         </TouchableOpacity>
@@ -118,8 +128,8 @@ class CTMenuItems extends React.Component {
   _checkVanConfigBalance = () => {
     result = 2;
     this.state.userToken &&
-      this.state.userToken.VANCONFIG &&
-      this.state.userToken.VANCONFIG.VANCNF_NEED_BAL
+    this.state.userToken.VANCONFIG &&
+    this.state.userToken.VANCONFIG.VANCNF_NEED_BAL
       ? (result = this.state.userToken.VANCONFIG.VANCNF_NEED_BAL)
       : (result = 2);
 
