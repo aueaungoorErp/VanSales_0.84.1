@@ -1,35 +1,46 @@
 import React, { Component } from 'react';
-import { Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { connect } from 'react-redux';
 import {
-    addProduct,
-    addProducts,
-    calculateOrderProductSummary,
-    getProductListItemsFromLastBillByArCode,
-    removeAllProductItems,
-    removeAllSwipeList,
-    setSwipeCurrent,
+  addProduct,
+  addProducts,
+  calculateOrderProductSummary,
+  getProductListItemsFromLastBillByArCode,
+  removeAllProductItems,
+  removeAllSwipeList,
+  setSwipeCurrent,
 } from '../../../action/order';
 import { setInitialState } from '../../../action/product';
 import { serverReady } from '../../../api/setting';
 import {
-    MainTheme,
-    orderSalesButtonGroup,
-    orderSalesButtonGroupAddSCR,
-    orderSalesButtonGroupEditSCR,
-    orderSalesFooterButtonGroup,
-    orderSalesReturnButtonGroup,
+  MainTheme,
+  orderSalesButtonGroup,
+  orderSalesButtonGroupAddSCR,
+  orderSalesButtonGroupEditSCR,
+  orderSalesFooterButtonGroup,
+  orderSalesReturnButtonGroup,
 } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
 import {
-    convertProductItemToOrderItem,
-    convertProductItemToOrderItemSCR,
+  convertProductItemToOrderItem,
+  convertProductItemToOrderItemSCR,
 } from '../../../utils/Order';
 import {
   LAST_BILL_QUOTATION_WARNING_MESSAGE,
   getLatestSoldQuotationGoodsCodes,
 } from '../../../utils/LastBillValidation';
-import { getLoginGuID, getSettingConfig, getUserToken } from '../../../utils/Token';
+import {
+  getLoginGuID,
+  getSettingConfig,
+  getUserToken,
+} from '../../../utils/Token';
 import ButtonGroup from '../presenter/ButtonGroup';
 class CTButtonGroup extends Component {
   _isMounted = false;
@@ -48,46 +59,54 @@ class CTButtonGroup extends Component {
   }
 
   componentDidMount() {
-     this._check_inVANCNFDatetime();
+    this._check_inVANCNFDatetime();
     this._isMounted = true;
-    
   }
 
   componentWillUnmount() {
     this._isMounted = false;
   }
 
-  _check_inVANCNFDatetime= async () => {
+  _check_inVANCNFDatetime = async () => {
     const VANCONFIG = await getSettingConfig();
-    const result =   await this.props.serverReady(VANCONFIG.baseUrl);
-    const {RESULT_DATA, RESPONSE_DATETIME} = result;
+    const result = await this.props.serverReady(VANCONFIG.baseUrl);
+    const { RESULT_DATA, RESPONSE_DATETIME } = result;
     const timeArray = RESPONSE_DATETIME.split(':');
-  
+
     if (
       parseInt(timeArray[0] + timeArray[1]) >=
-      parseInt(VANCONFIG.VANCONFIG.VANCNF_TIME_FM) &&
+        parseInt(VANCONFIG.VANCONFIG.VANCNF_TIME_FM) &&
       parseInt(timeArray[0] + timeArray[1]) <=
-      parseInt(VANCONFIG.VANCONFIG.VANCNF_TIME_TO)
+        parseInt(VANCONFIG.VANCONFIG.VANCNF_TIME_TO)
     ) {
-      
     } else {
       const errorStr =
         'ไม่สามารถทำรายการได้เนื่องจากเกินช่วงเวลาที่กำหนด \n\r(' +
-        VANCONFIG.VANCONFIG.VANCNF_TIME_FM.substring(0, 2) + ":" + VANCONFIG.VANCONFIG.VANCNF_TIME_FM.substring(2, 4) + ' น. - ' +
-        VANCONFIG.VANCONFIG.VANCNF_TIME_TO.substring(0, 2) + ":" + VANCONFIG.VANCONFIG.VANCNF_TIME_TO.substring(2, 4) + ' น.)';
+        VANCONFIG.VANCONFIG.VANCNF_TIME_FM.substring(0, 2) +
+        ':' +
+        VANCONFIG.VANCONFIG.VANCNF_TIME_FM.substring(2, 4) +
+        ' น. - ' +
+        VANCONFIG.VANCONFIG.VANCNF_TIME_TO.substring(0, 2) +
+        ':' +
+        VANCONFIG.VANCONFIG.VANCNF_TIME_TO.substring(2, 4) +
+        ' น.)';
 
-        this.setState({_errormsg:errorStr});
+      this.setState({ _errormsg: errorStr });
       return;
     }
-
   };
 
-
-
-  _getUserToken = () => {
-    const {routes, index} = Navigator.getCurrentRoute();
-    const {userToken} = routes[index].params;
-    this._userToken = userToken;
+  _getUserToken = async () => {
+    const { routes, index } = Navigator.getCurrentRoute();
+    const { userToken } = routes[index].params;
+    if (userToken) {
+      this._userToken = userToken;
+    } else {
+      this._userToken = await getUserToken();
+    }
+    if (this._isMounted) {
+      this.setState({ userToken: this._userToken });
+    }
   };
 
   _renderItem = (item, key) => {
@@ -97,18 +116,36 @@ class CTButtonGroup extends Component {
         : false;
 
     return (
-      <TouchableOpacity key={key} style={[item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, disabled ? {
-          backgroundColor: MainTheme.colorNonary,
-          borderRadius: 0,
-        } : null]} onPress={() => {
+      <TouchableOpacity
+        key={key}
+        style={[
+          item.buttonStyle,
+          item.containerStyle,
+          {
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+          },
+          disabled
+            ? {
+                backgroundColor: MainTheme.colorNonary,
+                borderRadius: 0,
+              }
+            : null,
+        ]}
+        onPress={() => {
           this._onPress(item);
-        }} disabled={disabled} activeOpacity={0.7}>
-              <Text style={item.titleStyle}>{item.title}</Text>
-            </TouchableOpacity>
+        }}
+        disabled={disabled}
+        activeOpacity={0.7}
+      >
+        <Text style={item.titleStyle}>{item.title}</Text>
+      </TouchableOpacity>
     );
   };
 
-  _onPress = async (item) => {
+  _onPress = async item => {
     this.props.order.errorMessage = null;
 
     if (item.methodType === 'new-page') {
@@ -124,7 +161,7 @@ class CTButtonGroup extends Component {
         ) {
           Navigator.navigate(item.screen, {
             actionType: 'add',
-            confirmMethod: async (item) => {
+            confirmMethod: async item => {
               await this.props.addProduct(convertProductItemToOrderItem(item));
               await this.props.calculateOrderProductSummary();
               Navigator.back();
@@ -133,7 +170,7 @@ class CTButtonGroup extends Component {
         } else {
           Navigator.navigate(item.screen, {
             actionType: 'add_scr',
-            confirmMethod: async (items) => {
+            confirmMethod: async items => {
               await this.props.addProducts(
                 convertProductItemToOrderItemSCR(items),
               );
@@ -156,7 +193,7 @@ class CTButtonGroup extends Component {
         } else {
           Navigator.navigate(item.screen, {
             actionType: 'edit_scr',
-            confirmMethod: async (items) => {
+            confirmMethod: async items => {
               await this.props.removeAllProductItems();
               await this.props.addProducts(
                 convertProductItemToOrderItemSCR(items),
@@ -168,7 +205,6 @@ class CTButtonGroup extends Component {
           });
         }
       } else if (item.screen === 'OrderSalesSummary') {
-
         Navigator.navigate(item.screen, {
           actionType: 'orderProductSummary',
         });
@@ -197,10 +233,10 @@ class CTButtonGroup extends Component {
       'ประกาศ',
       'คุณแน่ใจว่าจะออกจากหน้าจอนี้',
       [
-        {text: 'ยกเลิก', onPress: () => {}, style: 'cancel'},
-        {text: 'ยืนยัน', onPress: () => Navigator.back()},
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
+        { text: 'ยืนยัน', onPress: () => Navigator.back() },
       ],
-      {cancelable: false},
+      { cancelable: false },
     );
 
   _getProductListItemsFromLastBillByArCode = async (goodsCodes = null) => {
@@ -225,7 +261,7 @@ class CTButtonGroup extends Component {
     });
   };
 
-  _showLatestItemModal = (message) => {
+  _showLatestItemModal = message => {
     this.setState({
       isLatestItemModalVisible: true,
       latestItemModalMessage: message,
@@ -235,7 +271,8 @@ class CTButtonGroup extends Component {
   _handleLastBillPress = async () => {
     try {
       const latestUserToken = await getUserToken();
-      const activeUserToken = latestUserToken || this.state.userToken || this._userToken;
+      const activeUserToken =
+        latestUserToken || this.state.userToken || this._userToken;
       const vanConfig = activeUserToken?.VANCONFIG;
 
       const validationResult = await getLatestSoldQuotationGoodsCodes({
@@ -268,15 +305,15 @@ class CTButtonGroup extends Component {
       'ประกาศ',
       'ต้องการทำรายการเหมือนบิลล่าสุดหรือไม่?',
       [
-        {text: 'ยกเลิก', onPress: () => {}, style: 'cancel'},
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
         {
           text: 'ยืนยัน',
           onPress: () => {
-               this._handleLastBillPress();
-          }
+            this._handleLastBillPress();
+          },
         },
       ],
-      {cancelable: false},
+      { cancelable: false },
     );
 
   _removeAlertDialog = () =>
@@ -284,10 +321,10 @@ class CTButtonGroup extends Component {
       'ประกาศ',
       'คุณต้องการลบข้อมูลสินค้าทั้งหมด?',
       [
-        {text: 'ยกเลิก', onPress: () => {}, style: 'cancel'},
-        {text: 'ยืนยัน', onPress: () => this._removeAll()},
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
+        { text: 'ยืนยัน', onPress: () => this._removeAll() },
       ],
-      {cancelable: false},
+      { cancelable: false },
     );
 
   _removeAll = () => {
@@ -313,42 +350,53 @@ class CTButtonGroup extends Component {
       ) {
         buttonGroup = orderSalesReturnButtonGroup;
       } else {
-        if (this._userToken.VANCONFIG.VANCNF_KEYIN_SCR != 1) {
+        if (this._userToken?.VANCONFIG?.VANCNF_KEYIN_SCR != 1) {
           if (this.props.order.productListItems.length > 0) {
             buttonGroup = orderSalesButtonGroupEditSCR;
           } else {
             buttonGroup = orderSalesButtonGroupAddSCR;
           }
         } else {
-          buttonGroup =  orderSalesButtonGroup;
+          buttonGroup = orderSalesButtonGroup;
         }
       }
-      return (<>      
-      {!this.state._errormsg ?
-      <ButtonGroup listItems={this.state._errormsg?   null : buttonGroup} renderItem={this._renderItem} /> : 
-      <Text  style={styles.red}>{'\n\n'}{this.state._errormsg}</Text>       
-      }
-      <Modal
-        transparent={true}
-        visible={this.state.isLatestItemModalVisible}
-        animationType="fade"
-        onRequestClose={this._closeLatestItemModal}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>ประกาศ</Text>
-            <Text style={styles.modalMessage}>
-              {this.state.latestItemModalMessage}
+      return (
+        <>
+          {!this.state._errormsg ? (
+            <ButtonGroup
+              listItems={this.state._errormsg ? null : buttonGroup}
+              renderItem={this._renderItem}
+            />
+          ) : (
+            <Text style={styles.red}>
+              {'\n\n'}
+              {this.state._errormsg}
             </Text>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={this._closeLatestItemModal}
-              activeOpacity={0.7}>
-              <Text style={styles.modalButtonText}>ตกลง</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-      </>);
+          )}
+          <Modal
+            transparent={true}
+            visible={this.state.isLatestItemModalVisible}
+            animationType="fade"
+            onRequestClose={this._closeLatestItemModal}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalCard}>
+                <Text style={styles.modalTitle}>ประกาศ</Text>
+                <Text style={styles.modalMessage}>
+                  {this.state.latestItemModalMessage}
+                </Text>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={this._closeLatestItemModal}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modalButtonText}>ตกลง</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        </>
+      );
     }
   }
 }
@@ -364,7 +412,7 @@ const styles = StyleSheet.create({
   },
   red: {
     color: 'red',
-   textAlign: 'center', 
+    textAlign: 'center',
   },
   modalOverlay: {
     flex: 1,
@@ -411,20 +459,18 @@ const styles = StyleSheet.create({
   },
 });
 
-
-
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   order: state.order,
   customer: state.customer,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
-    serverReady: (data) => dispatch(serverReady(data)),
-    addProduct: (item) => dispatch(addProduct(item)),
-    addProducts: (items) => dispatch(addProducts(items)),
+    serverReady: data => dispatch(serverReady(data)),
+    addProduct: item => dispatch(addProduct(item)),
+    addProducts: items => dispatch(addProducts(items)),
     removeAllProductItems: () => dispatch(removeAllProductItems()),
-    setSwipeCurrent: (index) => {
+    setSwipeCurrent: index => {
       dispatch(setSwipeCurrent(index));
     },
     removeAllSwipeList: () => {
@@ -437,7 +483,6 @@ const mapDispatchToProps = (dispatch) => {
     },
     getProductListItemsFromLastBillByArCode: (v3GUID, vancnf_machine) =>
       dispatch(getProductListItemsFromLastBillByArCode(v3GUID, vancnf_machine)),
-   
   };
 };
 
