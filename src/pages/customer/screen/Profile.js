@@ -1,21 +1,20 @@
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { mainContainer } from '../../../constant/lov'
-import CTSearchForm from '../container/CTSearchForm'
-import CTListItems from '../container/CTListItems'
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { mainContainer } from '../../../constant/lov';
+import SearchForm from '../presenter/SearchForm';
+import CTListItems from '../container/CTListItems';
 
-const Form = (props) => {
+const Form = props => {
+  return (
+    <View style={styles.container}>
+      <SearchForm screen={'profile'} />
+      <CTListItems screen={'profile'} />
+    </View>
+  );
+};
 
-    return (
-        <View style={styles.container}>
-            <CTSearchForm screen={'profile'} />
-            <CTListItems screen={'profile'} />
-        </View>
-    )
-}
-
-export default Form
+export default Form;
 
 const styles = StyleSheet.create({
-    container: mainContainer
-})
+  container: mainContainer,
+});

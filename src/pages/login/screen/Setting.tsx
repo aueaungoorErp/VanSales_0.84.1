@@ -1,27 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+const AntDesign = require('react-native-vector-icons/AntDesign').default;
 import { MainTheme } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';
 import Navigator from '../../../services/Navigator';
-import CTSettingForm from '../container/CTSettingForm';
+import CTSettingForm from '../container/CTSettingForm.tsx';
 
-const Setting = (props) => {
+type SettingProps = {
+  navigation?: unknown;
+};
+
+const Setting: React.FC<SettingProps> = ({ navigation }) => {
   const [vansalesConfig, setVanSaleConfig] = useState(false);
   const [ktbConfig, setKTBConfig] = useState(false);
 
-  const _onConnnectVanSales = (status) => {
+  useEffect(() => {
+    if (ktbConfig && vansalesConfig) {
+      Navigator.back();
+    }
+  }, [ktbConfig, vansalesConfig]);
+
+  const onConnnectVanSales = (status: boolean) => {
     setVanSaleConfig(status);
   };
 
-  const _onConnnectKTB = (status) => {
+  const onConnnectKTB = (status: boolean) => {
     setKTBConfig(status);
   };
-
-  if (ktbConfig && vansalesConfig) {
-    Navigator.back();
-  }
 
   return (
     <View style={styles.container}>
@@ -33,29 +39,26 @@ const Setting = (props) => {
             size={30}
           />
 
-          <Text
-            style={styles.title}
-            allowFontScaling={false}>
+          <Text style={styles.title} allowFontScaling={false}>
             {strings('login_setting.setting')}
           </Text>
         </View>
-
-      
       </View>
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         <CTSettingForm
-          navigation={props.navigation}
-          onConnnect={_onConnnectVanSales}
+          navigation={navigation}
+          onConnnect={onConnnectVanSales}
         />
         {
-        // <KTBSettingFormz
-        //   navigation={props.navigation}
-        //   onConnnect={_onConnnectKTB}
-        // />
+          // <KTBSettingFormz
+          //   navigation={navigation}
+          //   onConnnect={onConnnectKTB}
+          // />
         }
       </ScrollView>
     </View>
@@ -95,7 +98,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 18,
     shadowColor: '#000000',
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,

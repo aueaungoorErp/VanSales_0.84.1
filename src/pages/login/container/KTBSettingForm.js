@@ -4,7 +4,7 @@ import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import * as appConfig from '../../../../appConfig';
 import { checkStatusService } from '../../../action/ktb-payment';
-import { settingConfigButtonGroup } from '../../../constant/lov';
+import { settingConfigButtonGroup } from '../constant/settingConfigButtonGroup';
 import { strings } from '../../../locales/i18n';
 import Navigator from '../../../services/Navigator';
 import {
@@ -33,16 +33,28 @@ class KTBSetting extends Component {
   _renderItem = (item, key) => (
     <TouchableOpacity
       key={key}
-      style={[{paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, alignItems: 'center', justifyContent: 'center'}, item.buttonStyle]}
+      style={[
+        {
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          borderRadius: 8,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        item.buttonStyle,
+      ]}
       onPress={() => {
         this._onPress(item);
       }}
-      activeOpacity={0.7}>
-      <Text style={[item.titleStyle, {fontSize: hp('1.7%')}]}>{item.title}</Text>
+      activeOpacity={0.7}
+    >
+      <Text style={[item.titleStyle, { fontSize: hp('1.7%') }]}>
+        {item.title}
+      </Text>
     </TouchableOpacity>
   );
 
-  _onPress = async (item) => {
+  _onPress = async item => {
     if (item.methodName === 'confirm') {
       if (
         this.state.config.ktbURL === null ||
@@ -64,7 +76,7 @@ class KTBSetting extends Component {
     const config = await getKTBSettingConfig();
 
     if (config) {
-      this.setState((oldState) => {
+      this.setState(oldState => {
         return {
           config: config,
         };
@@ -98,7 +110,7 @@ class KTBSetting extends Component {
 
   _removeKTBSettingConfig = async () => {
     await removeKTBSettingConfig();
-    this.setState((oldState) => {
+    this.setState(oldState => {
       return {
         config: {
           ktbURL: null,
@@ -107,8 +119,8 @@ class KTBSetting extends Component {
     });
   };
 
-  _setKTBUrl = (value) => {
-    this.setState((oldState) => {
+  _setKTBUrl = value => {
+    this.setState(oldState => {
       return {
         config: {
           ...this.state.config,
@@ -118,24 +130,24 @@ class KTBSetting extends Component {
     });
   };
 
-  _setIsLoading = (value) => {
-    this.setState((oldState) => {
+  _setIsLoading = value => {
+    this.setState(oldState => {
       return {
         isLoading: value,
       };
     });
   };
 
-  _setSuccessMessage = (value) => {
-    this.setState((oldState) => {
+  _setSuccessMessage = value => {
+    this.setState(oldState => {
       return {
         successMessage: value,
       };
     });
   };
 
-  _setErrorMessage = (value) => {
-    this.setState((oldState) => {
+  _setErrorMessage = value => {
+    this.setState(oldState => {
       return {
         errorMessage: value,
       };
@@ -157,13 +169,13 @@ class KTBSetting extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   // user: state.user
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
-    checkStatusService: (data) => {
+    checkStatusService: data => {
       return dispatch(checkStatusService(data));
     },
   };

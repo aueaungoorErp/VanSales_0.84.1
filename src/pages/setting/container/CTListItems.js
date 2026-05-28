@@ -16,6 +16,7 @@ import { MainTheme, settingListItems } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';
 import Navigator from '../../../services/Navigator';
 import Request from '../../../utils/Request';
+import { clearPassword } from '../../../services/SecureCredentials';
 import {
   getLoginInfo,
   getSettingConfig,
@@ -253,11 +254,14 @@ class CTListItems extends React.Component {
 
     Request.setTimeCutOff();
     await removeUserToken();
-    if (loginInfo?.rememberPassword) {
+
+    // Clear only the saved password. Username is kept in SecureCredentials.
+    await clearPassword();
+
+    // Keep legacy login info trimmed down to service only.
+    if (loginInfo) {
       await setLoginInfo({
-        ...loginInfo,
-        USER_PASSWORD: '',
-        rememberPassword: true,
+        service: loginInfo.service,
       });
     } else {
       await removeLoginInfo();

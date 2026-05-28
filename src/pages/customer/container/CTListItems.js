@@ -5,13 +5,13 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import { connect } from 'react-redux';
 import { setInitialState as setCheckInInitialState } from '../../../action/check-in';
 import {
-    clearCustomerList,
-    findCustomerById,
-    searchCustomerList,
-    searchCustomerNextDestination,
-    setCustomerInfo,
-    setError,
-    setInitialState,
+  clearCustomerList,
+  findCustomerById,
+  searchCustomerList,
+  searchCustomerNextDestination,
+  setCustomerInfo,
+  setError,
+  setInitialState,
 } from '../../../action/customer';
 import { setCustomerType } from '../../../action/customer-type';
 import { setInitialState as setMileInitialState } from '../../../action/mile';
@@ -20,7 +20,6 @@ import { mainDivider, MainTheme } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
 import ListItems from '../presenter/ListItems';
-
 
 class CTListItems extends Component {
   _isMounted = false;
@@ -56,20 +55,19 @@ class CTListItems extends Component {
     }
   };
 
-  _renderItem = ({item, index}) => {
-   
+  _renderItem = ({ item, index }) => {
     return (
       <ListItem
         key={item.AR_KEY || index}
         containerStyle={mainDivider}
         bottomDivider
         onPress={async () => {
-           this._onListItemPress(item, index);
+          this._onListItemPress(item, index);
         }}
       >
         <ListItem.Content key="content">
-          <View style={{flex: 1, flexDirection: 'row'}}>
-            <View style={{flex: 0.1, flexDirection: 'column'}}>
+          <View style={{ flex: 1, flexDirection: 'row' }}>
+            <View style={{ flex: 0.1, flexDirection: 'column' }}>
               {this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT == 2 &&
               item.LAST_DO ? (
                 <AntDesign
@@ -87,17 +85,22 @@ class CTListItems extends Component {
                 />
               ) : null}
             </View>
-            <View style={{flex: 0.9, flexDirection: 'column'}}>
+            <View style={{ flex: 0.9, flexDirection: 'column' }}>
               {this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT == 2 ? (
-                <Text style={{fontSize: hp('1.9%')}} allowFontScaling={false}>{index + 1}</Text>
+                <Text style={{ fontSize: hp('1.9%') }} allowFontScaling={false}>
+                  {index + 1}
+                </Text>
               ) : null}
-              <Text style={{fontSize: hp('1.9%'), fontWeight: 'bold'}} allowFontScaling={false}>
+              <Text
+                style={{ fontSize: hp('1.9%'), fontWeight: 'bold' }}
+                allowFontScaling={false}
+              >
                 {item.AR_CODE || '-'}
               </Text>
-              <Text style={{fontSize: hp('1.9%')}} allowFontScaling={false}>
+              <Text style={{ fontSize: hp('1.9%') }} allowFontScaling={false}>
                 {item.AR_NAME || '-'}
               </Text>
-              <Text style={{fontSize: hp('1.8%')}} allowFontScaling={false}>
+              <Text style={{ fontSize: hp('1.8%') }} allowFontScaling={false}>
                 {item.ADDB_ADDB_1 ? item.ADDB_ADDB_1 + ' ' : null}
                 {item.ADDB_ADDB_2 ? item.ADDB_ADDB_2 + ' ' : null}
                 {item.ADDB_ADDB_3 ? item.ADDB_ADDB_3 + ' ' : null}
@@ -105,7 +108,15 @@ class CTListItems extends Component {
                 {item.ADDB_DISTRICT ? item.ADDB_DISTRICT + ' ' : null}
                 {item.ADDB_PROVINCE ? item.ADDB_PROVINCE + ' ' : null}
                 {item.ADDB_POST ? item.ADDB_POST + ' ' : null}
-                {!item.ADDB_ADDB_1 && !item.ADDB_ADDB_2 && !item.ADDB_ADDB_3 && !item.ADDB_SUB_DISTRICT && !item.ADDB_DISTRICT && !item.ADDB_PROVINCE && !item.ADDB_POST ? '-' : null}
+                {!item.ADDB_ADDB_1 &&
+                !item.ADDB_ADDB_2 &&
+                !item.ADDB_ADDB_3 &&
+                !item.ADDB_SUB_DISTRICT &&
+                !item.ADDB_DISTRICT &&
+                !item.ADDB_PROVINCE &&
+                !item.ADDB_POST
+                  ? '-'
+                  : null}
               </Text>
             </View>
           </View>
@@ -155,14 +166,12 @@ class CTListItems extends Component {
 
   _onRefresh = async () => {
     await this.props.clearCustomerList();
-    const selectedCustomerType =
-      this.props.customerType.listItems.find(
-        (item) => item.ARCAT_KEY == this.props.customerType.item?.ARCAT_KEY,
-      ) ?? this.props.customerType.item ?? { ARCAT_KEY: null, ARCAT_NAME: null };
+    const selectedCustomerType = this.props.customerType.listItems.find(
+      item => item.ARCAT_KEY == this.props.customerType.item?.ARCAT_KEY,
+    ) ??
+      this.props.customerType.item ?? { ARCAT_KEY: null, ARCAT_NAME: null };
 
     await this.props.setCustomerType(selectedCustomerType);
-
-
 
     // console.log('this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT1  ',this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT,);
     if (this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT != 2) {
@@ -177,18 +186,26 @@ class CTListItems extends Component {
     }
   };
 
-  _onScroll = (event) => {
-
-
-
+  _onScroll = event => {
     if (this.state.userToken.VANCONFIG.VANCNF_AR_LIMIT != 2) {
       const frameHeight = event.nativeEvent.layoutMeasurement.height;
       const contentHeight = event.nativeEvent.contentSize.height;
-      const maxOffset = 0.95 * parseInt(contentHeight - frameHeight);
+      const maxScrollableHeight = contentHeight - frameHeight;
+
+      if (maxScrollableHeight <= 0) {
+        return;
+      }
+
+      const maxOffset = 0.95 * parseInt(maxScrollableHeight);
       const currentOffset = parseInt(event.nativeEvent.contentOffset.y);
-      currentOffset >= maxOffset && !this.props.customer.isLoading
-        ? this.props.searchCustomerList(true)
-        : null;
+
+      if (
+        currentOffset > 0 &&
+        currentOffset >= maxOffset &&
+        !this.props.customer.isLoading
+      ) {
+        this.props.searchCustomerList(true);
+      }
     }
   };
 
@@ -198,7 +215,7 @@ class CTListItems extends Component {
 
   _setState = async (key, value) => {
     this._isMounted &&
-      (await this.setState((oldState) => {
+      (await this.setState(oldState => {
         return {
           [key]: value,
         };
@@ -237,12 +254,12 @@ class CTListItems extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   customer: state.customer,
   customerType: state.customerType,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
     setInitialState: () => {
       dispatch(setInitialState());
@@ -254,15 +271,15 @@ const mapDispatchToProps = (dispatch) => {
       dispatch(setCheckInInitialState());
     },
     clearCustomerList: () => dispatch(clearCustomerList()),
-    searchCustomerList: (nextPage) => dispatch(searchCustomerList(nextPage)),
-    setError: (bool) => {
+    searchCustomerList: nextPage => dispatch(searchCustomerList(nextPage)),
+    setError: bool => {
       dispatch(setError(bool));
     },
-    findCustomerById: (id) => dispatch(findCustomerById(id)),
-    setCustomerInfo: (data) => {
+    findCustomerById: id => dispatch(findCustomerById(id)),
+    setCustomerInfo: data => {
       dispatch(setCustomerInfo(data));
     },
-    setCustomerType: (value) => dispatch(setCustomerType(value)),
+    setCustomerType: value => dispatch(setCustomerType(value)),
     searchCustomerNextDestination: () => {
       dispatch(searchCustomerNextDestination());
     },

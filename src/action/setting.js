@@ -4,32 +4,25 @@ import {
   lookupErpV3Api,
   readErpV3Api,
   systemCheckApi2,
-  unRegisterApi
+  unRegisterApi,
 } from '../api/setting';
 
+import { getLoginInfo, getSettingConfig } from '../utils/Token';
+
 import {
-  getLoginInfo,
-  getSettingConfig
-} from '../utils/Token';
+  getCredentials,
+  getSavedUsername,
+} from '../services/SecureCredentials';
 
-
-export const systemCheck = (data) => async (dispatch) => {
+export const systemCheck = data => async dispatch => {
   const savedSetting = await getSettingConfig();
-  const savedLogin = await getLoginInfo();
-  const {
-    baseUrl,
-    vanCNFMachine,
-    USER_CODE,
-    USER_PASSWORD,
-  } = data;
+  const savedUsername = await getSavedUsername();
+  const credentials = await getCredentials();
+  const { baseUrl, vanCNFMachine, USER_CODE, USER_PASSWORD } = data;
 
   const finalUserCode =
-    USER_CODE ?? savedSetting?.USER_CODE ?? savedLogin?.USER_CODE ?? '';
-  const finalPassword =
-    USER_PASSWORD ??
-    savedSetting?.USER_PASSWORD ??
-    savedLogin?.USER_PASSWORD ??
-    '';
+    USER_CODE ?? savedUsername ?? credentials?.username ?? '';
+  const finalPassword = USER_PASSWORD ?? credentials?.password ?? '';
 
   return await systemCheckApi2(
     baseUrl,
@@ -38,7 +31,7 @@ export const systemCheck = (data) => async (dispatch) => {
     finalPassword,
   );
 };
-export const systemCheck2 = (data) => async (dispatch) => {
+export const systemCheck2 = data => async dispatch => {
   const { baseUrl, vanCNFMachine, USER_CODE, USER_PASSWORD } = data;
   console.log('[systemCheck2] start', {
     baseUrl,
@@ -46,25 +39,26 @@ export const systemCheck2 = (data) => async (dispatch) => {
     userCode: USER_CODE,
     hasPassword: !!USER_PASSWORD,
   });
-  return await systemCheckApi2(baseUrl, vanCNFMachine, USER_CODE, USER_PASSWORD);
+  return await systemCheckApi2(
+    baseUrl,
+    vanCNFMachine,
+    USER_CODE,
+    USER_PASSWORD,
+  );
 };
 
-
-export const unRegister = () => async (dispatch) => {
+export const unRegister = () => async dispatch => {
   return await unRegisterApi();
 };
 
-export const getOneTimeGUID = () => async (dispatch) => {
+export const getOneTimeGUID = () => async dispatch => {
   return new Promise(async (resolve, reject) => {
+    const savedUsername = await getSavedUsername();
+    const credentials = await getCredentials();
+    const user = credentials?.username ?? savedUsername;
+    const pass = credentials?.password ?? '';
 
-    const loginInfo = await getLoginInfo();
-    const user = loginInfo.USER_CODE;
-    const pass = loginInfo.USER_PASSWORD;
-
-
-
-
-    console.log("unRegisterApi >>>")
+    console.log('unRegisterApi >>>');
     await unRegisterApi();
     const uniqueId = await getDeviceUniqeId();
     const bodyRequest = {
@@ -78,11 +72,11 @@ export const getOneTimeGUID = () => async (dispatch) => {
         appConfig.BPAPUS_MOBILE +
         '"\r\n}',
     };
-    console.log("bodyRequest >>>", bodyRequest)
+    console.log('bodyRequest >>>', bodyRequest);
 
     Request.instanceV3
       .post('/DevUsers', bodyRequest)
-      .then(async (v) => {
+      .then(async v => {
         const { ResponseData, ResponseCode, ReasonString } = v.data;
         console.log('getOneTimeGUID v.data ', v.data);
         console.log('getOneTimeGUID ASDASDASD', ResponseData, ReasonString);
@@ -105,44 +99,44 @@ export const getOneTimeGUID = () => async (dispatch) => {
           console.log('bodyRequest2 getOneTimeGUID', bodyRequest);
           await Request.instanceV3
             .post('/DevUsers', bodyRequest)
-            .then((v) => {
+            .then(v => {
               const { ResponseData, ResponseCode, ReasonString } = v.data;
               //console.log('getOneTimeGUID responseData v.data', v.data);
               if (ResponseCode == 200) {
                 let responseData = JSON.parse(ResponseData);
-                //console.log('getOneTimeGUID responseData ', responseData);    
+                //console.log('getOneTimeGUID responseData ', responseData);
                 Request.setHeadersV3({ userToken: responseData.BPAPUS_GUID });
                 resolve(v.data);
               } else {
                 reject(ReasonString);
               }
             })
-            .catch((err) => {
+            .catch(err => {
               reject(err.message);
             });
         } else {
           reject(ResponseCode + ' ' + ReasonString);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err.message);
       });
   });
 };
 
-export const getVanConfigV3 = (data) => (dispatch) => {
+export const getVanConfigV3 = data => dispatch => {
   return new Promise((resolve, reject) => {
     getVanConfigV3Api(data)
-      .then((v) => {
+      .then(v => {
         resolve(v);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err.message);
       });
   });
 };
 
-export const getSaleManV3 = (GUID, SLMN_KEY) => (dispatch) => {
+export const getSaleManV3 = (GUID, SLMN_KEY) => dispatch => {
   return new Promise(async (resolve, reject) => {
     const bodyRequest = {
       'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
@@ -156,28 +150,28 @@ export const getSaleManV3 = (GUID, SLMN_KEY) => (dispatch) => {
     };
 
     await lookupErpV3Api(bodyRequest)
-      .then((v) => {
+      .then(v => {
         resolve(v);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err.message);
       });
   });
 };
 
-export const readSlCatBySlKeyV3 = () => (dispatch) => {
+export const readSlCatBySlKeyV3 = () => dispatch => {
   return new Promise(async (resolve, reject) => {
     await readErpV3Api(data)
-      .then((v) => {
+      .then(v => {
         resolve(v);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err.message);
       });
   });
 };
 
-export const readCompanyInfoV3 = (GUID, CMPNY_CODE) => (dispatch) => {
+export const readCompanyInfoV3 = (GUID, CMPNY_CODE) => dispatch => {
   return new Promise(async (resolve, reject) => {
     const bodyRequest = {
       'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
@@ -190,10 +184,10 @@ export const readCompanyInfoV3 = (GUID, CMPNY_CODE) => (dispatch) => {
       'BPAPUS-FETCH': '0',
     };
     await readErpV3Api(bodyRequest)
-      .then((v) => {
+      .then(v => {
         resolve(v);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err.message);
       });
   });

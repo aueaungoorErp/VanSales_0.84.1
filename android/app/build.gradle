@@ -106,6 +106,13 @@ android {
         }
     }
 }
+
+// `gradlew clean` can fail under RN 0.84 New Architecture when autolinking
+// points native clean tasks at missing generated codegen JNI directories.
+tasks.matching { it.name.startsWith("externalNativeBuildClean") }.configureEach {
+    enabled = false
+}
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")

@@ -64,7 +64,7 @@ function HomeNavigator() {
     >
       <HomeStack.Screen
         name="Home"
-        component={require('./pages/home/screen/Index').default}
+        component={require('./pages/home/screen/HomeScreen').default}
         initialParams={{
           title: strings('setting.app_version', { version: APP_VERSION_FULL }),
         }}

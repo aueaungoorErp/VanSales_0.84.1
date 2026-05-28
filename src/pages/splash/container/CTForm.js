@@ -1,5 +1,10 @@
 import React from 'react';
-import { AppState, InteractionManager, PermissionsAndroid, Platform } from 'react-native';
+import {
+  AppState,
+  InteractionManager,
+  PermissionsAndroid,
+  Platform,
+} from 'react-native';
 import { connect } from 'react-redux';
 import { getArPricetab } from '../../../action/customer';
 import { searchCustomerTypeList } from '../../../action/customer-type';
@@ -15,11 +20,16 @@ import {
   getSaleManV3,
   getVanConfigV3,
   readCompanyInfoV3,
-  systemCheck2
+  systemCheck2,
 } from '../../../action/setting';
 import { registerV3 } from '../../../action/user';
 import Navigate from '../../../services/Navigator';
 import Request from '../../../utils/Request';
+import {
+  canAutoLogin,
+  getCredentials,
+  getSavedUsername,
+} from '../../../services/SecureCredentials';
 import {
   getLoginGuID,
   getLoginInfo,
@@ -28,7 +38,7 @@ import {
   removeUserToken,
   setLoginGuID,
   setSettingConfig,
-  setUserToken
+  setUserToken,
 } from '../../../utils/Token';
 import Form from '../presenter/Form';
 
@@ -45,7 +55,7 @@ class CTForm extends React.Component {
     console.log(`[Splash] ${step}`, payload);
   };
 
-  _safeJsonParse = (str) => {
+  _safeJsonParse = str => {
     if (str == null || typeof str !== 'string' || !str.trim()) return null;
     try {
       return JSON.parse(str);
@@ -133,7 +143,6 @@ class CTForm extends React.Component {
 
     this._requestStartupPermissions();
     this._prepareData();
-  
   }
 
   componentWillUnmount() {
@@ -145,7 +154,7 @@ class CTForm extends React.Component {
     }
   }
 
-  _replaceRoute = (routeName) => {
+  _replaceRoute = routeName => {
     this._log('replaceRoute', { routeName });
     const navigation = this.props.navigation;
 
@@ -164,7 +173,6 @@ class CTForm extends React.Component {
 
     Navigate.navigate(routeName);
   };
-
 
   _goToAuth = async (reason = 'unknown') => {
     this._log('goToAuth', { reason });
@@ -187,7 +195,7 @@ class CTForm extends React.Component {
     return vanConfig;
   };
 
-  _delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  _delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   _getStartupPayloadState = async () => {
     const userToken = await getUserToken();
@@ -211,14 +219,15 @@ class CTForm extends React.Component {
     };
   };
 
-  _isStartupPayloadComplete = (payloadState) => Boolean(
-    payloadState?.hasLoginGUID &&
-    payloadState?.hasCompanyInfo &&
-    payloadState?.hasVanConfig &&
-    payloadState?.hasVanMachine
-  );
+  _isStartupPayloadComplete = payloadState =>
+    Boolean(
+      payloadState?.hasLoginGUID &&
+        payloadState?.hasCompanyInfo &&
+        payloadState?.hasVanConfig &&
+        payloadState?.hasVanMachine,
+    );
 
-  _isRetryableStartupError = (error) => {
+  _isRetryableStartupError = error => {
     const message = String(error?.message ?? error ?? '').trim();
 
     if (!message) {
@@ -271,16 +280,22 @@ class CTForm extends React.Component {
     while (this._isMounted && attempt < maxAttempts) {
       attempt += 1;
       try {
-        await this._setState('titleProgress', `กำลังเข้าสู่ระบบอัตโนมัติ ครั้งที่ ${attempt}`);
+        await this._setState(
+          'titleProgress',
+          `กำลังเข้าสู่ระบบอัตโนมัติ ครั้งที่ ${attempt}`,
+        );
         await this._setState('errorMessage', null);
-        const payloadState = await this._runStartupRelogin(setting, rememberedLogin);
+        const payloadState = await this._runStartupRelogin(
+          setting,
+          rememberedLogin,
+        );
 
         if (!this._isStartupPayloadComplete(payloadState)) {
           this._log('startupRelogin:incompletePayload', payloadState);
           throw new Error('incomplete startup payload');
         }
 
-        console.log('payloadState',payloadState)
+        console.log('payloadState', payloadState);
 
         this._log('startupRelogin:success', {
           attempt,
@@ -303,7 +318,10 @@ class CTForm extends React.Component {
           return;
         }
 
-        await this._setState('titleProgress', `ข้อมูลยังไม่ครบ กำลังลองใหม่ ครั้งที่ ${attempt + 1}`);
+        await this._setState(
+          'titleProgress',
+          `ข้อมูลยังไม่ครบ กำลังลองใหม่ ครั้งที่ ${attempt + 1}`,
+        );
         await this._setState(
           'errorMessage',
           `กำลังลองใหม่อัตโนมัติ ครั้งที่ ${attempt + 1}`,
@@ -322,7 +340,7 @@ class CTForm extends React.Component {
     }
   };
 
-  _restoreCachedSession = async (setting) => {
+  _restoreCachedSession = async setting => {
     const userToken = await getUserToken();
     const cachedVanConfig = userToken?.VANCONFIG ?? setting?.VANCONFIG ?? null;
 
@@ -353,18 +371,18 @@ class CTForm extends React.Component {
     return true;
   };
 
-  _hasCachedRememberedSession = async (rememberedLogin, setting) => {
+  _hasCachedRememberedSession = async (credentials, setting) => {
     const userToken = await getUserToken();
     const result = Boolean(
-      rememberedLogin?.USER_CODE &&
-      rememberedLogin?.USER_PASSWORD &&
-      (userToken?.VANCONFIG || setting?.VANCONFIG)
+      credentials?.username &&
+        credentials?.password &&
+        (userToken?.VANCONFIG || setting?.VANCONFIG),
     );
     this._log('hasCachedRememberedSession', {
       result,
-      hasRememberedLogin: !!rememberedLogin,
-      hasRememberedUser: !!rememberedLogin?.USER_CODE,
-      hasRememberedPassword: !!rememberedLogin?.USER_PASSWORD,
+      hasCredentials: !!credentials,
+      hasUser: !!credentials?.username,
+      hasPassword: !!credentials?.password,
       hasUserTokenVanConfig: !!userToken?.VANCONFIG,
       hasSettingVanConfig: !!setting?.VANCONFIG,
     });
@@ -373,8 +391,8 @@ class CTForm extends React.Component {
 
   _prepareData = async () => {
     const setting = await getSettingConfig();
-    const loginInfo = await getLoginInfo();
-    const rememberedLogin = loginInfo?.rememberPassword ? loginInfo : null;
+    const autoLogin = await canAutoLogin();
+    const credentials = autoLogin ? await getCredentials() : null;
     const hasSettingConfig = Boolean(
       setting && setting.baseUrl && setting.vanCNFMachine,
     );
@@ -384,9 +402,8 @@ class CTForm extends React.Component {
       hasBaseUrl: !!setting?.baseUrl,
       hasVanCNFMachine: !!setting?.vanCNFMachine,
       hasSettingVanConfig: !!setting?.VANCONFIG,
-      hasRememberPassword: !!loginInfo?.rememberPassword,
-      hasLoginUser: !!loginInfo?.USER_CODE,
-      hasLoginPassword: !!loginInfo?.USER_PASSWORD,
+      canAutoLogin: autoLogin,
+      hasCredentials: !!credentials,
     });
 
     if (!hasSettingConfig) {
@@ -397,17 +414,23 @@ class CTForm extends React.Component {
     if (setting && setting.baseUrl) {
       Request.setBaseUrl(setting.baseUrl);
       Request.setHeaders({
-        vanCNFMachine: setting.vanCNFMachine
+        vanCNFMachine: setting.vanCNFMachine,
       });
     }
 
-    const userCode = rememberedLogin?.USER_CODE ?? null;
-    const userPassword = rememberedLogin?.USER_PASSWORD ?? null;
+    const userCode =
+      (await getSavedUsername()) || credentials?.username || null;
+    const userPassword = credentials?.password ?? null;
 
     if (!userCode || !userPassword) {
-      await this._goToAuth('missing remembered credentials and no cached session');
+      await this._goToAuth('missing credentials or auto-login disabled');
       return;
     }
+
+    const rememberedLogin = {
+      USER_CODE: userCode,
+      USER_PASSWORD: userPassword,
+    };
 
     this._log('prepareData:forcedRelogin', {
       hasUserCode: !!userCode,
@@ -433,7 +456,8 @@ class CTForm extends React.Component {
           ? responseData2.READCOMPANYINFO[0]
           : userToken?.COMPANYINFO ?? currentSetting?.COMPANYINFO ?? null;
 
-      const nextVanConfig = response ?? userToken?.VANCONFIG ?? currentSetting?.VANCONFIG ?? null;
+      const nextVanConfig =
+        response ?? userToken?.VANCONFIG ?? currentSetting?.VANCONFIG ?? null;
       let salesman = userToken?.SALESMAN ?? currentSetting?.SALESMAN ?? null;
 
       if (BPAPUS_GUID && nextVanConfig?.VANCNF_SLMN) {
@@ -442,7 +466,9 @@ class CTForm extends React.Component {
             BPAPUS_GUID,
             nextVanConfig.VANCNF_SLMN,
           );
-          const salesmanData = this._safeJsonParse(salesmanResponse?.ResponseData);
+          const salesmanData = this._safeJsonParse(
+            salesmanResponse?.ResponseData,
+          );
 
           if (
             salesmanResponse?.ResponseCode == 200 &&
@@ -499,13 +525,12 @@ class CTForm extends React.Component {
         allowAuthRedirect,
       });
       const setting = await getSettingConfig();
-      const loginInfo = await getLoginInfo();
-      const rememberedLogin = loginInfo?.rememberPassword ? loginInfo : null;
+      const credentials = await getCredentials();
       const activeConfig = configOverride ?? {
         baseUrl: setting?.baseUrl,
         vanCNFMachine: setting?.vanCNFMachine,
-        USER_CODE: rememberedLogin?.USER_CODE ?? null,
-        USER_PASSWORD: rememberedLogin?.USER_PASSWORD ?? null,
+        USER_CODE: credentials?.username ?? null,
+        USER_PASSWORD: credentials?.password ?? null,
       };
 
       if (
@@ -541,7 +566,7 @@ class CTForm extends React.Component {
         baseUrl: activeConfig.baseUrl,
         vanCNFMachine: activeConfig.vanCNFMachine,
         USER_CODE: activeConfig.USER_CODE,
-        USER_PASSWORD: activeConfig.USER_PASSWORD
+        USER_PASSWORD: activeConfig.USER_PASSWORD,
       });
 
       const response2 = await this.props.registerV3(
@@ -569,7 +594,10 @@ class CTForm extends React.Component {
         }
 
         await setLoginGuID(responseData.BPAPUS_GUID);
-        await this._getVanConfigV3(responseData.BPAPUS_GUID, activeConfig.vanCNFMachine);
+        await this._getVanConfigV3(
+          responseData.BPAPUS_GUID,
+          activeConfig.vanCNFMachine,
+        );
 
         const payloadState = await this._getStartupPayloadState();
         const vanConfig = payloadState.vanConfig;
@@ -582,9 +610,15 @@ class CTForm extends React.Component {
 
         await this._searchCustomerTypeList();
         await this._searchProductCateGoryList();
-        await this._setState('titleProgress', 'กำลังโหลดข้อมูลการตั้งค่าหน่วยรถ');
+        await this._setState(
+          'titleProgress',
+          'กำลังโหลดข้อมูลการตั้งค่าหน่วยรถ',
+        );
         await this._searchMasterDataBankFileList(responseData.BPAPUS_GUID);
-        await this._setState('titleProgress','กำลังโหลดข้อมูลการตั้งค่า ข้อมูลธนาคาร');
+        await this._setState(
+          'titleProgress',
+          'กำลังโหลดข้อมูลการตั้งค่า ข้อมูลธนาคาร',
+        );
 
         return await this._getStartupPayloadState();
       } else {
@@ -599,9 +633,8 @@ class CTForm extends React.Component {
     }
   };
 
-  _searchMasterDataBankFileList = async (GUID) => {
+  _searchMasterDataBankFileList = async GUID => {
     try {
-
       // console.log("GUID >>>>> " , GUID);
       await this.props.searchMasterDataBankFileList(GUID);
       await this._setState('titleProgress', 'กำลังโหลดการตั้งค่าธนาคาร');
@@ -628,8 +661,6 @@ class CTForm extends React.Component {
       await this._setState('titleProgress', 'กำลังโหลดการตั้งค่าธนาคาร');
       await this._searchCustomerTypeList();
       await this._setState('progress', 0.4);
-
-    
     } catch (error) {
       console.log(error);
       this._echoError(error);
@@ -640,9 +671,7 @@ class CTForm extends React.Component {
     try {
       const vanConfig = await this._getRequiredVanConfig().catch(() => null);
       if (!vanConfig) return;
-      await this.props.searchCustomerTypeList(
-        vanConfig.VANCNF_ENABLE_ALLAR,
-      );
+      await this.props.searchCustomerTypeList(vanConfig.VANCNF_ENABLE_ALLAR);
       await this._setState('titleProgress', 'กำลังโหลดการตั้งค่าลูกค้า');
       await this._setState('progress', 0.3);
 
@@ -664,9 +693,7 @@ class CTForm extends React.Component {
     try {
       const vanConfig = await this._getRequiredVanConfig().catch(() => null);
       if (!vanConfig) return;
-      await this.props.searchProductCateGoryList(
-        vanConfig.VANCNF_ENABLE_ALLIC,
-      );
+      await this.props.searchProductCateGoryList(vanConfig.VANCNF_ENABLE_ALLIC);
       await this.props.getArPricetab();
       await this._setState('titleProgress', 'กำลังโหลดการตั้งค่าสินค้า');
       await this._setState('progress', 0.5);
@@ -742,21 +769,22 @@ class CTForm extends React.Component {
 
   _setState = async (key, value) => {
     this._isMounted &&
-      (await this.setState((oldState) => {
+      (await this.setState(oldState => {
         return {
           [key]: value,
         };
       }));
   };
 
-  _echoError = async (error) => {
-    const msg = error instanceof Error
-      ? error.message
-      : typeof error === 'string'
+  _echoError = async error => {
+    const msg =
+      error instanceof Error
+        ? error.message
+        : typeof error === 'string'
         ? error
         : error != null
-          ? String(error)
-          : null;
+        ? String(error)
+        : null;
     await this._setState(
       'errorMessage',
       msg ? msg : 'ไม่สามารถเชื่อมต่อระบบได้',
@@ -788,23 +816,21 @@ class CTForm extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => ({});
+const mapStateToProps = state => ({});
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
     getVanConfig: () => dispatch(getVanConfig()),
-    getSaleManV3: (GUID, SLMN_KEY) =>
-      dispatch(getSaleManV3(GUID, SLMN_KEY)),
-    getVanConfigV3: (VANCNF_MACHINE) =>
-      dispatch(getVanConfigV3(VANCNF_MACHINE)),
+    getSaleManV3: (GUID, SLMN_KEY) => dispatch(getSaleManV3(GUID, SLMN_KEY)),
+    getVanConfigV3: VANCNF_MACHINE => dispatch(getVanConfigV3(VANCNF_MACHINE)),
     readCompanyInfoV3: (GUID, CMPNY_CODE) =>
       dispatch(readCompanyInfoV3(GUID, CMPNY_CODE)),
-    systemCheck2: (data) => dispatch(systemCheck2(data)),
-    searchMasterDataBankFileList: (GUID) =>
+    systemCheck2: data => dispatch(systemCheck2(data)),
+    searchMasterDataBankFileList: GUID =>
       dispatch(searchMasterDataBankFileList(GUID)),
-    searchCustomerTypeList: (vanCNFEnabledAllar) =>
+    searchCustomerTypeList: vanCNFEnabledAllar =>
       dispatch(searchCustomerTypeList(vanCNFEnabledAllar)),
-    searchProductCateGoryList: (vanCNFEnabledAllic) =>
+    searchProductCateGoryList: vanCNFEnabledAllic =>
       dispatch(searchProductCateGoryList(vanCNFEnabledAllic)),
     getMasterDataProvinces: () => dispatch(getMasterDataProvinces()),
     getMasterDataBankAccounts: () => dispatch(getMasterDataBankAccounts()),
