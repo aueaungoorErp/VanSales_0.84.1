@@ -63,8 +63,8 @@ export const BluetoothModels = {
 export const MOBILE5INCH = 370;
 
 //export const APP_VERSION_FULL = '3.0.10.0 (18/05/2023)';
-export const APP_VERSION_FULL = '3.1.0.35  (21/04/2026)';
-export const APP_VERSION = '3.1.0.35';
+export const APP_VERSION_FULL = '3.1.0.36  (28/05/2026)';
+export const APP_VERSION = '3.1.0.36';
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////// Theme Color /////////////////////////////////////
@@ -960,7 +960,7 @@ export const customerProfileDetailButtonGroup = [
       borderRadius: 0,
       borderColor: '#E5E4E2',
       borderWidth: 0.3,
-      display: 'none'
+      display: 'none',
     },
     titleStyle: { color: MainTheme.colorSecondary },
     containerStyle: { flex: 1 },
@@ -1637,8 +1637,6 @@ export const manualListItems = [
     source: 'bundle-assets://pdf/14.pdf',
   },
 
-
-
   {
     title: '15.การสรุปงาน',
     source: 'bundle-assets://pdf/15.pdf',
@@ -1674,8 +1672,6 @@ export const paymentLOVItems = [
     label: 'ขายเชื่อ',
     value: '0',
   },
-
-
 ];
 
 export const returnLOVItems = [

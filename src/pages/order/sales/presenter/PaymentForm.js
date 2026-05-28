@@ -267,7 +267,7 @@ const PaymentForm = props => {
   const showCashCard = safeUserToken.VANCONFIG.VANCNF_ENABLE_CASH === 2;
   const showTransferQrCard =
     safeUserToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
-  const showQrCodeOption = false;
+  const showQrCodeOption = true;
   const showChequeCard = safeUserToken.VANCONFIG.VANCNF_CHEQUE === 2;
   const showOtherCard = safeUserToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
 
@@ -824,6 +824,23 @@ const PaymentForm = props => {
   };
 
   console.log('qrCode', qrCode);
+  console.log('=== ข้อมูลธนาคาร ===');
+  console.log(
+    'listbankAccountItem (บัญชีโอน):',
+    JSON.stringify(safeListBankAccountItem, null, 2),
+  );
+  console.log(
+    'qrContentListItem (QR Content):',
+    JSON.stringify(safeQrContentListItems, null, 2),
+  );
+  console.log(
+    'bankFileListItems (ธนาคารเช็ค):',
+    JSON.stringify(safeBankFileListItems, null, 2),
+  );
+  console.log('bankAccountItem (บัญชีที่เลือก):', bankAccountItem);
+  console.log('qrContentItem (QR ที่เลือก):', qrContentItem);
+  console.log('qrAmount:', qrAmount);
+  console.log('=== จบข้อมูลธนาคาร ===');
 
   const qrPaymentValue = isDirectQrPayload(qrCode)
     ? String(qrCode).trim()
