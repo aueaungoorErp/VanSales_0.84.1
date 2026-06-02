@@ -1,13 +1,13 @@
 ﻿import React, { Component } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Linking,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { checkDistance, submit } from '../../../action/check-in';
@@ -22,8 +22,6 @@ import { getLoginGuID, getUserToken } from '../../../utils/Token';
 import { getCurrentPosition } from '../../../action/geolocation';
 import { MainTheme } from '../../../constant/lov';
 
-
-
 class CTButtonGroup extends Component {
   _isMounted = false;
 
@@ -36,25 +34,28 @@ class CTButtonGroup extends Component {
           VANCNF_FORCE_MILE: null,
         },
       },
-      previousRoute: {name: null},
+      previousRoute: { name: null },
       errorMessage: '',
       showDialog: false,
       isLoading: false,
     };
   }
 
-  componentDidMount = (props) => {
+  componentDidMount = props => {
     this._isMounted = true;
     this._getUserToken();
     this._getPreviousRoute();
   };
 
-  componentWillUnmount = (props) => {
+  componentWillUnmount = props => {
     this._isMounted = false;
   };
 
-  componentDidUpdate = (prevProps) => {
-    if (this.props.geolocation.isError !== prevProps.geolocation.isError && this.props.geolocation.isError) {
+  componentDidUpdate = prevProps => {
+    if (
+      this.props.geolocation.isError !== prevProps.geolocation.isError &&
+      this.props.geolocation.isError
+    ) {
       this._setState('showDialog', true);
     }
 
@@ -85,7 +86,10 @@ class CTButtonGroup extends Component {
     try {
       const navState = Navigator.getCurrentRoute();
       if (navState && navState.routes && navState.index > 0) {
-        await this._setState('previousRoute', navState.routes[navState.index - 1]);
+        await this._setState(
+          'previousRoute',
+          navState.routes[navState.index - 1],
+        );
       }
     } catch (e) {
       console.log('_getPreviousRoute error', e);
@@ -94,11 +98,16 @@ class CTButtonGroup extends Component {
 
   _renderItem = (item, key) => {
     const previousRoute = this.state.previousRoute || {};
-    const position = this.props.geolocation && this.props.geolocation.position ? this.props.geolocation.position : {};
+    const position =
+      this.props.geolocation && this.props.geolocation.position
+        ? this.props.geolocation.position
+        : {};
     const isDisabled =
       (item.title === 'ยกเลิก' &&
-        this.state.userToken && this.state.userToken.VANCONFIG && this.state.userToken.VANCONFIG.VANCNF_FORCE_GPS === 1 &&
-        previousRoute.name === 'Order') ||
+        this.state.userToken &&
+        this.state.userToken.VANCONFIG &&
+        this.state.userToken.VANCONFIG.VANCNF_FORCE_GPS === 1 &&
+        previousRoute.name === 'OrderScreen') ||
       (item.title === 'เช็คอิน' &&
         position.latitude === null &&
         position.longitude === null);
@@ -115,13 +124,16 @@ class CTButtonGroup extends Component {
         onPress={() => {
           this._onPress(item);
         }}
-        disabled={isDisabled}>
-        <Text style={[styles.buttonText, item.titleStyle || {}]}>{item.title}</Text>
+        disabled={isDisabled}
+      >
+        <Text style={[styles.buttonText, item.titleStyle || {}]}>
+          {item.title}
+        </Text>
       </TouchableOpacity>
     );
   };
 
-  _onPress = async (item) => {
+  _onPress = async item => {
     const userToken = await getUserToken();
     const navState = Navigator.getCurrentRoute();
     let routeName = null;
@@ -131,9 +143,14 @@ class CTButtonGroup extends Component {
 
     if (item.methodName === 'confirm') {
       if (await this._validateForm()) {
-        const position = this.props.geolocation && this.props.geolocation.position ? this.props.geolocation.position : {};
+        const position =
+          this.props.geolocation && this.props.geolocation.position
+            ? this.props.geolocation.position
+            : {};
         if (
-          userToken && userToken.VANCONFIG && userToken.VANCONFIG.VANCNF_WARN_NOGPS == 2 &&
+          userToken &&
+          userToken.VANCONFIG &&
+          userToken.VANCONFIG.VANCNF_WARN_NOGPS == 2 &&
           position.latitude === null &&
           position.longitude === null
         ) {
@@ -145,12 +162,15 @@ class CTButtonGroup extends Component {
           this._setState('showDialog', true);
         }
 
-        if (routeName === 'Order' || routeName === 'CustomerProfileDetail')
+        if (
+          routeName === 'OrderScreen' ||
+          routeName === 'CustomerProfileDetail'
+        )
           Navigator.pop(1, true);
         Navigator.navigate('OrderChoice');
       }
     } else if (item.methodName === 'back') {
-      if (routeName === 'Order' || routeName === 'CustomerProfileDetail')
+      if (routeName === 'OrderScreen' || routeName === 'CustomerProfileDetail')
         Navigator.pop(1, true);
       Navigator.navigate('OrderChoice');
     }
@@ -168,13 +188,17 @@ class CTButtonGroup extends Component {
   };
 
   _onSkip = () => {
-    if (this.state.userToken && this.state.userToken.VANCONFIG && this.state.userToken.VANCONFIG.VANCNF_WARN_NOGPS === 1) {
+    if (
+      this.state.userToken &&
+      this.state.userToken.VANCONFIG &&
+      this.state.userToken.VANCONFIG.VANCNF_WARN_NOGPS === 1
+    ) {
       const navState = Navigator.getCurrentRoute();
       let routeName = null;
       if (navState && navState.routes && navState.index > 0) {
         routeName = navState.routes[navState.index - 1].name;
       }
-      if (routeName === 'Order' || routeName === 'CustomerProfileDetail')
+      if (routeName === 'OrderScreen' || routeName === 'CustomerProfileDetail')
         Navigator.pop(1, true);
       Navigator.navigate('OrderChoice');
     } else {
@@ -196,137 +220,167 @@ class CTButtonGroup extends Component {
         this.state.userToken.VANCNF_RANGECHECKIN !== null &&
         this.state.userToken !== 0
       ) {
-      
+        if (
+          !this.props.customer.item ||
+          !this.props.customer.item.INFO ||
+          isNaN(parseFloat(this.props.customer.item.INFO.ADDB_GPS_LAT_S)) ||
+          isNaN(parseFloat(this.props.customer.item.INFO.ADDB_GPS_LONG_S))
+        ) {
+          // ไม่มีพิกัดในฐานข้อมูล
+          const AsyncAlert = async () =>
+            new Promise(resolve => {
+              Alert.alert(
+                'คำเตือน',
+                'ต้องการที่จะบันทึกพิกัดปัจจุบันสำหรับลูกค้ารายนี้ หรือไม่ ? \r\n',
+                [
+                  {
+                    text: 'บันทึก',
+                    onPress: () => {
+                      resolve('YES');
+                    },
+                  },
+                  {
+                    text: 'ไม่บันทึก',
+                    onPress: () => {
+                      resolve('NO');
+                    },
+                  },
+                ],
+                { cancelable: false },
+              );
+            });
+          const x = (await AsyncAlert()) == 'YES' ? true : false;
 
-   if ( !this.props.customer.item || !this.props.customer.item.INFO || isNaN(parseFloat(this.props.customer.item.INFO.ADDB_GPS_LAT_S)) || isNaN(parseFloat(this.props.customer.item.INFO.ADDB_GPS_LONG_S)) )
-      // ไม่มีพิกัดในฐานข้อมูล 
-      {
-        const AsyncAlert = async () => new Promise((resolve) => {
-        Alert.alert(
-               'คำเตือน',
-               'ต้องการที่จะบันทึกพิกัดปัจจุบันสำหรับลูกค้ารายนี้ หรือไม่ ? \r\n',
-          [
-              {text: 'บันทึก', onPress: () => { resolve('YES'); }, },
-              {text: 'ไม่บันทึก', onPress: () => { resolve('NO'); }, },              
-          ],
-          { cancelable: false },
-        );
-      });
-        const x = await AsyncAlert() == 'YES' ? true : false;
-    
-    if (x) {
-     // ไม่มีพิกัดในฐานข้อมูล ต้องการบันทึก 
-    const LoginGUID = await getLoginGuID();
-    const bodyRequest = {
-      'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
-      'BPAPUS-LOGIN-GUID': LoginGUID,
-      'BPAPUS-FUNCTION': 'UPDADDRBOOK',
-      'BPAPUS-PARAM':
-        '{"ADDB_KEY":  "' +
-        this.props.customer.item.INFO.ADDB_KEY +
-        '","ADDB_GPS_LAT_S": ' +
-        this.props.geolocation.position.latitude +
-        ',"ADDB_GPS_LONG_S": ' +
-        this.props.geolocation.position.longitude +
-        '}',
-      'BPAPUS-FILTER': '',
-      'BPAPUS-ORDERBY': '',
-      'BPAPUS-OFFSET': '0',
-      'BPAPUS-FETCH': '0',
-    };
-      //console.log('createTempCus v ', bodyRequest);
-      const u =await UpdAddrBookV3Api(bodyRequest)
-      .then((v) => {
-        const {ReasonString, ResponseCode, ResponseData} = v;
-        //console.log('createTempCus v1 ', v);
-        let responseData = JSON.parse(ResponseData);
-        const {RECORD_COUNT, OFFSET, FETCH} = responseData;
+          if (x) {
+            // ไม่มีพิกัดในฐานข้อมูล ต้องการบันทึก
+            const LoginGUID = await getLoginGuID();
+            const bodyRequest = {
+              'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
+              'BPAPUS-LOGIN-GUID': LoginGUID,
+              'BPAPUS-FUNCTION': 'UPDADDRBOOK',
+              'BPAPUS-PARAM':
+                '{"ADDB_KEY":  "' +
+                this.props.customer.item.INFO.ADDB_KEY +
+                '","ADDB_GPS_LAT_S": ' +
+                this.props.geolocation.position.latitude +
+                ',"ADDB_GPS_LONG_S": ' +
+                this.props.geolocation.position.longitude +
+                '}',
+              'BPAPUS-FILTER': '',
+              'BPAPUS-ORDERBY': '',
+              'BPAPUS-OFFSET': '0',
+              'BPAPUS-FETCH': '0',
+            };
+            //console.log('createTempCus v ', bodyRequest);
+            const u = await UpdAddrBookV3Api(bodyRequest).then(v => {
+              const { ReasonString, ResponseCode, ResponseData } = v;
+              //console.log('createTempCus v1 ', v);
+              let responseData = JSON.parse(ResponseData);
+              const { RECORD_COUNT, OFFSET, FETCH } = responseData;
 
-        if (ResponseCode == 200 && RECORD_COUNT > 0) {
-          return true;
-        } else {
-          return false;
-        }      
-      });
+              if (ResponseCode == 200 && RECORD_COUNT > 0) {
+                return true;
+              } else {
+                return false;
+              }
+            });
 
-      // ไม่มีพิกัดในฐานข้อมูล ต้องการบันทึก บันทึกสำเร็จ
-          if (u) {
-           // this._setState('isLoading', false);
-            this.props.customer.item.INFO.ADDB_GPS_LAT_S = this.props.geolocation.position.latitude;
-            this.props.customer.item.INFO.ADDB_GPS_LONG_S = this.props.geolocation.position.longitude;
+            // ไม่มีพิกัดในฐานข้อมูล ต้องการบันทึก บันทึกสำเร็จ
+            if (u) {
+              // this._setState('isLoading', false);
+              this.props.customer.item.INFO.ADDB_GPS_LAT_S =
+                this.props.geolocation.position.latitude;
+              this.props.customer.item.INFO.ADDB_GPS_LONG_S =
+                this.props.geolocation.position.longitude;
+            }
+          } else {
+            // ไม่มีพิกัดในฐานข้อมูล ไม่ต้องการบันทึก
+            //this._setState('isLoading', false);
+            return false;
           }
-      } else {
-        // ไม่มีพิกัดในฐานข้อมูล ไม่ต้องการบันทึก 
-        //this._setState('isLoading', false);
-        return false
-      };
-      }
+        }
 
-       this._setState('isLoading', true);
+        this._setState('isLoading', true);
         console.log('กำลัง Checkin');
-        console.log('กำลัง Checkin arInfo' , this.props.customer.item.INFO );
-        console.log('กำลัง Checkin arInfo' , isNaN(parseFloat(this.props.customer.item.INFO.ADDB_GPS_LAT_S)));
+        console.log('กำลัง Checkin arInfo', this.props.customer.item.INFO);
+        console.log(
+          'กำลัง Checkin arInfo',
+          isNaN(parseFloat(this.props.customer.item.INFO.ADDB_GPS_LAT_S)),
+        );
 
-
-       var cancheck = await this.props.checkDistance(
+        var cancheck = await this.props.checkDistance(
           this.props.customer.item.INFO,
           this.props.geolocation.position.latitude,
           this.props.geolocation.position.longitude,
           this.state.userToken.VANCONFIG.VANCNF_RANGECHECKIN,
         );
-  
-    if (cancheck){
-        const AsyncAlert = async () => new Promise((resolve) => {
+
+        if (cancheck) {
+          const AsyncAlert = async () =>
+            new Promise(resolve => {
+              Alert.alert(
+                'เช็คอิน',
+                'ทำรายการเช็คอินสำเร็จ',
+                [
+                  {
+                    text: 'ตกลง',
+                    onPress: () => {
+                      resolve('YES');
+                    },
+                  },
+                ],
+                { cancelable: false },
+              );
+            });
+          this._setState('isLoading', false);
+          const x = (await AsyncAlert()) == 'YES' ? true : false;
+          console.log('เสร็จสิ้น Checkin x= ', x);
+          ret = x;
+        }
+      }
+    } catch (error) {
+      console.log('errorMessage >>> ', error);
+      this._setState('isLoading', false);
+
+      const AsyncAlert = async () =>
+        new Promise(resolve => {
           Alert.alert(
-                  'เช็คอิน',
-                  'ทำรายการเช็คอินสำเร็จ',
+            'เช็คอินไม่สำเร็จ',
+            typeof error === 'string'
+              ? error
+              : error && error.message
+              ? error.message
+              : 'เกิดข้อผิดพลาด',
             [
-                {text: 'ตกลง', onPress: () => { resolve('YES'); }, },
+              //  {text: 'ไม่ยืนยัน', onPress: () => { resolve('NO'); }, },
+              {
+                text: 'ตกลง',
+                onPress: () => {
+                  resolve('NO');
+                },
+              },
             ],
             { cancelable: false },
           );
         });
-              this._setState('isLoading', false);
-              const x = await AsyncAlert() == 'YES' ? true : false; 
-              console.log('เสร็จสิ้น Checkin x= ' , x);    
-              ret = x;
-
-          } 
-      }
-
-    } catch (error) {
-      console.log('errorMessage >>> ' , error);
-      this._setState('isLoading', false);
-
-      const AsyncAlert = async () => new Promise((resolve) => {
-        Alert.alert(
-                'เช็คอินไม่สำเร็จ',
-              typeof error === 'string' ? error : (error && error.message ? error.message : 'เกิดข้อผิดพลาด') ,
-          [
-            //  {text: 'ไม่ยืนยัน', onPress: () => { resolve('NO'); }, },              
-              {text: 'ตกลง', onPress: () => { resolve('NO'); }, },
-          ],
-          { cancelable: false },
-        );
-      });
-          const x = await AsyncAlert() == 'YES' ? true : false; 
-          ret = x ;
-          }
+      const x = (await AsyncAlert()) == 'YES' ? true : false;
+      ret = x;
+    }
     return ret;
   };
 
   _setState = (key, value) => {
     this._isMounted &&
-      this.setState((oldState) => {
+      this.setState(oldState => {
         return {
           [key]: value,
         };
       });
   };
 
-  _setErrorMessage = (value) => {
+  _setErrorMessage = value => {
     this._isMounted &&
-      this.setState((oldState) => {
+      this.setState(oldState => {
         return {
           errorMessage: value,
         };
@@ -334,7 +388,9 @@ class CTButtonGroup extends Component {
   };
 
   render() {
-    const geolocationMessage = this.props.geolocation.message || 'ไม่สามารถค้นหาพิกัดตำแหน่งของผู้ใช้งานได้';
+    const geolocationMessage =
+      this.props.geolocation.message ||
+      'ไม่สามารถค้นหาพิกัดตำแหน่งของผู้ใช้งานได้';
     const isPermissionBlocked = geolocationMessage.includes('การตั้งค่าแอป');
     const canSkip =
       this.state.userToken &&
@@ -347,17 +403,21 @@ class CTButtonGroup extends Component {
           transparent
           visible={this.state.showDialog}
           animationType="fade"
-          onRequestClose={() => this._setState('showDialog', false)}>
+          onRequestClose={() => this._setState('showDialog', false)}
+        >
           <View style={styles.modalOverlay}>
             <View style={styles.dialogCard}>
               <Text style={styles.dialogTitle}>คำเตือน</Text>
-              <Text style={styles.dialogMessage}>
-                {geolocationMessage}
-              </Text>
+              <Text style={styles.dialogMessage}>{geolocationMessage}</Text>
               <View style={styles.dialogButtonRow}>
                 <TouchableOpacity
                   style={[styles.dialogButton, styles.primaryDialogButton]}
-                  onPress={isPermissionBlocked ? this._openLocationSettings : this._getCurrentPosition}>
+                  onPress={
+                    isPermissionBlocked
+                      ? this._openLocationSettings
+                      : this._getCurrentPosition
+                  }
+                >
                   <Text style={styles.primaryDialogButtonText}>
                     {isPermissionBlocked ? 'เปิดตั้งค่า' : 'ลองใหม่'}
                   </Text>
@@ -365,7 +425,8 @@ class CTButtonGroup extends Component {
                 {canSkip ? (
                   <TouchableOpacity
                     style={[styles.dialogButton, styles.secondaryDialogButton]}
-                    onPress={this._onSkip}>
+                    onPress={this._onSkip}
+                  >
                     <Text style={styles.secondaryDialogButtonText}>ข้าม</Text>
                   </TouchableOpacity>
                 ) : null}
@@ -378,15 +439,19 @@ class CTButtonGroup extends Component {
           transparent
           visible={this.state.errorMessage !== ''}
           animationType="fade"
-          onRequestClose={() => this._setState('errorMessage', '')}>
+          onRequestClose={() => this._setState('errorMessage', '')}
+        >
           <View style={styles.modalOverlay}>
             <View style={styles.dialogCard}>
               <Text style={styles.dialogTitle}>คำเตือน</Text>
-              <Text style={styles.dialogMessage}>{this.state.errorMessage}</Text>
+              <Text style={styles.dialogMessage}>
+                {this.state.errorMessage}
+              </Text>
               <View style={styles.dialogButtonRow}>
                 <TouchableOpacity
                   style={[styles.dialogButton, styles.primaryDialogButton]}
-                  onPress={() => this._setState('errorMessage', '')}>
+                  onPress={() => this._setState('errorMessage', '')}
+                >
                   <Text style={styles.primaryDialogButtonText}>ตกลง</Text>
                 </TouchableOpacity>
               </View>
@@ -398,7 +463,8 @@ class CTButtonGroup extends Component {
           transparent
           visible={this.state.isLoading}
           animationType="fade"
-          onRequestClose={() => null}>
+          onRequestClose={() => null}
+        >
           <View style={styles.modalOverlay}>
             <View style={styles.loadingCard}>
               <ActivityIndicator size="large" color={MainTheme.colorPrimary} />
@@ -417,13 +483,13 @@ class CTButtonGroup extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   checkin: state.checkin,
   geolocation: state.geolocation,
   customer: state.customer,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
     submit: () => {
       dispatch(submit());

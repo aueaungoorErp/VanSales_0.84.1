@@ -26,7 +26,7 @@ import Navigator from '../../../../services/Navigator';
 import { calculateOrderProductProcessedSummary } from '../../../../utils/Culculate';
 import {
   convertProductItemLastBillToOrderItem,
-  generateHeaderForUpdate
+  generateHeaderForUpdate,
 } from '../../../../utils/Order';
 import { getUserToken } from '../../../../utils/Token';
 import ListItems from '../presenter/ListItems';
@@ -47,11 +47,11 @@ class CTListItems extends Component {
     this._getUserToken();
   }
 
-  componentDidMount = (props) => {
+  componentDidMount = props => {
     this._isMounted = true;
   };
 
-  componentWillUnmount = (props) => {
+  componentWillUnmount = props => {
     this._isMounted = false;
   };
 
@@ -60,7 +60,7 @@ class CTListItems extends Component {
 
     if (userToken) {
       this._isMounted &&
-        (await this.setState((oldState) => {
+        (await this.setState(oldState => {
           return {
             userToken: userToken,
           };
@@ -68,7 +68,7 @@ class CTListItems extends Component {
     }
   };
 
-  _printBill = async (item) => {
+  _printBill = async item => {
     try {
       if (item.DOCINFO?.DI_ACTIVE == 0) {
         if (this.props.bluetooth.state !== 'connected') {
@@ -99,9 +99,9 @@ class CTListItems extends Component {
           item.DI_REF,
           moment(item.DI_DATE).format('DDMMYYYY'),
         );
-        const {RESULT_DATA, RESPONSE_DATETIME} = result;
+        const { RESULT_DATA, RESPONSE_DATETIME } = result;
 
-        const {HEADER, ITEMS, ITEMS_PRT} = RESULT_DATA;
+        const { HEADER, ITEMS, ITEMS_PRT } = RESULT_DATA;
 
         let printTime = RESPONSE_DATETIME.split('T');
         printTime = printTime[1].split('.');
@@ -122,7 +122,7 @@ class CTListItems extends Component {
     this._setState('isLoading', false);
   };
 
-  _printBillPDF = async (item) => {
+  _printBillPDF = async item => {
     try {
       console.log('_printBillPDF 1');
       permissions = [PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE];
@@ -163,10 +163,10 @@ class CTListItems extends Component {
             moment(item.DI_DATE).format('DDMMYYYY'),
           );
           console.log('_printBillPDF 9');
-          const {RESULT_DATA, RESPONSE_DATETIME} = result;
+          const { RESULT_DATA, RESPONSE_DATETIME } = result;
           console.log('RESULT_DATA ', RESULT_DATA);
           console.log('RESPONSE_DATETIME ', RESPONSE_DATETIME);
-          const {HEADER, ITEMS, ITEMS_PRT} = RESULT_DATA;
+          const { HEADER, ITEMS, ITEMS_PRT } = RESULT_DATA;
 
           let printTime = RESPONSE_DATETIME.split('T');
           printTime = printTime[1].split('.');
@@ -203,7 +203,7 @@ class CTListItems extends Component {
           };
 
           let file = await RNHTMLtoPDF.convert(options);
-          console.log("filePath: ",file)
+          console.log('filePath: ', file);
           this._pdfAlertDialog(file.filePath);
         }
       }
@@ -213,11 +213,11 @@ class CTListItems extends Component {
     this._setState('isLoading', false);
   };
 
-  _orderCancel = async (item) => {
+  _orderCancel = async item => {
     try {
       if (
         item.DOCINFO?.DI_ACTIVE == 0 //&&
-      //  this.state.userToken.VANCONFIG.VANCNF_EDIT_AFPRT == 2
+        //  this.state.userToken.VANCONFIG.VANCNF_EDIT_AFPRT == 2
       ) {
         this._setState('loadingMessage', 'กำลังทำการยกเลิกเอกสาร...');
         this._setState('isLoading', true);
@@ -232,7 +232,7 @@ class CTListItems extends Component {
     this._setState('isLoading', false);
   };
 
-  _orderUpdate = async (item) => {
+  _orderUpdate = async item => {
     try {
       console.log(
         'this.state.userToken.VANCONFIG.VANCNF_EDIT_AFPRT ',
@@ -270,7 +270,7 @@ class CTListItems extends Component {
           this._setState('isLoading', true);
 
           const response = await this.props.orderUpdate(item.DI_KEY);
-          const {ORDER_VIEW, EDIT_ITEMS} = response;
+          const { ORDER_VIEW, EDIT_ITEMS } = response;
           console.log('ORDER_VIEW.ITEMS ', JSON.stringify(ORDER_VIEW.ITEMS));
           console.log('EDIT_ITEMS ', JSON.stringify(EDIT_ITEMS));
 
@@ -323,7 +323,7 @@ class CTListItems extends Component {
   ) => {
     if (this.props.bluetooth.state == 'connected') {
       const userToken = await getUserToken();
-      console.log("printReceipt...1");
+      console.log('printReceipt...1');
       BplusPrinting.printReceipt(
         headerProcessed,
         productListItemsPRTProcessed,
@@ -338,23 +338,23 @@ class CTListItems extends Component {
     }
   };
 
-  _removeConfirmDialog = (item) =>
+  _removeConfirmDialog = item =>
     Alert.alert(
       'ประกาศ',
       ' ยืนยันการยกเลิกเอกสาร',
       [
-        {text: 'ยกเลิก', onPress: () => {}, style: 'cancel'},
-        {text: 'ยืนยัน', onPress: () => this._orderCancel(item)},
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
+        { text: 'ยืนยัน', onPress: () => this._orderCancel(item) },
       ],
-      {cancelable: false},
+      { cancelable: false },
     );
 
-  _printConfirmDialog = (item) => {
+  _printConfirmDialog = item => {
     Alert.alert(
       'ประกาศ',
       'ต้องการพิมพ์',
       [
-        {text: 'ยกเลิก', onPress: () => {}, style: 'cancel'},
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
         {
           text: 'ยืนยัน',
           onPress: () =>
@@ -363,7 +363,7 @@ class CTListItems extends Component {
               : this._printBillPDF(item),
         },
       ],
-      {cancelable: false},
+      { cancelable: false },
     );
   };
 
@@ -372,21 +372,21 @@ class CTListItems extends Component {
       'ประกาศ',
       'เนื่องจากไม่ได้ทำการ Connect printer ต้องการจะไปที่หน้า Bluetooth setting หรือไม่',
       [
-        {text: 'ยกเลิก', onPress: () => {}, style: 'cancel'},
-        {text: 'ยืนยัน', onPress: () => this._goToBluetoothSetting()},
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
+        { text: 'ยืนยัน', onPress: () => this._goToBluetoothSetting() },
       ],
-      {cancelable: false},
+      { cancelable: false },
     );
 
   _goToBluetoothSetting = () => {
-    BluetoothFinder.checkBluetoothEnable((value) => {
+    BluetoothFinder.checkBluetoothEnable(value => {
       if (value.result) {
         Navigator.navigate('Bluetooth');
       }
     });
   };
 
-  _pdfAlertDialog = (path) =>
+  _pdfAlertDialog = path =>
     Alert.alert(
       'ประกาศ',
       path,
@@ -394,7 +394,7 @@ class CTListItems extends Component {
         {
           text: 'แสดง',
           onPress: () =>
-            Navigator.navigate('PDFPreview', {title: '', source: path}),
+            Navigator.navigate('PDFPreview', { title: '', source: path }),
           style: 'cancel',
         },
         {
@@ -402,12 +402,12 @@ class CTListItems extends Component {
           onPress: () => Navigator.navigate('OrderChoice'),
         },
       ],
-      {cancelable: false},
+      { cancelable: false },
     );
 
   _setState = (key, value) => {
     this._isMounted &&
-      this.setState((oldState) => {
+      this.setState(oldState => {
         return {
           [key]: value,
         };
@@ -419,7 +419,7 @@ class CTListItems extends Component {
     this.props.billSearchListItems();
   };
 
-  _onScroll = (event) => {
+  _onScroll = event => {
     const frameHeight = event.nativeEvent.layoutMeasurement.height;
     const contentHeight = event.nativeEvent.contentSize.height;
     const maxOffset = 0.95 * parseInt(contentHeight - frameHeight);
@@ -433,38 +433,44 @@ class CTListItems extends Component {
     return (
       <ListItem
         title={
-          <View style={{flexDirection: 'row'}}>
+          <View style={{ flexDirection: 'row' }}>
             <Text
-              style={{width: 150, marginLeft: 5, fontSize: hp('1.6%')}}
-              allowFontScaling={false}>
+              style={{ width: 150, marginLeft: 5, fontSize: hp('1.6%') }}
+              allowFontScaling={false}
+            >
               เลขที่
             </Text>
             <Text
-              style={{width: 100, marginLeft: 5, fontSize: hp('1.6%')}}
-              allowFontScaling={false}>
+              style={{ width: 100, marginLeft: 5, fontSize: hp('1.6%') }}
+              allowFontScaling={false}
+            >
               รายการ
             </Text>
             <Text
-              style={{width: 100, marginLeft: 5, fontSize: hp('1.6%')}}
-              allowFontScaling={false}>
+              style={{ width: 100, marginLeft: 5, fontSize: hp('1.6%') }}
+              allowFontScaling={false}
+            >
               ยอดเงิน
             </Text>
             <Text
-              style={{width: 100, marginLeft: 5, fontSize: hp('1.6%')}}
-              allowFontScaling={false}>
+              style={{ width: 100, marginLeft: 5, fontSize: hp('1.6%') }}
+              allowFontScaling={false}
+            >
               วันที่
             </Text>
             <Text
-              style={{width: 50, marginLeft: 5, fontSize: hp('1.6%')}}
-              allowFontScaling={false}>
+              style={{ width: 50, marginLeft: 5, fontSize: hp('1.6%') }}
+              allowFontScaling={false}
+            >
               สถานะ
             </Text>
             <Text
-              style={{width: 150, marginLeft: 5, fontSize: hp('1.6%')}}
-              allowFontScaling={false}></Text>
+              style={{ width: 150, marginLeft: 5, fontSize: hp('1.6%') }}
+              allowFontScaling={false}
+            ></Text>
           </View>
         }
-        containerStyle={{backgroundColor: MainTheme.colorPrimary}}
+        containerStyle={{ backgroundColor: MainTheme.colorPrimary }}
         titleNumberOfLines={1}
       />
     );
@@ -474,7 +480,7 @@ class CTListItems extends Component {
     this.props.setError(false);
   };
 
-  _showPrinterIcon = (item) => {
+  _showPrinterIcon = item => {
     if (item.DOCINFO?.DI_ACTIVE != 0) return false;
     if (item.DOCINFO?.DT_PROPERTIES == 348) return false;
     if (item.DOCINFO?.DT_PROPERTIES == 349) return false;
@@ -499,42 +505,47 @@ class CTListItems extends Component {
     return true;
   };
 
-  _renderItem = ({item}) => {
-    console.log("order bill list item ",item);
+  _renderItem = ({ item }) => {
+    console.log('order bill list item ', item);
     return (
       <ListItem
         title={
-          <View style={{flexDirection: 'row'}}>
+          <View style={{ flexDirection: 'row' }}>
             <Text
-              style={{width: 150, marginLeft: 5, fontSize: hp('1.6%')}}
-              allowFontScaling={false}>
+              style={{ width: 150, marginLeft: 5, fontSize: hp('1.6%') }}
+              allowFontScaling={false}
+            >
               {/* {item.DI_REF} */}
               {item.DOCINFO?.DI_REF}
             </Text>
             <Text
-              style={{width: 100, marginLeft: 5, fontSize: hp('1.6%')}}
-              allowFontScaling={false}>
+              style={{ width: 100, marginLeft: 5, fontSize: hp('1.6%') }}
+              allowFontScaling={false}
+            >
               {item.DI_ITEMS.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
             </Text>
             <Text
-              style={{width: 100, marginLeft: 5, fontSize: hp('1.6%')}}
-              allowFontScaling={false}>
+              style={{ width: 100, marginLeft: 5, fontSize: hp('1.6%') }}
+              allowFontScaling={false}
+            >
               {item.DI_AMOUNT.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
             </Text>
             <Text
-              style={{width: 100, marginLeft: 5, fontSize: hp('1.6%')}}
-              allowFontScaling={false}>
+              style={{ width: 100, marginLeft: 5, fontSize: hp('1.6%') }}
+              allowFontScaling={false}
+            >
               {moment(item.DOCINFO?.DI_DATE)
                 .add(543, 'years')
                 .format('DD/MM/YYYY')}
             </Text>
             <Text
-              style={{width: 50, marginLeft: 5, fontSize: hp('1.6%')}}
-              allowFontScaling={false}>
+              style={{ width: 50, marginLeft: 5, fontSize: hp('1.6%') }}
+              allowFontScaling={false}
+            >
               {item.DOCINFO?.DI_ACTIVE == 0 ? 'ปรกติ' : 'ยกเลิก'}
             </Text>
 
-            <View style={{width: 150, marginLeft: 5, flexDirection: 'row'}}>
+            <View style={{ width: 150, marginLeft: 5, flexDirection: 'row' }}>
               {item.DOCINFO?.DI_ACTIVE == 0 &&
               item.CAN_EDIT == true &&
               item.DOCINFO?.DT_PROPERTIES != 348 &&
@@ -543,7 +554,7 @@ class CTListItems extends Component {
               this.state.userToken.VANCONFIG ? ( //&&
                 //    this.state.userToken.VANCONFIG.VANCNF_EDIT_AFPRT &&
                 //       this.state.userToken.VANCONFIG.VANCNF_EDIT_AFPRT == 2
-                <View style={{marginRight: 15}}>
+                <View style={{ marginRight: 15 }}>
                   <Icon
                     name="edit"
                     size={20}
@@ -554,9 +565,6 @@ class CTListItems extends Component {
                   />
                 </View>
               ) : null}
-
-             
-              
             </View>
           </View>
         }
@@ -604,30 +612,30 @@ class CTListItems extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   bill: state.bill,
   bluetooth: state.bluetooth,
   customer: state.customer,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
     loadOrderFileByById: (id, date) => dispatch(loadOrderFileByById(id, date)),
-    orderCancel: (id) => dispatch(orderCancel(id)),
+    orderCancel: id => dispatch(orderCancel(id)),
     orderUpdate: (id, type) => dispatch(orderUpdate(id, type)),
-    setInitialState: (data) => dispatch(setInitialState(data)),
-    setHeader: (data) => dispatch(setHeader(data)),
-    setOrderItems: (data) => dispatch(setOrderItems(data)),
+    setInitialState: data => dispatch(setInitialState(data)),
+    setHeader: data => dispatch(setHeader(data)),
+    setOrderItems: data => dispatch(setOrderItems(data)),
     billSearchListItems: (dateFrom, dateTo) => {
       dispatch(billSearchListItems(dateFrom, dateTo));
     },
     billClearListItems: () => {
       dispatch(billClearListItems());
     },
-    setError: (bool) => {
+    setError: bool => {
       dispatch(setError(bool));
     },
-    addProduct: (item) => dispatch(addProduct(item)),
+    addProduct: item => dispatch(addProduct(item)),
   };
 };
 

@@ -1,12 +1,12 @@
-﻿import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {Keyboard, TouchableOpacity, Text, StyleSheet} from 'react-native';
-import {mileFormButtonGroup} from '../../../constant/lov';
+﻿import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { Keyboard, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { mileFormButtonGroup } from '../../../constant/lov';
 import ButtonGroup from '../presenter/ButtonGroup';
-import {setInitialState} from '../../../action/mile';
-import {getUserToken} from '../../../utils/Token';
+import { setInitialState } from '../../../action/mile';
+import { getUserToken } from '../../../utils/Token';
 import Navigator from '../../../services/Navigator';
-import {MainTheme} from '../../../constant/lov';
+import { MainTheme } from '../../../constant/lov';
 
 class CTButtonGroup extends Component {
   _isMounted = false;
@@ -20,18 +20,18 @@ class CTButtonGroup extends Component {
           VANCNF_FORCE_MILE: null,
         },
       },
-      previousRoute: {name: null},
+      previousRoute: { name: null },
       errorMessage: null,
     };
   }
 
-  componentDidMount = (props) => {
+  componentDidMount = props => {
     this._isMounted = true;
     this._getUserToken();
     this._getPreviousRoute();
   };
 
-  componentWillUnmount = (props) => {
+  componentWillUnmount = props => {
     this._isMounted = false;
   };
 
@@ -44,13 +44,13 @@ class CTButtonGroup extends Component {
   };
 
   _getPreviousRoute = async () => {
-    const {routes, index} = Navigator.getCurrentRoute();
+    const { routes, index } = Navigator.getCurrentRoute();
     await this._setState('previousRoute', routes[index - 1]);
   };
 
   _setState = async (key, value) => {
     this._isMounted &&
-      (await this.setState((oldState) => {
+      (await this.setState(oldState => {
         return {
           [key]: value,
         };
@@ -61,7 +61,7 @@ class CTButtonGroup extends Component {
     const isDisabled =
       item.title === 'ยกเลิก' &&
       this.state.userToken.VANCONFIG.VANCNF_FORCE_MILE == 1 &&
-      this.state.previousRoute.name === 'Order';
+      this.state.previousRoute.name === 'OrderScreen';
 
     return (
       <TouchableOpacity
@@ -77,30 +77,32 @@ class CTButtonGroup extends Component {
         }}
         disabled={isDisabled}
       >
-        <Text style={[styles.buttonText, item.titleStyle || {}]}>{item.title}</Text>
+        <Text style={[styles.buttonText, item.titleStyle || {}]}>
+          {item.title}
+        </Text>
       </TouchableOpacity>
     );
   };
 
-  _onPress = async (item) => {
+  _onPress = async item => {
     if (item.methodName === 'confirm') {
       this._onSubmit();
     } else if (item.methodName === 'back') {
       // this.props.setInitialState()
       const userToken = await getUserToken();
-      const {routes, index} = Navigator.getCurrentRoute();
-      const {name: routeName} = routes[index - 1];
+      const { routes, index } = Navigator.getCurrentRoute();
+      const { name: routeName } = routes[index - 1];
 
       if (
         userToken.VANCONFIG.VANCNF_FORCE_GPS == 1 &&
-        (routeName === 'Order' || routeName === 'CustomerProfileDetail')
+        (routeName === 'OrderScreen' || routeName === 'CustomerProfileDetail')
       ) {
         Navigator.pop(1, true);
         Navigator.navigate('CheckIn');
         return;
       }
 
-      if (routeName === 'Order') Navigator.pop(1, true);
+      if (routeName === 'OrderScreen') Navigator.pop(1, true);
       Navigator.navigate('OrderChoice');
     }
 
@@ -110,12 +112,12 @@ class CTButtonGroup extends Component {
   _onSubmit = async () => {
     if (this._validateForm()) {
       const userToken = await getUserToken();
-      const {routes, index} = Navigator.getCurrentRoute();
-      const {name: routeName} = routes[index - 1];
+      const { routes, index } = Navigator.getCurrentRoute();
+      const { name: routeName } = routes[index - 1];
 
       if (
         userToken.VANCONFIG.VANCNF_FORCE_GPS == 1 &&
-        (routeName === 'Order' || routeName === 'CustomerProfileDetail')
+        (routeName === 'OrderScreen' || routeName === 'CustomerProfileDetail')
       ) {
         Navigator.pop(1, true);
         Navigator.navigate('CheckIn');
@@ -147,8 +149,8 @@ class CTButtonGroup extends Component {
     return true;
   };
 
-  _setErrorMessage = (value) => {
-    this.setState((oldState) => {
+  _setErrorMessage = value => {
+    this.setState(oldState => {
       return {
         errorMessage: value,
       };
@@ -166,11 +168,11 @@ class CTButtonGroup extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   mile: state.mile,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
     setInitialState: () => {
       dispatch(setInitialState());

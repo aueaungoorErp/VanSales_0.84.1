@@ -40,11 +40,11 @@ function LoginNavigator() {
     >
       <LoginStack.Screen
         name="Login"
-        component={require('./pages/login/screen/Index').default}
+        component={require('./pages/login/screen/LoginScreen').default}
       />
       <LoginStack.Screen
         name="LoginSetting"
-        component={require('./pages/login/screen/Setting').default}
+        component={require('./pages/login/screen/SettingScreen').default}
         initialParams={{ title: 'ตั้งค่าเว็ปเซอร์วิสและหน่วยรถ' }}
       />
       <LoginStack.Screen
@@ -150,8 +150,8 @@ function HomeNavigator() {
         initialParams={{ title: 'บันทึกเลขไมล์' }}
       />
       <HomeStack.Screen
-        name="Order"
-        component={require('./pages/order/screen/Index').default}
+        name="OrderScreen"
+        component={require('./pages/order/screen/OrderScreen').default}
         initialParams={{ title: 'ทำรายการ' }}
       />
       <HomeStack.Screen

@@ -378,7 +378,15 @@ export const getVanConfigV3Api = async (data, requestConfig = undefined) => {
       .post('/LookupErp', bodyRequest, requestConfig)
       .then(v => {
         const { ResponseData, ResponseCode, ReasonString } = v.data;
-        const responseData = JSON.parse(ResponseData);
+        let responseData = null;
+        try {
+          responseData = ResponseData ? JSON.parse(ResponseData) : null;
+        } catch (parseErr) {
+          console.log(
+            '[getVanConfigV3Api] ResponseData parse error:',
+            parseErr?.message,
+          );
+        }
         const vanConfigList = Array.isArray(responseData?.Vans0103)
           ? responseData.Vans0103
           : [];

@@ -48,7 +48,7 @@
     "rememberPassword": "rememberPassword"
   },
   "login_setting": {
-    "setting": "Setting", 
+    "setting": "Setting",
     "web_service": "Web service",
     "van_machine": "Van machine",
     "employee": "Employee",
@@ -113,7 +113,7 @@
     "username_is_required": "username is required",
     "password_is_required": "password is required",
     "please_try_again": "anything wrong please try again",
-    "duplicateUser" : "หมายเลขรถคันนี้มีการใช้งานซ้ำกับเครื่องอื่น ๆ"
+    "duplicateUser": "หมายเลขรถคันนี้ลงทะเบียนเกินขีดจำกัด หรือมีการใช้งานซ้ำกับเครื่องอื่น"
   },
   "error_ser": {
     "607": "เครื่องเกินขีดจำกัด",
@@ -130,8 +130,8 @@
     "404": "กรุณาตรวจสอบเครือข่าย / ที่อยู่ฐานข้อมูล",
     "404-1": "กรุณาตรวจสอบเครือข่าย / ที่อยู่ฐานข้อมูล",
     "637": "เกิดข้อผิดพลาด รหัส 637",
+    "duplicateUser": "หมายเลขรถคันนี้ลงทะเบียนเกินขีดจำกัด หรือมีการใช้งานซ้ำกับเครื่องอื่น",
 
-    "timeout" :"Request timed out. Please try again."
-
+    "timeout": "Request timed out. Please try again."
   }
 }

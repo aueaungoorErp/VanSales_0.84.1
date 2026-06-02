@@ -3,23 +3,23 @@ import { StyleSheet, View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import { MainTheme, mainContainer } from '../../../constant/lov';
 import BackHandlerHOC from '../../../hoc/BackHandlerHOC';
-import CTListItems from '../../customer/container/CTListItems';
+import CustomerList from '../../customer/presenter/ListItems';
 import SearchForm from '../../customer/presenter/SearchForm';
 
 type OrderScreenProps = {
   navigation?: unknown;
 };
 
-const Index: React.FC<OrderScreenProps> = props => {
+const OrderScreen: React.FC<OrderScreenProps> = props => {
   return (
     <View style={[styles.container, { paddingTop: 5 }]}>
       <SearchForm {...props} />
-      <CTListItems />
+      <CustomerList />
     </View>
   );
 };
 
-export default BackHandlerHOC(Index);
+export default BackHandlerHOC(OrderScreen);
 
 const styles = StyleSheet.create({
   container: mainContainer as ViewStyle,

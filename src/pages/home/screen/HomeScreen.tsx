@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { MainTheme } from '../../../constant/lov';
 import CTHeader from '../../user/container/CTHeader';
-import CTMenuItems from '../component/CTMenuItems';
+import MenuList from '../component/MenuList';
 
 type HomeScreenProps = {
   navigation?: unknown;
@@ -15,7 +15,7 @@ const HomeScreen: React.FC<HomeScreenProps> = () => {
         <CTHeader />
       </View>
       <View style={styles.body}>
-        <CTMenuItems />
+        <MenuList />
       </View>
     </View>
   );

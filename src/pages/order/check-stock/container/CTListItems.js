@@ -6,22 +6,21 @@ import { Icon, ListItem } from '../../../../component/elements';
 import Navigator from '../../../../services/Navigator';
 
 import {
-    calculateOrderProductSummary,
-    editProduct,
-    getProductListItemsFromLastBillByArCode,
-    removeProductItem,
-    setOrderItems,
+  calculateOrderProductSummary,
+  editProduct,
+  getProductListItemsFromLastBillByArCode,
+  removeProductItem,
+  setOrderItems,
 } from '../../../../action/order';
 import { setGoodsCodeCriteria, setProduct } from '../../../../action/product';
 import { mainDivider, MainTheme, MOBILE5INCH } from '../../../../constant/lov';
 import { numberOnlyCanZeroFirst } from '../../../../utils/Culculate';
 import {
-    convertOrderItemToProductItem,
-    convertProductItemToOrderItem,
+  convertOrderItemToProductItem,
+  convertProductItemToOrderItem,
 } from '../../../../utils/Order';
 import { getLoginGuID, getUserToken } from '../../../../utils/Token';
-import ListItems from '../../presenter/ListItems';
-
+import ListItems from '../../component/ListItems';
 
 class CTListItems extends Component {
   _isMounted = false;
@@ -38,22 +37,21 @@ class CTListItems extends Component {
     this._autoPullOrderLastBill();
   }
 
-  componentDidMount = (props) => {
+  componentDidMount = props => {
     this._isMounted = true;
     // this._getProductListItemsFromLastBillByArCode();
   };
 
-  componentWillUnmount = (props) => {
+  componentWillUnmount = props => {
     this._isMounted = false;
   };
-
 
   _getUserToken = async () => {
     const userToken = await getUserToken();
 
     if (userToken) {
       this._isMounted &&
-        (await this.setState((oldState) => {
+        (await this.setState(oldState => {
           return {
             userToken: userToken,
           };
@@ -114,18 +112,15 @@ class CTListItems extends Component {
     // }
   };
 
-
-
-
   _editProductItem = (item, index) => {
     console.log('convertProductItemToOrderItem 1 >>', item);
-    item.GOODS_TOTAL_DISCOUNT = item.VTRD_U_DSC
+    item.GOODS_TOTAL_DISCOUNT = item.VTRD_U_DSC;
     this.props.setProduct('edit', convertOrderItemToProductItem(item));
     this.props.setGoodsCodeCriteria(item.VTRD_CODE);
 
     Navigator.navigate('ProductEditTo', {
       actionType: 'edit',
-      confirmMethod: async (item) => {
+      confirmMethod: async item => {
         await this.props.editProduct(
           convertProductItemToOrderItem(item),
           index,
@@ -235,12 +230,14 @@ class CTListItems extends Component {
                   borderLeftWidth: 1,
                   borderColor: MainTheme.colorNonary,
                   paddingHorizontal: 5,
-                }}>
+                }}
+              >
                 <View
                   style={{
                     flexDirection: 'row',
                     justifyContent: 'space-between',
-                  }}>
+                  }}
+                >
                   <Text>จำนวน</Text>
                   <Text>
                     {parseFloat(item.VTRD_QTY || 0 / item.VTRD_UTQ_QTY || 1)
@@ -254,7 +251,8 @@ class CTListItems extends Component {
                       style={{
                         flexDirection: 'row',
                         justifyContent: 'space-between',
-                      }}>
+                      }}
+                    >
                       <Text>ราคาต่อหน่วย</Text>
                       <Text>
                         {parseFloat(item.VTRD_U_PRC_KEYIN)
@@ -266,7 +264,8 @@ class CTListItems extends Component {
                       style={{
                         flexDirection: 'row',
                         justifyContent: 'space-between',
-                      }}>
+                      }}
+                    >
                       <Text>แถม</Text>
                       <Text>
                         {parseFloat(item.VTRD_Q_FREE)
@@ -274,28 +273,38 @@ class CTListItems extends Component {
                           .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                       </Text>
                     </View>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                      }}
+                    >
                       <Text>ส่วนลด</Text>
                       <Text>
                         {item.VTRD_TDSC_V
-                          ? parseFloat(item.VTRD_TDSC_V).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-                          : parseFloat(item.GOODS_TOTAL_DISCOUNT).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                          ? parseFloat(item.VTRD_TDSC_V)
+                              .toFixed(2)
+                              .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                          : parseFloat(item.GOODS_TOTAL_DISCOUNT)
+                              .toFixed(2)
+                              .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                       </Text>
                     </View>
                     <View
                       style={{
                         flexDirection: 'row',
                         justifyContent: 'space-between',
-                      }}>
+                      }}
+                    >
                       <Text>ราคารวม</Text>
                       <Text>
                         {item.GOODS_NET_PRC
                           ? parseFloat(item.GOODS_NET_PRC)
-                            .toFixed(2)
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                              .toFixed(2)
+                              .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                           : parseFloat(item.GOODS_TOTAL_PRC)
-                            .toFixed(2)
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                              .toFixed(2)
+                              .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                       </Text>
                     </View>
                   </View>
@@ -304,7 +313,8 @@ class CTListItems extends Component {
                   style={{
                     flexDirection: 'row',
                     justifyContent: 'space-around',
-                  }}>
+                  }}
+                >
                   <Icon
                     name="edit"
                     color={MainTheme.colorPrimary}
@@ -359,34 +369,47 @@ class CTListItems extends Component {
                   borderLeftWidth: 1,
                   borderColor: MainTheme.colorNonary,
                   paddingHorizontal: 5,
-                }}>
+                }}
+              >
                 <View
-                  style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: hp('1.7%') }} allowFontScaling={false}>
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Text
+                    style={{ fontSize: hp('1.7%') }}
+                    allowFontScaling={false}
+                  >
                     จำนวน {'(' + item.VTRD_UTQ_NAME + ')'}
                   </Text>
-                  <Text style={{ fontSize: hp('1.7%') }} allowFontScaling={false}>
-                    {parseFloat(parseFloat(item.VTRD_QTY) / 1) // parseFloat(item.VTRD_UTQ_QTY)) 
+                  <Text
+                    style={{ fontSize: hp('1.7%') }}
+                    allowFontScaling={false}
+                  >
+                    {parseFloat(parseFloat(item.VTRD_QTY) / 1) // parseFloat(item.VTRD_UTQ_QTY))
                       .toFixed(2)
                       .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                   </Text>
                 </View>
                 {this.props.order.header.AR_ORDER_TYPE !== 'โอนย้ายสินค้า' ? (
-
                   <View>
                     <View
                       style={{
                         flexDirection: 'row',
                         justifyContent: 'space-between',
-                      }}>
+                      }}
+                    >
                       <Text
                         style={{ fontSize: hp('1.7%') }}
-                        allowFontScaling={false}>
+                        allowFontScaling={false}
+                      >
                         ราคาต่อหน่วย
                       </Text>
                       <Text
                         style={{ fontSize: hp('1.7%') }}
-                        allowFontScaling={false}>
+                        allowFontScaling={false}
+                      >
                         {parseFloat(item.VTRD_U_PRC_KEYIN)
                           .toFixed(2)
                           .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
@@ -396,15 +419,18 @@ class CTListItems extends Component {
                       style={{
                         flexDirection: 'row',
                         justifyContent: 'space-between',
-                      }}>
+                      }}
+                    >
                       <Text
                         style={{ fontSize: hp('1.7%') }}
-                        allowFontScaling={false}>
+                        allowFontScaling={false}
+                      >
                         แถม
                       </Text>
                       <Text
                         style={{ fontSize: hp('1.7%') }}
-                        allowFontScaling={false}>
+                        allowFontScaling={false}
+                      >
                         {parseFloat(item.VTRD_Q_FREE)
                           .toFixed(2)
                           .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
@@ -414,44 +440,50 @@ class CTListItems extends Component {
                       style={{
                         flexDirection: 'row',
                         justifyContent: 'space-between',
-                      }}>
+                      }}
+                    >
                       <Text
                         style={{ fontSize: hp('1.7%') }}
-                        allowFontScaling={false}>
+                        allowFontScaling={false}
+                      >
                         ส่วนลด
                       </Text>
                       <Text
                         style={{ fontSize: hp('1.7%') }}
-                        allowFontScaling={false}>
+                        allowFontScaling={false}
+                      >
                         {item.VTRD_TDSC_V
                           ? parseFloat(item.VTRD_TDSC_V)
-                            .toFixed(2)
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                              .toFixed(2)
+                              .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                           : parseFloat(item.GOODS_TOTAL_DISCOUNT)
-                            .toFixed(2)
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                              .toFixed(2)
+                              .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                       </Text>
                     </View>
                     <View
                       style={{
                         flexDirection: 'row',
                         justifyContent: 'space-between',
-                      }}>
+                      }}
+                    >
                       <Text
                         style={{ fontSize: hp('1.7%') }}
-                        allowFontScaling={false}>
+                        allowFontScaling={false}
+                      >
                         ราคารวม
                       </Text>
                       <Text
                         style={{ fontSize: hp('1.7%') }}
-                        allowFontScaling={false}>
+                        allowFontScaling={false}
+                      >
                         {item.VTRD_AF_VALUES
                           ? parseFloat(item.VTRD_AF_VALUES)
-                            .toFixed(2)
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                              .toFixed(2)
+                              .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                           : parseFloat(item.GOODS_TOTAL_PRC)
-                            .toFixed(2)
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                              .toFixed(2)
+                              .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                       </Text>
                     </View>
                   </View>
@@ -466,7 +498,8 @@ class CTListItems extends Component {
                   borderColor: MainTheme.colorNonary,
                   justifyContent: 'space-around',
                   alignItems: 'center',
-                }}>
+                }}
+              >
                 <Icon
                   name="pencil"
                   color={MainTheme.colorPrimary}
@@ -499,22 +532,18 @@ class CTListItems extends Component {
     );
   };
 
-  _removeAlertDialog = (index) =>
+  _removeAlertDialog = index =>
     Alert.alert(
       'ประกาศ',
       'คุณต้องการลบข้อมูลสินค้าทั้งหมด?',
       [
-        { text: 'ยกเลิก', onPress: () => { }, style: 'cancel' },
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
         { text: 'ยืนยัน', onPress: () => this._removeProductItem(index) },
       ],
       { cancelable: false },
     );
 
-
-
-
   _setStockBalance = async (item, index, value) => {
-
     item.VTRD_QTY = item.VTRD_QTY_OLD;
     const { productListItems } = this.props.order;
     const CAS_QTY = numberOnlyCanZeroFirst(value);
@@ -531,20 +560,16 @@ class CTListItems extends Component {
     await this.props.setOrderItems(productListItems);
   };
 
-
-
-
-
   _setState = (key, value) => {
     this._isMounted &&
-      this.setState((oldState) => {
+      this.setState(oldState => {
         return {
           [key]: value,
         };
       });
   };
 
-  _removeProductItem = (index) => {
+  _removeProductItem = index => {
     this.props.removeProductItem(index);
   };
 
@@ -552,9 +577,7 @@ class CTListItems extends Component {
   //   this._getProductListItemsFromLastBillByArCode();
   // };
 
-  _onRefresh = () => { };
-
-
+  _onRefresh = () => {};
 
   render() {
     return (
@@ -573,22 +596,18 @@ class CTListItems extends Component {
   }
 }
 
-
-
-
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   customer: state.customer,
   order: state.order,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
     getProductListItemsFromLastBillByArCode: () =>
       dispatch(getProductListItemsFromLastBillByArCode()),
-    setOrderItems: (items) => dispatch(setOrderItems(items)),
-    removeProductItem: (index) => {
+    setOrderItems: items => dispatch(setOrderItems(items)),
+    removeProductItem: index => {
       dispatch(removeProductItem(index));
-
     },
     removeAllSwipeList: () => {
       dispatch(removeAllSwipeList());
@@ -602,7 +621,7 @@ const mapDispatchToProps = (dispatch) => {
     setProduct: (type, item) => {
       dispatch(setProduct(type, item));
     },
-    setGoodsCodeCriteria: (value) => {
+    setGoodsCodeCriteria: value => {
       dispatch(setGoodsCodeCriteria(value));
     },
   };

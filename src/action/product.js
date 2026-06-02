@@ -45,6 +45,7 @@ import {
   getLoginGuID,
   getSettingConfig,
   getListServiceSetting,
+  getLoginInfo,
 } from '../utils/Token';
 import Request from '../utils/Request';
 import { getWareLocationStockBalance } from '../api/drop-point';
@@ -113,8 +114,14 @@ export const searchProductList =
         Request.instanceV3.defaults.baseURL,
       );
       const storedSettings = await getListServiceSetting();
-      const storedWebURL =
-        storedSettings && storedSettings[0] ? storedSettings[0].webURL : null;
+      const loginInfo = await getLoginInfo();
+      const selectedKey = loginInfo?.service ?? null;
+      const selectedItem = Array.isArray(storedSettings)
+        ? storedSettings.find(item => item?.value === selectedKey) ||
+          storedSettings.find(item => item?.number === selectedKey) ||
+          storedSettings[0]
+        : null;
+      const storedWebURL = selectedItem?.webURL ?? null;
       console.log('searchProductList DEBUG: stored webURL=', storedWebURL);
       if (!Request.instanceV3.defaults.baseURL && storedWebURL) {
         console.log(

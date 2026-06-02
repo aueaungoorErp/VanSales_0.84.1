@@ -1,30 +1,25 @@
-import React from 'react'
-import { connect } from 'react-redux'
-import Form from '../presenter/Form'
+import React from 'react';
+import { connect } from 'react-redux';
+import Form from '../presenter/Form';
 
+class CTForm extends React.Component {
+  _isMounted = false;
 
-class CTForm extends React.Component { 
-    _isMounted = false
+  constructor(props) {
+    super(props);
+  }
 
-    constructor(props) {
-        super(props)
-    }
-
-    render() {
-        return (
-            <Form outstandingBalance={this.props.outstandingBalance.create} />
-        )
-    }
+  render() {
+    return <Form outstandingBalance={this.props.outstandingBalance.create} />;
+  }
 }
 
-const mapStateToProps = (state) => ({
-    outstandingBalance: state.outstandingBalance
-})
+const mapStateToProps = state => ({
+  outstandingBalance: state.outstandingBalance,
+});
 
-const mapDispatchToProps = (dispatch) => {
-    return {
+const mapDispatchToProps = dispatch => {
+  return {};
+};
 
-    }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(CTForm)
+export default connect(mapStateToProps, mapDispatchToProps)(CTForm);

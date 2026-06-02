@@ -1,28 +1,38 @@
-import React from 'react'
-import { Alert, Keyboard, Text, TouchableOpacity } from 'react-native'
-import { connect } from 'react-redux'
-import { PAYMENT_CALL_BACK_END_POINT } from '../../../../../appConfig'
+import React from 'react';
+import { Alert, Keyboard, Text, TouchableOpacity } from 'react-native';
+import { connect } from 'react-redux';
+import { PAYMENT_CALL_BACK_END_POINT } from '../../../../../appConfig';
 import {
-    customerCreatePayment,
-    customerPreProcessPayment,
-    customerProcessPayment,
-    setCreateInitialState,
-    setPrePocessHeader,
-} from '../../../../action/outstanding-balance'
-import { authForGetAccessToken, requestQrCodeSCB } from '../../../../action/qrcode-payment'
-import { systemCheck } from '../../../../action/setting'
+  customerCreatePayment,
+  customerPreProcessPayment,
+  customerProcessPayment,
+  setCreateInitialState,
+  setPrePocessHeader,
+} from '../../../../action/outstanding-balance';
 import {
-    MainTheme,
-    orderOutStandingCreateStepButtonGroup,
-    orderOutStandingKeyStepButtonGroup,
-    orderOutStandingPreProcessButtonGroup,
-    orderOutStandingSummaryStepButtonGroup
-} from '../../../../constant/lov'
-import { BluetoothFinder, BplusPrinting, printPaymentReceipt } from '../../../../module'
-import Navigator from '../../../../services/Navigator'
-import { getSettingConfig, getUserToken } from '../../../../utils/Token'
-import { validateOutstandingBalancePayment, validateOutstandingBalancePaymentCheque } from '../../../../utils/validation'
-import ButtonGroup from '../presenter/ButtonGroup'
+  authForGetAccessToken,
+  requestQrCodeSCB,
+} from '../../../../action/qrcode-payment';
+import { systemCheck } from '../../../../action/setting';
+import {
+  MainTheme,
+  orderOutStandingCreateStepButtonGroup,
+  orderOutStandingKeyStepButtonGroup,
+  orderOutStandingPreProcessButtonGroup,
+  orderOutStandingSummaryStepButtonGroup,
+} from '../../../../constant/lov';
+import {
+  BluetoothFinder,
+  BplusPrinting,
+  printPaymentReceipt,
+} from '../../../../module';
+import Navigator from '../../../../services/Navigator';
+import { getSettingConfig, getUserToken } from '../../../../utils/Token';
+import {
+  validateOutstandingBalancePayment,
+  validateOutstandingBalancePaymentCheque,
+} from '../../../../utils/validation';
+import ButtonGroup from '../presenter/ButtonGroup';
 
 class CTButtonGroup extends React.Component {
   _isMounted = false;
@@ -45,18 +55,18 @@ class CTButtonGroup extends React.Component {
     this._setButtonGroup();
   }
 
-  componentDidMount = (props) => {
+  componentDidMount = props => {
     this._isMounted = true;
     this._getUserToken();
   };
 
-  componentWillUnmount = (props) => {
+  componentWillUnmount = props => {
     this._isMounted = false;
   };
 
   _setState = async (key, value) => {
     this._isMounted &&
-      (await this.setState((oldState) => {
+      (await this.setState(oldState => {
         return {
           [key]: value,
         };
@@ -68,7 +78,7 @@ class CTButtonGroup extends React.Component {
 
     if (userToken) {
       this._isMounted &&
-        (await this.setState((oldState) => {
+        (await this.setState(oldState => {
           return {
             userToken: userToken,
           };
@@ -77,7 +87,7 @@ class CTButtonGroup extends React.Component {
   };
 
   _goToBluetoothSetting = () => {
-    BluetoothFinder.checkBluetoothEnable((value) => {
+    BluetoothFinder.checkBluetoothEnable(value => {
       // alert(value.result)
       if (value.result) {
         Navigator.navigate('Bluetooth');
@@ -86,8 +96,8 @@ class CTButtonGroup extends React.Component {
   };
 
   _setButtonGroup = () => {
-    const {routes, index} = Navigator.getCurrentRoute();
-    const {routeName} = routes[index];
+    const { routes, index } = Navigator.getCurrentRoute();
+    const { routeName } = routes[index];
 
     if (routeName === 'OrderOutstandingBalance')
       this._listItems = orderOutStandingPreProcessButtonGroup;
@@ -99,7 +109,7 @@ class CTButtonGroup extends React.Component {
       this._listItems = orderOutStandingSummaryStepButtonGroup;
   };
 
-  _onPress = async (item) => {
+  _onPress = async item => {
     if (item.methodType === 'function') {
       if (item.methodName === 'pre-process')
         await this._customerPreProcessPayment();
@@ -133,7 +143,7 @@ class CTButtonGroup extends React.Component {
         const response = await this.props.systemCheck(config);
 
         if (response.STATUS === '00') {
-          const {RESPONSE_DATETIME} = response;
+          const { RESPONSE_DATETIME } = response;
 
           let printTime = RESPONSE_DATETIME.split('T');
           printTime = printTime[1].split('.');
@@ -160,76 +170,74 @@ class CTButtonGroup extends React.Component {
     }
 
     _printPaymentReceipt = async () => {
-        if (this.props.bluetooth.state !== 'connected') {
-            this._bluetoothAlertDialog()
-            return
+      if (this.props.bluetooth.state !== 'connected') {
+        this._bluetoothAlertDialog();
+        return;
+      }
+
+      try {
+        this._setState('errorMessage', null);
+        this._setState('loadingMessage', 'กำลังพิมพ์ใบเสร็จ...');
+
+        if (this.props.bluetooth.state == 'connected') {
+          const userToken = await getUserToken();
+          const config = await getSettingConfig();
+          const response = await this.props.systemCheck(config);
+
+          if (response.STATUS === '00') {
+            const { RESPONSE_DATETIME } = response;
+
+            let printTime = RESPONSE_DATETIME.split('T');
+            printTime = printTime[1].split('.');
+
+            printPaymentReceipt(
+              this.props.order.header,
+              this.props.outstandingBalance.create.header,
+              this.props.outstandingBalance.create.listItems,
+              userToken.VANCONFIG,
+              userToken.COMPANYINFO,
+              this.props.customer.item.INFO,
+              printTime[0],
+              'ใบเสร็จรับเงิน',
+            );
+
+            Navigator.navigate('OrderChoice');
+          } else if (response.STATUS === '10' && response.ERROR_MESSAGES[0]) {
+            this._setState('errorMessage', response.ERROR_MESSAGES[0]);
+            return false;
+          }
         }
+      } catch (error) {
+        this._setState('errorMessage', error.message);
+      }
 
-        try {
-            this._setState('errorMessage', null)
-            this._setState('loadingMessage', 'กำลังพิมพ์ใบเสร็จ...')
-            
-            if (this.props.bluetooth.state == 'connected') {
-                const userToken = await getUserToken()
-                const config = await getSettingConfig()
-                const response = await this.props.systemCheck(config)
+      this._setState('loadingMessage', '');
+    };
 
-                if (response.STATUS === "00") {
-                    const { RESPONSE_DATETIME } = response
-
-                    let printTime = RESPONSE_DATETIME.split('T')
-                    printTime = printTime[1].split('.')
-                    
-                    printPaymentReceipt(
-                        this.props.order.header, 
-                        this.props.outstandingBalance.create.header, 
-                        this.props.outstandingBalance.create.listItems, 
-                        userToken.VANCONFIG,
-                        userToken.COMPANYINFO,
-                        this.props.customer.item.INFO,
-                        printTime[0],
-                        'ใบเสร็จรับเงิน'
-                    )
-
-                    Navigator.navigate('OrderChoice')
-                } else if (response.STATUS === "10" && response.ERROR_MESSAGES[0]) {
-                    this._setState('errorMessage', response.ERROR_MESSAGES[0])
-                    return false
-                }
-                
-            }
-
-        } catch (error) {
-            this._setState('errorMessage', error.message)
-        }
-
-        this._setState('loadingMessage', '')
-    }
-
-    _bluetoothAlertDialog = () => Alert.alert(
+    _bluetoothAlertDialog = () =>
+      Alert.alert(
         'ประกาศ',
         'เนื่องจากไม่ได้ทำการ Connect printer ต้องการจะไปที่หน้า Bluetooth setting หรือไม่',
         [
-            {text: 'ยกเลิก', onPress: () => {}, style: 'cancel'},
-            {text: 'ยืนยัน', onPress: () => this._goToBluetoothSetting()}
+          { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
+          { text: 'ยืนยัน', onPress: () => this._goToBluetoothSetting() },
         ],
-        { cancelable: false }
-    )
+        { cancelable: false },
+      );
 
     _customerPreProcessPayment = async () => {
-        try {
-            this._setState('errorMessage', null)
-            this._setState('loadingMessage', 'กำลังโหลดข้อมูล...')
+      try {
+        this._setState('errorMessage', null);
+        this._setState('loadingMessage', 'กำลังโหลดข้อมูล...');
 
-            await this.props.customerPreProcessPayment()
-            Navigator.navigate('OrderOutstandingBalanceKeyStep')
+        await this.props.customerPreProcessPayment();
+        Navigator.navigate('OrderOutstandingBalanceKeyStep');
+      } catch (error) {
+        this._setState('errorMessage', error);
+      }
 
-        } catch (error) {
-            this._setState('errorMessage', error)
-        }
-
-        this._setState('loadingMessage', '')
-    }
+      this._setState('loadingMessage', '');
+    };
 
     this._setState('loadingMessage', '');
   };
@@ -305,11 +313,16 @@ class CTButtonGroup extends React.Component {
           await this._setState('userToken', latestUserToken);
         }
 
-        const userName = activeUserToken?.VANCONFIG?.VANCNF_BANK_QRCODE_USERNAME;
-        const userPassword = activeUserToken?.VANCONFIG?.VANCNF_BANK_QRCODE_PASSWORD;
+        const userName =
+          activeUserToken?.VANCONFIG?.VANCNF_BANK_QRCODE_USERNAME;
+        const userPassword =
+          activeUserToken?.VANCONFIG?.VANCNF_BANK_QRCODE_PASSWORD;
 
         if (!userName || !userPassword) {
-          this._setState('errorMessage', 'ไม่พบ QR Code username/password ใน VANCONFIG กรุณา login ใหม่หรือตรวจสอบ config เครื่อง');
+          this._setState(
+            'errorMessage',
+            'ไม่พบ QR Code username/password ใน VANCONFIG กรุณา login ใหม่หรือตรวจสอบ config เครื่อง',
+          );
           this._setState('isLoading', false);
           return;
         }
@@ -318,7 +331,7 @@ class CTButtonGroup extends React.Component {
           userName,
           userPassword,
         });
-        const {data} = auth;
+        const { data } = auth;
 
         if (data) {
           await this.props.customerCreatePayment(1, this.state.TxUID);
@@ -348,7 +361,7 @@ class CTButtonGroup extends React.Component {
     this._setState('loadingMessage', '');
   };
 
-  _requestQrCodeSCB = async (obj) => {
+  _requestQrCodeSCB = async obj => {
     this._setState('errorMessage', null);
 
     try {
@@ -356,7 +369,7 @@ class CTButtonGroup extends React.Component {
         obj,
         this.props.outstandingBalance.create.checkedItems.qrcode.pay,
       );
-      const {isError, data} = qrcode;
+      const { isError, data } = qrcode;
       console.log('qrcode', qrcode);
       if (!isError) {
         await this._setState('qrCode', data.qrCode);
@@ -373,7 +386,7 @@ class CTButtonGroup extends React.Component {
           console.log('onopen');
         };
 
-        ws.onmessage = async (e) => {
+        ws.onmessage = async e => {
           // a message was received
           console.log('onmessage', e.data);
           const data = JSON.parse(e.data);
@@ -382,14 +395,14 @@ class CTButtonGroup extends React.Component {
           ws.close();
         };
 
-        ws.onerror = (e) => {
+        ws.onerror = e => {
           // an error occurred
           console.log('onerror', e);
           ws.close();
           throw new Error(e.message);
         };
 
-        ws.onclose = async (e) => {
+        ws.onclose = async e => {
           // connection closed
           await this._setState('isQRCodeDialogOpen', false);
           console.log('onerror', e.code, e.reason);
@@ -405,7 +418,7 @@ class CTButtonGroup extends React.Component {
       this._setState('errorMessage', null);
       this._setState('loadingMessage', 'กำลังโหลดข้อมูล...');
 
-      const {header, listItems} = this.props.outstandingBalance.preProcess;
+      const { header, listItems } = this.props.outstandingBalance.preProcess;
 
       const VPH_CASH_AMT = listItems.reduce((acc, currentValue) => {
         return acc + parseFloat(currentValue.VPD_PAY);
@@ -429,7 +442,17 @@ class CTButtonGroup extends React.Component {
 
   _renderItem = (item, key) => {
     return (
-      <TouchableOpacity key={key} style={[item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, 
+      <TouchableOpacity
+        key={key}
+        style={[
+          item.buttonStyle,
+          item.containerStyle,
+          {
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+          },
           item.title === 'พิมพ์ใบเสร็จ' &&
           this.state.userToken !== null &&
           this.state.userToken.VANCONFIG !== null &&
@@ -438,9 +461,13 @@ class CTButtonGroup extends React.Component {
           this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 3
             ? true
             : false
-         ? {backgroundColor: MainTheme.colorNonary} : null]} onPress={() => {
+            ? { backgroundColor: MainTheme.colorNonary }
+            : null,
+        ]}
+        onPress={() => {
           this._onPress(item);
-        }} disabled={
+        }}
+        disabled={
           item.title === 'พิมพ์ใบเสร็จ' &&
           this.state.userToken !== null &&
           this.state.userToken.VANCONFIG !== null &&
@@ -449,9 +476,11 @@ class CTButtonGroup extends React.Component {
           this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 3
             ? true
             : false
-        } activeOpacity={0.7}>
-              <Text style={item.titleStyle}>{item.title}</Text>
-            </TouchableOpacity>
+        }
+        activeOpacity={0.7}
+      >
+        <Text style={item.titleStyle}>{item.title}</Text>
+      </TouchableOpacity>
     );
   };
 
@@ -472,25 +501,25 @@ class CTButtonGroup extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   bluetooth: state.bluetooth,
   customer: state.customer,
   order: state.order,
   outstandingBalance: state.outstandingBalance,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
     customerPreProcessPayment: () => dispatch(customerPreProcessPayment()),
     customerProcessPayment: () => dispatch(customerProcessPayment()),
-    setPrePocessHeader: (data) => dispatch(setPrePocessHeader(data)),
+    setPrePocessHeader: data => dispatch(setPrePocessHeader(data)),
     setCreateInitialState: () => dispatch(setCreateInitialState()),
     customerCreatePayment: (forceSubmit, TxUID) =>
       dispatch(customerCreatePayment(forceSubmit, TxUID)),
-    authForGetAccessToken: (auth) => dispatch(authForGetAccessToken(auth)),
+    authForGetAccessToken: auth => dispatch(authForGetAccessToken(auth)),
     requestQrCodeSCB: (data, amount) =>
       dispatch(requestQrCodeSCB(data, amount)),
-    systemCheck: (data) => dispatch(systemCheck(data)),
+    systemCheck: data => dispatch(systemCheck(data)),
   };
 };
 

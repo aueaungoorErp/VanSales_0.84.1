@@ -1,5 +1,6 @@
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import type { ComponentType } from 'react';
+import { connect } from 'react-redux';
 import {
   ActivityIndicator,
   Animated,
@@ -16,6 +17,16 @@ import {
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { getArPricetab } from '../../../action/customer';
+import { searchCustomerTypeList } from '../../../action/customer-type';
+import { searchProductCateGoryList } from '../../../action/product-category';
+import { getMasterDataProvinces } from '../../../action/masterData';
+import { registerV3 } from '../../../action/user';
+import {
+  getVanConfigV3,
+  readCompanyInfoV3,
+  systemCheck2,
+} from '../../../action/setting';
 import ITextWithErrorMessage from '../../../component/text/ITextWithErrorMessage';
 import ITextWithSuccessMessage from '../../../component/text/ITextWithSuccessMessage';
 import { APP_VERSION, MainTheme } from '../../../constant/lov';
@@ -53,6 +64,26 @@ type FormProps = LoginDeps & {
   };
 };
 
+const mapStateToProps = (_state: any) => ({});
+
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+    getVanConfigV3: (VANCNF_MACHINE: string) =>
+      dispatch(getVanConfigV3(VANCNF_MACHINE)),
+    registerV3: (username: string, password: string) =>
+      dispatch(registerV3(username, password)),
+    systemCheck2: (data: any) => dispatch(systemCheck2(data)),
+    readCompanyInfoV3: (GUID: string, CMPNY_CODE: number) =>
+      dispatch(readCompanyInfoV3(GUID, CMPNY_CODE)),
+    searchCustomerTypeList: (vanCNFEnabledAllar: any) =>
+      dispatch(searchCustomerTypeList(vanCNFEnabledAllar)),
+    searchProductCateGoryList: (vanCNFEnabledAllic: any) =>
+      dispatch(searchProductCateGoryList(vanCNFEnabledAllic)),
+    getMasterDataProvinces: () => dispatch(getMasterDataProvinces()),
+    getArPricetab: () => dispatch(getArPricetab()),
+  };
+};
+
 const Form: React.FC<FormProps> = props => {
   const { navigation } = props;
 
@@ -83,9 +114,10 @@ const Form: React.FC<FormProps> = props => {
   });
 
   const fetchData = useEffectEvent(async () => {
+    if (errorMessage) {
+      return;
+    }
     try {
-      setErrorMessage(null);
-
       const result = await fetchLoginData();
 
       if (!isMountedRef.current) {
@@ -409,7 +441,7 @@ const Form: React.FC<FormProps> = props => {
             />
 
             <AntDesign
-              name={isShow ? 'eye' : 'eye-invisible'}
+              name={isShow ? 'eyeo' : 'eye'}
               size={28}
               color={MainTheme.colorTertiary}
               onPress={() => {
@@ -460,31 +492,47 @@ const Form: React.FC<FormProps> = props => {
           </View>
 
           <View style={styles.messageBox}>
-            <ITextWithErrorMessage message={errorMessage} />
             <ITextWithSuccessMessage message={successMessage} />
           </View>
         </View>
       </Animated.View>
 
-      <Modal transparent visible={!!isLoading} animationType="fade">
+      <Modal
+        transparent
+        visible={!!isLoading || !!errorMessage}
+        animationType="fade"
+      >
         <View style={styles.loadingBackdrop}>
-          <View style={styles.loadingModalCard}>
-            <View style={styles.loadingInline}>
-              <ActivityIndicator
-                size="large"
-                color={MainTheme.colorTertiary}
-                style={styles.loadingSpinner}
-              />
-              <Text style={styles.loadingText}>กำลังเข้าสู่ระบบ</Text>
+          {!!isLoading ? (
+            <View style={styles.loadingModalCard}>
+              <View style={styles.loadingInline}>
+                <ActivityIndicator
+                  size="large"
+                  color={MainTheme.colorTertiary}
+                  style={styles.loadingSpinner}
+                />
+                <Text style={styles.loadingText}>กำลังเข้าสู่ระบบ</Text>
+              </View>
             </View>
-          </View>
+          ) : (
+            <View style={styles.errorModalCard}>
+              <Text style={styles.errorTitle}>ไม่สามารถเข้าสู่ระบบได้</Text>
+              <Text style={styles.errorBody}>{errorMessage}</Text>
+              <TouchableOpacity
+                style={styles.errorButton}
+                onPress={() => setErrorMessage(null)}
+              >
+                <Text style={styles.errorButtonText}>ตกลง</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </Modal>
     </View>
   );
 };
 
-export default Form;
+export default connect(mapStateToProps, mapDispatchToProps)(Form);
 
 const styles = StyleSheet.create({
   container: {
@@ -680,6 +728,44 @@ const styles = StyleSheet.create({
     fontSize: hp('2%'),
     color: '#333333',
     fontWeight: '500',
+  },
+  errorModalCard: {
+    width: '85%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    elevation: 6,
+    shadowColor: '#000000',
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    alignItems: 'center',
+  },
+  errorTitle: {
+    fontSize: hp('2.2%'),
+    fontWeight: '700',
+    color: '#D32F2F',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  errorBody: {
+    fontSize: hp('1.8%'),
+    color: '#333333',
+    textAlign: 'center',
+    lineHeight: hp('2.6%'),
+    marginBottom: 20,
+  },
+  errorButton: {
+    backgroundColor: MainTheme.colorTertiary,
+    borderRadius: 25,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+  },
+  errorButtonText: {
+    color: '#FFFFFF',
+    fontSize: hp('2%'),
+    fontWeight: '600',
   },
   footer: {
     flex: 0.4,

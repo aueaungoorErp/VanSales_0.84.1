@@ -33,6 +33,7 @@ export type ServiceSetting = {
   webURL?: string;
   baseUrl?: string;
   baseURL?: string;
+  serviceName?: string;
 };
 
 export type RawServiceSetting = Partial<ServiceSetting>;
@@ -77,12 +78,14 @@ export const normalizeServiceSettings = (
   items: RawServiceSetting[] = [],
 ): ServiceSetting[] => {
   return items.map((item, index) => {
-    const value =
+    const value = String(
       item?.value ??
-      item?.number ??
-      item?.vanCNFMachine ??
-      item?.USER_CODE ??
-      String(index);
+        item?.number ??
+        item?.serviceName ??
+        item?.vanCNFMachine ??
+        item?.USER_CODE ??
+        index,
+    );
 
     const label =
       item?.label ??
@@ -219,8 +222,44 @@ export const fetchLoginData = async (): Promise<FetchDataResult> => {
   const restoredPassword = credentials?.password ?? '';
 
   const loginInfo = await getLoginInfo();
-  const selectedService =
-    loginInfo?.service ?? normalizedList?.[0]?.value ?? null;
+
+  let settingConfig: any = null;
+  try {
+    settingConfig = await getSettingConfig();
+    if (settingConfig === false) {
+      settingConfig = null;
+    }
+  } catch (_) {}
+
+  let selectedService: string | null = null;
+
+  // Priority 1: Match from settingConfig (most reliable - saved on every connection)
+  if (settingConfig?.vanCNFMachine) {
+    const matched = normalizedList.find(
+      item =>
+        item.number === settingConfig.vanCNFMachine ||
+        item.value === settingConfig.vanCNFMachine,
+    );
+    if (matched) {
+      selectedService = matched.value;
+    }
+  }
+
+  // Priority 2: Match from loginInfo.service
+  if (!selectedService && loginInfo?.service) {
+    const matched = normalizedList.find(
+      item =>
+        item.value === loginInfo.service || item.number === loginInfo.service,
+    );
+    if (matched) {
+      selectedService = matched.value;
+    }
+  }
+
+  // Priority 3: Fallback to first item
+  if (!selectedService) {
+    selectedService = normalizedList?.[0]?.value ?? null;
+  }
 
   return {
     serviceSettings: normalizedList,
@@ -252,7 +291,6 @@ export const performLogin = async (
     setErrorMessage(null);
 
     const { service, USER_CODE, USER_PASSWORD } = userLogin;
-    console.log('serviceaaa', service);
     if (service === null || service.trim() === '') {
       setErrorMessage('กรุณาตั้งค่า Service');
       return;
@@ -270,12 +308,14 @@ export const performLogin = async (
 
     setIsLoading(true);
 
-    const setting = await getListServiceSetting();
-    const selectedSetting = Array.isArray(setting)
-      ? setting.find((item: any) => item?.value === service) ||
-        setting.find((item: any) => item?.number === service) ||
-        setting[0]
-      : null;
+    const rawSetting = await getListServiceSetting();
+    const setting = normalizeServiceSettings(
+      Array.isArray(rawSetting) ? rawSetting : [],
+    );
+    const selectedSetting =
+      setting.find((item: any) => item?.value === service) ||
+      setting.find((item: any) => item?.number === service) ||
+      null;
 
     if (!selectedSetting?.webURL || !selectedSetting?.number) {
       setIsLoading(false);
@@ -322,6 +362,10 @@ export const performLogin = async (
         const existingMember = Array.isArray(responseMemberData?.Mb000130)
           ? responseMemberData.Mb000130[0]
           : null;
+        console.log('[Login] device check', {
+          uniqueId,
+          MB_E_NAME: existingMember?.MB_E_NAME ?? null,
+        });
         const existingMemberCount = Number(
           responseMemberData?.RECORD_COUNT ?? 0,
         );
@@ -332,7 +376,7 @@ export const performLogin = async (
           existingMemberCount > 0
         ) {
           if (existingMember?.MB_E_NAME !== uniqueId) {
-            setErrorMessage(strings('error.duplicateUser'));
+            setErrorMessage(strings('error_ser.duplicateUser'));
             return;
           }
         } else if (responsemember.ReasonString !== 'Not Login') {
@@ -413,7 +457,7 @@ export const performLogin = async (
           errret = '503';
           break;
         case 'duplicateUser':
-          errret = strings('error_ser.' + 'duplicateUser');
+          errret = 'duplicateUser';
           break;
         default:
           errret = error;
@@ -429,7 +473,7 @@ export const performLogin = async (
         setErrorMessage('เกิดข้อผิดพลาด' + nextError);
       }
     }
+  } finally {
+    setIsLoading(false);
   }
-
-  setIsLoading(false);
 };

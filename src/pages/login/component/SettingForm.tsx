@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import type { ComponentType } from 'react';
+import { connect } from 'react-redux';
 import { API_ENDPOINT_V3 } from '../../../../appConfig';
+import {
+  getSaleManV3,
+  getVanConfigV3,
+  systemCheck2,
+  unRegister,
+} from '../../../action/setting';
 import {
   StyleSheet,
   Text,
@@ -22,6 +29,7 @@ import {
   getSettingConfig,
   getUserToken,
   removeSettingConfig,
+  setLoginInfo,
   setSettingConfig,
   setUserToken,
 } from '../../../utils/Token';
@@ -75,6 +83,27 @@ type SettingFormProps = {
   unRegister: () => Promise<any>;
   getSaleManV3: (guid: string, slmnKey: string) => Promise<any>;
   getVanConfigV3: (vanCnfMachine: string) => Promise<any>;
+};
+
+const mapStateToProps = (_state: any) => ({
+  // user: state.user
+});
+
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+    systemCheck2: (data: any) => {
+      return dispatch(systemCheck2(data));
+    },
+    unRegister: () => {
+      return dispatch(unRegister());
+    },
+    getSaleManV3: (GUID: string, SLMN_KEY: string) => {
+      return dispatch(getSaleManV3(GUID, SLMN_KEY));
+    },
+    getVanConfigV3: (VANCNF_MACHINE: string) => {
+      return dispatch(getVanConfigV3(VANCNF_MACHINE));
+    },
+  };
 };
 
 const initialConfig: ConfigState = {
@@ -274,6 +303,16 @@ const SettingForm: React.FC<SettingFormProps> = props => {
 
             onSetSuccessMessage(strings('login_setting.connect_success'));
             props.onConnnect?.(true);
+
+            const serviceToSave =
+              service ||
+              listServiceSettings.find(
+                item => item.number === currentConfig.vanCNFMachine,
+              )?.value ||
+              currentConfig.vanCNFMachine;
+            if (serviceToSave) {
+              await setLoginInfo({ service: serviceToSave });
+            }
 
             try {
               await unRegister();
@@ -535,7 +574,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
   );
 };
 
-export default SettingForm;
+export default connect(mapStateToProps, mapDispatchToProps)(SettingForm);
 
 const styles = StyleSheet.create({
   container: {

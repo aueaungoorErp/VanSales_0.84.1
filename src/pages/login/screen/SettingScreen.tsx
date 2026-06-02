@@ -5,13 +5,18 @@ const AntDesign = require('react-native-vector-icons/AntDesign').default;
 import { MainTheme } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';
 import Navigator from '../../../services/Navigator';
-import CTSettingForm from '../container/CTSettingForm.tsx';
+import SettingForm from '../component/SettingForm.tsx';
 
-type SettingProps = {
-  navigation?: unknown;
+type SettingScreenProps = {
+  navigation?: {
+    addListener?: (
+      eventName: string,
+      callback: () => void | Promise<void>,
+    ) => (() => void) | { remove?: () => void };
+  };
 };
 
-const Setting: React.FC<SettingProps> = ({ navigation }) => {
+const SettingScreen: React.FC<SettingScreenProps> = ({ navigation }) => {
   const [vansalesConfig, setVanSaleConfig] = useState(false);
   const [ktbConfig, setKTBConfig] = useState(false);
 
@@ -50,22 +55,13 @@ const Setting: React.FC<SettingProps> = ({ navigation }) => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <CTSettingForm
-          navigation={navigation}
-          onConnnect={onConnnectVanSales}
-        />
-        {
-          // <KTBSettingFormz
-          //   navigation={navigation}
-          //   onConnnect={onConnnectKTB}
-          // />
-        }
+        <SettingForm navigation={navigation} onConnnect={onConnnectVanSales} />
       </ScrollView>
     </View>
   );
 };
 
-export default Setting;
+export default SettingScreen;
 
 const styles = StyleSheet.create({
   container: {

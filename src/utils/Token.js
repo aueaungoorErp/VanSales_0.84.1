@@ -5,8 +5,9 @@ import { removeData, retrieveData, storeData } from '../utils/Storage';
 import { normalizeWebServiceUrl } from './webService';
 
 let _settingConfigVanTimeRefreshPromise = null;
+let _settingConfigVanTimeLastRefresh = 0;
 
-const normalizeServiceSetting = (item) => {
+const normalizeServiceSetting = item => {
   if (!item || typeof item !== 'object') {
     return item;
   }
@@ -17,7 +18,7 @@ const normalizeServiceSetting = (item) => {
   };
 };
 
-const normalizeSettingConfig = (config) => {
+const normalizeSettingConfig = config => {
   if (!config || typeof config !== 'object') {
     return config;
   }
@@ -27,8 +28,6 @@ const normalizeSettingConfig = (config) => {
     baseUrl: normalizeWebServiceUrl(config.baseUrl),
   };
 };
-
-
 
 export const getDeviceUniqeId = async () => {
   try {
@@ -82,13 +81,16 @@ export const getDeviceUniqeId = async () => {
 //   }
 // };
 
-export const saveListServiceSetting = async (list) => {
+export const saveListServiceSetting = async list => {
   try {
     const normalizedList = Array.isArray(list)
       ? list.map(normalizeServiceSetting)
       : list;
 
-    return await storeData('@ListServiceSetting', JSON.stringify(normalizedList));
+    return await storeData(
+      '@ListServiceSetting',
+      JSON.stringify(normalizedList),
+    );
   } catch (e) {
     return null;
   }
@@ -104,7 +106,7 @@ export const getListServiceSetting = async () => {
   }
 };
 
-export const setUserToken = async (token) => {
+export const setUserToken = async token => {
   try {
     return await storeData('@UserToken', JSON.stringify(token));
   } catch (e) {
@@ -128,7 +130,7 @@ export const removeUserToken = async () => {
   }
 };
 
-export const setAccessTimeToken = async (token) => {
+export const setAccessTimeToken = async token => {
   try {
     return await storeData('@AccessTimeToken', token);
   } catch (e) {
@@ -144,7 +146,7 @@ export const getAccessTimeToken = async () => {
   }
 };
 
-export const setBluetoothToken = async (token) => {
+export const setBluetoothToken = async token => {
   try {
     return await storeData('@BluetoothToken', JSON.stringify(token));
   } catch (e) {
@@ -168,9 +170,12 @@ export const removeBluetoothToken = async () => {
   }
 };
 
-export const setSettingConfig = async (token) => {
+export const setSettingConfig = async token => {
   try {
-    return await storeData('@SettingConfig', JSON.stringify(normalizeSettingConfig(token)));
+    return await storeData(
+      '@SettingConfig',
+      JSON.stringify(normalizeSettingConfig(token)),
+    );
   } catch (e) {
     return false;
   }
@@ -184,12 +189,19 @@ export const getSettingConfig = async () => {
 
     const parsed = normalizeSettingConfig(JSON.parse(tmp));
 
-   
     const VANCNF_MACHINE = parsed?.vanCNFMachine;
-    if (VANCNF_MACHINE && !_settingConfigVanTimeRefreshPromise) {
+    const now = Date.now();
+    if (
+      VANCNF_MACHINE &&
+      !_settingConfigVanTimeRefreshPromise &&
+      now - _settingConfigVanTimeLastRefresh > 60000
+    ) {
+      _settingConfigVanTimeLastRefresh = now;
       _settingConfigVanTimeRefreshPromise = (async () => {
         try {
-          const response = await getVanConfigV3Api(VANCNF_MACHINE, {timeout: 5000});
+          const response = await getVanConfigV3Api(VANCNF_MACHINE, {
+            timeout: 5000,
+          });
           if (response && parsed?.VANCONFIG) {
             const updated = {
               ...parsed,
@@ -202,7 +214,7 @@ export const getSettingConfig = async () => {
             await storeData('@SettingConfig', JSON.stringify(updated));
           }
         } catch (e) {
-         console.log('error',e)
+          console.log('error', e);
         } finally {
           _settingConfigVanTimeRefreshPromise = null;
         }
@@ -228,7 +240,7 @@ export const removeSettingConfig = async () => {
   }
 };
 
-export const setKTBSettingConfig = async (token) => {
+export const setKTBSettingConfig = async token => {
   try {
     return await storeData('@KTBSettingConfig', JSON.stringify(token));
   } catch (e) {
@@ -252,7 +264,7 @@ export const removeKTBSettingConfig = async () => {
   }
 };
 
-export const setWSv3SettingConfig = async (token) => {
+export const setWSv3SettingConfig = async token => {
   try {
     return await storeData('@WSv3SettingConfig', JSON.stringify(token));
   } catch (e) {
@@ -276,7 +288,7 @@ export const removeWSv3SettingConfig = async () => {
   }
 };
 
-export const setDeviceInfo = async (token) => {
+export const setDeviceInfo = async token => {
   try {
     return await storeData('@DeviceInfo', JSON.stringify(token));
   } catch (e) {
@@ -300,7 +312,7 @@ export const removeDeviceInfo = async () => {
   }
 };
 
-export const setPrintingType = async (token) => {
+export const setPrintingType = async token => {
   try {
     return await storeData('@PrintingType', JSON.stringify(token));
   } catch (e) {
@@ -324,7 +336,7 @@ export const removePrintingType = async () => {
   }
 };
 
-export const setLoginGuID = async (token) => {
+export const setLoginGuID = async token => {
   try {
     return await storeData('@LoginGuID', JSON.stringify(token));
   } catch (e) {
@@ -348,7 +360,7 @@ export const removeLoginGuID = async () => {
   }
 };
 
-export const setLoginInfo = async (obj) => {
+export const setLoginInfo = async obj => {
   try {
     return await storeData('@LoginInfo', JSON.stringify(obj));
   } catch (e) {

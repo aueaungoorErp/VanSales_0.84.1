@@ -23,7 +23,7 @@ import {
   setSettingConfig,
 } from '../../../utils/Token';
 
-const CTMenuItems: React.FC = () => {
+const MenuList: React.FC = () => {
   const [userToken, setUserToken] = useState<any>(null);
   const [loginGUID, setLoginGUID] = useState<any>(null);
 
@@ -114,7 +114,7 @@ const CTMenuItems: React.FC = () => {
   );
 };
 
-export default CTMenuItems;
+export default MenuList;
 
 const styles = StyleSheet.create({
   gridView: {

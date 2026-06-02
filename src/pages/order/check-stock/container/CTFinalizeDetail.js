@@ -6,51 +6,48 @@ import { BluetoothFinder, BluetoothPrinter } from '../../../../module';
 
 import { getCurrentPosition } from '../../../../action/geolocation';
 import {
-    calculateOrderNetPriceAfterDiscount,
-    calculateOrderProductProcessSummary,
-    calculateOrderProductSummary,
-    clearDisBill,
-    createOrderSaleV3,
-    orderAttachImage,
-    orderReservV3,
-    orderReturn,
-    orderTransferV3,
-    processOrderSale,
-    setDisBill1,
-    setDisBill2,
-    setDisBillProcess,
-    setDisCountType1,
-    setDisCountType2,
-    setHeaderProcessedShipDate,
-    setOrderItems,
-    setVDIRemark,
-    updateOrderSale
+  calculateOrderNetPriceAfterDiscount,
+  calculateOrderProductProcessSummary,
+  calculateOrderProductSummary,
+  clearDisBill,
+  createOrderSaleV3,
+  orderAttachImage,
+  orderReservV3,
+  orderReturn,
+  orderTransferV3,
+  processOrderSale,
+  setDisBill1,
+  setDisBill2,
+  setDisBillProcess,
+  setDisCountType1,
+  setDisCountType2,
+  setHeaderProcessedShipDate,
+  setOrderItems,
+  setVDIRemark,
+  updateOrderSale,
 } from '../../../../action/order';
 import { systemCheck } from '../../../../action/setting';
 import { return_Errmessage } from '../../../../api/setting';
 import {
-    MainTheme,
-    paymentLOVItems,
-    productFinalizeFormButtonGroup,
-    returnLOVItems,
+  MainTheme,
+  paymentLOVItems,
+  productFinalizeFormButtonGroup,
+  returnLOVItems,
 } from '../../../../constant/lov';
 import Navigator from '../../../../services/Navigator';
 import { discountFormat } from '../../../../utils/Culculate';
 import {
-    genenrateAttachImageToServer,
-    genenrateOrderForCreateToServer,
-    genenrateOrderForProcessToServer,
-    genenrateOrderForUpdateToServer,
-    generateResponseFromServer,
+  genenrateAttachImageToServer,
+  genenrateOrderForCreateToServer,
+  genenrateOrderForProcessToServer,
+  genenrateOrderForUpdateToServer,
+  generateResponseFromServer,
 } from '../../../../utils/Order';
 import {
-    getLoginGuID,
-    getSettingConfig,
-    getUserToken,
+  getLoginGuID,
+  getSettingConfig,
+  getUserToken,
 } from '../../../../utils/Token';
-
-
-
 
 import { setIsSubmit as setCheckInIsSubmit } from '../../../../action/check-in';
 import { setIsSubmit as setMileIsSubmit } from '../../../../action/mile';
@@ -79,14 +76,7 @@ class CTFinalizeDetail extends Component {
     this._getUserToken();
   }
 
-  componentDidMount = async (props) => {
-
-
-
-
-
-
-
+  componentDidMount = async props => {
     if (this.props.order.header.VDI_USER_REF !== null) {
       if (this.props.order.header.AR_ORDER_TYPE === 'ขายสินค้า') {
         this._setStateUpdateOrderSale();
@@ -108,14 +98,13 @@ class CTFinalizeDetail extends Component {
     this._processOrderSale();
     this._setDisType1(true);
     this._setDisType2(false);
-
   };
 
   _getUserToken = async () => {
     const userToken = await getUserToken();
 
     if (userToken) {
-      await this.setState((oldState) => {
+      await this.setState(oldState => {
         return {
           userToken: userToken,
         };
@@ -141,49 +130,48 @@ class CTFinalizeDetail extends Component {
     }
   };
 
-  _setDisBill1 = async (value) => {
+  _setDisBill1 = async value => {
     this._setSubmitDisabled(true);
     await this.props.setDisBill1(discountFormat(value));
     await this.props.calculateOrderNetPriceAfterDiscount();
   };
 
-  _setDisBill2 = async (value) => {
+  _setDisBill2 = async value => {
     this._setSubmitDisabled(true);
     await this.props.setDisBill2(discountFormat(value));
     await this.props.calculateOrderNetPriceAfterDiscount();
   };
 
-
-  _changePaymentType = async (value) => {
+  _changePaymentType = async value => {
     this._setSubmitDisabled(true);
     this._processOrderSale();
   };
 
-  _setDisType1 = async (value) => {
+  _setDisType1 = async value => {
     // console.log('VALUE ', value);
     await this.props.setDisCountType1(value);
   };
-  _setDisType2 = async (value) => {
+  _setDisType2 = async value => {
     await this.props.setDisCountType2(value);
   };
-
 
   // _totalItems= async (value) => {
   //     await this.props.setT(value);
   //   };ggg
 
-  _setVDIRemark = async (value) => {
+  _setVDIRemark = async value => {
     this._setSubmitDisabled(true);
     await this.props.setVDIRemark(value);
   };
 
-  _onPress = (item) => {
+  _onPress = item => {
     console.log('item.methodName =>', item.methodName);
     console.log('this.state.submitDisabled =>', this.state.submitDisabled);
     console.log('this.state.disabledButton =>', this.state.disabledButton);
-    console.log('this.props.order.header.AR_ORDER_TYPE =>', this.props.order.header.AR_ORDER_TYPE);
-
-
+    console.log(
+      'this.props.order.header.AR_ORDER_TYPE =>',
+      this.props.order.header.AR_ORDER_TYPE,
+    );
 
     if (!this.state.isLoading) {
       this._setErrorMessage(null);
@@ -196,13 +184,10 @@ class CTFinalizeDetail extends Component {
           //   this.props.order.header.AR_ORDER_TYPE,
           // );
           if (this.props.order.header.AR_ORDER_TYPE === 'ขายสินค้า') {
-
             console.log(
               'ขายสินค้า this.state.paymentType',
-              this.state.paymentType
+              this.state.paymentType,
             );
-
-
 
             if (this.state.paymentType !== null) {
               // console.log('ขายเชื่อ 0');
@@ -229,7 +214,10 @@ class CTFinalizeDetail extends Component {
                   // this.state.userToken.VANCONFIG.VANCNF_BANK_QRCODE_USE === 2
                 ) {
                   console.log('ขายสด 1');
-                  console.log('renderthis.state.processResult', this.state.processResult);
+                  console.log(
+                    'renderthis.state.processResult',
+                    this.state.processResult,
+                  );
                   Navigator.navigate('OrderSalesPayment', {
                     processResult: this.state.processResult,
                   });
@@ -249,7 +237,9 @@ class CTFinalizeDetail extends Component {
             }
           } else if (this.props.order.header.AR_ORDER_TYPE === 'จองสินค้า') {
             this._orderReserv();
-          } else if (this.props.order.header.AR_ORDER_TYPE === 'โอนย้ายสินค้า') {
+          } else if (
+            this.props.order.header.AR_ORDER_TYPE === 'โอนย้ายสินค้า'
+          ) {
             this._orderTransfer();
           } else if (this.props.order.header.AR_ORDER_TYPE === 'ใบเสนอราคา') {
             this._customerUpdateStockBalance();
@@ -277,7 +267,7 @@ class CTFinalizeDetail extends Component {
       'ประกาศ',
       'คุณแน่ใจว่าจะออกจากหน้าจอนี้',
       [
-        { text: 'ยกเลิก', onPress: () => { }, style: 'cancel' },
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
         { text: 'ยืนยัน', onPress: () => Navigator.back() },
       ],
       { cancelable: false },
@@ -328,9 +318,9 @@ class CTFinalizeDetail extends Component {
       const v3GUID = await getLoginGuID();
       if (
         parseInt(timeArray[0] + timeArray[1]) >=
-        parseInt(VANCONFIG.VANCNF_TIME_FM) &&
+          parseInt(VANCONFIG.VANCNF_TIME_FM) &&
         parseInt(timeArray[0] + timeArray[1]) <=
-        parseInt(VANCONFIG.VANCNF_TIME_TO)
+          parseInt(VANCONFIG.VANCNF_TIME_TO)
       ) {
         if (this.props.order.header.VDI_USER_REF === null) {
           console.log('RTN CREATE ');
@@ -399,10 +389,10 @@ class CTFinalizeDetail extends Component {
           VANCONFIG.VANCNF_TIME_TO[3] +
           ' )';
         this._setErrorMessage(errorStr);
-        console.log("errorStr : ", errorStr)
+        console.log('errorStr : ', errorStr);
       }
     } catch (error) {
-      console.log("error : ", error)
+      console.log('error : ', error);
       this._setErrorMessage(error);
     }
     this._setIsLoading(false);
@@ -438,20 +428,25 @@ class CTFinalizeDetail extends Component {
       // );
       if (
         parseInt(timeArray[0] + timeArray[1]) >=
-        parseInt(VANCONFIG.VANCNF_TIME_FM) &&
+          parseInt(VANCONFIG.VANCNF_TIME_FM) &&
         parseInt(timeArray[0] + timeArray[1]) <=
-        parseInt(VANCONFIG.VANCNF_TIME_TO)
+          parseInt(VANCONFIG.VANCNF_TIME_TO)
       ) {
         await this.props.setHeaderProcessedShipDate(
           moment(this.state.shipDate, 'DD/MM/YYYY').add(1, 'days').toJSON(),
         );
 
         console.log('shipDate 11', this.props.order.header);
-        // console.log('shipDate 31' , this.props.order.header.VDI_SHIP_DATE) ; 
+        // console.log('shipDate 31' , this.props.order.header.VDI_SHIP_DATE) ;
 
-
-        this.state.processResult.TRANSTKH.TRH_SHIP_DATE = moment(this.state.shipDate, 'DD/MM/YYYY').format('YYYYMMDD');
-        this.props.order.header.VDI_SHIP_DATE = moment(this.state.shipDate, 'DD/MM/YYYY').format('YYYYMMDD');
+        this.state.processResult.TRANSTKH.TRH_SHIP_DATE = moment(
+          this.state.shipDate,
+          'DD/MM/YYYY',
+        ).format('YYYYMMDD');
+        this.props.order.header.VDI_SHIP_DATE = moment(
+          this.state.shipDate,
+          'DD/MM/YYYY',
+        ).format('YYYYMMDD');
         const v3GUID = await getLoginGuID();
 
         let res = null;
@@ -521,13 +516,11 @@ class CTFinalizeDetail extends Component {
           VANCONFIG.VANCNF_TIME_TO[3] +
           ' )';
         this._setErrorMessage(errorStr);
-        console.log("errorStr : 2", errorStr)
-
+        console.log('errorStr : 2', errorStr);
       }
     } catch (error) {
       this._setErrorMessage(error);
-      console.log("error : 2", error)
-
+      console.log('error : 2', error);
     }
     this._setIsLoading(false);
   };
@@ -549,9 +542,9 @@ class CTFinalizeDetail extends Component {
       const timeArray = RESPONSE_DATETIME.split(':');
       if (
         parseInt(timeArray[0] + timeArray[1]) >=
-        parseInt(VANCONFIG.VANCNF_TIME_FM) &&
+          parseInt(VANCONFIG.VANCNF_TIME_FM) &&
         parseInt(timeArray[0] + timeArray[1]) <=
-        parseInt(VANCONFIG.VANCNF_TIME_TO)
+          parseInt(VANCONFIG.VANCNF_TIME_TO)
       ) {
         const v3GUID = await getLoginGuID();
         // console.log('v3GUID ', v3GUID);
@@ -592,13 +585,11 @@ class CTFinalizeDetail extends Component {
           VANCONFIG.VANCNF_TIME_TO[3] +
           ' )';
         this._setErrorMessage(errorStr);
-        console.log("errorStr : 3", errorStr)
-
+        console.log('errorStr : 3', errorStr);
       }
     } catch (error) {
       this._setErrorMessage(error);
-      console.log("error : 3", error)
-
+      console.log('error : 3', error);
     }
     this._setIsLoading(false);
   };
@@ -610,7 +601,10 @@ class CTFinalizeDetail extends Component {
       Keyboard.dismiss();
       const { productListItems } = this.props.order;
 
-      console.log('productListItems >>> ', JSON.parse(JSON.stringify(productListItems)));
+      console.log(
+        'productListItems >>> ',
+        JSON.parse(JSON.stringify(productListItems)),
+      );
 
       const cloneObj = JSON.parse(JSON.stringify(productListItems));
 
@@ -661,18 +655,16 @@ class CTFinalizeDetail extends Component {
         orderProductSummary: this.props.order.orderProductSummary,
         userToken: this.state.userToken,
         processResult: this.state.processResult,
-        onBackFromAnother: async () => await this.props.setOrderItems(listItems),
+        onBackFromAnother: async () =>
+          await this.props.setOrderItems(listItems),
       });
 
-
       console.log('_customerUpdateStockBalance listItems', listItems);
-
     } catch (error) {
       console.log(error);
       this._setErrorMessage(error);
     }
   };
-
 
   _createOrderSale = async () => {
     try {
@@ -710,9 +702,9 @@ class CTFinalizeDetail extends Component {
         console.log('_createOrderSale this.props.order', this.props.order);
         if (
           parseInt(timeArray[0] + timeArray[1]) >=
-          parseInt(VANCONFIG.VANCNF_TIME_FM) &&
+            parseInt(VANCONFIG.VANCNF_TIME_FM) &&
           parseInt(timeArray[0] + timeArray[1]) <=
-          parseInt(VANCONFIG.VANCNF_TIME_TO)
+            parseInt(VANCONFIG.VANCNF_TIME_TO)
         ) {
           const userToken = await getUserToken();
           const v3GUID = await getLoginGuID();
@@ -724,7 +716,7 @@ class CTFinalizeDetail extends Component {
             ),
             v3GUID,
             VANCONFIG,
-            '0'
+            '0',
           );
           const { ResponseData, ResponseCode, ReasonString } = response2;
           if (ResponseCode === '200') {
@@ -757,8 +749,7 @@ class CTFinalizeDetail extends Component {
             // Navigator.navigate('OrderChoice')
           } else {
             this._setErrorMessage(ReasonString);
-            console.log("ReasonString : ", ReasonString)
-
+            console.log('ReasonString : ', ReasonString);
           }
         } else {
           const errorStr =
@@ -776,17 +767,15 @@ class CTFinalizeDetail extends Component {
             VANCONFIG.VANCNF_TIME_TO[3] +
             ' )';
           this._setErrorMessage(errorStr);
-          console.log("errorStr : 4", errorStr)
-
+          console.log('errorStr : 4', errorStr);
         }
       } else {
         this._setErrorMessage('โปรดเลือกประเภทการชำระ');
       }
     } catch (error) {
-      console.log("_createOrderSale Error")
+      console.log('_createOrderSale Error');
       this._setErrorMessage(error);
-      console.log("error : 4", error)
-
+      console.log('error : 4', error);
     }
 
     this._setIsLoading(false);
@@ -839,16 +828,14 @@ class CTFinalizeDetail extends Component {
           // Navigator.navigate('OrderChoice')
         } else if (STATUS === '10' && ERROR_MESSAGES[0]) {
           this._setErrorMessage(ERROR_MESSAGES[0]);
-          console.log("ERROR_MESSAGES[0] ", ERROR_MESSAGES[0])
-
+          console.log('ERROR_MESSAGES[0] ', ERROR_MESSAGES[0]);
         }
       } else {
         this._setErrorMessage('โปรดเลือกประเภทการชำระ');
       }
     } catch (error) {
       this._setErrorMessage(error);
-      console.log("error : 5", error)
-
+      console.log('error : 5', error);
     }
     this._setIsLoading(false);
   };
@@ -858,9 +845,6 @@ class CTFinalizeDetail extends Component {
       this._setIsLoading(true);
       this._setErrorMessage(null);
       this._setSuccessMessage(null);
-
-
-
 
       if (
         this.props.order.orderProductSummary.totalQty === 0 &&
@@ -875,25 +859,16 @@ class CTFinalizeDetail extends Component {
       }
 
       if (
-        (
-          this.props.order.orderProductSummary.DIS_COUNT_TYPE1 && parseFloat(this.props.order.orderProductSummary.DIS_BILL_1) > 100
-          ||
-          (this.props.order.orderProductSummary.DIS_COUNT_TYPE2 && parseFloat(this.props.order.orderProductSummary.DIS_BILL_1))
-          > parseFloat(this.state.processResult?.ARDETAIL?.ARD_G_KEYIN)
-        )
+        (this.props.order.orderProductSummary.DIS_COUNT_TYPE1 &&
+          parseFloat(this.props.order.orderProductSummary.DIS_BILL_1) > 100) ||
+        (this.props.order.orderProductSummary.DIS_COUNT_TYPE2 &&
+          parseFloat(this.props.order.orderProductSummary.DIS_BILL_1)) >
+          parseFloat(this.state.processResult?.ARDETAIL?.ARD_G_KEYIN)
       ) {
-        this._setErrorMessage(
-          'ไม่สามารถใส่ส่วนลดได้ กรุณาตรวจสอบ',
-        );
+        this._setErrorMessage('ไม่สามารถใส่ส่วนลดได้ กรุณาตรวจสอบ');
         this._setIsLoading(false);
         return;
       }
-
-
-
-
-
-
 
       // console.log(
       //   '_processOrderSale this.props.customer.item',
@@ -901,12 +876,6 @@ class CTFinalizeDetail extends Component {
       // );
 
       // console.log('this.props.order.orderProductSummary66' , this.props.order.orderProductSummary)
-
-
-
-
-
-
 
       // เช๊คจากเกินช่วงเวลาที่กำหนด
 
@@ -922,7 +891,6 @@ class CTFinalizeDetail extends Component {
       // console.log('RESPONSE_DATETIME' , RESPONSE_DATETIME);
       // console.log('VANCONFIG.VANCNF_TIME_FM1' , VANCONFIG.VANCNF_TIME_FM);
       // console.log('VANCONFIG.VANCNF_TIME_TO' , VANCONFIG.VANCNF_TIME_TO);
-
 
       //  const timeArray = RESPONSE_DATETIME.split(':');
       //     console.log("item Bazzz .timeArray", timeArray);
@@ -950,43 +918,60 @@ class CTFinalizeDetail extends Component {
         if (this.props.customer.item.AR_SUMMARY.ARS_CRE_LIM > 0) {
           // this.state.paymentType === 0 ขายเชื่อ  , 1 ขายสด
 
-          if (VANCONFIG.VANCNF_NOV_CRE_LIM === 1 && this.state.paymentType !== "1") {
+          if (
+            VANCONFIG.VANCNF_NOV_CRE_LIM === 1 &&
+            this.state.paymentType !== '1'
+          ) {
             //  console.log('_processOrderSale this.props.customer.ARS_CRE_LIM', this.props.customer.item.AR_SUMMARY.ARS_CRE_LIM, );
             //  console.log('this.props.order.orderProductSummary.totalQty', this.props.order.orderProductSummary, );
             //  console.log('this.props.customer.item', this.props.customer.item, );
             //  console.log(' Bazzzz ',this.props.customer.item.AR_SUMMARY.ARS_CRE_REMAIN_NPDC - this.props.order.orderProductSummary.totalPrice, );
 
-            if (this.props.customer.item.AR_SUMMARY.ARS_CRE_REMAIN_NPDC - this.props.order.orderProductSummary.totalPrice < 0) {
-              this._setErrorMessage('ไม่สามารถขายเกินวงเงินคงเหลือได้ ( ' + parseFloat(this.props.customer.item.AR_SUMMARY.ARS_CRE_REMAIN_NPDC).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' บาท)',);
+            if (
+              this.props.customer.item.AR_SUMMARY.ARS_CRE_REMAIN_NPDC -
+                this.props.order.orderProductSummary.totalPrice <
+              0
+            ) {
+              this._setErrorMessage(
+                'ไม่สามารถขายเกินวงเงินคงเหลือได้ ( ' +
+                  parseFloat(
+                    this.props.customer.item.AR_SUMMARY.ARS_CRE_REMAIN_NPDC,
+                  )
+                    .toFixed(2)
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, ',') +
+                  ' บาท)',
+              );
               this._setIsLoading(false);
               return;
             }
             //  console.log('ไม่สามารถขายเกินวงเงินเครดิต', this.props.customer.item.AR_SUMMARY.ARS_CRE_LIM, );
             //  console.log('ไม่สามารถขายเกินวงเงินคงเหลือ', this.props.customer.item.AR_SUMMARY.ARS_CRE_REMAIN_NPDC, );
-
           }
         }
-
       }
 
-      if (this.props.order.orderProductSummary.DIS_BILL_1 != '' &&
-        this.props.order.orderProductSummary.DIS_BILL_1 != null) {
-
+      if (
+        this.props.order.orderProductSummary.DIS_BILL_1 != '' &&
+        this.props.order.orderProductSummary.DIS_BILL_1 != null
+      ) {
         if (
           this.props.order.orderProductSummary.DIS_BILL_1.includes('B') &&
-          this.props.order.orderProductSummary.DIS_BILL_2 ===
-          undefined) {
+          this.props.order.orderProductSummary.DIS_BILL_2 === undefined
+        ) {
           this.props.order.orderProductSummary.DIS_COUNT_TYPE1 = false;
           this.props.order.orderProductSummary.DIS_COUNT_TYPE2 = true;
-          this.props.order.orderProductSummary.DIS_BILL_1 = this.props.order.orderProductSummary.DIS_BILL_1.replace('BB', 'B')
-
+          this.props.order.orderProductSummary.DIS_BILL_1 =
+            this.props.order.orderProductSummary.DIS_BILL_1.replace('BB', 'B');
         }
       } else {
-        this.props.order.orderProductSummary.DIS_BILL_1 = ''
-        this.props.order.orderProductSummary.DIS_BILL_2 = ''
+        this.props.order.orderProductSummary.DIS_BILL_1 = '';
+        this.props.order.orderProductSummary.DIS_BILL_2 = '';
       }
 
-      this.props.order.header.VDI_AF_DISC = this.props.order.orderProductSummary.totalPrice !== "" ? this.props.order.orderProductSummary.totalPrice : 0;
+      this.props.order.header.VDI_AF_DISC =
+        this.props.order.orderProductSummary.totalPrice !== ''
+          ? this.props.order.orderProductSummary.totalPrice
+          : 0;
 
       // Bazz
       const response = await this.props.processOrderSale(
@@ -1014,8 +999,6 @@ class CTFinalizeDetail extends Component {
       );
       // console.log('CTFinalizeDetail AWDDWD this.props.order', this.props.order);
 
-
-
       const { ResponseData, ResponseCode, ReasonString } = response;
       console.log('CTFinalizeDetail AWDDWD', response);
       // console.log(
@@ -1036,19 +1019,20 @@ class CTFinalizeDetail extends Component {
         let responseData = JSON.parse(ResponseData);
         // console.log('responseData333', responseData);
 
-        let sumfree = 0
-        let totalQty = 0
+        let sumfree = 0;
+        let totalQty = 0;
         for (let i in responseData.TRANSTKD) {
           sumfree += parseFloat(responseData.TRANSTKD[i].TRD_Q_FREE);
           totalQty += parseFloat(responseData.TRANSTKD[i].TRD_QTY);
         }
 
-        this.props.order.orderProductSummary.totalItems = parseFloat(responseData.DOCINFO.DI_ITEMS);
+        this.props.order.orderProductSummary.totalItems = parseFloat(
+          responseData.DOCINFO.DI_ITEMS,
+        );
         this.props.order.orderProductSummary.totalFree = parseFloat(sumfree);
         this.props.order.orderProductSummary.totalQty = parseFloat(totalQty);
 
         // console.log('responseData333t', this.props.order.header.AR_ORDER_TYPE);
-
 
         if (this.props.order.orderProductSummary.DIS_COUNT_TYPE1 == true) {
           if (this.props.order.header.AR_ORDER_TYPE === 'โอนย้ายสินค้า') {
@@ -1056,39 +1040,48 @@ class CTFinalizeDetail extends Component {
             this.props.order.orderProductSummary.DIS_BILL_2_AFTER_DISCOUNT = 0;
           } else {
             this.props.order.orderProductSummary.DIS_BILL_1_AFTER_DISCOUNT =
-              (
-                (this.props.order.orderProductSummary.DIS_BILL_1 / 100) * (responseData?.AROE && responseData?.AROE?.AROE_G_KEYIN ? responseData.AROE.AROE_G_KEYIN : responseData.ARDETAIL.ARD_G_KEYIN)
-              );
+              (this.props.order.orderProductSummary.DIS_BILL_1 / 100) *
+              (responseData?.AROE && responseData?.AROE?.AROE_G_KEYIN
+                ? responseData.AROE.AROE_G_KEYIN
+                : responseData.ARDETAIL.ARD_G_KEYIN);
             this.props.order.orderProductSummary.DIS_BILL_2_AFTER_DISCOUNT =
-              (
-                parseFloat(this.props.order.orderProductSummary.DIS_BILL_2) > 0 ?
-                  (this.props.order.orderProductSummary.DIS_BILL_2 / 100) * (responseData?.AROE && responseData?.AROE?.AROE_G_KEYIN ? responseData.AROE.AROE_G_KEYIN : responseData.ARDETAIL.ARD_G_KEYIN) - ((this.props.order.orderProductSummary.DIS_BILL_2 / 100) * (this.props.order.orderProductSummary.DIS_BILL_1_AFTER_DISCOUNT))
-                  : 0
-              );
+              parseFloat(this.props.order.orderProductSummary.DIS_BILL_2) > 0
+                ? (this.props.order.orderProductSummary.DIS_BILL_2 / 100) *
+                    (responseData?.AROE && responseData?.AROE?.AROE_G_KEYIN
+                      ? responseData.AROE.AROE_G_KEYIN
+                      : responseData.ARDETAIL.ARD_G_KEYIN) -
+                  (this.props.order.orderProductSummary.DIS_BILL_2 / 100) *
+                    this.props.order.orderProductSummary
+                      .DIS_BILL_1_AFTER_DISCOUNT
+                : 0;
 
             // console.log('responseData333', (responseData ?.AROE && responseData ?.AROE  ?.AROE_G_KEYIN ? responseData.AROE.AROE_G_KEYIN :  responseData.ARDETAIL.ARD_G_KEYIN));
             // console.log('responseData333',   ((this.props.order.orderProductSummary.DIS_BILL_2 / 100) * (this.props.order.orderProductSummary.DIS_BILL_1_AFTER_DISCOUNT)));
-
           }
-        } else if (this.props.order.orderProductSummary.DIS_COUNT_TYPE2 == true) {
+        } else if (
+          this.props.order.orderProductSummary.DIS_COUNT_TYPE2 == true
+        ) {
           if (this.props.order.header.AR_ORDER_TYPE === 'โอนย้ายสินค้า') {
             this.props.order.orderProductSummary.DIS_BILL_1_AFTER_DISCOUNT = 0;
             this.props.order.orderProductSummary.DIS_BILL_2_AFTER_DISCOUNT = 0;
           } else {
-            this.props.order.orderProductSummary.DIS_BILL_1_AFTER_DISCOUNT = parseFloat(this.props.order.orderProductSummary.DIS_BILL_1.replace('B', ''));
-            this.props.order.orderProductSummary.DIS_BILL_1 = this.props.order.orderProductSummary.DIS_BILL_1.replace('B', '');
+            this.props.order.orderProductSummary.DIS_BILL_1_AFTER_DISCOUNT =
+              parseFloat(
+                this.props.order.orderProductSummary.DIS_BILL_1.replace(
+                  'B',
+                  '',
+                ),
+              );
+            this.props.order.orderProductSummary.DIS_BILL_1 =
+              this.props.order.orderProductSummary.DIS_BILL_1.replace('B', '');
 
             this.props.order.orderProductSummary.DIS_BILL_2 = 0;
           }
         }
 
-
-
-
         //await this.props.calculateOrderNetPriceAfterDiscount();
         //await this.props.calculateOrderProductSummary();
         //await this.props.calculateOrderProductProcessSummary()
-
 
         this._setSubmitDisabled(false);
         this._setSuccessMessage('รวมยอดสำเร็จ');
@@ -1099,33 +1092,29 @@ class CTFinalizeDetail extends Component {
           await this.setState({ processResult: ddd });
           // await this.props.calculateOrderProductProcessSummary();
 
-
           // console.log(
           //       ' this.props.order.orderProductSummary Bazz: ',
           //       this.props.order.orderProductSummary,
           //     );
 
-
           typeof this.props.order.orderProductSummary.DIS_COUNT_TYPE1 ===
-            'undefined'
+          'undefined'
             ? await this.props.setDisBillProcess(
-              this.props.order.orderProductSummary.DIS_BILL_1,
-              this.props.order.orderProductSummary.DIS_BILL_2,
-            )
+                this.props.order.orderProductSummary.DIS_BILL_1,
+                this.props.order.orderProductSummary.DIS_BILL_2,
+              )
             : await this.props.setDisBillProcess(
-              this.props.order.orderProductSummary.DIS_BILL_1,
-              this.props.order.orderProductSummary.DIS_BILL_2,
-            );
+                this.props.order.orderProductSummary.DIS_BILL_1,
+                this.props.order.orderProductSummary.DIS_BILL_2,
+              );
         }
       } else {
         this._setErrorMessage(await return_Errmessage(ResponseCode));
-        console.log("ResponseCode : 6", await return_Errmessage(ResponseCode))
-
+        console.log('ResponseCode : 6', await return_Errmessage(ResponseCode));
       }
     } catch (error) {
       this._setErrorMessage(error.message);
-      console.log("error.message : 6", error.message)
-
+      console.log('error.message : 6', error.message);
     }
     this._setIsLoading(false);
   };
@@ -1170,7 +1159,7 @@ class CTFinalizeDetail extends Component {
     }
   };
 
-  _printReceipt = async (type) => {
+  _printReceipt = async type => {
     if (this.props.bluetooth.state == 'connected') {
       const userToken = await getUserToken();
       BluetoothPrinter.printSaleReceipt(
@@ -1185,62 +1174,54 @@ class CTFinalizeDetail extends Component {
     }
   };
 
-  _setIsLoading = (value) => {
-    this.setState((oldState) => {
+  _setIsLoading = value => {
+    this.setState(oldState => {
       return {
         isLoading: value,
       };
     });
   };
 
-  _setSuccessMessage = (value) => {
-    this.setState((oldState) => {
+  _setSuccessMessage = value => {
+    this.setState(oldState => {
       return {
         successMessage: value,
       };
     });
   };
 
-  _setErrorMessage = (value) => {
-    this.setState((oldState) => {
+  _setErrorMessage = value => {
+    this.setState(oldState => {
       return {
         errorMessage: value,
       };
     });
   };
 
-  _setSubmitDisabled = (bool) => {
-    this.setState((oldState) => {
+  _setSubmitDisabled = bool => {
+    this.setState(oldState => {
       return {
         submitDisabled: bool,
       };
     });
   };
 
-
-  _setDisabledButton = (value) => {
+  _setDisabledButton = value => {
     this._isMounted &&
-      this.setState((oldState) => {
+      this.setState(oldState => {
         return {
           disabledButton: value,
         };
       });
   };
 
-
-
-
-
-
-
-
-  _setPaymentType = (value) => {
+  _setPaymentType = value => {
     if (
       this.state.userToken.VANCONFIG.VANCNF_ENABLE_CASHSALES == 'Y' &&
       value == 1
     ) {
       this._setErrorMessage(null);
-      this.setState((oldState) => {
+      this.setState(oldState => {
         return {
           paymentType: value,
         };
@@ -1250,7 +1231,7 @@ class CTFinalizeDetail extends Component {
       value == 0
     ) {
       this._setErrorMessage(null);
-      this.setState((oldState) => {
+      this.setState(oldState => {
         return {
           paymentType: value,
         };
@@ -1272,24 +1253,22 @@ class CTFinalizeDetail extends Component {
     }
   };
 
-  _setReturnType = (value) => {
-    this.setState((oldState) => {
+  _setReturnType = value => {
+    this.setState(oldState => {
       return {
         returnType: value,
       };
     });
   };
 
-  _setShipDate = async (value) => {
-    await this.setState((oldState) => {
-      // console.log('shipDate 1' , value) ; 
-      // console.log('shipDate 2' , processResult) ; 
+  _setShipDate = async value => {
+    await this.setState(oldState => {
+      // console.log('shipDate 1' , value) ;
+      // console.log('shipDate 2' , processResult) ;
 
-      // console.log('shipDate 3' , this.state.processResult.TRANSTKH.TRH_SHIP_DATE) ; 
+      // console.log('shipDate 3' , this.state.processResult.TRANSTKH.TRH_SHIP_DATE) ;
 
-      const formattedShipDate = moment(value, 'DD/MM/YYYY').format(
-        'YYYYMMDD',
-      );
+      const formattedShipDate = moment(value, 'DD/MM/YYYY').format('YYYYMMDD');
 
       this.state.processResult.TRANSTKH.TRH_SHIP_DATE = formattedShipDate;
       this.props.order.header.VDI_SHIP_DATE = formattedShipDate;
@@ -1299,7 +1278,7 @@ class CTFinalizeDetail extends Component {
         VDI_SHIP_DATE: this.props.order.header?.VDI_SHIP_DATE,
         processTRHShipDate: this.state.processResult?.TRANSTKH?.TRH_SHIP_DATE,
       });
-      // console.log('shipDate 4' , this.state.processResult.TRANSTKH.TRH_SHIP_DATE) ; 
+      // console.log('shipDate 4' , this.state.processResult.TRANSTKH.TRH_SHIP_DATE) ;
 
       return {
         shipDate: value,
@@ -1307,8 +1286,8 @@ class CTFinalizeDetail extends Component {
     });
   };
 
-  _setExpiryDate = async (value) => {
-    await this.setState((oldState) => {
+  _setExpiryDate = async value => {
+    await this.setState(oldState => {
       const formattedExpiryDate = moment(value, 'DD/MM/YYYY').format(
         'YYYYMMDD',
       );
@@ -1326,16 +1305,16 @@ class CTFinalizeDetail extends Component {
     });
   };
 
-  _setSaleDisable = async (value) => {
-    await this.setState((oldState) => {
+  _setSaleDisable = async value => {
+    await this.setState(oldState => {
       return {
         saleDisable: value,
       };
     });
   };
 
-  _setReturnDisable = async (value) => {
-    await this.setState((oldState) => {
+  _setReturnDisable = async value => {
+    await this.setState(oldState => {
       return {
         returnDisable: value,
       };
@@ -1343,7 +1322,7 @@ class CTFinalizeDetail extends Component {
   };
 
   _goToBluetoothSetting = () => {
-    BluetoothFinder.checkBluetoothEnable((value) => {
+    BluetoothFinder.checkBluetoothEnable(value => {
       // alert(value.result)
       if (value.result) {
         Navigator.navigate('Bluetooth');
@@ -1356,7 +1335,7 @@ class CTFinalizeDetail extends Component {
       'ประกาศ',
       'เนื่องจากไม่ได้ทำการ Connect printer ต้องการจะไปที่หน้า Bluetooth setting หรือไม่',
       [
-        { text: 'ยกเลิก', onPress: () => { }, style: 'cancel' },
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
         { text: 'ยืนยัน', onPress: () => this._goToBluetoothSetting() },
       ],
       { cancelable: false },
@@ -1367,11 +1346,11 @@ class CTFinalizeDetail extends Component {
     //  console.log('key ==>', key)
 
     const greentStyle = {
-      "backgroundColor": "#2FBA74",
-      "borderColor": "#E5E4E2",
-      "borderRadius": 0,
-      "borderWidth": 0.3,
-      "height": 60
+      backgroundColor: '#2FBA74',
+      borderColor: '#E5E4E2',
+      borderRadius: 0,
+      borderWidth: 0.3,
+      height: 60,
     };
     const graytStyle = {
       backgroundColor: MainTheme.colorSecondary,
@@ -1383,14 +1362,49 @@ class CTFinalizeDetail extends Component {
       elevation: 0,
     };
 
-
-    return (<>
-      <TouchableOpacity key={key} style={[item.methodName === 'process' && this.state.submitDisabled == true ? greentStyle : item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, item.methodName === 'confirm' ? this.state.submitDisabled : this.state.disabledButton ? { backgroundColor: MainTheme.colorNonary } : null]} onPress={() => {
-          this._onPress(item);
-        }} disabled={item.methodName === 'confirm' ? this.state.submitDisabled : this.state.disabledButton} activeOpacity={0.7}>
-              <Text style={item.methodName === 'process' && this.state.submitDisabled == true ? { titleStyle: { color: MainTheme.colorSecondary } } : item.titleStyle}>{item.title}</Text>
-            </TouchableOpacity>
-    </>);
+    return (
+      <>
+        <TouchableOpacity
+          key={key}
+          style={[
+            item.methodName === 'process' && this.state.submitDisabled == true
+              ? greentStyle
+              : item.buttonStyle,
+            item.containerStyle,
+            {
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+            },
+            item.methodName === 'confirm'
+              ? this.state.submitDisabled
+              : this.state.disabledButton
+              ? { backgroundColor: MainTheme.colorNonary }
+              : null,
+          ]}
+          onPress={() => {
+            this._onPress(item);
+          }}
+          disabled={
+            item.methodName === 'confirm'
+              ? this.state.submitDisabled
+              : this.state.disabledButton
+          }
+          activeOpacity={0.7}
+        >
+          <Text
+            style={
+              item.methodName === 'process' && this.state.submitDisabled == true
+                ? { titleStyle: { color: MainTheme.colorSecondary } }
+                : item.titleStyle
+            }
+          >
+            {item.title}
+          </Text>
+        </TouchableOpacity>
+      </>
+    );
   };
 
   render() {
@@ -1405,18 +1419,19 @@ class CTFinalizeDetail extends Component {
     //  console.log(
     //    'this.state.errorMessage', this.state.errorMessage, );
 
-
-
     this.props.order.header.AR_ORDER_TYPE === 'ขายสินค้า' &&
-      this.state.userToken &&
-      this.state.userToken.VANCONFIG &&
-      this.state.userToken.VANCONFIG.VANCNF_NOV_SKU_BAL &&
-      this.state.userToken.VANCONFIG.VANCNF_NOV_SKU_BAL == 1 &&
-      this.props.order.orderProductSummary.ORDER_PROCESS_FAIL != '' &&
-      this.state.errorMessage === undefined &&
-      this.state.errorMessage != this.props.order.orderProductSummary.ORDER_PROCESS_FAIL
-      ? this._setErrorMessage(this.props.order.orderProductSummary.ORDER_PROCESS_FAIL,) : console.log('ไม่ Error');
-
+    this.state.userToken &&
+    this.state.userToken.VANCONFIG &&
+    this.state.userToken.VANCONFIG.VANCNF_NOV_SKU_BAL &&
+    this.state.userToken.VANCONFIG.VANCNF_NOV_SKU_BAL == 1 &&
+    this.props.order.orderProductSummary.ORDER_PROCESS_FAIL != '' &&
+    this.state.errorMessage === undefined &&
+    this.state.errorMessage !=
+      this.props.order.orderProductSummary.ORDER_PROCESS_FAIL
+      ? this._setErrorMessage(
+          this.props.order.orderProductSummary.ORDER_PROCESS_FAIL,
+        )
+      : console.log('ไม่ Error');
 
     //  if (this.props.order.orderProductSummary.ORDER_PROCESS_FAIL != '') {
     //    if (this.state.errorMessage === undefined && this.state.errorMessage != this.props.order.orderProductSummary.ORDER_PROCESS_FAIL) {
@@ -1426,13 +1441,15 @@ class CTFinalizeDetail extends Component {
 
     let editableDisBill = false;
     this.state.userToken &&
-      this.state.userToken.VANCONFIG &&
-      this.state.userToken.VANCONFIG.VANCNF_ENABLE_TDSC &&
-      this.state.userToken.VANCONFIG.VANCNF_ENABLE_TDSC == 2
+    this.state.userToken.VANCONFIG &&
+    this.state.userToken.VANCONFIG.VANCNF_ENABLE_TDSC &&
+    this.state.userToken.VANCONFIG.VANCNF_ENABLE_TDSC == 2
       ? (editableDisBill = true)
       : false;
 
-    this.props.order.header.VDI_AF_DISC = parseFloat(this.state.processResult?.DOCINFO?.DI_AMOUNT);
+    this.props.order.header.VDI_AF_DISC = parseFloat(
+      this.state.processResult?.DOCINFO?.DI_AMOUNT,
+    );
     console.log('VDI_AF_DISC 22', this.props.order.header);
 
     return (
@@ -1466,13 +1483,12 @@ class CTFinalizeDetail extends Component {
         returnDisable={this.state.returnDisable}
         editableDisBill={editableDisBill}
         changePaymentType={this._changePaymentType}
-
       />
     );
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   bluetooth: state.bluetooth,
   order: state.order,
   customer: state.customer,
@@ -1481,13 +1497,13 @@ const mapStateToProps = (state) => ({
   checkin: state.checkin,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
-    setVDIRemark: (value) => dispatch(setVDIRemark(value)),
-    setDisBill1: (value) => dispatch(setDisBill1(value)),
-    setDisBill2: (value) => dispatch(setDisBill2(value)),
-    setDisCountType1: (value) => dispatch(setDisCountType1(value)),
-    setDisCountType2: (value) => dispatch(setDisCountType2(value)),
+    setVDIRemark: value => dispatch(setVDIRemark(value)),
+    setDisBill1: value => dispatch(setDisBill1(value)),
+    setDisBill2: value => dispatch(setDisBill2(value)),
+    setDisCountType1: value => dispatch(setDisCountType1(value)),
+    setDisCountType2: value => dispatch(setDisCountType2(value)),
     calculateOrderNetPriceAfterDiscount: () =>
       dispatch(calculateOrderNetPriceAfterDiscount()),
     clearDisBill: () => dispatch(clearDisBill()),
@@ -1506,18 +1522,17 @@ const mapDispatchToProps = (dispatch) => {
       dispatch(calculateOrderProductProcessSummary()),
     setDisBillProcess: (disBill1, disBill2) =>
       dispatch(setDisBillProcess(disBill1, disBill2)),
-    setHeaderProcessedShipDate: (value) =>
+    setHeaderProcessedShipDate: value =>
       dispatch(setHeaderProcessedShipDate(value)),
     getCurrentPosition: () => dispatch(getCurrentPosition()),
-    updateOrderSale: (data) => dispatch(updateOrderSale(data)),
+    updateOrderSale: data => dispatch(updateOrderSale(data)),
     orderTransferV3: (data, V3GUID, vanConfig) =>
       dispatch(orderTransferV3(data, V3GUID, vanConfig)),
-    orderAttachImage: (data) => dispatch(orderAttachImage(data)),
-    systemCheck: (data) => dispatch(systemCheck(data)),
-    setCheckInIsSubmit: (bool) => dispatch(setCheckInIsSubmit(bool)),
-    setMileIsSubmit: (bool) => dispatch(setMileIsSubmit(bool)),
-    setOrderItems: (items) => dispatch(setOrderItems(items)),
-
+    orderAttachImage: data => dispatch(orderAttachImage(data)),
+    systemCheck: data => dispatch(systemCheck(data)),
+    setCheckInIsSubmit: bool => dispatch(setCheckInIsSubmit(bool)),
+    setMileIsSubmit: bool => dispatch(setMileIsSubmit(bool)),
+    setOrderItems: items => dispatch(setOrderItems(items)),
   };
 };
 

@@ -41,7 +41,7 @@ import {
   getSettingConfig,
   getUserToken,
 } from '../../../utils/Token';
-import ButtonGroup from '../presenter/ButtonGroup';
+import ButtonGroup from '../component/ButtonGroup';
 class CTButtonGroup extends Component {
   _isMounted = false;
   _userToken = false;

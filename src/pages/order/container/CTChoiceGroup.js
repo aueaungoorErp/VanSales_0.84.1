@@ -1,5 +1,14 @@
 import React, { Component } from 'react';
-import { Alert, Image, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  Linking,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { serverReady } from '../../../api/setting';
@@ -8,7 +17,7 @@ import { MainTheme, orderChoiceButtonGroup } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
 import { generateHeader } from '../../../utils/Order';
 import { getSettingConfig, getUserToken } from '../../../utils/Token';
-import ChoiceGroup from '../presenter/ChoiceGroup';
+import ChoiceGroup from '../component/ChoiceGroup';
 
 class CTChoiceGroup extends Component {
   _isMounted = false;
@@ -22,7 +31,7 @@ class CTChoiceGroup extends Component {
     };
   }
 
-  componentDidMount = (props) => {
+  componentDidMount = props => {
     this._isMounted = true;
     this._getUserToken();
   };
@@ -42,10 +51,13 @@ class CTChoiceGroup extends Component {
     }
   };
 
-  _renderItem = ({item}) => {
+  _renderItem = ({ item }) => {
     return (
       <View style={styles.card}>
-        <TouchableOpacity onPress={() => this._onPress(item)} style={styles.touchable}>
+        <TouchableOpacity
+          onPress={() => this._onPress(item)}
+          style={styles.touchable}
+        >
           <Image
             style={styles.image}
             resizeMode="contain"
@@ -59,7 +71,7 @@ class CTChoiceGroup extends Component {
     );
   };
 
-  _isVisitOrSurvey = (item) => {
+  _isVisitOrSurvey = item => {
     return item.screen == 'OrderSurvey' || item.screen == 'OrderVisit';
   };
 
@@ -70,7 +82,7 @@ class CTChoiceGroup extends Component {
     });
   };
 
-  _buildTimeDialogMessage = (vanConfig) => {
+  _buildTimeDialogMessage = vanConfig => {
     const timeFrom = vanConfig?.VANCNF_TIME_FM;
     const timeTo = vanConfig?.VANCNF_TIME_TO;
 
@@ -96,7 +108,11 @@ class CTChoiceGroup extends Component {
       const settingConfig = await getSettingConfig();
       const vanConfig = settingConfig?.VANCONFIG;
 
-      if (!settingConfig?.baseUrl || !vanConfig?.VANCNF_TIME_FM || !vanConfig?.VANCNF_TIME_TO) {
+      if (
+        !settingConfig?.baseUrl ||
+        !vanConfig?.VANCNF_TIME_FM ||
+        !vanConfig?.VANCNF_TIME_TO
+      ) {
         return true;
       }
 
@@ -128,7 +144,7 @@ class CTChoiceGroup extends Component {
     }
   };
 
-  _onPress = async (item) => {
+  _onPress = async item => {
     const userToken = await getUserToken();
     console.log('_onPress CTChoiceGroup item', item);
 
@@ -161,7 +177,7 @@ class CTChoiceGroup extends Component {
         );
       }
     } else if (item.screen == 'OrderVisit') {
-     // const supported = await Linking.canOpenURL('https://google.com');
+      // const supported = await Linking.canOpenURL('https://google.com');
       const supported = await Linking.canOpenURL(
         userToken.VANCONFIG.VANCNF_URL_VISIT,
       );
@@ -214,9 +230,7 @@ class CTChoiceGroup extends Component {
             result.push(value);
           }
         } else if (value.orderType === 'reserv-product') {
-          if (
-            userToken.VANCONFIG.VANCNF_ENABLE_BOOK == 'Y'
-          ) {
+          if (userToken.VANCONFIG.VANCNF_ENABLE_BOOK == 'Y') {
             result.push(value);
           }
         } else if (value.orderType === 'check-stock') {
@@ -244,15 +258,19 @@ class CTChoiceGroup extends Component {
           transparent
           animationType="fade"
           visible={this.state.isTimeDialogVisible}
-          onRequestClose={this._closeTimeDialog}>
+          onRequestClose={this._closeTimeDialog}
+        >
           <View style={styles.modalOverlay}>
             <View style={styles.dialogCard}>
               <Text style={styles.dialogTitle}>คำเตือน</Text>
-              <Text style={styles.dialogMessage}>{this.state.timeDialogMessage}</Text>
+              <Text style={styles.dialogMessage}>
+                {this.state.timeDialogMessage}
+              </Text>
               <TouchableOpacity
                 style={styles.dialogButton}
                 onPress={this._closeTimeDialog}
-                activeOpacity={0.8}>
+                activeOpacity={0.8}
+              >
                 <Text style={styles.dialogButtonText}>ตกลง</Text>
               </TouchableOpacity>
             </View>
@@ -263,17 +281,17 @@ class CTChoiceGroup extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   screen: state.screen,
   customer: state.customer,
   order: state.order,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
-    setInitialState: (data) => dispatch(setInitialState(data)),
-    setHeader: (data) => dispatch(setHeader(data)),
-    serverReady: (data) => dispatch(serverReady(data)),
+    setInitialState: data => dispatch(setInitialState(data)),
+    setHeader: data => dispatch(setHeader(data)),
+    serverReady: data => dispatch(serverReady(data)),
   };
 };
 

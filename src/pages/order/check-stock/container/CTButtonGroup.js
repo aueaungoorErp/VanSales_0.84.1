@@ -1,5 +1,14 @@
 import React, { Component } from 'react';
-import { Alert, Keyboard, PermissionsAndroid, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Keyboard,
+  PermissionsAndroid,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Dialog from 'react-native-dialog';
 import RNHTMLtoPDF, { generatePDF } from 'react-native-html-to-pdf';
 import { connect } from 'react-redux';
@@ -63,25 +72,24 @@ class CTButtonGroup extends Component {
       userToken: null,
       remarkDialogVisible: false,
       submitDisabled: true,
-
     };
 
     this._getUserToken();
     this._setButtonGroup();
   }
 
-  componentDidMount = (props) => {
+  componentDidMount = props => {
     this._check_inVANCNFDatetime();
     this._isMounted = true;
     console.log("this.props.screen === 'Summary' 2");
     if (this.props.screen === 'Summary') {
-      console.log("this.props.screen === 'Summary' _createQuatation",);
+      console.log("this.props.screen === 'Summary' _createQuatation");
 
       this._createQuatation();
     }
   };
 
-  componentWillUnmount = (props) => {
+  componentWillUnmount = props => {
     this._isMounted = false;
   };
 
@@ -90,32 +98,36 @@ class CTButtonGroup extends Component {
     const result = await this.props.serverReady(VANCONFIG.baseUrl);
     const { RESULT_DATA, RESPONSE_DATETIME } = result;
     const timeArray = RESPONSE_DATETIME.split(':');
-    console.log("vvvv", (
+    console.log(
+      'vvvv',
       parseInt(timeArray[0] + timeArray[1]) >=
-      parseInt(VANCONFIG.VANCONFIG.VANCNF_TIME_FM) &&
-      parseInt(timeArray[0] + timeArray[1]) <=
-      parseInt(VANCONFIG.VANCONFIG.VANCNF_TIME_TO)
-    ))
+        parseInt(VANCONFIG.VANCONFIG.VANCNF_TIME_FM) &&
+        parseInt(timeArray[0] + timeArray[1]) <=
+          parseInt(VANCONFIG.VANCONFIG.VANCNF_TIME_TO),
+    );
 
     if (
       parseInt(timeArray[0] + timeArray[1]) >=
-      parseInt(VANCONFIG.VANCONFIG.VANCNF_TIME_FM) &&
+        parseInt(VANCONFIG.VANCONFIG.VANCNF_TIME_FM) &&
       parseInt(timeArray[0] + timeArray[1]) <=
-      parseInt(VANCONFIG.VANCONFIG.VANCNF_TIME_TO)
+        parseInt(VANCONFIG.VANCONFIG.VANCNF_TIME_TO)
     ) {
-
     } else {
       const errorStr =
         'ไม่สามารถทำรายการได้เนื่องจากเกินช่วงเวลาที่กำหนด \n\r(' +
-        VANCONFIG.VANCONFIG.VANCNF_TIME_FM.substring(0, 2) + ":" + VANCONFIG.VANCONFIG.VANCNF_TIME_FM.substring(2, 4) + ' น. - ' +
-        VANCONFIG.VANCONFIG.VANCNF_TIME_TO.substring(0, 2) + ":" + VANCONFIG.VANCONFIG.VANCNF_TIME_TO.substring(2, 4) + ' น.)';
+        VANCONFIG.VANCONFIG.VANCNF_TIME_FM.substring(0, 2) +
+        ':' +
+        VANCONFIG.VANCONFIG.VANCNF_TIME_FM.substring(2, 4) +
+        ' น. - ' +
+        VANCONFIG.VANCONFIG.VANCNF_TIME_TO.substring(0, 2) +
+        ':' +
+        VANCONFIG.VANCONFIG.VANCNF_TIME_TO.substring(2, 4) +
+        ' น.)';
 
       this.setState({ _errormsg: errorStr });
       return;
     }
-
   };
-
 
   _setButtonGroup = () => {
     const { routes, index } = Navigator.getCurrentRoute();
@@ -129,12 +141,11 @@ class CTButtonGroup extends Component {
       this._listItems = checkStockSummaryButtonGroup;
     else if (routeName === 'OrderCheckStockImageItems')
       this._listItems = checkStockImageButtonGroup;
-
   };
 
-  _setSubmitDisabled = (bool) => {
+  _setSubmitDisabled = bool => {
     this._isMounted &&
-      this.setState((oldState) => {
+      this.setState(oldState => {
         return {
           submitDisabled: bool,
         };
@@ -146,7 +157,7 @@ class CTButtonGroup extends Component {
 
     if (userToken) {
       this._isMounted &&
-        (await this.setState((oldState) => {
+        (await this.setState(oldState => {
           return {
             userToken: userToken,
           };
@@ -156,7 +167,7 @@ class CTButtonGroup extends Component {
 
   _setState = async (key, value) => {
     this._isMounted &&
-      (await this.setState((oldState) => {
+      (await this.setState(oldState => {
         return {
           [key]: value,
         };
@@ -164,13 +175,12 @@ class CTButtonGroup extends Component {
   };
 
   _renderItem = (item, key) => {
-
     const greentStyle = {
-      "backgroundColor": "#2FBA74",
-      "borderColor": "#E5E4E2",
-      "borderRadius": 0,
-      "borderWidth": 0.3,
-      "height": 60
+      backgroundColor: '#2FBA74',
+      borderColor: '#E5E4E2',
+      borderRadius: 0,
+      borderWidth: 0.3,
+      height: 60,
     };
     const graytStyle = {
       backgroundColor: MainTheme.colorSecondary,
@@ -182,28 +192,51 @@ class CTButtonGroup extends Component {
       elevation: 0,
     };
 
-
     const disabled =
-      this.props.order.productListItems.length <= 0 && item.methodName === 'confirm'
+      this.props.order.productListItems.length <= 0 &&
+      item.methodName === 'confirm'
         ? true
         : false;
 
-
     return (
-      <TouchableOpacity key={key} style={[item.methodName === 'process' && this.state.submitDisabled == true ? greentStyle : item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}, disabled ? { backgroundColor: MainTheme.colorNonary } : null]} onPress={() => {
+      <TouchableOpacity
+        key={key}
+        style={[
+          item.methodName === 'process' && this.state.submitDisabled == true
+            ? greentStyle
+            : item.buttonStyle,
+          item.containerStyle,
+          {
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+          },
+          disabled ? { backgroundColor: MainTheme.colorNonary } : null,
+        ]}
+        onPress={() => {
           this._onPress(item);
-        }} disabled={disabled} activeOpacity={0.7}>
-              <Text style={item.methodName === 'process' && this.state.submitDisabled == true ? { titleStyle: { color: MainTheme.colorSecondary } } : item.titleStyle}>{
-          item.title === 'พิมพ์' &&
-            this.props.bluetooth.printingType !== 'BLUETOOTH'
+        }}
+        disabled={disabled}
+        activeOpacity={0.7}
+      >
+        <Text
+          style={
+            item.methodName === 'process' && this.state.submitDisabled == true
+              ? { titleStyle: { color: MainTheme.colorSecondary } }
+              : item.titleStyle
+          }
+        >
+          {item.title === 'พิมพ์' &&
+          this.props.bluetooth.printingType !== 'BLUETOOTH'
             ? item.subTitle
-            : item.title
-        }</Text>
-            </TouchableOpacity>
+            : item.title}
+        </Text>
+      </TouchableOpacity>
     );
   };
 
-  _onPress = async (item) => {
+  _onPress = async item => {
     console.log('item===> 2', item);
     this.props.order.errorMessage = null;
 
@@ -213,26 +246,25 @@ class CTButtonGroup extends Component {
     console.log('_onPress index: ', index);
     const printType =
       routes[index].params !== undefined &&
-        routes[index].params !== null &&
-        routes[index].params.printType !== undefined &&
-        routes[index].params.printType !== null
+      routes[index].params !== null &&
+      routes[index].params.printType !== undefined &&
+      routes[index].params.printType !== null
         ? routes[index].params.printType
         : null;
     const processResult =
       routes[index].params !== undefined &&
-        routes[index].params !== null &&
-        routes[index].params.processResult !== undefined &&
-        routes[index].params.processResult !== null
+      routes[index].params !== null &&
+      routes[index].params.processResult !== undefined &&
+      routes[index].params.processResult !== null
         ? routes[index].params.processResult
         : null;
     const orderProductSummary =
       routes[index].params !== undefined &&
-        routes[index].params !== null &&
-        routes[index].params.orderProductSummary !== undefined &&
-        routes[index].params.orderProductSummary !== null
+      routes[index].params !== null &&
+      routes[index].params.orderProductSummary !== undefined &&
+      routes[index].params.orderProductSummary !== null
         ? routes[index].params.orderProductSummary
         : null;
-
 
     console.log('_onPress printType: ', printType);
     console.log('_onPress processResult: ', processResult);
@@ -240,18 +272,14 @@ class CTButtonGroup extends Component {
 
     if (item.methodType === 'function') {
       if (item.methodName === 'confirm') {
-
-
         // this._setSubmitDisabled(true);
         // await this._customerUpdateStockBalance();
-
-
 
         this.props.setProductInitialState();
 
         Navigator.navigate(item.screen, {
           actionType: 'add_stock_balance',
-          confirmMethod: async (item) => {
+          confirmMethod: async item => {
             this._setSubmitDisabled(true);
             await this._customerUpdateStockBalance();
             Navigator.back();
@@ -268,11 +296,15 @@ class CTButtonGroup extends Component {
 
           await this._printReceipt('quotation', processResult);
         } else {
-          this._printReceiptPDF('quotation', processResult, orderProductSummary);
+          this._printReceiptPDF(
+            'quotation',
+            processResult,
+            orderProductSummary,
+          );
         }
       } else if (item.methodName === 'open-camera') {
         Navigator.navigate(item.screen, {
-          takePicture: async (data) => {
+          takePicture: async data => {
             await this.props.addStockImageItem(data.uri);
             Navigator.back();
           },
@@ -303,7 +335,7 @@ class CTButtonGroup extends Component {
 
         Navigator.navigate(item.screen, {
           actionType: 'add_stock_balance',
-          confirmMethod: async (item) => {
+          confirmMethod: async item => {
             await this.props.addProduct(convertProductItemToOrderItem(item));
             Navigator.back();
           },
@@ -329,34 +361,30 @@ class CTButtonGroup extends Component {
     }
   };
 
-
-
   _getLastBillDialog = () =>
     Alert.alert(
       'ประกาศ',
       'ต้องการทำรายการเหมือนบิลล่าสุดหรือไม่?',
       [
-        { text: 'ยกเลิก', onPress: () => { }, style: 'cancel' },
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
         {
           text: 'ยืนยัน',
           onPress: () => {
             this.props.order.errorMessage = null;
             this._removeAll();
             this._getProductListItemsFromLastBillByArCode();
-          }
+          },
         },
       ],
       { cancelable: false },
     );
-
-
 
   _removeAlertDialog = () =>
     Alert.alert(
       'ประกาศ',
       'คุณต้องการลบข้อมูลสินค้าทั้งหมด?',
       [
-        { text: 'ยกเลิก', onPress: () => { }, style: 'cancel' },
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
         { text: 'ยืนยัน', onPress: () => this._removeAll() },
       ],
       { cancelable: false },
@@ -372,40 +400,36 @@ class CTButtonGroup extends Component {
       this._setState('isLoading', true);
       this._setState('errorMessage', null);
 
-
       const { routes, index } = Navigator.getCurrentRoute();
 
-        const orderProductSummary =
+      const orderProductSummary =
         routes[index].params !== undefined &&
-          routes[index].params !== null &&
-          routes[index].params.orderProductSummary !== undefined &&
-          routes[index].params.orderProductSummary !== null
+        routes[index].params !== null &&
+        routes[index].params.orderProductSummary !== undefined &&
+        routes[index].params.orderProductSummary !== null
           ? routes[index].params.orderProductSummary
           : null;
-
-
 
       if (this.props.bluetooth.state == 'connected') {
         const userToken = await getUserToken();
         const config = await getSettingConfig();
         const response = await this.props.systemCheck(config);
 
-
-        console.log('this.props.bluetooth.state summary response', response.ResponseCode === '200');
-
+        console.log(
+          'this.props.bluetooth.state summary response',
+          response.ResponseCode === '200',
+        );
 
         if (response.ResponseCode === '200') {
           const { ResponseData, RESPONSE_DATETIME } = response;
 
           let printTime = RESPONSE_DATETIME;
           //printTime = printTime[1].split('.');
-          const summary = this.props.order.orderProductSummaryProcessed ?
-            false :
-            this.props.order.orderProductSummaryProcessed;
+          const summary = this.props.order.orderProductSummaryProcessed
+            ? false
+            : this.props.order.orderProductSummaryProcessed;
 
           console.log('this.props.bluetooth.state summary', summary);
-
-
 
           let isDiscountBath = false;
           console.log('summary ', summary.DIS_BILL_1);
@@ -421,7 +445,12 @@ class CTButtonGroup extends Component {
           }
 
           BplusPrinting.printReceipt(
-            type !== 'quotation' ? this.props.order.header : { ...this.props.order, orderProductSummary: orderProductSummary },
+            type !== 'quotation'
+              ? this.props.order.header
+              : {
+                  ...this.props.order,
+                  orderProductSummary: orderProductSummary,
+                },
             this.props.order.productListItemsPRTProcessed,
             processResult,
             userToken.VANCONFIG,
@@ -433,7 +462,11 @@ class CTButtonGroup extends Component {
             type,
             0,
             isDiscountBath,
-            (this.props.order && Array.isArray(this.props.order.paymentMethod) && this.props.order.paymentMethod.length > 0) ? this.props.order?.paymentMethod[0] : {}
+            this.props.order &&
+              Array.isArray(this.props.order.paymentMethod) &&
+              this.props.order.paymentMethod.length > 0
+              ? this.props.order?.paymentMethod[0]
+              : {},
           );
         } else if (response.STATUS === '10' && response.ERROR_MESSAGES[0]) {
           this._setState('errorMessage', response.ERROR_MESSAGES[0]);
@@ -459,7 +492,10 @@ class CTButtonGroup extends Component {
       Keyboard.dismiss();
       const { productListItems } = this.props.order;
 
-      console.log('productListItems >>> ', JSON.parse(JSON.stringify(productListItems)));
+      console.log(
+        'productListItems >>> ',
+        JSON.parse(JSON.stringify(productListItems)),
+      );
       console.log('_customerUpdateStockBalance');
       const cloneObj = JSON.parse(JSON.stringify(productListItems));
 
@@ -495,11 +531,11 @@ class CTButtonGroup extends Component {
     }
   };
 
-  _alertErrorDialog = (message) =>
+  _alertErrorDialog = message =>
     Alert.alert(
       'ประกาศ',
       message.toString(),
-      [{ text: 'ตกลง', onPress: () => { }, style: 'cancel' }],
+      [{ text: 'ตกลง', onPress: () => {}, style: 'cancel' }],
       { cancelable: false },
     );
 
@@ -508,14 +544,14 @@ class CTButtonGroup extends Component {
       'ประกาศ',
       'เนื่องจากไม่ได้ทำการ Connect printer ต้องการจะไปที่หน้า Bluetooth setting หรือไม่',
       [
-        { text: 'ยกเลิก', onPress: () => { }, style: 'cancel' },
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
         { text: 'ยืนยัน', onPress: () => this._goToBluetoothSetting() },
       ],
       { cancelable: false },
     );
 
   _goToBluetoothSetting = () => {
-    BluetoothFinder.checkBluetoothEnable((value) => {
+    BluetoothFinder.checkBluetoothEnable(value => {
       // alert(value.result)
       if (value.result) {
         Navigator.navigate('Bluetooth');
@@ -523,7 +559,7 @@ class CTButtonGroup extends Component {
     });
   };
 
-  _generatePDFFile = async (options) => {
+  _generatePDFFile = async options => {
     if (RNHTMLtoPDF && typeof RNHTMLtoPDF.convert === 'function') {
       return RNHTMLtoPDF.convert(options);
     }
@@ -537,7 +573,6 @@ class CTButtonGroup extends Component {
 
   _createQuatation = async () => {
     try {
-
       // console.log(
       //         '_createQuatation timeArray',
       //         parseInt(timeArray[0] + timeArray[1]),
@@ -570,9 +605,9 @@ class CTButtonGroup extends Component {
       );
       if (
         parseInt(timeArray[0] + timeArray[1]) >=
-        parseInt(VANCONFIG.VANCNF_TIME_FM) &&
+          parseInt(VANCONFIG.VANCNF_TIME_FM) &&
         parseInt(timeArray[0] + timeArray[1]) <=
-        parseInt(VANCONFIG.VANCNF_TIME_TO)
+          parseInt(VANCONFIG.VANCNF_TIME_TO)
       ) {
         const config = await getSettingConfig();
         let response = await this.props.processOrderSale(
@@ -770,10 +805,7 @@ class CTButtonGroup extends Component {
         let options = {
           html: html,
           // fileName: 'check-stock',
-          fileName: this.props.order.header.VDI_USER_REF.replace(
-            '/',
-            '-',
-          ),
+          fileName: this.props.order.header.VDI_USER_REF.replace('/', '-'),
           directory: 'Documents/bplus_vansales/',
           base64: true,
         };
@@ -797,7 +829,7 @@ class CTButtonGroup extends Component {
     return true;
   };
 
-  _pdfAlertDialog = (path) =>
+  _pdfAlertDialog = path =>
     Alert.alert(
       'ประกาศ',
       path,
@@ -831,7 +863,7 @@ class CTButtonGroup extends Component {
         <Dialog.Container visible={this.state.remarkDialogVisible}>
           <Dialog.Title>หมายเหตุ</Dialog.Title>
           <Dialog.Input
-            onChangeText={(value) => this.props.setVDIRemark(value)}
+            onChangeText={value => this.props.setVDIRemark(value)}
             style={{ borderWidth: 0.5 }}
           />
           <Dialog.Button
@@ -847,7 +879,7 @@ class CTButtonGroup extends Component {
           />
         </Dialog.Container>
         <>
-          {!this.state._errormsg ?
+          {!this.state._errormsg ? (
             <ButtonGroup
               listItems={this.state._errormsg ? null : this._listItems}
               renderItem={this._renderItem}
@@ -856,25 +888,26 @@ class CTButtonGroup extends Component {
               isLoading={this.state.isLoading}
               pattern={this.props.screen === 'Index' ? 'A' : 'B'}
             />
-            :
-            (this.props.position === 'top' ?
-              <Text style={styles.red}>{'\n\n'}{this.state._errormsg}</Text> :
-              <ButtonGroup
-                listItems={this._listItems}
-                renderItem={this._renderItem}
-                successMessage={this.state.successMessage}
-                errorMessage={this.state.errorMessage}
-                isLoading={this.state.isLoading}
-                pattern={this.props.screen === 'Index' ? 'A' : 'B'}
-              />
-            )
-          }
+          ) : this.props.position === 'top' ? (
+            <Text style={styles.red}>
+              {'\n\n'}
+              {this.state._errormsg}
+            </Text>
+          ) : (
+            <ButtonGroup
+              listItems={this._listItems}
+              renderItem={this._renderItem}
+              successMessage={this.state.successMessage}
+              errorMessage={this.state.errorMessage}
+              isLoading={this.state.isLoading}
+              pattern={this.props.screen === 'Index' ? 'A' : 'B'}
+            />
+          )}
         </>
       </View>
     );
   }
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -891,8 +924,7 @@ const styles = StyleSheet.create({
   },
 });
 
-
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   bluetooth: state.bluetooth,
   order: state.order,
   customer: state.customer,
@@ -900,22 +932,22 @@ const mapStateToProps = (state) => ({
   geolocation: state.geolocation,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
-    serverReady: (data) => dispatch(serverReady(data)),
-    setVDIRemark: (value) => dispatch(setVDIRemark(value)),
-    setOrderItems: (items) => dispatch(setOrderItems(items)),
+    serverReady: data => dispatch(serverReady(data)),
+    setVDIRemark: value => dispatch(setVDIRemark(value)),
+    setOrderItems: items => dispatch(setOrderItems(items)),
     processOrderSale: (data, order, vanConfig) =>
       dispatch(processOrderSale(data, order, vanConfig)),
     createQuotation: (data, V3GUID, vanConfig) =>
       dispatch(createQuotation(data, V3GUID, vanConfig)),
-    setHeader: (data) => dispatch(setHeader(data)),
-    systemCheck: (data) => dispatch(systemCheck(data)),
+    setHeader: data => dispatch(setHeader(data)),
+    systemCheck: data => dispatch(systemCheck(data)),
     calculateOrderProductSummary: () =>
       dispatch(calculateOrderProductSummary()),
-    addStockImageItem: (uri) => dispatch(addStockImageItem(uri)),
+    addStockImageItem: uri => dispatch(addStockImageItem(uri)),
     removeAllStockImageItems: () => dispatch(removeAllStockImageItems()),
-    orderAttachMultipleImages: (data) =>
+    orderAttachMultipleImages: data =>
       dispatch(orderAttachMultipleImages(data)),
     removeAllProductItems: () => dispatch(removeAllProductItems()),
     setProductInitialState: () => {
@@ -923,8 +955,8 @@ const mapDispatchToProps = (dispatch) => {
     },
     getProductListItemsFromLastBillByArCode: (v3GUID, vancnf_machine) =>
       dispatch(getProductListItemsFromLastBillByArCode(v3GUID, vancnf_machine)),
-    orderUpdateQuotation: (data) => dispatch(orderUpdateQuotation(data)),
-    addProduct: (item) => dispatch(addProduct(item)),
+    orderUpdateQuotation: data => dispatch(orderUpdateQuotation(data)),
+    addProduct: item => dispatch(addProduct(item)),
   };
 };
 

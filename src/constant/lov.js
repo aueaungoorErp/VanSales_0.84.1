@@ -132,7 +132,7 @@ export const homeMenuButtonGroup = [
     title: strings('home_menu.order'),
     buttonStyle: { backgroundColor: '#FF0000' },
     imgSrc: require('../images/Order.png'),
-    screen: 'Order',
+    screen: 'OrderScreen',
     methodType: 'new-page',
     methodName: null,
   },

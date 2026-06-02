@@ -1,100 +1,134 @@
-import React from 'react'
-import { Text, View } from 'react-native'
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
-import { connect } from 'react-redux'
-import { setPrePocessListItems } from '../../../../../action/outstanding-balance'
-import { ListItem } from '../../../../../component/elements'
-import IPatternOSBLKeyListItem from '../../../../../component/list-item/IPatternOSBLKeyListItem'
-import { MainTheme } from '../../../../../constant/lov'
-import { customCheckChar } from '../../../../../utils/FormatUtil'
-import ListItems from '../presenter/ListItems'
+import React from 'react';
+import { Text, View } from 'react-native';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { connect } from 'react-redux';
+import { setPrePocessListItems } from '../../../../../action/outstanding-balance';
+import { ListItem } from '../../../../../component/elements';
+import IPatternOSBLKeyListItem from '../../../../../component/list-item/IPatternOSBLKeyListItem';
+import { MainTheme } from '../../../../../constant/lov';
+import { customCheckChar } from '../../../../../utils/FormatUtil';
+import ListItems from '../presenter/ListItems';
 
 class CTListItems extends React.Component {
-    _isMounted = false
+  _isMounted = false;
 
-    constructor(props) {
-        super(props)
+  constructor(props) {
+    super(props);
 
-        this.state = {
-            isLoading: false,
-            errorMessage: null,
-            dialogMessage: null
+    this.state = {
+      isLoading: false,
+      errorMessage: null,
+      dialogMessage: null,
+    };
+  }
+
+  componentDidMount = props => {
+    this._isMounted = true;
+  };
+
+  componentWillUnmount = props => {
+    this._isMounted = false;
+  };
+
+  _header = () => {
+    return (
+      <ListItem
+        title={
+          <View style={{ flexDirection: 'row' }}>
+            <Text
+              style={{
+                flex: 1,
+                marginLeft: 5,
+                alignSelf: 'center',
+                fontSize: hp('1.7%'),
+              }}
+              allowFontScaling={false}
+            >
+              เลขที่
+            </Text>
+            <Text
+              style={{
+                flex: 1,
+                marginLeft: 5,
+                alignSelf: 'center',
+                textAlign: 'right',
+                fontSize: hp('1.7%'),
+              }}
+              allowFontScaling={false}
+            >
+              ยอดค้างชำระ
+            </Text>
+            <Text
+              style={{
+                flex: 1,
+                marginLeft: 5,
+                alignSelf: 'center',
+                fontSize: hp('1.7%'),
+              }}
+              allowFontScaling={false}
+            >
+              จำนวนที่ต้องการชำระ
+            </Text>
+          </View>
         }
-    }
+        containerStyle={{ backgroundColor: MainTheme.colorPrimary }}
+        titleNumberOfLines={1}
+      />
+    );
+  };
 
-    componentDidMount = (props) => {
-        this._isMounted = true
-    }
-    
-    componentWillUnmount = (props) => {
-        this._isMounted = false
-    }
+  _renderItem = ({ item, index }) => {
+    return (
+      <IPatternOSBLKeyListItem
+        item={item}
+        index={index}
+        setVPDPay={this._setVPDPay}
+      />
+    );
+  };
 
-    _header = () => {
-        return (
-            <ListItem
-                title={
-                    <View style={{flexDirection: 'row'}} >
-                        <Text style={{ flex: 1, marginLeft: 5, alignSelf: 'center', fontSize: hp('1.7%') }} allowFontScaling={false} >เลขที่</Text>
-                        <Text style={{ flex: 1, marginLeft: 5, alignSelf: 'center', textAlign: 'right', fontSize: hp('1.7%') }} allowFontScaling={false} >ยอดค้างชำระ</Text>
-                        <Text style={{ flex: 1, marginLeft: 5, alignSelf: 'center', fontSize: hp('1.7%') }} allowFontScaling={false} >จำนวนที่ต้องการชำระ</Text>
-                    </View>
-                }
-                containerStyle={{backgroundColor: MainTheme.colorPrimary}}
-                titleNumberOfLines={1} /> 
-        )
-    }
+  _setState = (key, value) => {
+    this._isMounted &&
+      this.setState(oldState => {
+        return {
+          [key]: value,
+        };
+      });
+  };
 
-    _renderItem = ({ item, index }) => {
-        
-        return (
-           <IPatternOSBLKeyListItem item={item} index={index} setVPDPay={this._setVPDPay}  />
-        )
-    }
+  _setVPDPay = async (item, index, value) => {
+    const { listItems } = this.props.outstandingBalance.preProcess;
 
-    _setState = (key, value) => {
-        this._isMounted &&
-        this.setState(oldState => {
-            return {
-                [key]: value
-            }
-        })
-    }
+    item = {
+      ...item,
+      VPD_PAY: customCheckChar('0123456789.', value),
+    };
 
-    _setVPDPay =  async (item, index, value) => {
-        const { listItems } = this.props.outstandingBalance.preProcess
+    listItems[index] = item;
 
-        item = {
-            ...item,
-            VPD_PAY: customCheckChar('0123456789.', value)
-        }
+    await this.props.setPrePocessListItems(listItems);
+  };
 
-        listItems[index] = item
-
-        await this.props.setPrePocessListItems(listItems)
-    }
-
-    render() {
-        
-        return (
-            <ListItems 
-                header={this._header}
-                listItems={this.props.outstandingBalance.preProcess.listItems}
-                renderItem={this._renderItem}
-                errorMessage={this.state.errorMessage} />
-        )
-    }
-
+  render() {
+    return (
+      <ListItems
+        header={this._header}
+        listItems={this.props.outstandingBalance.preProcess.listItems}
+        renderItem={this._renderItem}
+        errorMessage={this.state.errorMessage}
+      />
+    );
+  }
 }
 
-const mapStateToProps = (state) => ({
-    outstandingBalance: state.outstandingBalance
-})
+const mapStateToProps = state => ({
+  outstandingBalance: state.outstandingBalance,
+});
 
-const mapDispatchToProps = (dispatch) => {
-    return {
-        setPrePocessListItems: (items) => dispatch(setPrePocessListItems(items))
-     }
-}
+const mapDispatchToProps = dispatch => {
+  return {
+    setPrePocessListItems: items => dispatch(setPrePocessListItems(items)),
+  };
+};
 
-export default connect(mapStateToProps, mapDispatchToProps)(CTListItems)
+export default connect(mapStateToProps, mapDispatchToProps)(CTListItems);

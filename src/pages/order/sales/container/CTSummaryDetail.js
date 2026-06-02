@@ -1,8 +1,8 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import Navigator from '../../../../services/Navigator';
 import SummaryDetail from '../presenter/SummaryDetail';
-import {getUserToken} from '../../../../utils/Token';
+import { getUserToken } from '../../../../utils/Token';
 
 class CTSummaryDetail extends Component {
   _isMounted = false;
@@ -19,11 +19,11 @@ class CTSummaryDetail extends Component {
     this._getUserToken();
   }
 
-  componentDidMount = (props) => {
+  componentDidMount = props => {
     this._isMounted = true;
   };
 
-  componentWillUnmount = (props) => {
+  componentWillUnmount = props => {
     this._isMounted = false;
   };
 
@@ -32,7 +32,7 @@ class CTSummaryDetail extends Component {
 
     if (userToken) {
       this._isMounted &&
-        (await this.setState((oldState) => {
+        (await this.setState(oldState => {
           return {
             userToken: userToken,
           };
@@ -41,8 +41,8 @@ class CTSummaryDetail extends Component {
   };
 
   render() {
-    const {routes, index} = Navigator.getCurrentRoute();
-    const {actionType, printType, processResult} = routes[index].params;
+    const { routes, index } = Navigator.getCurrentRoute();
+    const { actionType, printType, processResult } = routes[index].params;
 
     // console.log("routes[index] 111>> ",routes[index])
     // console.log("processResult 111>> ",processResult)
@@ -50,9 +50,6 @@ class CTSummaryDetail extends Component {
     // console.log("routes 333>> ",routes)
     // console.log("index 333>> ",index)
     // console.log("this.props.order 444>> ",this.props.order)
-
-
-
 
     return (
       <SummaryDetail
@@ -66,11 +63,11 @@ class CTSummaryDetail extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   order: state.order,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {};
 };
 

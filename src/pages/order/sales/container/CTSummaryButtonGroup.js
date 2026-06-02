@@ -1,5 +1,11 @@
 import React, { Component } from 'react';
-import { Alert, PermissionsAndroid, Platform, Text, TouchableOpacity } from 'react-native';
+import {
+  Alert,
+  PermissionsAndroid,
+  Platform,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 import RNFS from 'react-native-fs';
 import { generatePDF } from 'react-native-html-to-pdf';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -12,9 +18,7 @@ import {
 } from '../../../../action/order';
 import { systemCheck } from '../../../../action/setting';
 import { orderSummaryFormButtonGroup } from '../../../../constant/lov';
-import {
-  printReceipt2
-} from '../../../../constant/printing-pdf-lov';
+import { printReceipt2 } from '../../../../constant/printing-pdf-lov';
 import { BluetoothFinder, BplusPrinting } from '../../../../module';
 import Navigator from '../../../../services/Navigator';
 import { getSettingConfig, getUserToken } from '../../../../utils/Token';
@@ -33,12 +37,12 @@ class CTSummaryButtonGroup extends Component {
     };
   }
 
-  componentDidMount = (props) => {
+  componentDidMount = props => {
     this._isMounted = true;
     this._getUserToken();
   };
 
-  componentWillUnmount = (props) => {
+  componentWillUnmount = props => {
     this._isMounted = false;
   };
 
@@ -48,7 +52,7 @@ class CTSummaryButtonGroup extends Component {
 
     if (userToken) {
       this._isMounted &&
-        (await this.setState((oldState) => {
+        (await this.setState(oldState => {
           return {
             userToken: userToken,
           };
@@ -157,23 +161,19 @@ class CTSummaryButtonGroup extends Component {
           //   base64: true,
           // };
 
-
           let options = {
             html: '' + html + '',
             //fileName: 'doc-' + JSON.parse(header.headerProcessed) + type,
-            fileName: this.props.order.header.VDI_USER_REF.replace(
-              '/',
-              '-',
-            ),
+            fileName: this.props.order.header.VDI_USER_REF.replace('/', '-'),
             // directory: 'Documents/bplus_vansales/',
             directory: 'Documents',
-            base64: true
+            base64: true,
           };
           // alert(html)
           let file = await generatePDF(options);
           // alert(file)
 
-          console.log("filePath3: ", file.filePath.split("/").pop())
+          console.log('filePath3: ', file.filePath.split('/').pop());
 
           this._pdfAlertDialog(file.filePath);
         }
@@ -191,9 +191,9 @@ class CTSummaryButtonGroup extends Component {
     const { routes, index } = Navigator.getCurrentRoute();
     const printType =
       routes[index].params !== undefined &&
-        routes[index].params !== null &&
-        routes[index].params.printType !== undefined &&
-        routes[index].params.printType !== null
+      routes[index].params !== null &&
+      routes[index].params.printType !== undefined &&
+      routes[index].params.printType !== null
         ? routes[index].params.printType
         : null;
 
@@ -214,41 +214,55 @@ class CTSummaryButtonGroup extends Component {
     //     this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 3,
     // );
     return (
-      <TouchableOpacity key={key} style={[item.buttonStyle, item.containerStyle, {justifyContent: "center", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16}]} onPress={() => {
+      <TouchableOpacity
+        key={key}
+        style={[
+          item.buttonStyle,
+          item.containerStyle,
+          {
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+          },
+        ]}
+        onPress={() => {
           this._onPress(item);
-        }} activeOpacity={0.7}>
-              <Text style={[item.titleStyle, { fontSize: hp('1.8%') }]}>{
-          printType === 'transfer' && key == 0
+        }}
+        activeOpacity={0.7}
+      >
+        <Text style={[item.titleStyle, { fontSize: hp('1.8%') }]}>
+          {printType === 'transfer' && key == 0
             ? this.props.bluetooth.printingType !== 'BLUETOOTH'
               ? item.subTitle2
               : item.subTitle
             : item.title === 'พิมพ์ใบเสร็จ' &&
               this.props.bluetooth.printingType !== 'BLUETOOTH'
-              ? item.subTitle2
-              : item.title
-        }</Text>
-            </TouchableOpacity>
+            ? item.subTitle2
+            : item.title}
+        </Text>
+      </TouchableOpacity>
     );
   };
 
-  _onPress = async (item) => {
-    console.log("item=================>", item)
+  _onPress = async item => {
+    console.log('item=================>', item);
     const { routes, index } = Navigator.getCurrentRoute();
 
     console.log('_onPress routes: ', routes);
     console.log('_onPress index: ', index);
     const printType =
       routes[index].params !== undefined &&
-        routes[index].params !== null &&
-        routes[index].params.printType !== undefined &&
-        routes[index].params.printType !== null
+      routes[index].params !== null &&
+      routes[index].params.printType !== undefined &&
+      routes[index].params.printType !== null
         ? routes[index].params.printType
         : null;
     const processResult =
       routes[index].params !== undefined &&
-        routes[index].params !== null &&
-        routes[index].params.processResult !== undefined &&
-        routes[index].params.processResult !== null
+      routes[index].params !== null &&
+      routes[index].params.processResult !== undefined &&
+      routes[index].params.processResult !== null
         ? routes[index].params.processResult
         : null;
     console.log('_onPress printType: ', printType);
@@ -345,7 +359,11 @@ class CTSummaryButtonGroup extends Component {
               type,
               0,
               isDiscountBath,
-              (this.props.order && Array.isArray(this.props.order.paymentMethod) && this.props.order.paymentMethod.length > 0) ? this.props.order?.paymentMethod[0] : {}
+              this.props.order &&
+                Array.isArray(this.props.order.paymentMethod) &&
+                this.props.order.paymentMethod.length > 0
+                ? this.props.order?.paymentMethod[0]
+                : {},
             );
           }
         } else {
@@ -359,7 +377,7 @@ class CTSummaryButtonGroup extends Component {
       this._setState('isLoading', false);
     } catch (error) {
       this._setState('isLoading', false);
-      console.log("ERROR _printReceipt ", error);
+      console.log('ERROR _printReceipt ', error);
       this._setState('errorMessage', error.message);
       return false;
     }
@@ -369,7 +387,7 @@ class CTSummaryButtonGroup extends Component {
 
   _setState = async (key, value) => {
     this._isMounted &&
-      (await this.setState((oldState) => {
+      (await this.setState(oldState => {
         return {
           [key]: value,
         };
@@ -377,7 +395,7 @@ class CTSummaryButtonGroup extends Component {
   };
 
   _goToBluetoothSetting = () => {
-    BluetoothFinder.checkBluetoothEnable((value) => {
+    BluetoothFinder.checkBluetoothEnable(value => {
       // alert(value.result)
       if (value.result) {
         Navigator.navigate('Bluetooth');
@@ -390,16 +408,18 @@ class CTSummaryButtonGroup extends Component {
       'ประกาศ',
       'เนื่องจากไม่ได้ทำการ Connect printer ต้องการจะไปที่หน้า Bluetooth setting หรือไม่',
       [
-        { text: 'ยกเลิก', onPress: () => { }, style: 'cancel' },
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
         { text: 'ยืนยัน', onPress: () => this._goToBluetoothSetting() },
       ],
       { cancelable: false },
     );
 
-  _pdfAlertDialog = (path) =>
+  _pdfAlertDialog = path =>
     Alert.alert(
       'ประกาศ',
-      `${RNFS.ExternalStorageDirectoryPath}/Documents/bplus_vansales/${path.split("/").pop()}`,
+      `${RNFS.ExternalStorageDirectoryPath}/Documents/bplus_vansales/${path
+        .split('/')
+        .pop()}`,
       [
         {
           text: 'แสดง',
@@ -428,19 +448,19 @@ class CTSummaryButtonGroup extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   bluetooth: state.bluetooth,
   order: state.order,
   customer: state.customer,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
     searchMasterDataVanVisRList: () => dispatch(searchMasterDataVanVisRList()),
-    addVisitImageItem: (uri) => dispatch(addVisitImageItem(uri)),
+    addVisitImageItem: uri => dispatch(addVisitImageItem(uri)),
     removeAllVisitImageItems: () => dispatch(removeAllVisitImageItems()),
-    createDocVisit: (data) => dispatch(createDocVisit(data)),
-    systemCheck: (data) => dispatch(systemCheck(data)),
+    createDocVisit: data => dispatch(createDocVisit(data)),
+    systemCheck: data => dispatch(systemCheck(data)),
   };
 };
 
