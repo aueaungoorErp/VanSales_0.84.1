@@ -11,18 +11,18 @@ import {
   View,
 } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import * as appConfig from '../../../appConfig';
-import { systemCheckApi2 } from '../../api/setting';
-import ILoading from '../../component/loading/ILoading';
-import ITextWithErrorMessage from '../../component/text/ITextWithErrorMessage';
-import { MainTheme } from '../../constant/lov';
-import { strings } from '../../locales/i18n';
-import Navigator from '../../services/Navigator';
+import * as appConfig from '../../../../../appConfig';
+import { systemCheckApi2 } from '../../../../api/setting';
+import ILoading from '../../../../component/loading/ILoading';
+import ITextWithErrorMessage from '../../../../component/text/ITextWithErrorMessage';
+import { MainTheme } from '../../../../constant/lov';
+import { strings } from '../../../../locales/i18n';
+import Navigator from '../../../../services/Navigator';
 import {
   getListServiceSetting,
   saveListServiceSetting,
-} from '../../utils/Token';
-import { normalizeWebServiceUrl } from '../../utils/webService';
+} from '../../../../utils/Token';
+import { normalizeWebServiceUrl } from '../../../../utils/webService';
 
 const AntDesign = require('react-native-vector-icons/AntDesign')
   .default as ComponentType<any>;
@@ -77,7 +77,7 @@ type ServiceSettingProps = {
   };
 };
 
-const ServiceSetting: React.FC<ServiceSettingProps> = props => {
+const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
   const {
     service,
     _webServiceKey,
@@ -408,7 +408,7 @@ const ServiceSetting: React.FC<ServiceSettingProps> = props => {
               <Image
                 style={styles.leadingIcon}
                 resizeMode="contain"
-                source={require('../../images/person.png')}
+                source={require('../../../../images/person.png')}
               />
               <TextInput
                 placeholder={strings('login.user_code')}
@@ -432,7 +432,7 @@ const ServiceSetting: React.FC<ServiceSettingProps> = props => {
               <Image
                 style={styles.leadingIcon}
                 resizeMode="contain"
-                source={require('../../images/lock.png')}
+                source={require('../../../../images/lock.png')}
               />
               <TextInput
                 placeholder={strings('login.user_password')}
@@ -529,7 +529,7 @@ const ServiceSetting: React.FC<ServiceSettingProps> = props => {
   );
 };
 
-export default ServiceSetting;
+export default ServiceSettingScreen;
 
 const styles = StyleSheet.create({
   screen: {

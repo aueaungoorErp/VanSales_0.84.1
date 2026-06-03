@@ -48,8 +48,11 @@ function LoginNavigator() {
         initialParams={{ title: 'ตั้งค่าเว็ปเซอร์วิสและหน่วยรถ' }}
       />
       <LoginStack.Screen
-        name="ServiceSetting"
-        component={require('./pages/settingService').default}
+        name="ServiceSettingScreen"
+        component={
+          require('./pages/login/screen/settingService/ServiceSettingScreen')
+            .default
+        }
         initialParams={{ title: 'จัดการเว็ปเซอร์วิส' }}
       />
     </LoginStack.Navigator>

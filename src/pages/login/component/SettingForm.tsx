@@ -354,7 +354,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
   const onChangeService = async (value: string | null) => {
     if (value === 'add') {
       setService(null);
-      Navigator.navigate('ServiceSetting', {
+      Navigator.navigate('ServiceSettingScreen', {
         service: 'add',
         _webServiceKey: null,
         _webURL: null,
@@ -389,7 +389,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
       return;
     }
 
-    Navigator.navigate('ServiceSetting', {
+    Navigator.navigate('ServiceSettingScreen', {
       service: 'edit',
       _webServiceKey: service,
       _webURL: selectedService.webURL,
