@@ -163,8 +163,8 @@ function HomeNavigator() {
         initialParams={{ title: 'บิลเอกสาร' }}
       />
       <HomeStack.Screen
-        name="OrderChoice"
-        component={require('./pages/order/screen/Choice').default}
+        name="OrderChoiceScreen"
+        component={require('./pages/order/screen/OrderChoiceScreen').default}
         initialParams={{ title: 'ทำรายการ' }}
       />
       <HomeStack.Screen

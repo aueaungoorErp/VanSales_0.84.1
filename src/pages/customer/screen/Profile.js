@@ -2,13 +2,13 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { mainContainer } from '../../../constant/lov';
 import SearchForm from '../presenter/SearchForm';
-import ListItems from '../presenter/ListItems';
+import { CustomerList } from '../../order/component/CustomerList';
 
 const Form = props => {
   return (
     <View style={styles.container}>
       <SearchForm screen={'profile'} />
-      <ListItems screen={'profile'} />
+      <CustomerList screen={'profile'} />
     </View>
   );
 };

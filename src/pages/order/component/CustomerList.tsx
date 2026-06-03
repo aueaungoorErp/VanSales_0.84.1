@@ -1,12 +1,9 @@
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  RefreshControl,
   Text,
   View,
 } from 'react-native';
@@ -29,78 +26,18 @@ import { setCustomerType } from '../../../action/customer-type';
 import { setInitialState as setMileInitialState } from '../../../action/mile';
 import ErrorMessage from '../../../component/announce/ErrorMessage';
 import { ListItem } from '../../../component/elements';
-import IList from '../../../component/list/IList';
 import { mainDivider, MainTheme } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
+import type {
+  CustomerItem,
+  CustomerListDispatchProps,
+  CustomerListProps,
+  CustomerListStateProps,
+  UserToken,
+} from '../interface';
 
-interface UserToken {
-  VANCONFIG: {
-    VANCNF_AR_LIMIT: number | null;
-    VANCNF_FORCE_MILE?: number | null;
-    VANCNF_FORCE_GPS?: number | null;
-  };
-}
-
-interface CustomerItem {
-  AR_KEY?: string;
-  LAST_DO?: boolean;
-  IS_SKIP?: boolean;
-  AR_CODE?: string;
-  AR_NAME?: string;
-  ADDB_ADDB_1?: string;
-  ADDB_ADDB_2?: string;
-  ADDB_ADDB_3?: string;
-  ADDB_SUB_DISTRICT?: string;
-  ADDB_DISTRICT?: string;
-  ADDB_PROVINCE?: string;
-  ADDB_POST?: string;
-  ARCAT_KEY?: string | null;
-  ARCAT_NAME?: string | null;
-}
-
-interface CustomerState {
-  listItems: CustomerItem[];
-  isLoading: boolean;
-  isNotFound: boolean;
-  isError: boolean;
-}
-
-interface CustomerTypeState {
-  listItems: CustomerItem[];
-  item?: {
-    ARCAT_KEY?: string | null;
-    ARCAT_NAME?: string | null;
-  };
-  isLoading: boolean;
-  isError: boolean;
-}
-
-interface StateProps {
-  customer: CustomerState;
-  customerType: CustomerTypeState;
-}
-
-interface DispatchProps {
-  setInitialState: () => void;
-  setMileInitialState: () => void;
-  setCheckInInitialState: () => void;
-  clearCustomerList: () => void;
-  searchCustomerList: (nextPage: boolean) => void;
-  setError: (bool: boolean) => void;
-  findCustomerById: (id?: string) => void;
-  setCustomerInfo: (data: CustomerItem) => void;
-  setCustomerType: (value: CustomerItem) => void;
-  searchCustomerNextDestination: () => void;
-}
-
-interface OwnProps {
-  screen?: string;
-}
-
-type Props = StateProps & DispatchProps & OwnProps;
-
-const ListItems: React.FC<Props> = ({
+const CustomerListBase: React.FC<CustomerListProps> = ({
   customer,
   customerType,
   screen,
@@ -171,23 +108,29 @@ const ListItems: React.FC<Props> = ({
           return;
         }
 
-        Navigator.navigate('OrderChoice');
+        Navigator.navigate('OrderChoiceScreen');
       } catch (error) {
         setErrorMessage(`เกิดข้อผิดพลาด: ${error}`);
       }
 
       setIsLoading(false);
     },
-    [findCustomerById, setCustomerInfo, setCheckInInitialState, setMileInitialState, screen],
+    [
+      findCustomerById,
+      setCustomerInfo,
+      setCheckInInitialState,
+      setMileInitialState,
+      screen,
+    ],
   );
 
   const onRefresh = useCallback(async () => {
     clearCustomerList();
 
-    const selectedCustomerType =
-      customerType.listItems.find(
-        item => item.ARCAT_KEY === customerType.item?.ARCAT_KEY,
-      ) ?? customerType.item ?? { ARCAT_KEY: null, ARCAT_NAME: null };
+    const selectedCustomerType = customerType.listItems.find(
+      item => item.ARCAT_KEY === customerType.item?.ARCAT_KEY,
+    ) ??
+      customerType.item ?? { ARCAT_KEY: null, ARCAT_NAME: null };
 
     setCustomerType(selectedCustomerType);
 
@@ -196,7 +139,14 @@ const ListItems: React.FC<Props> = ({
     } else {
       searchCustomerNextDestination();
     }
-  }, [clearCustomerList, customerType, searchCustomerList, searchCustomerNextDestination, setCustomerType, userToken.VANCONFIG.VANCNF_AR_LIMIT]);
+  }, [
+    clearCustomerList,
+    customerType,
+    searchCustomerList,
+    searchCustomerNextDestination,
+    setCustomerType,
+    userToken.VANCONFIG.VANCNF_AR_LIMIT,
+  ]);
 
   const onScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -210,7 +160,10 @@ const ListItems: React.FC<Props> = ({
         }
 
         const maxOffset = 0.95 * parseInt(`${maxScrollableHeight}`, 10);
-        const currentOffset = parseInt(`${event.nativeEvent.contentOffset.y}`, 10);
+        const currentOffset = parseInt(
+          `${event.nativeEvent.contentOffset.y}`,
+          10,
+        );
 
         if (
           currentOffset > 0 &&
@@ -221,7 +174,11 @@ const ListItems: React.FC<Props> = ({
         }
       }
     },
-    [customer.isLoading, searchCustomerList, userToken.VANCONFIG.VANCNF_AR_LIMIT],
+    [
+      customer.isLoading,
+      searchCustomerList,
+      userToken.VANCONFIG.VANCNF_AR_LIMIT,
+    ],
   );
 
   const actionHandler = useCallback(() => {
@@ -296,29 +253,32 @@ const ListItems: React.FC<Props> = ({
     [onListItemPress, userToken.VANCONFIG.VANCNF_AR_LIMIT],
   );
 
-  const renderList = useCallback(
-    () => (
-      <IList
-        data={customer.listItems}
-        renderItem={renderItem}
-        refreshing={customer.isLoading || customerType.isLoading}
-        onRefresh={onRefresh}
-        onScroll={onScroll}
-      />
-    ),
-    [customer.listItems, customer.isLoading, customerType.isLoading, onRefresh, onScroll, renderItem],
-  );
-
   const isNotFound = customer.isNotFound && customer.listItems.length === 0;
   const isError =
     (customer.isError && customer.listItems.length === 0) ||
     customerType.isError;
-  const isSnackBarVisible =
-    customer.isError && customer.listItems.length > 0;
+  const isSnackBarVisible = customer.isError && customer.listItems.length > 0;
 
   return (
     <View style={{ flex: 1 }}>
-      {!isNotFound && !isError ? renderList() : null}
+      {!isNotFound && !isError ? (
+        <FlatList
+          data={customer.listItems}
+          renderItem={renderItem}
+          keyExtractor={(_, index) => index.toString()}
+          refreshControl={
+            <RefreshControl
+              refreshing={customer.isLoading || customerType.isLoading}
+              onRefresh={() => {
+                void onRefresh();
+              }}
+            />
+          }
+          onScroll={event => {
+            onScroll(event);
+          }}
+        />
+      ) : null}
 
       <SnackBar
         visible={isSnackBarVisible}
@@ -364,12 +324,12 @@ const ListItems: React.FC<Props> = ({
   );
 };
 
-const mapStateToProps = (state: any): StateProps => ({
+const mapStateToProps = (state: any): CustomerListStateProps => ({
   customer: state.customer,
   customerType: state.customerType,
 });
 
-const mapDispatchToProps = (dispatch: any): DispatchProps => {
+const mapDispatchToProps = (dispatch: any): CustomerListDispatchProps => {
   return {
     setInitialState: () => {
       dispatch(setInitialState());
@@ -396,4 +356,7 @@ const mapDispatchToProps = (dispatch: any): DispatchProps => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ListItems);
+export const CustomerList = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(CustomerListBase);

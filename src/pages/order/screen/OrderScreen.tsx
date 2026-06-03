@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import { MainTheme, mainContainer } from '../../../constant/lov';
 import BackHandlerHOC from '../../../hoc/BackHandlerHOC';
-import CustomerList from '../../customer/presenter/ListItems';
+import { CustomerList } from '../component/CustomerList';
 import SearchForm from '../../customer/presenter/SearchForm';
 
 type OrderScreenProps = {
