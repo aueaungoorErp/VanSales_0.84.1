@@ -248,7 +248,7 @@ const ListItems: React.FC<Props> = ({
               ) : null}
               {userToken.VANCONFIG.VANCNF_AR_LIMIT === 2 && item.IS_SKIP ? (
                 <AntDesign
-                  name="stepforward"
+                  name="step-forward"
                   color={MainTheme.colorPrimary}
                   size={26}
                 />
