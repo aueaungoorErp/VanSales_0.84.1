@@ -108,7 +108,7 @@ const CustomerListBase: React.FC<CustomerListProps> = ({
           return;
         }
 
-        Navigator.navigate('OrderChoiceScreen');
+        Navigator.navigate('OrderChoice');
       } catch (error) {
         setErrorMessage(`เกิดข้อผิดพลาด: ${error}`);
       }

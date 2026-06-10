@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import type { ComponentType } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { API_ENDPOINT_V3 } from '../../../../appConfig';
 import {
@@ -12,7 +12,6 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
@@ -22,7 +21,6 @@ import ITextWithErrorMessage from '../../../component/text/ITextWithErrorMessage
 import ITextWithSuccessMessage from '../../../component/text/ITextWithSuccessMessage';
 import { MainTheme } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';
-import { settingConfigButtonGroup } from '../constant/settingConfigButtonGroup';
 import Navigator from '../../../services/Navigator';
 import {
   getListServiceSetting,
@@ -64,11 +62,12 @@ type ServiceSetting = {
   serviceName?: string | null;
 };
 
-type ButtonItem = {
-  methodName?: string;
-  title?: string;
-  titleStyle?: any;
-  buttonStyle?: any;
+export type SettingFormActionController = {
+  canEditService: boolean;
+  isLoading: boolean;
+  onConfirmPress: () => Promise<void>;
+  onClearPress: () => Promise<void>;
+  onEditPress: () => void;
 };
 
 type SettingFormProps = {
@@ -83,6 +82,8 @@ type SettingFormProps = {
   unRegister: () => Promise<any>;
   getSaleManV3: (guid: string, slmnKey: string) => Promise<any>;
   getVanConfigV3: (vanCnfMachine: string) => Promise<any>;
+  onActionsChange?: (actions: SettingFormActionController) => void;
+  children?: ReactNode;
 };
 
 const mapStateToProps = (_state: any) => ({
@@ -116,8 +117,15 @@ const initialConfig: ConfigState = {
 };
 
 const SettingForm: React.FC<SettingFormProps> = props => {
-  const { navigation, systemCheck2, unRegister, getSaleManV3, getVanConfigV3 } =
-    props;
+  const {
+    navigation,
+    systemCheck2,
+    unRegister,
+    getSaleManV3,
+    getVanConfigV3,
+    onActionsChange,
+    children,
+  } = props;
   const [config, setConfig] = useState<ConfigState>(initialConfig);
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -173,7 +181,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
     await setSettingConfig(nextConfig);
   };
 
-  const applySelectedService = async (
+  const applySelectedService = useCallback(async (
     selectedService: ServiceSetting | null | undefined,
     nextValueOverride: string | null = null,
   ) => {
@@ -197,7 +205,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
       SALESMAN: null,
       VANCONFIG: null,
     });
-  };
+  }, [config]);
 
   useEffect(() => {
     const loadSettingConfig = async () => {
@@ -250,7 +258,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
     };
   }, [baseUrl, navigation, vanCNFMachine]);
 
-  const onConfirmConnection = async (
+  const onConfirmConnection = useCallback(async (
     configOverride: ConfigState | null = null,
   ) => {
     try {
@@ -342,7 +350,17 @@ const SettingForm: React.FC<SettingFormProps> = props => {
       onSetErrorMessage(error?.message ?? 'เชื่อมต่อระบบไม่สำเร็จ');
       props.onConnnect?.(false);
     }
-  };
+  }, [
+    config,
+    getSaleManV3,
+    getVanConfigV3,
+    isLoading,
+    listServiceSettings,
+    props,
+    service,
+    systemCheck2,
+    unRegister,
+  ]);
 
   const onClearConfig = async () => {
     await removeSettingConfig();
@@ -382,7 +400,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
     await applySelectedService(selectedService, nextValue);
   };
 
-  const onEdit = () => {
+  const onEdit = useCallback(() => {
     const selectedService =
       listServiceSettings.find(item => item.value === service) ?? null;
     if (!selectedService) {
@@ -400,29 +418,36 @@ const SettingForm: React.FC<SettingFormProps> = props => {
       setService,
       applySelectedService,
     });
-  };
+  }, [applySelectedService, listServiceSettings, service]);
 
-  const handleButtonPress = async (item: ButtonItem) => {
-    if (item.methodName === 'confirm') {
-      if (vanCNFMachine === null || vanCNFMachine.trim() === '') {
-        onSetErrorMessage(strings('login_setting.input_fields_are_required'));
-        return;
-      }
+  useEffect(() => {
+    onActionsChange?.({
+      canEditService: Boolean(service),
+      isLoading,
+      onConfirmPress: async () => {
+        if (vanCNFMachine === null || vanCNFMachine.trim() === '') {
+          onSetErrorMessage(strings('login_setting.input_fields_are_required'));
+          return;
+        }
 
-      await onConfirmConnection();
-      return;
-    }
-
-    if (item.methodName === 'clear') {
-      await onClearConfig();
-      setService(null);
-      return;
-    }
-
-    if (item.methodName === 'back') {
-      Navigator.back();
-    }
-  };
+        await onConfirmConnection();
+      },
+      onClearPress: async () => {
+        await onClearConfig();
+        setService(null);
+      },
+      onEditPress: onEdit,
+    });
+  }, [
+    onActionsChange,
+    service,
+    isLoading,
+    vanCNFMachine,
+    config,
+    listServiceSettings,
+    onConfirmConnection,
+    onEdit,
+  ]);
 
   const handleBaseUrlChange = (value: string) => {
     setConfigField('baseUrl', value);
@@ -524,46 +549,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
         </View>
       </View>
 
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>จัดการการตั้งค่า</Text>
-
-        <View style={styles.buttonGroup}>
-          {settingConfigButtonGroup.map((item, index) => (
-            <TouchableOpacity
-              key={item.methodName ?? index}
-              style={[
-                {
-                  paddingVertical: 10,
-                  borderRadius: 8,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                },
-                item.buttonStyle,
-              ]}
-              onPress={() => {
-                void handleButtonPress(item);
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={[item.titleStyle, { fontSize: hp('1.7%') }]}>
-                {item.title}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {service ? (
-          <View style={styles.editButtonPanel}>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={onEdit}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.editButtonTitle}>แก้ไขเซอร์วิส</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-      </View>
+      {children}
 
       <View style={styles.messageBox}>
         <ITextWithSuccessMessage message={successMessage} />
@@ -671,34 +657,5 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     minHeight: 34,
     marginBottom: 10,
-  },
-  editButton: {
-    height: 44,
-    backgroundColor: MainTheme.colorSecondary,
-    width: 100,
-    elevation: 0,
-    borderWidth: 0.5,
-    borderColor: MainTheme.colorButtonBorder,
-    borderRadius: 8,
-    alignContent: 'center',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  editButtonTitle: {
-    color: MainTheme.colorPrimary,
-    fontSize: hp('1.7%'),
-  },
-  buttonGroup: {
-    flex: 1,
-    flexDirection: 'row',
-    paddingVertical: 4,
-    justifyContent: 'space-between',
-    gap: 5,
-    flexWrap: 'wrap',
-  },
-  editButtonPanel: {
-    flex: 1,
-    justifyContent: 'center',
-    height: 50,
   },
 });

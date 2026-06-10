@@ -206,7 +206,7 @@ class CTChoiceGroup extends Component {
     const userToken = this.state.userToken;
     let result = [];
 
-    // console.log('orderChoiceButtonGroup', orderChoiceButtonGroup);
+    console.log('orderChoiceButtonGroup', orderChoiceButtonGroup);
 
     if (userToken) {
       orderChoiceButtonGroup.map((value, index) => {

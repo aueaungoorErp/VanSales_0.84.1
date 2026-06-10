@@ -1,46 +1,25 @@
-import { MainTheme } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';
 
-export const settingConfigButtonGroup = [
+export type SettingConfigButtonItem = {
+  title: string;
+  methodName: 'confirm' | 'clear' | 'back';
+  variant: 'primary' | 'secondary';
+};
+
+export const settingConfigButtonGroup: SettingConfigButtonItem[] = [
   {
     title: strings('login_setting.connect'),
-    buttonStyle: {
-      backgroundColor: MainTheme.colorPrimary,
-      width: 100,
-      elevation: 0,
-      borderColor: MainTheme.colorPrimary,
-    },
-    titleStyle: { color: MainTheme.colorSecondary },
-    size: 50,
-    methodType: 'function',
     methodName: 'confirm',
+    variant: 'primary',
   },
   {
     title: strings('login_setting.clear'),
-    buttonStyle: {
-      backgroundColor: MainTheme.colorSecondary,
-      width: 100,
-      elevation: 0,
-      borderWidth: 0.5,
-      borderColor: MainTheme.colorButtonBorder,
-    },
-    titleStyle: { color: MainTheme.colorPrimary },
-    size: 50,
-    methodType: 'function',
     methodName: 'clear',
+    variant: 'secondary',
   },
   {
     title: strings('login_setting.saveandback'),
-    buttonStyle: {
-      backgroundColor: MainTheme.colorSecondary,
-      width: 100,
-      elevation: 0,
-      borderWidth: 0.5,
-      borderColor: MainTheme.colorButtonBorder,
-    },
-    titleStyle: { color: MainTheme.colorPrimary },
-    size: 50,
-    methodType: 'function',
     methodName: 'back',
+    variant: 'secondary',
   },
 ];

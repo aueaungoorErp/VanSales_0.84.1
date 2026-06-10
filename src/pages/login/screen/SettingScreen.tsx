@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 const AntDesign = require('react-native-vector-icons/AntDesign').default;
+import IActionButton from '../../../component/button/IActionButton';
 import { MainTheme } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';
 import Navigator from '../../../services/Navigator';
-import SettingForm from '../component/SettingForm.tsx';
+import SettingForm, {
+  type SettingFormActionController,
+} from '../component/SettingForm.tsx';
+import { settingConfigButtonGroup } from '../constant/settingConfigButtonGroup';
 
 type SettingScreenProps = {
   navigation?: {
@@ -18,7 +22,10 @@ type SettingScreenProps = {
 
 const SettingScreen: React.FC<SettingScreenProps> = ({ navigation }) => {
   const [vansalesConfig, setVanSaleConfig] = useState(false);
-  const [ktbConfig, setKTBConfig] = useState(false);
+  const ktbConfig = false;
+  const [canEditService, setCanEditService] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
+  const actionControllerRef = useRef<SettingFormActionController | null>(null);
 
   useEffect(() => {
     if (ktbConfig && vansalesConfig) {
@@ -30,8 +37,34 @@ const SettingScreen: React.FC<SettingScreenProps> = ({ navigation }) => {
     setVanSaleConfig(status);
   };
 
-  const onConnnectKTB = (status: boolean) => {
-    setKTBConfig(status);
+  const onActionsChange = (actions: SettingFormActionController) => {
+    actionControllerRef.current = actions;
+    setCanEditService(currentState => {
+      return currentState === actions.canEditService
+        ? currentState
+        : actions.canEditService;
+    });
+    setIsActionLoading(currentState => {
+      return currentState === actions.isLoading
+        ? currentState
+        : actions.isLoading;
+    });
+  };
+
+  const handleButtonPress = async (
+    methodName: 'confirm' | 'clear' | 'back',
+  ) => {
+    if (methodName === 'confirm') {
+      await actionControllerRef.current?.onConfirmPress?.();
+      return;
+    }
+
+    if (methodName === 'clear') {
+      await actionControllerRef.current?.onClearPress?.();
+      return;
+    }
+
+    Navigator.back();
   };
 
   return (
@@ -55,7 +88,44 @@ const SettingScreen: React.FC<SettingScreenProps> = ({ navigation }) => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <SettingForm navigation={navigation} onConnnect={onConnnectVanSales} />
+        <SettingForm
+          navigation={navigation}
+          onConnnect={onConnnectVanSales}
+          onActionsChange={onActionsChange}
+        >
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>จัดการการตั้งค่า</Text>
+
+            <View style={styles.buttonGroup}>
+              {settingConfigButtonGroup.map(item => (
+                <IActionButton
+                  key={item.methodName}
+                  title={item.title}
+                  variant={item.variant}
+                  style={styles.actionButton}
+                  disabled={isActionLoading}
+                  onPress={() => {
+                    handleButtonPress(item.methodName).catch(error => {
+                      console.log('settings action error', error);
+                    });
+                  }}
+                />
+              ))}
+
+              {canEditService ? (
+                <IActionButton
+                  title="แก้ไขเซอร์วิส"
+                  variant="secondary"
+                  style={styles.actionButton}
+                  disabled={isActionLoading}
+                  onPress={() => {
+                    actionControllerRef.current?.onEditPress();
+                  }}
+                />
+              ) : null}
+            </View>
+          </View>
+        </SettingForm>
       </ScrollView>
     </View>
   );
@@ -116,5 +186,31 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 14,
     paddingBottom: 20,
+  },
+  sectionCard: {
+    backgroundColor: MainTheme.colorSecondary,
+    borderRadius: 18,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#E3E8E4',
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+  },
+  sectionTitle: {
+    color: MainTheme.colorQuaternary,
+    fontSize: hp('2%'),
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  buttonGroup: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingVertical: 4,
+    justifyContent: 'space-between',
+    gap: 5,
+    flexWrap: 'wrap',
+  },
+  actionButton: {
+    width: '48%',
   },
 });

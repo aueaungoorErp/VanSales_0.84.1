@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { mainContainer } from '../../../constant/lov';
 import SearchForm from '../presenter/SearchForm';
-import { CustomerList } from '../../order/component/CustomerList';
+import { CustomerList } from '../../order/component/CustomerList.tsx';
 
 const Form = props => {
   return (
