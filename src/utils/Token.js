@@ -2,7 +2,7 @@ import DeviceInfo from 'react-native-device-info';
 import { v4 as uuidv4 } from 'uuid';
 import { getVanConfigV3Api } from '../api/setting';
 import { removeData, retrieveData, storeData } from '../utils/Storage';
-import { normalizeWebServiceUrl } from './webService';
+import { normalizePaymentBaseUrl, normalizeWebServiceUrl } from './webService';
 
 let _settingConfigVanTimeRefreshPromise = null;
 let _settingConfigVanTimeLastRefresh = 0;
@@ -103,6 +103,27 @@ export const getListServiceSetting = async () => {
     return Array.isArray(parsed) ? parsed.map(normalizeServiceSetting) : parsed;
   } catch (e) {
     return false;
+  }
+};
+
+export const setBBLPaymentBaseUrl = async value => {
+  try {
+    return await storeData(
+      '@BBLPaymentBaseUrl',
+      JSON.stringify(normalizePaymentBaseUrl(value)),
+    );
+  } catch (e) {
+    return false;
+  }
+};
+
+export const getBBLPaymentBaseUrl = async () => {
+  try {
+    const value = await retrieveData('@BBLPaymentBaseUrl');
+
+    return normalizePaymentBaseUrl(value ? JSON.parse(value) : '');
+  } catch (e) {
+    return '';
   }
 };
 

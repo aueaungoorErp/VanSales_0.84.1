@@ -433,9 +433,7 @@ const Form: React.FC<FormProps> = props => {
       <View style={styles.settingSection}>
         <Pressable
           hitSlop={10}
-          onPress={() => {
-            Navigator.navigate('LoginSetting');
-          }}
+          onPress={() => Navigator.navigate('LoginSetting')}
         >
           <AntDesign
             name="setting"
@@ -445,14 +443,7 @@ const Form: React.FC<FormProps> = props => {
         </Pressable>
       </View>
 
-      <Animated.View
-        style={[
-          styles.header,
-          {
-            transform: [{ translateY: headerTranslateY }],
-          },
-        ]}
-      >
+      <Animated.View style={[styles.header, { transform: [{ translateY: headerTranslateY }] }]}>
         <View style={styles.headerCurved}>
           <View style={styles.headerTitle}>
             <View style={styles.headerTitleInner}>
@@ -472,14 +463,7 @@ const Form: React.FC<FormProps> = props => {
         </View>
       </Animated.View>
 
-      <Animated.View
-        style={[
-          styles.body,
-          {
-            transform: [{ translateY: bodyTranslateY }],
-          },
-        ]}
-      >
+      <Animated.View style={[styles.body, { transform: [{ translateY: bodyTranslateY }] }]}>
         <View style={styles.formWidth}>
           <View style={styles.hiddenServiceContainer}>
             <Image
