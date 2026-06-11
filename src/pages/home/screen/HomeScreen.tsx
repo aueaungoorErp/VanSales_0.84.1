@@ -14,6 +14,7 @@ import {
   hydrateUserBiometricState,
   isSameUserIdentity,
   persistBiometricPreference,
+  setUserWithFinger,
 } from '../../../action/user';
 import { MainTheme } from '../../../constant/lov';
 import { saveCredentials } from '../../../services/SecureCredentials';
@@ -34,15 +35,18 @@ type HomeScreenProps = {
     value: boolean,
     userInfo: UserIdentity,
   ) => Promise<void>;
+  setUserWithFinger: (userInfo: UserIdentity | null) => void;
   user?: {
     isBiometrics?: boolean;
     newUser?: UserIdentity | null;
     userInfo?: UserIdentity | null;
+    userWithFinger?: UserIdentity | null;
   };
 };
 
 const HomeScreen: React.FC<HomeScreenProps> = props => {
   const [isModalVisible, setIsModalVisible] = React.useState(false);
+  const [isFingerModalVisible, setIsFingerModalVisible] = React.useState(false);
   const [isSavingPreference, setIsSavingPreference] = React.useState(false);
   const [pendingUser, setPendingUser] = React.useState<UserIdentity | null>(
     null,
@@ -70,6 +74,10 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
 
   const closeModal = React.useCallback(() => {
     setIsModalVisible(false);
+  }, []);
+
+  const closeFingerModal = React.useCallback(() => {
+    setIsFingerModalVisible(false);
     setPendingUser(null);
   }, []);
 
@@ -83,6 +91,7 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
       await props.persistBiometricPreference(false, pendingUser);
       props.clearNewUser();
       closeModal();
+      setPendingUser(null);
     } finally {
       setIsSavingPreference(false);
     }
@@ -128,9 +137,20 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
         return;
       }
 
+      const shouldPromptFingerUpdate = !isSameUserIdentity(
+        props.user?.userWithFinger,
+        pendingUser,
+      );
+
       await props.persistBiometricPreference(true, pendingUser);
       props.clearNewUser();
       closeModal();
+
+      if (shouldPromptFingerUpdate) {
+        setIsFingerModalVisible(true);
+      } else {
+        setPendingUser(null);
+      }
     } finally {
       setIsSavingPreference(false);
     }
@@ -139,7 +159,19 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
     pendingUser,
     props.clearNewUser,
     props.persistBiometricPreference,
+    props.user?.userWithFinger,
   ]);
+
+  const handleFingerSave = React.useCallback(() => {
+    if (pendingUser?.USER_CODE && pendingUser?.USER_PASSWORD) {
+      props.setUserWithFinger(pendingUser);
+    }
+    closeFingerModal();
+  }, [closeFingerModal, pendingUser, props.setUserWithFinger]);
+
+  const handleFingerSkip = React.useCallback(() => {
+    closeFingerModal();
+  }, [closeFingerModal]);
 
   return (
     <View style={styles.container}>
@@ -182,6 +214,33 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
           </View>
         </View>
       </Modal>
+
+      <Modal transparent visible={isFingerModalVisible} animationType="fade">
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>เชื่อมลายนิ้วมือ</Text>
+            <Text style={styles.modalBody}>
+              ต้องการอัปเดตผู้ใช้นี้ให้เชื่อมกับลายนิ้วมือสำหรับเข้าสู่ระบบครั้งถัดไปหรือไม่
+            </Text>
+
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                onPress={handleFingerSkip}
+                style={[styles.modalButton, styles.secondaryButton]}
+              >
+                <Text style={styles.secondaryButtonText}>ไม่บันทึก</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleFingerSave}
+                style={[styles.modalButton, styles.primaryButton]}
+              >
+                <Text style={styles.primaryButtonText}>บันทึก</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -195,6 +254,8 @@ const mapDispatchToProps = (dispatch: any) => ({
   persistBiometricPreference: (value: boolean, userInfo: UserIdentity) =>
     dispatch(persistBiometricPreference(value, userInfo)),
   clearNewUser: () => dispatch(clearNewUser()),
+  setUserWithFinger: (userInfo: UserIdentity | null) =>
+    dispatch(setUserWithFinger(userInfo)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen);

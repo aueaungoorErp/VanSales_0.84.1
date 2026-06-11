@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { connect } from 'react-redux';
 import {
   Dimensions,
   Image,
@@ -10,6 +11,7 @@ import {
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { SectionGrid } from 'react-native-super-grid';
 import { homeMenuList, MenuItem } from '../constant/HomeMenuList';
+import { setUserWithFinger } from '../../../action/user';
 import Navigator from '../../../services/Navigator';
 import Request from '../../../utils/Request';
 import { clearPassword } from '../../../services/SecureCredentials';
@@ -17,14 +19,18 @@ import {
   getLoginGuID,
   getSettingConfig,
   getUserToken,
-  removeBiometricLoginState,
   removeLoginGuID,
+  removeLoginInfo,
   removeUserToken,
   setAccessTimeToken,
   setSettingConfig,
 } from '../../../utils/Token';
 
-const MenuList: React.FC = () => {
+type MenuListProps = {
+  clearUserWithFinger: () => void;
+};
+
+const MenuList: React.FC<MenuListProps> = ({ clearUserWithFinger }) => {
   const [userToken, setUserToken] = useState<any>(null);
   const [loginGUID, setLoginGUID] = useState<any>(null);
 
@@ -56,10 +62,8 @@ const MenuList: React.FC = () => {
     // Clear only the saved password. Username is kept in SecureCredentials.
     await clearPassword();
 
-    // Clear biometric state so stale isBiometrics flag doesn't cause
-    // a silent failure on next app open (password is already gone).
-    await removeBiometricLoginState();
     await removeLoginGuID();
+    await removeLoginInfo();
     await setAccessTimeToken('0');
 
     if (settingConfig) {
@@ -119,7 +123,11 @@ const MenuList: React.FC = () => {
   );
 };
 
-export default MenuList;
+const mapDispatchToProps = (dispatch: any) => ({
+  clearUserWithFinger: () => dispatch(setUserWithFinger(null)),
+});
+
+export default connect(null, mapDispatchToProps)(MenuList);
 
 const styles = StyleSheet.create({
   gridView: {

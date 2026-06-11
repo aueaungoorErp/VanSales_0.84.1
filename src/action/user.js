@@ -84,6 +84,15 @@ export const clearNewUser = () => dispatch => {
   dispatch({ type: types.USER_SET_NEW_USER, payload: null });
 };
 
+export const setUserWithFinger = userInfo => dispatch => {
+  dispatch({
+    type: types.USER_SET_USER_WITH_FINGER,
+    payload: userInfo
+      ? normalizeUserIdentity(userInfo, { includePassword: true })
+      : null,
+  });
+};
+
 export const hydrateUserBiometricState = () => async dispatch => {
   const biometricState = await getBiometricLoginState();
   console.log('[BiometricLogin] hydrate', {

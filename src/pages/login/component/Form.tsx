@@ -1,8 +1,13 @@
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import type { ComponentType } from 'react';
+import {
+  isSensorAvailable,
+  simplePrompt,
+} from '@sbaiahmed1/react-native-biometrics';
 import { connect } from 'react-redux';
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   Dimensions,
   Image,
@@ -21,7 +26,11 @@ import { getArPricetab } from '../../../action/customer';
 import { searchCustomerTypeList } from '../../../action/customer-type';
 import { searchProductCateGoryList } from '../../../action/product-category';
 import { getMasterDataProvinces } from '../../../action/masterData';
-import { registerV3, setNewUser } from '../../../action/user';
+import {
+  hydrateUserBiometricState,
+  registerV3,
+  setNewUser,
+} from '../../../action/user';
 import {
   getVanConfigV3,
   readCompanyInfoV3,
@@ -32,6 +41,7 @@ import ITextWithSuccessMessage from '../../../component/text/ITextWithSuccessMes
 import { APP_VERSION, MainTheme } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';
 import Navigator from '../../../services/Navigator';
+import { getCredentials } from '../../../services/SecureCredentials';
 import {
   fetchLoginData,
   performLogin,
@@ -42,6 +52,10 @@ import {
 
 const AntDesign = require('react-native-vector-icons/AntDesign')
   .default as ComponentType<any>;
+
+const MaterialCommunityIcons =
+  require('react-native-vector-icons/MaterialCommunityIcons')
+    .default as ComponentType<any>;
 
 const window = Dimensions.get('window');
 const HEADER_HEIGHT = window.width / 1.7;
@@ -67,9 +81,25 @@ type FormProps = LoginDeps & {
     USER_CODE: string;
     USER_PASSWORD: string;
   }) => void;
+  hydrateUserBiometricState: () => Promise<void>;
+  user?: {
+    isBiometrics?: boolean;
+    userInfo?: {
+      service: string | null;
+      USER_CODE: string | null;
+      USER_PASSWORD?: string | null;
+    } | null;
+    userWithFinger?: {
+      service: string | null;
+      USER_CODE: string | null;
+      USER_PASSWORD?: string | null;
+    } | null;
+  };
 };
 
-const mapStateToProps = (_state: any) => ({});
+const mapStateToProps = (state: any) => ({
+  user: state.user,
+});
 
 const mapDispatchToProps = (dispatch: any) => {
   return {
@@ -91,6 +121,7 @@ const mapDispatchToProps = (dispatch: any) => {
       USER_CODE: string;
       USER_PASSWORD: string;
     }) => dispatch(setNewUser(userInfo)),
+    hydrateUserBiometricState: () => dispatch(hydrateUserBiometricState()),
   };
 };
 
@@ -111,6 +142,11 @@ const Form: React.FC<FormProps> = props => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isRememberPassword, setRememberPassword] = useState(false);
+  const userLoginRef = useRef<UserLogin>({
+    service: null,
+    USER_CODE: null,
+    USER_PASSWORD: null,
+  });
   const isMountedRef = useRef(false);
   const isEditingRef = useRef(false);
   const editVersionRef = useRef(0);
@@ -124,6 +160,20 @@ const Form: React.FC<FormProps> = props => {
     outputRange: [0, -BODY_SHIFT],
   });
 
+  const updateUserLogin = useEffectEvent(
+    (nextState: React.SetStateAction<UserLogin>) => {
+      setUserLogin(previousState => {
+        const resolvedState =
+          typeof nextState === 'function'
+            ? (nextState as (prevState: UserLogin) => UserLogin)(previousState)
+            : nextState;
+
+        userLoginRef.current = resolvedState;
+        return resolvedState;
+      });
+    },
+  );
+
   const fetchData = useEffectEvent(async () => {
     if (errorMessage) {
       return;
@@ -132,6 +182,7 @@ const Form: React.FC<FormProps> = props => {
     const editVersionAtStart = editVersionRef.current;
 
     try {
+      await props.hydrateUserBiometricState();
       const result = await fetchLoginData();
 
       if (!isMountedRef.current) {
@@ -140,14 +191,24 @@ const Form: React.FC<FormProps> = props => {
 
       setListServiceSettings(result.serviceSettings);
 
-      // Only overwrite form values if the user has NOT typed/interacted
+      // Only overwrite username/password if the user has NOT typed/interacted
       // since this fetch started. This prevents the "password deleted" bug.
+      // Service is ALWAYS updated from storage so that changes made on the
+      // settings screen are picked up immediately on focus.
       const userEditedDuringFetch =
         isEditingRef.current || editVersionRef.current !== editVersionAtStart;
 
       if (!userEditedDuringFetch) {
-        setUserLogin(result.userLogin);
+        updateUserLogin(result.userLogin);
         setRememberPassword(result.isRemember);
+      } else {
+        // Always sync the selected service from storage even when the user
+        // edited username/password, because service changes come from the
+        // settings screen and must not be ignored.
+        updateUserLogin(oldState => ({
+          ...oldState,
+          service: result.userLogin.service,
+        }));
       }
 
       setSuccessMessage(null);
@@ -164,6 +225,15 @@ const Form: React.FC<FormProps> = props => {
       setSuccessMessage(null);
     }
   });
+
+  const onLogin = () =>
+    performLogin(userLoginRef.current, isRememberPassword, props, {
+      setErrorMessage,
+      setIsLoading,
+      onLoginSuccess: async payload => {
+        props.setNewUser(payload);
+      },
+    });
 
   const handleKeyboardDidShow = useEffectEvent(
     (event?: { duration?: number }) => {
@@ -221,19 +291,10 @@ const Form: React.FC<FormProps> = props => {
     };
   }, [fetchData, handleKeyboardDidHide, handleKeyboardDidShow, navigation]);
 
-  const onLogin = () =>
-    performLogin(userLogin, isRememberPassword, props, {
-      setErrorMessage,
-      setIsLoading,
-      onLoginSuccess: async payload => {
-        props.setNewUser(payload);
-      },
-    });
-
   const onLoginPress = () => {
     setSuccessMessage(null);
 
-    if (userLogin.service) {
+    if (userLoginRef.current.service) {
       void onLogin();
       return;
     }
@@ -241,11 +302,75 @@ const Form: React.FC<FormProps> = props => {
     setErrorMessage('โปรดตรวจสอบการตั้งค่าเว็ปเซอร์วิส');
   };
 
+  const fingerUser =
+    props.user?.userWithFinger ??
+    (props.user?.isBiometrics ? props.user?.userInfo ?? null : null);
+
+  const onFingerprintLogin = async () => {
+    if (!fingerUser?.USER_CODE) {
+      return;
+    }
+
+    try {
+      const sensorInfo = await isSensorAvailable();
+      if (!sensorInfo?.available) {
+        Alert.alert(
+          'ไม่สามารถสแกนนิ้วได้',
+          'อุปกรณ์นี้ยังไม่รองรับหรือยังไม่ได้ตั้งค่า Biometrics',
+        );
+        return;
+      }
+
+      const result = await simplePrompt('สแกนนิ้วเพื่อเข้าสู่ระบบ');
+      if (!result?.success) {
+        return;
+      }
+
+      const storedCredentials = await getCredentials();
+      const credentialUserCode =
+        storedCredentials?.username ?? fingerUser.USER_CODE ?? null;
+      const credentialPassword =
+        storedCredentials?.password ?? fingerUser.USER_PASSWORD ?? null;
+
+      if (!credentialUserCode || !credentialPassword) {
+        Alert.alert(
+          'ไม่สามารถสแกนนิ้วได้',
+          'ไม่พบข้อมูลผู้ใช้สำหรับเข้าสู่ระบบด้วยลายนิ้วมือ',
+        );
+        return;
+      }
+
+      const service =
+        fingerUser.service ??
+        userLoginRef.current.service ??
+        listServiceSettings?.[0]?.value ??
+        null;
+
+      const loginPayload = {
+        service,
+        USER_CODE: credentialUserCode,
+        USER_PASSWORD: credentialPassword,
+      };
+
+      updateUserLogin(loginPayload);
+
+      await performLogin(loginPayload, true, props, {
+        setErrorMessage,
+        setIsLoading,
+        onLoginSuccess: async payload => {
+          props.setNewUser(payload);
+        },
+      });
+    } catch (error: any) {
+      console.log('[FingerprintLogin] error', error);
+    }
+  };
+
   const handleChangePassword = (input: string) => {
     isEditingRef.current = true;
     editVersionRef.current += 1;
     const capitalizedInput = (input ?? '').toUpperCase();
-    setUserLogin(oldState => ({
+    updateUserLogin(oldState => ({
       ...oldState,
       USER_PASSWORD: capitalizedInput.trim(),
     }));
@@ -267,10 +392,12 @@ const Form: React.FC<FormProps> = props => {
       ? listOverride
       : listServiceSettings;
 
-    setUserLogin(oldState => ({
+    updateUserLogin(oldState => ({
       ...oldState,
       service: value,
     }));
+
+    const currentUserLogin = userLoginRef.current;
 
     const serviceItem =
       list.find(item => item.value === value) ||
@@ -281,15 +408,17 @@ const Form: React.FC<FormProps> = props => {
       serviceItem?.webURL ?? serviceItem?.baseUrl ?? serviceItem?.baseURL ?? '';
 
     const resolvedUserCode =
-      userLogin.USER_CODE ?? serviceItem?.USER_CODE ?? '';
-    const currentPassword = userLogin.USER_PASSWORD ?? '';
-    const shouldRestorePassword = !!isRememberPassword;
+      currentUserLogin.USER_CODE ?? serviceItem?.USER_CODE ?? '';
+    const currentPassword = currentUserLogin.USER_PASSWORD ?? '';
     const resolvedPassword = String(currentPassword).trim()
       ? currentPassword
       : '';
 
-    if (!String(userLogin.USER_CODE ?? '').trim() && serviceItem?.USER_CODE) {
-      setUserLogin(oldState => ({
+    if (
+      !String(currentUserLogin.USER_CODE ?? '').trim() &&
+      serviceItem?.USER_CODE
+    ) {
+      updateUserLogin(oldState => ({
         ...oldState,
         USER_CODE: serviceItem.USER_CODE ?? oldState.USER_CODE,
       }));
@@ -438,7 +567,7 @@ const Form: React.FC<FormProps> = props => {
               onChangeText={value => {
                 isEditingRef.current = true;
                 editVersionRef.current += 1;
-                setUserLogin(oldState => ({
+                updateUserLogin(oldState => ({
                   ...oldState,
                   USER_CODE: value.trim(),
                 }));
@@ -506,17 +635,33 @@ const Form: React.FC<FormProps> = props => {
           </View>
 
           <View style={styles.loginButtonWrap}>
-            <TouchableOpacity
-              style={styles.loginButton}
-              onPress={onLoginPress}
-              activeOpacity={0.8}
-            >
-              <View style={styles.loginButtonInner}>
-                <Text style={styles.loginButtonText} allowFontScaling={false}>
-                  {strings('login.login')}
-                </Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.loginButtonRow}>
+              <TouchableOpacity
+                style={styles.loginButton}
+                onPress={onLoginPress}
+                activeOpacity={0.8}
+              >
+                <View style={styles.loginButtonInner}>
+                  <Text style={styles.loginButtonText} allowFontScaling={false}>
+                    {strings('login.login')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {fingerUser?.USER_CODE ? (
+                <TouchableOpacity
+                  style={styles.fingerprintButton}
+                  onPress={() => void onFingerprintLogin()}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons
+                    name="fingerprint"
+                    size={32}
+                    color={MainTheme.colorTertiary}
+                  />
+                </TouchableOpacity>
+              ) : null}
+            </View>
           </View>
 
           <View style={styles.messageBox}>
@@ -700,6 +845,11 @@ const styles = StyleSheet.create({
   loginButtonWrap: {
     marginTop: 20,
   },
+  loginButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   loginButton: {
     width: '60%',
     backgroundColor: MainTheme.colorTertiary,
@@ -718,6 +868,20 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: MainTheme.colorSecondary,
     fontSize: hp('2'),
+  },
+  fingerprintButton: {
+    marginLeft: 12,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#F2F2F2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 2,
+    shadowColor: '#000000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
   messageBox: {
     marginTop: 15,

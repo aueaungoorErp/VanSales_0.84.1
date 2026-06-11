@@ -235,23 +235,24 @@ export const fetchLoginData = async (): Promise<FetchDataResult> => {
 
   let selectedService: string | null = null;
 
-  // Priority 1: Match from settingConfig (most reliable - saved on every connection)
-  if (settingConfig?.vanCNFMachine) {
+  // Priority 1: Match from loginInfo.service because it tracks the latest
+  // explicit service selection from the login flow.
+  if (loginInfo?.service) {
     const matched = normalizedList.find(
       item =>
-        item.number === settingConfig.vanCNFMachine ||
-        item.value === settingConfig.vanCNFMachine,
+        item.value === loginInfo.service || item.number === loginInfo.service,
     );
     if (matched) {
       selectedService = matched.value;
     }
   }
 
-  // Priority 2: Match from loginInfo.service
-  if (!selectedService && loginInfo?.service) {
+  // Priority 2: Match from settingConfig when there is no newer login selection.
+  if (!selectedService && settingConfig?.vanCNFMachine) {
     const matched = normalizedList.find(
       item =>
-        item.value === loginInfo.service || item.number === loginInfo.service,
+        item.number === settingConfig.vanCNFMachine ||
+        item.value === settingConfig.vanCNFMachine,
     );
     if (matched) {
       selectedService = matched.value;
@@ -409,6 +410,18 @@ export const performLogin = async (
           vanCNFMachine,
           deps,
         );
+
+        // Sync settingConfig so the splash screen uses the same service
+        // that was actually logged in (e.g. fingerprint login may differ
+        // from the service currently shown in settings).
+        const currentSettingConfig = await getSettingConfig();
+        if (currentSettingConfig) {
+          await setSettingConfig({
+            ...currentSettingConfig,
+            baseUrl: baseURL,
+            vanCNFMachine,
+          });
+        }
 
         if (isRememberPassword) {
           await Promise.all([

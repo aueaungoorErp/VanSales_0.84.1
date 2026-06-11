@@ -5,6 +5,7 @@ const initialState = {
   userInfo: null,
   newUser: null,
   isBiometrics: false,
+  userWithFinger: null,
 };
 
 export const user = (state = initialState, action) => {
@@ -21,6 +22,8 @@ export const user = (state = initialState, action) => {
       return { ...state, userInfo: action.payload };
     case types.USER_SET_NEW_USER:
       return { ...state, newUser: action.payload };
+    case types.USER_SET_USER_WITH_FINGER:
+      return { ...state, userWithFinger: action.payload };
     default:
       return state;
   }
