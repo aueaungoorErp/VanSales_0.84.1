@@ -58,19 +58,31 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
 
   React.useEffect(() => {
     const latestUser = props.user?.newUser ?? null;
+    const isBiometricsEnabled = !!props.user?.isBiometrics;
+    const hasFingerLinkedUser = !!props.user?.userWithFinger?.USER_CODE;
 
     if (!latestUser?.USER_CODE) {
       return;
     }
 
     if (isSameUserIdentity(props.user?.userInfo, latestUser)) {
+      if (isBiometricsEnabled && !hasFingerLinkedUser) {
+        setPendingUser(latestUser);
+        setIsFingerModalVisible(true);
+      }
       props.clearNewUser();
       return;
     }
 
     setPendingUser(latestUser);
     setIsModalVisible(true);
-  }, [props.clearNewUser, props.user?.newUser, props.user?.userInfo]);
+  }, [
+    props.clearNewUser,
+    props.user?.isBiometrics,
+    props.user?.newUser,
+    props.user?.userInfo,
+    props.user?.userWithFinger,
+  ]);
 
   const closeModal = React.useCallback(() => {
     setIsModalVisible(false);

@@ -1,6 +1,31 @@
 import { loginApi, registerV3Api } from '../api/user';
 import * as types from '../constant/user';
 import { getBiometricLoginState, setBiometricLoginState } from '../utils/Token';
+import { removeData, retrieveData, storeData } from '../utils/Storage';
+
+const BIOMETRIC_HYDRATE_COOLDOWN_MS = 1000;
+const USER_WITH_FINGER_STORAGE_KEY = '@UserWithFinger';
+
+let lastBiometricHydrateAt = 0;
+let biometricHydratePromise = null;
+
+const persistUserWithFinger = async userInfo => {
+  if (!userInfo) {
+    await removeData(USER_WITH_FINGER_STORAGE_KEY);
+    return;
+  }
+
+  await storeData(USER_WITH_FINGER_STORAGE_KEY, JSON.stringify(userInfo));
+};
+
+const getPersistedUserWithFinger = async () => {
+  try {
+    const raw = await retrieveData(USER_WITH_FINGER_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (_error) {
+    return null;
+  }
+};
 
 export const login = userLogin => async dispatch => {
   return await loginApi(userLogin);
@@ -84,31 +109,58 @@ export const clearNewUser = () => dispatch => {
   dispatch({ type: types.USER_SET_NEW_USER, payload: null });
 };
 
-export const setUserWithFinger = userInfo => dispatch => {
+export const setUserWithFinger = userInfo => async dispatch => {
+  const normalizedFingerUser = userInfo
+    ? normalizeUserIdentity(userInfo, { includePassword: true })
+    : null;
+
+  await persistUserWithFinger(normalizedFingerUser);
+
   dispatch({
     type: types.USER_SET_USER_WITH_FINGER,
-    payload: userInfo
-      ? normalizeUserIdentity(userInfo, { includePassword: true })
-      : null,
+    payload: normalizedFingerUser,
   });
 };
 
 export const hydrateUserBiometricState = () => async dispatch => {
-  const biometricState = await getBiometricLoginState();
-  console.log('[BiometricLogin] hydrate', {
-    raw: biometricState,
-    isBiometrics: !!biometricState?.isBiometrics,
-    userInfo: biometricState?.userInfo,
-  });
+  const now = Date.now();
 
-  dispatch({
-    type: types.USER_SET_ISBIOMETRICS,
-    payload: !!biometricState?.isBiometrics,
-  });
-  dispatch({
-    type: types.USER_SET_USER_INFO,
-    payload: normalizeUserIdentity(biometricState?.userInfo),
-  });
+  if (biometricHydratePromise) {
+    await biometricHydratePromise;
+    return;
+  }
+
+  if (now - lastBiometricHydrateAt < BIOMETRIC_HYDRATE_COOLDOWN_MS) {
+    return;
+  }
+
+  biometricHydratePromise = Promise.all([
+    getBiometricLoginState(),
+    getPersistedUserWithFinger(),
+  ]);
+
+  try {
+    const [biometricState, persistedFingerUser] = await biometricHydratePromise;
+
+    lastBiometricHydrateAt = Date.now();
+
+    dispatch({
+      type: types.USER_SET_ISBIOMETRICS,
+      payload: !!biometricState?.isBiometrics,
+    });
+    dispatch({
+      type: types.USER_SET_USER_INFO,
+      payload: normalizeUserIdentity(biometricState?.userInfo),
+    });
+    dispatch({
+      type: types.USER_SET_USER_WITH_FINGER,
+      payload: normalizeUserIdentity(persistedFingerUser, {
+        includePassword: true,
+      }),
+    });
+  } finally {
+    biometricHydratePromise = null;
+  }
 };
 
 export const persistBiometricPreference =

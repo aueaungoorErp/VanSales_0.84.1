@@ -41,7 +41,6 @@ import ITextWithSuccessMessage from '../../../component/text/ITextWithSuccessMes
 import { APP_VERSION, MainTheme } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';
 import Navigator from '../../../services/Navigator';
-import { getCredentials } from '../../../services/SecureCredentials';
 import {
   fetchLoginData,
   performLogin,
@@ -83,12 +82,6 @@ type FormProps = LoginDeps & {
   }) => void;
   hydrateUserBiometricState: () => Promise<void>;
   user?: {
-    isBiometrics?: boolean;
-    userInfo?: {
-      service: string | null;
-      USER_CODE: string | null;
-      USER_PASSWORD?: string | null;
-    } | null;
     userWithFinger?: {
       service: string | null;
       USER_CODE: string | null;
@@ -302,12 +295,10 @@ const Form: React.FC<FormProps> = props => {
     setErrorMessage('โปรดตรวจสอบการตั้งค่าเว็ปเซอร์วิส');
   };
 
-  const fingerUser =
-    props.user?.userWithFinger ??
-    (props.user?.isBiometrics ? props.user?.userInfo ?? null : null);
+  const fingerUser = props.user?.userWithFinger ?? null;
 
   const onFingerprintLogin = async () => {
-    if (!fingerUser?.USER_CODE) {
+    if (!fingerUser?.USER_CODE || !fingerUser?.USER_PASSWORD) {
       return;
     }
 
@@ -326,20 +317,6 @@ const Form: React.FC<FormProps> = props => {
         return;
       }
 
-      const storedCredentials = await getCredentials();
-      const credentialUserCode =
-        storedCredentials?.username ?? fingerUser.USER_CODE ?? null;
-      const credentialPassword =
-        storedCredentials?.password ?? fingerUser.USER_PASSWORD ?? null;
-
-      if (!credentialUserCode || !credentialPassword) {
-        Alert.alert(
-          'ไม่สามารถสแกนนิ้วได้',
-          'ไม่พบข้อมูลผู้ใช้สำหรับเข้าสู่ระบบด้วยลายนิ้วมือ',
-        );
-        return;
-      }
-
       const service =
         fingerUser.service ??
         userLoginRef.current.service ??
@@ -348,8 +325,8 @@ const Form: React.FC<FormProps> = props => {
 
       const loginPayload = {
         service,
-        USER_CODE: credentialUserCode,
-        USER_PASSWORD: credentialPassword,
+        USER_CODE: fingerUser.USER_CODE,
+        USER_PASSWORD: fingerUser.USER_PASSWORD,
       };
 
       updateUserLogin(loginPayload);

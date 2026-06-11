@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { connect } from 'react-redux';
 import {
   Dimensions,
   Image,
@@ -11,11 +10,11 @@ import {
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { SectionGrid } from 'react-native-super-grid';
 import { homeMenuList, MenuItem } from '../constant/HomeMenuList';
-import { setUserWithFinger } from '../../../action/user';
 import Navigator from '../../../services/Navigator';
 import Request from '../../../utils/Request';
 import { clearPassword } from '../../../services/SecureCredentials';
 import {
+  getBiometricLoginState,
   getLoginGuID,
   getSettingConfig,
   getUserToken,
@@ -26,11 +25,7 @@ import {
   setSettingConfig,
 } from '../../../utils/Token';
 
-type MenuListProps = {
-  clearUserWithFinger: () => void;
-};
-
-const MenuList: React.FC<MenuListProps> = ({ clearUserWithFinger }) => {
+const MenuList: React.FC = () => {
   const [userToken, setUserToken] = useState<any>(null);
   const [loginGUID, setLoginGUID] = useState<any>(null);
 
@@ -55,12 +50,16 @@ const MenuList: React.FC<MenuListProps> = ({ clearUserWithFinger }) => {
 
   const logout = async () => {
     const settingConfig = await getSettingConfig();
+    const biometricState = await getBiometricLoginState();
 
     Request.setTimeCutOff();
     await removeUserToken();
 
-    // Clear only the saved password. Username is kept in SecureCredentials.
-    await clearPassword();
+    // Keep keychain credentials when biometrics is enabled so fingerprint
+    // login can still work after logout.
+    if (!biometricState?.isBiometrics) {
+      await clearPassword();
+    }
 
     await removeLoginGuID();
     await removeLoginInfo();
@@ -123,11 +122,7 @@ const MenuList: React.FC<MenuListProps> = ({ clearUserWithFinger }) => {
   );
 };
 
-const mapDispatchToProps = (dispatch: any) => ({
-  clearUserWithFinger: () => dispatch(setUserWithFinger(null)),
-});
-
-export default connect(null, mapDispatchToProps)(MenuList);
+export default MenuList;
 
 const styles = StyleSheet.create({
   gridView: {
