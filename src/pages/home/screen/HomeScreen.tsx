@@ -58,31 +58,31 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
 
   React.useEffect(() => {
     const latestUser = props.user?.newUser ?? null;
-    const isBiometricsEnabled = !!props.user?.isBiometrics;
-    const hasFingerLinkedUser = !!props.user?.userWithFinger?.USER_CODE;
+    const linkedFingerUser = props.user?.userWithFinger ?? null;
 
     if (!latestUser?.USER_CODE) {
       return;
     }
 
-    if (isSameUserIdentity(props.user?.userInfo, latestUser)) {
-      if (isBiometricsEnabled && !hasFingerLinkedUser) {
-        setPendingUser(latestUser);
-        setIsFingerModalVisible(true);
-      }
+    if (!linkedFingerUser?.USER_CODE) {
+      setPendingUser(latestUser);
+      setIsFingerModalVisible(false);
+      setIsModalVisible(true);
+      return;
+    }
+
+    if (isSameUserIdentity(linkedFingerUser, latestUser)) {
+      setPendingUser(null);
+      setIsModalVisible(false);
+      setIsFingerModalVisible(false);
       props.clearNewUser();
       return;
     }
 
     setPendingUser(latestUser);
+    setIsFingerModalVisible(false);
     setIsModalVisible(true);
-  }, [
-    props.clearNewUser,
-    props.user?.isBiometrics,
-    props.user?.newUser,
-    props.user?.userInfo,
-    props.user?.userWithFinger,
-  ]);
+  }, [props.clearNewUser, props.user?.newUser, props.user?.userWithFinger]);
 
   const closeModal = React.useCallback(() => {
     setIsModalVisible(false);
@@ -100,19 +100,13 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
 
     setIsSavingPreference(true);
     try {
-      await props.persistBiometricPreference(false, pendingUser);
       props.clearNewUser();
       closeModal();
       setPendingUser(null);
     } finally {
       setIsSavingPreference(false);
     }
-  }, [
-    closeModal,
-    pendingUser,
-    props.clearNewUser,
-    props.persistBiometricPreference,
-  ]);
+  }, [closeModal, pendingUser, props.clearNewUser]);
 
   const handleAccept = React.useCallback(async () => {
     if (!pendingUser?.USER_CODE || !pendingUser?.USER_PASSWORD) {
@@ -149,20 +143,20 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
         return;
       }
 
-      const shouldPromptFingerUpdate = !isSameUserIdentity(
-        props.user?.userWithFinger,
-        pendingUser,
-      );
+      const hasLinkedFingerUser = !!props.user?.userWithFinger?.USER_CODE;
 
-      await props.persistBiometricPreference(true, pendingUser);
+      if (!hasLinkedFingerUser) {
+        await props.persistBiometricPreference(true, pendingUser);
+        props.setUserWithFinger(pendingUser);
+        props.clearNewUser();
+        setPendingUser(null);
+        closeModal();
+        return;
+      }
+
       props.clearNewUser();
       closeModal();
-
-      if (shouldPromptFingerUpdate) {
-        setIsFingerModalVisible(true);
-      } else {
-        setPendingUser(null);
-      }
+      setIsFingerModalVisible(true);
     } finally {
       setIsSavingPreference(false);
     }
@@ -171,19 +165,49 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
     pendingUser,
     props.clearNewUser,
     props.persistBiometricPreference,
+    props.setUserWithFinger,
     props.user?.userWithFinger,
   ]);
 
-  const handleFingerSave = React.useCallback(() => {
-    if (pendingUser?.USER_CODE && pendingUser?.USER_PASSWORD) {
-      props.setUserWithFinger(pendingUser);
+  const handleFingerSave = React.useCallback(async () => {
+    if (!pendingUser?.USER_CODE || !pendingUser?.USER_PASSWORD) {
+      return;
     }
-    closeFingerModal();
-  }, [closeFingerModal, pendingUser, props.setUserWithFinger]);
+
+    setIsSavingPreference(true);
+    try {
+      const saved = await saveCredentials(
+        pendingUser.USER_CODE,
+        pendingUser.USER_PASSWORD,
+      );
+
+      if (!saved) {
+        Alert.alert(
+          'ไม่สามารถเปิดใช้งาน Biometrics',
+          'ไม่สามารถบันทึกข้อมูลเข้าสู่ระบบสำหรับ Biometrics ได้',
+        );
+        return;
+      }
+
+      await props.persistBiometricPreference(true, pendingUser);
+      props.setUserWithFinger(pendingUser);
+      props.clearNewUser();
+      closeFingerModal();
+    } finally {
+      setIsSavingPreference(false);
+    }
+  }, [
+    closeFingerModal,
+    pendingUser,
+    props.clearNewUser,
+    props.persistBiometricPreference,
+    props.setUserWithFinger,
+  ]);
 
   const handleFingerSkip = React.useCallback(() => {
+    props.clearNewUser();
     closeFingerModal();
-  }, [closeFingerModal]);
+  }, [closeFingerModal, props.clearNewUser]);
 
   return (
     <View style={styles.container}>
