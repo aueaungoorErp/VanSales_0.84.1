@@ -17,6 +17,7 @@ import {
   getLoginGuID,
   getSettingConfig,
   getUserToken,
+  removeBiometricLoginState,
   removeLoginGuID,
   removeUserToken,
   setAccessTimeToken,
@@ -54,6 +55,10 @@ const MenuList: React.FC = () => {
 
     // Clear only the saved password. Username is kept in SecureCredentials.
     await clearPassword();
+
+    // Clear biometric state so stale isBiometrics flag doesn't cause
+    // a silent failure on next app open (password is already gone).
+    await removeBiometricLoginState();
     await removeLoginGuID();
     await setAccessTimeToken('0');
 

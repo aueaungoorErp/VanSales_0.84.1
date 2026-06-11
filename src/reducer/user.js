@@ -3,17 +3,24 @@ import * as types from '../constant/user';
 const initialState = {
   isLoading: false,
   userInfo: null,
-
+  newUser: null,
+  isBiometrics: false,
 };
 
 export const user = (state = initialState, action) => {
   switch (action.type) {
     case types.USER_LOGIN:
-      return {...state, isLoading: true};
+      return { ...state, isLoading: true };
     case types.USER_LOGIN_SUCCESS:
-      return {...state, isLoading: false};
+      return { ...state, isLoading: false };
     case types.USER_LOGIN_FAIL:
-      return {...state, isLoading: false};
+      return { ...state, isLoading: false };
+    case types.USER_SET_ISBIOMETRICS:
+      return { ...state, isBiometrics: action.payload };
+    case types.USER_SET_USER_INFO:
+      return { ...state, userInfo: action.payload };
+    case types.USER_SET_NEW_USER:
+      return { ...state, newUser: action.payload };
     default:
       return state;
   }

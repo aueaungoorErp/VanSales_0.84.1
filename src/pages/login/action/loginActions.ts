@@ -110,11 +110,13 @@ export const fetchVanConfig = async (
   deps: Pick<LoginDeps, 'getVanConfigV3' | 'readCompanyInfoV3'>,
 ) => {
   try {
-    const response = await deps.getVanConfigV3(VANCNF_MACHINE);
-    const currentSetting = await getSettingConfig();
-    const userToken = await getUserToken();
+    const [response, currentSetting, userToken, response2] = await Promise.all([
+      deps.getVanConfigV3(VANCNF_MACHINE),
+      getSettingConfig(),
+      getUserToken(),
+      deps.readCompanyInfoV3(BPAPUS_GUID, 0),
+    ]);
 
-    const response2 = await deps.readCompanyInfoV3(BPAPUS_GUID, 0);
     const responseData2 = safeJsonParse(response2.ResponseData);
     const companyInfo =
       response2.ResponseCode == 200 &&
@@ -277,6 +279,11 @@ export const fetchLoginData = async (): Promise<FetchDataResult> => {
 export type LoginCallbacks = {
   setErrorMessage: (msg: string | null) => void;
   setIsLoading: (loading: boolean) => void;
+  onLoginSuccess?: (payload: {
+    service: string | null;
+    USER_CODE: string;
+    USER_PASSWORD: string;
+  }) => Promise<void> | void;
 };
 
 export const performLogin = async (
@@ -404,19 +411,35 @@ export const performLogin = async (
         );
 
         if (isRememberPassword) {
-          await saveCredentials(USER_CODE, USER_PASSWORD);
-          await setIsRemember(true);
-          await setLoginInfo({ service: userLogin.service });
+          await Promise.all([
+            saveCredentials(USER_CODE, USER_PASSWORD),
+            setIsRemember(true),
+            setLoginInfo({ service: userLogin.service }),
+          ]);
         } else {
-          await setSavedUsername(USER_CODE);
-          await clearPassword();
-          await setIsRemember(false);
-          await setLoginInfo({ service: userLogin.service });
+          await Promise.all([
+            setSavedUsername(USER_CODE),
+            clearPassword(),
+            setIsRemember(false),
+            setLoginInfo({ service: userLogin.service }),
+          ]);
         }
 
-        await fetchCustomerTypeList(deps);
-        await fetchProductCategoryList(deps);
+        await Promise.all([
+          fetchCustomerTypeList(deps),
+          fetchProductCategoryList(deps),
+        ]);
         Navigator.navigate('Main');
+
+        // Dispatch onLoginSuccess AFTER navigating to Main so any modal
+        // (e.g. "enable biometrics?") appears on Home, not Login.
+        if (callbacks.onLoginSuccess) {
+          await callbacks.onLoginSuccess({
+            service: userLogin.service,
+            USER_CODE,
+            USER_PASSWORD,
+          });
+        }
         return;
       } else if (responseData?.RECORD_COUNT == 0) {
         setErrorMessage('ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง');

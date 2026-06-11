@@ -1,10 +1,6 @@
 import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
-import { open } from 'react-native-nitro-sqlite';
-import {
-  closeDatabaseQueue,
-  isDatabaseOpen,
-} from 'react-native-nitro-sqlite/lib/module/DatabaseQueue';
+import { NitroSQLite, open } from 'react-native-nitro-sqlite';
 import { searchMasterDataBankFileListApi } from '../api/masterData';
 import * as types from '../constant/masterData';
 
@@ -58,16 +54,23 @@ const copyBundledDatabaseIfNeeded = async (force = false) => {
 };
 
 const openProvincesDb = () => {
-  // Fast refresh can reset this module while Nitro's internal queue still
-  // thinks the database is open. Clear the stale JS queue entry first.
-  if (isDatabaseOpen(PROVINCES_DB_NAME)) {
-    closeDatabaseQueue(PROVINCES_DB_NAME);
-  }
+  try {
+    return open({
+      name: PROVINCES_DB_NAME,
+      location: PROVINCES_DB_LOCATION,
+    });
+  } catch (error) {
+    const message = error?.message || String(error);
+    if (!message.includes('already open')) {
+      throw error;
+    }
 
-  return open({
-    name: PROVINCES_DB_NAME,
-    location: PROVINCES_DB_LOCATION,
-  });
+    return {
+      close: () => NitroSQLite.close(PROVINCES_DB_NAME),
+      executeAsync: (query, params) =>
+        NitroSQLite.executeAsync(PROVINCES_DB_NAME, query, params),
+    };
+  }
 };
 
 const hasRequiredTables = async (db) => {

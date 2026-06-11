@@ -1,25 +1,39 @@
 import React from 'react';
 import {
+  Alert,
   Image,
   PermissionsAndroid,
   Platform,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { isSensorAvailable } from '@sbaiahmed1/react-native-biometrics';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
+import {
+  hydrateUserBiometricState,
+  persistBiometricPreference,
+} from '../../../action/user';
 import { MainTheme, settingListItems } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';
 import Navigator from '../../../services/Navigator';
 import Request from '../../../utils/Request';
-import { clearPassword } from '../../../services/SecureCredentials';
 import {
+  clearPassword,
+  getCredentials,
+  getSavedUsername,
+  saveCredentials,
+} from '../../../services/SecureCredentials';
+import {
+  getBiometricLoginState,
   getLoginInfo,
   getSettingConfig,
+  removeBiometricLoginState,
   removeLoginGuID,
   removeLoginInfo,
   removeUserToken,
@@ -41,6 +55,10 @@ class CTListItems extends React.Component {
     this._checkPermission();
 
     this._getSettingConfig();
+  }
+
+  componentDidMount() {
+    this.props.hydrateUserBiometricState();
   }
 
   _checkPermission = async () => {
@@ -107,8 +125,48 @@ class CTListItems extends React.Component {
     return item.title;
   };
 
+  _canPressItem = item =>
+    item.methodType === 'new-page' ||
+    (item.methodType === 'function' && item.methodName !== 'toggleBiometrics');
+
+  _renderRightArrow = item => {
+    if (!this._canPressItem(item)) {
+      return null;
+    }
+
+    return <AntDesign name="right" size={14} color="#ccc" />;
+  };
+
+  _getListItems = () => {
+    const biometricItem = {
+      title: 'เปิด/ปิดการใช้งาน Biometrics',
+      iconName: 'fingerprint',
+      iconType: 'material-design',
+      methodType: 'function',
+      methodName: 'toggleBiometrics',
+      screen: null,
+    };
+    const manualIndex = settingListItems.findIndex(
+      item => item.screen === 'Manual',
+    );
+
+    if (manualIndex < 0) {
+      return [...settingListItems, biometricItem];
+    }
+
+    return [
+      ...settingListItems.slice(0, manualIndex),
+      biometricItem,
+      ...settingListItems.slice(manualIndex),
+    ];
+  };
+
   _renderItem = ({ item }, key) => {
     console.log('itemaaa', item);
+    if (item.methodName === 'toggleBiometrics') {
+      return this._renderBiometricsPattern(item);
+    }
+
     if (item.title === 'ปริ้นเตอร์' || item.title === 'printer') {
       return this._renderCustomPattern(item);
     }
@@ -124,10 +182,13 @@ class CTListItems extends React.Component {
   };
 
   _renderDefaultPattern = item => {
+    const canPress = this._canPressItem(item);
+
     return (
       <TouchableOpacity
         style={itemStyles.row}
         onPress={() => this._onPress(item)}
+        disabled={!canPress}
         activeOpacity={0.6}
       >
         <View style={itemStyles.iconContainer}>
@@ -150,16 +211,19 @@ class CTListItems extends React.Component {
             {this._getDisplayTitle(item)}
           </Text>
         </View>
-        <AntDesign name="right" size={14} color="#ccc" />
+        {this._renderRightArrow(item)}
       </TouchableOpacity>
     );
   };
 
   _renderImagePattern = item => {
+    const canPress = this._canPressItem(item);
+
     return (
       <TouchableOpacity
         style={itemStyles.row}
         onPress={() => this._onPress(item)}
+        disabled={!canPress}
         activeOpacity={0.6}
       >
         <View style={itemStyles.iconContainer}>
@@ -182,7 +246,7 @@ class CTListItems extends React.Component {
             {item.title}
           </Text>
         </View>
-        <AntDesign name="right" size={14} color="#ccc" />
+        {this._renderRightArrow(item)}
       </TouchableOpacity>
     );
   };
@@ -231,8 +295,44 @@ class CTListItems extends React.Component {
               : 'ไม่ได้เชื่อมต่อ'}
           </Text>
         </View>
-        <AntDesign name="right" size={14} color="#ccc" />
+        {this._renderRightArrow(item)}
       </TouchableOpacity>
+    );
+  };
+
+  _renderBiometricsPattern = item => {
+    const isEnabled = !!this.props.user?.isBiometrics;
+
+    return (
+      <View style={itemStyles.row}>
+        <View style={itemStyles.iconContainer}>
+          <MaterialDesignIcons
+            name={item.iconName}
+            color={MainTheme.colorPrimary}
+            size={24}
+          />
+        </View>
+        <View style={itemStyles.textContainer}>
+          <Text style={itemStyles.title} allowFontScaling={false}>
+            {item.title}
+          </Text>
+          <Text
+            style={[
+              itemStyles.subtitle,
+              { color: isEnabled ? MainTheme.colorPrimary : '#777777' },
+            ]}
+            allowFontScaling={false}
+          >
+            {isEnabled ? 'เปิดอยู่' : 'ปิดอยู่'}
+          </Text>
+        </View>
+        <Switch
+          value={isEnabled}
+          onValueChange={this._toggleBiometrics}
+          trackColor={{ false: '#D6D7DA', true: MainTheme.colorSeptenary }}
+          thumbColor={isEnabled ? MainTheme.colorPrimary : '#F4F3F4'}
+        />
+      </View>
     );
   };
 
@@ -248,6 +348,72 @@ class CTListItems extends React.Component {
     }
   };
 
+  _getCurrentBiometricUser = async () => {
+    const biometricState = await getBiometricLoginState();
+    const loginInfo = await getLoginInfo();
+    const savedUsername = await getSavedUsername();
+
+    return (
+      biometricState?.userInfo ?? {
+        service: loginInfo?.service ?? this.state.config?.service ?? null,
+        USER_CODE: savedUsername || null,
+      }
+    );
+  };
+
+  _toggleBiometrics = async value => {
+    const userInfo = await this._getCurrentBiometricUser();
+
+    if (!value) {
+      await this.props.persistBiometricPreference(false, userInfo);
+      return;
+    }
+
+    try {
+      const sensorInfo = await isSensorAvailable();
+
+      if (!sensorInfo?.available || !sensorInfo?.isDeviceSecure) {
+        Alert.alert(
+          'ไม่สามารถเปิดใช้งาน Biometrics',
+          'อุปกรณ์นี้ยังไม่รองรับหรือยังไม่ได้ตั้งค่า Biometrics',
+        );
+        return;
+      }
+
+      const credentials = await getCredentials();
+      const username = credentials?.username || userInfo?.USER_CODE;
+      const password = credentials?.password;
+
+      if (!username || !password) {
+        Alert.alert(
+          'ไม่สามารถเปิดใช้งาน Biometrics',
+          'ไม่พบรหัสผ่านที่บันทึกไว้ กรุณาเข้าสู่ระบบใหม่และเปิดใช้งานอีกครั้ง',
+        );
+        return;
+      }
+
+      const saved = await saveCredentials(username, password);
+
+      if (!saved) {
+        Alert.alert(
+          'ไม่สามารถเปิดใช้งาน Biometrics',
+          'ไม่สามารถบันทึกข้อมูลเข้าสู่ระบบสำหรับ Biometrics ได้',
+        );
+        return;
+      }
+
+      await this.props.persistBiometricPreference(true, {
+        ...userInfo,
+        USER_CODE: username,
+      });
+    } catch (error) {
+      Alert.alert(
+        'ไม่สามารถเปิดใช้งาน Biometrics',
+        error?.message || 'เกิดข้อผิดพลาดในการตรวจสอบ Biometrics',
+      );
+    }
+  };
+
   _logout = async item => {
     const settingConfig = await getSettingConfig();
     const loginInfo = await getLoginInfo();
@@ -257,6 +423,11 @@ class CTListItems extends React.Component {
 
     // Clear only the saved password. Username is kept in SecureCredentials.
     await clearPassword();
+
+    // Clear biometric state so stale isBiometrics flag doesn't cause
+    // a silent failure on next app open (password is already gone).
+    await removeBiometricLoginState();
+    this.props.persistBiometricPreference(false, null);
 
     // Keep legacy login info trimmed down to service only.
     if (loginInfo) {
@@ -289,7 +460,7 @@ class CTListItems extends React.Component {
     return (
       <ListItems
         header={this._header}
-        listItems={settingListItems}
+        listItems={this._getListItems()}
         renderItem={this._renderItem}
       />
     );
@@ -347,10 +518,15 @@ const itemStyles = StyleSheet.create({
 
 const mapStateToProps = state => ({
   bluetooth: state.bluetooth,
+  user: state.user,
 });
 
 const mapDispatchToProps = dispatch => {
-  return {};
+  return {
+    hydrateUserBiometricState: () => dispatch(hydrateUserBiometricState()),
+    persistBiometricPreference: (value, userInfo) =>
+      dispatch(persistBiometricPreference(value, userInfo)),
+  };
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(CTListItems);

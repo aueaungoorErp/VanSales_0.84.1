@@ -21,7 +21,7 @@ import { getArPricetab } from '../../../action/customer';
 import { searchCustomerTypeList } from '../../../action/customer-type';
 import { searchProductCateGoryList } from '../../../action/product-category';
 import { getMasterDataProvinces } from '../../../action/masterData';
-import { registerV3 } from '../../../action/user';
+import { registerV3, setNewUser } from '../../../action/user';
 import {
   getVanConfigV3,
   readCompanyInfoV3,
@@ -62,6 +62,11 @@ type FormProps = LoginDeps & {
       callback: () => void | Promise<void>,
     ) => (() => void) | { remove?: () => void };
   };
+  setNewUser: (userInfo: {
+    service: string | null;
+    USER_CODE: string;
+    USER_PASSWORD: string;
+  }) => void;
 };
 
 const mapStateToProps = (_state: any) => ({});
@@ -81,6 +86,11 @@ const mapDispatchToProps = (dispatch: any) => {
       dispatch(searchProductCateGoryList(vanCNFEnabledAllic)),
     getMasterDataProvinces: () => dispatch(getMasterDataProvinces()),
     getArPricetab: () => dispatch(getArPricetab()),
+    setNewUser: (userInfo: {
+      service: string | null;
+      USER_CODE: string;
+      USER_PASSWORD: string;
+    }) => dispatch(setNewUser(userInfo)),
   };
 };
 
@@ -103,6 +113,7 @@ const Form: React.FC<FormProps> = props => {
   const [isRememberPassword, setRememberPassword] = useState(false);
   const isMountedRef = useRef(false);
   const isEditingRef = useRef(false);
+  const editVersionRef = useRef(0);
   const keyboardAnimation = useRef(new Animated.Value(0)).current;
   const headerTranslateY = keyboardAnimation.interpolate({
     inputRange: [0, 1],
@@ -117,6 +128,9 @@ const Form: React.FC<FormProps> = props => {
     if (errorMessage) {
       return;
     }
+
+    const editVersionAtStart = editVersionRef.current;
+
     try {
       const result = await fetchLoginData();
 
@@ -125,10 +139,17 @@ const Form: React.FC<FormProps> = props => {
       }
 
       setListServiceSettings(result.serviceSettings);
-      if (!isEditingRef.current) {
+
+      // Only overwrite form values if the user has NOT typed/interacted
+      // since this fetch started. This prevents the "password deleted" bug.
+      const userEditedDuringFetch =
+        isEditingRef.current || editVersionRef.current !== editVersionAtStart;
+
+      if (!userEditedDuringFetch) {
         setUserLogin(result.userLogin);
         setRememberPassword(result.isRemember);
       }
+
       setSuccessMessage(null);
     } catch (error: any) {
       console.log('fetchData error =', error);
@@ -204,6 +225,9 @@ const Form: React.FC<FormProps> = props => {
     performLogin(userLogin, isRememberPassword, props, {
       setErrorMessage,
       setIsLoading,
+      onLoginSuccess: async payload => {
+        props.setNewUser(payload);
+      },
     });
 
   const onLoginPress = () => {
@@ -219,6 +243,7 @@ const Form: React.FC<FormProps> = props => {
 
   const handleChangePassword = (input: string) => {
     isEditingRef.current = true;
+    editVersionRef.current += 1;
     const capitalizedInput = (input ?? '').toUpperCase();
     setUserLogin(oldState => ({
       ...oldState,
@@ -236,6 +261,7 @@ const Form: React.FC<FormProps> = props => {
     }
 
     isEditingRef.current = true;
+    editVersionRef.current += 1;
 
     const list = Array.isArray(listOverride)
       ? listOverride
@@ -292,6 +318,7 @@ const Form: React.FC<FormProps> = props => {
 
   const onToggleRememberPassword = () => {
     isEditingRef.current = true;
+    editVersionRef.current += 1;
     setRememberPassword(oldState => !oldState);
   };
 
@@ -410,6 +437,7 @@ const Form: React.FC<FormProps> = props => {
               onFocus={animateHeaderUp}
               onChangeText={value => {
                 isEditingRef.current = true;
+                editVersionRef.current += 1;
                 setUserLogin(oldState => ({
                   ...oldState,
                   USER_CODE: value.trim(),

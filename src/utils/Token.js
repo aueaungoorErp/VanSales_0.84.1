@@ -382,3 +382,27 @@ export const removeLoginInfo = async () => {
     return false;
   }
 };
+
+export const setBiometricLoginState = async obj => {
+  try {
+    return await storeData('@BiometricLoginState', JSON.stringify(obj));
+  } catch (e) {
+    return null;
+  }
+};
+
+export const getBiometricLoginState = async () => {
+  try {
+    return JSON.parse(await retrieveData('@BiometricLoginState'));
+  } catch (e) {
+    return null;
+  }
+};
+
+export const removeBiometricLoginState = async () => {
+  try {
+    return await removeData('@BiometricLoginState');
+  } catch (e) {
+    return false;
+  }
+};

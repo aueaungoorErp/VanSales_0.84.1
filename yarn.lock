@@ -3593,6 +3593,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sbaiahmed1/react-native-biometrics@npm:^0.15.0":
+  version: 0.15.0
+  resolution: "@sbaiahmed1/react-native-biometrics@npm:0.15.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 6345921b658195cdd9f9dd9ba4f0aa6f55cd4adebf8cbdaec363dc1dd84c777dbe74aa2b50c31cf01525328e661dd48d006d80a54334f96c132d4ed038be1595
+  languageName: node
+  linkType: hard
+
 "@sideway/address@npm:^4.1.5":
   version: 4.1.5
   resolution: "@sideway/address@npm:4.1.5"
@@ -4662,6 +4672,7 @@ __metadata:
     "@react-native/typescript-config": 0.84.1
     "@react-navigation/native": ^7.2.0
     "@react-navigation/stack": ^7.8.7
+    "@sbaiahmed1/react-native-biometrics": ^0.15.0
     "@types/jest": ^29.5.13
     "@types/react": ^19.2.0
     "@types/react-test-renderer": ^19.1.0

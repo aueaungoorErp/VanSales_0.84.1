@@ -5,6 +5,10 @@ import {
   PermissionsAndroid,
   Platform,
 } from 'react-native';
+import {
+  isSensorAvailable,
+  simplePrompt,
+} from '@sbaiahmed1/react-native-biometrics';
 import { connect } from 'react-redux';
 import { getArPricetab } from '../../../action/customer';
 import { searchCustomerTypeList } from '../../../action/customer-type';
@@ -31,6 +35,7 @@ import {
   getSavedUsername,
 } from '../../../services/SecureCredentials';
 import {
+  getBiometricLoginState,
   getLoginGuID,
   getLoginInfo,
   getSettingConfig,
@@ -178,6 +183,29 @@ class CTForm extends React.Component {
     this._log('goToAuth', { reason });
     await removeUserToken();
     this._replaceRoute('Auth');
+  };
+
+  _attemptBiometricOnSplash = async () => {
+    try {
+      await this._setState('titleProgress', 'กำลังยืนยันตัวตน');
+      const sensorInfo = await isSensorAvailable();
+      this._log('biometricOnSplash:sensorCheck', sensorInfo);
+
+      if (!sensorInfo?.available) {
+        this._log('biometricOnSplash:sensorNotAvailable');
+        return false;
+      }
+
+      const result = await simplePrompt('ยืนยันตัวตนเพื่อเข้าสู่ระบบ');
+      this._log('biometricOnSplash:promptResult', { success: result?.success });
+
+      return !!result?.success;
+    } catch (error) {
+      this._log('biometricOnSplash:error', {
+        message: error?.message ?? String(error),
+      });
+      return false;
+    }
   };
 
   _getRequiredVanConfig = async () => {
@@ -391,6 +419,7 @@ class CTForm extends React.Component {
 
   _prepareData = async () => {
     const setting = await getSettingConfig();
+    const biometricState = await getBiometricLoginState();
     const autoLogin = await canAutoLogin();
     const credentials = autoLogin ? await getCredentials() : null;
     const hasSettingConfig = Boolean(
@@ -402,12 +431,46 @@ class CTForm extends React.Component {
       hasBaseUrl: !!setting?.baseUrl,
       hasVanCNFMachine: !!setting?.vanCNFMachine,
       hasSettingVanConfig: !!setting?.VANCONFIG,
+      isBiometricEnabled: !!biometricState?.isBiometrics,
       canAutoLogin: autoLogin,
       hasCredentials: !!credentials,
     });
 
     if (!hasSettingConfig) {
       await this._goToAuth('missing setting config');
+      return;
+    }
+
+    if (biometricState?.isBiometrics) {
+      this._log('prepareData:biometricPath', {
+        biometricState,
+        hasCredentialsInKeychain: !!credentials,
+        canAutoLogin: autoLogin,
+      });
+
+      // Attempt biometric scan directly on Splash screen
+      const biometricPassed = await this._attemptBiometricOnSplash();
+      if (biometricPassed) {
+        // Biometric passed — get credentials and do startup relogin
+        const bioCredentials = await getCredentials();
+        const bioUserCode = bioCredentials?.username || null;
+        const bioUserPassword = bioCredentials?.password || null;
+
+        if (bioUserCode && bioUserPassword) {
+          Request.setBaseUrl(setting.baseUrl);
+          Request.setHeaders({ vanCNFMachine: setting.vanCNFMachine });
+
+          const rememberedLogin = {
+            USER_CODE: bioUserCode,
+            USER_PASSWORD: bioUserPassword,
+          };
+          await this._retryStartupRelogin(setting, rememberedLogin);
+          return;
+        }
+      }
+
+      // Biometric failed or no credentials — fall through to manual login
+      await this._goToAuth('biometric failed or no credentials');
       return;
     }
 
