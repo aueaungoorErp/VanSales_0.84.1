@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -90,8 +96,21 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     [],
   );
   const [isPreparingList, setIsPreparingList] = useState(false);
+  const [sortedListSignature, setSortedListSignature] = useState('');
   const mountedRef = useRef(true);
   const distanceJobRef = useRef(0);
+  const currentListSignature = useMemo(
+    () =>
+      customer.listItems
+        .map(
+          item =>
+            `${item.AR_KEY ?? ''}|${item.AR_CODE ?? ''}|${
+              item.ADDB_GPS_LAT_S ?? ''
+            }|${item.ADDB_GPS_LONG_S ?? ''}`,
+        )
+        .join('||'),
+    [customer.listItems],
+  );
 
   useEffect(() => {
     mountedRef.current = true;
@@ -127,6 +146,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
   useEffect(() => {
     if (!customer.listItems?.length) {
       setSortedCustomers([]);
+      setSortedListSignature('');
       return;
     }
 
@@ -145,6 +165,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
       if (!customer.listItems?.length) {
         if (mountedRef.current) {
           setSortedCustomers([]);
+          setSortedListSignature('');
           setIsPreparingList(false);
         }
         return;
@@ -217,6 +238,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
 
       if (mountedRef.current && distanceJobRef.current === jobId) {
         setSortedCustomers(nextCustomers);
+        setSortedListSignature(currentListSignature);
         setIsPreparingList(false);
       }
     };
@@ -224,6 +246,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     void buildCustomerDistances();
   }, [
     customer.listItems,
+    currentListSignature,
     geolocation.position.latitude,
     geolocation.position.longitude,
   ]);
@@ -307,72 +330,83 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
         }}
       >
         <ListItem.Content key="content">
-          <View style={styles.rowContent}>
-            <View style={styles.leadingStatus}>
-              {userToken.VANCONFIG.VANCNF_AR_LIMIT === 2 && item.LAST_DO ? (
-                <AntDesign
-                  name="check"
-                  color={MainTheme.colorPrimary}
-                  size={26}
-                />
-              ) : null}
-              {userToken.VANCONFIG.VANCNF_AR_LIMIT === 2 && item.IS_SKIP ? (
-                <AntDesign
-                  name="step-forward"
-                  color={MainTheme.colorPrimary}
-                  size={26}
-                />
-              ) : null}
-            </View>
-
-            <View style={styles.customerInfo}>
-              {userToken.VANCONFIG.VANCNF_AR_LIMIT === 2 ? (
-                <Text style={styles.indexText} allowFontScaling={false}>
-                  {index + 1}
+          <View style={styles.cardContent}>
+            <View style={styles.topRow}>
+              <View style={styles.topRowSpacer} />
+              <View style={styles.topLeftWrap}>
+                {userToken.VANCONFIG.VANCNF_AR_LIMIT === 2 ? (
+                  <Text style={styles.indexText} allowFontScaling={false}>
+                    {index + 1}
+                  </Text>
+                ) : null}
+                <Text style={styles.codeText} allowFontScaling={false}>
+                  {item.AR_CODE || '-'}
                 </Text>
-              ) : null}
-              <Text style={styles.codeText} allowFontScaling={false}>
-                {item.AR_CODE || '-'}
-              </Text>
-              <Text style={styles.nameText} allowFontScaling={false}>
-                {item.AR_NAME || '-'}
-              </Text>
-              <Text style={styles.addressText} allowFontScaling={false}>
-                {item.ADDB_ADDB_1 ? `${item.ADDB_ADDB_1} ` : null}
-                {item.ADDB_ADDB_2 ? `${item.ADDB_ADDB_2} ` : null}
-                {item.ADDB_ADDB_3 ? `${item.ADDB_ADDB_3} ` : null}
-                {item.ADDB_SUB_DISTRICT ? `${item.ADDB_SUB_DISTRICT} ` : null}
-                {item.ADDB_DISTRICT ? `${item.ADDB_DISTRICT} ` : null}
-                {item.ADDB_PROVINCE ? `${item.ADDB_PROVINCE} ` : null}
-                {item.ADDB_POST ? `${item.ADDB_POST} ` : null}
-                {!item.ADDB_ADDB_1 &&
-                !item.ADDB_ADDB_2 &&
-                !item.ADDB_ADDB_3 &&
-                !item.ADDB_SUB_DISTRICT &&
-                !item.ADDB_DISTRICT &&
-                !item.ADDB_PROVINCE &&
-                !item.ADDB_POST
-                  ? '-'
-                  : null}
-              </Text>
-            </View>
-
-            <View style={styles.distanceWrap}>
+              </View>
               <Text style={styles.distanceText} allowFontScaling={false}>
                 {item.distanceText}
               </Text>
             </View>
 
+            <View style={styles.bottomRow}>
+              <View style={styles.leadingStatus}>
+                {userToken.VANCONFIG.VANCNF_AR_LIMIT === 2 && item.LAST_DO ? (
+                  <AntDesign
+                    name="check"
+                    color={MainTheme.colorPrimary}
+                    size={22}
+                  />
+                ) : null}
+                {userToken.VANCONFIG.VANCNF_AR_LIMIT === 2 && item.IS_SKIP ? (
+                  <AntDesign
+                    name="step-forward"
+                    color={MainTheme.colorPrimary}
+                    size={22}
+                  />
+                ) : null}
+              </View>
+
+              <View style={styles.customerInfo}>
+                <Text style={styles.nameText} allowFontScaling={false}>
+                  {item.AR_NAME || '-'}
+                </Text>
+                <Text
+                  style={styles.addressText}
+                  allowFontScaling={false}
+                  numberOfLines={2}
+                >
+                  {item.ADDB_ADDB_1 ? `${item.ADDB_ADDB_1} ` : null}
+                  {item.ADDB_ADDB_2 ? `${item.ADDB_ADDB_2} ` : null}
+                  {item.ADDB_ADDB_3 ? `${item.ADDB_ADDB_3} ` : null}
+                  {item.ADDB_SUB_DISTRICT ? `${item.ADDB_SUB_DISTRICT} ` : null}
+                  {item.ADDB_DISTRICT ? `${item.ADDB_DISTRICT} ` : null}
+                  {item.ADDB_PROVINCE ? `${item.ADDB_PROVINCE} ` : null}
+                  {item.ADDB_POST ? `${item.ADDB_POST} ` : null}
+                  {!item.ADDB_ADDB_1 &&
+                  !item.ADDB_ADDB_2 &&
+                  !item.ADDB_ADDB_3 &&
+                  !item.ADDB_SUB_DISTRICT &&
+                  !item.ADDB_DISTRICT &&
+                  !item.ADDB_PROVINCE &&
+                  !item.ADDB_POST
+                    ? '-'
+                    : null}
+                </Text>
+              </View>
+            </View>
           </View>
         </ListItem.Content>
-        <ListItem.Chevron
-          key="chevron"
-          color="#666666"
-          size={30}
-          onPress={() => {
-            handleContinuePress(item);
-          }}
-        />
+        <View style={styles.chevronButton}>
+          <AntDesign
+            name="right"
+            color={MainTheme.colorPrimary}
+            size={20}
+            style={styles.chevronIcon}
+            onPress={() => {
+              handleContinuePress(item);
+            }}
+          />
+        </View>
       </ListItem>
     ),
     [handleContinuePress, userToken.VANCONFIG.VANCNF_AR_LIMIT],
@@ -383,15 +417,17 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     (customer.isError && customer.listItems.length === 0) ||
     customerType.isError;
   const isSnackBarVisible = customer.isError && customer.listItems.length > 0;
+  const hasLatestSortedList = sortedListSignature === currentListSignature;
+  const hasVisibleCustomers = sortedCustomers.length > 0;
   const isInitialLoading =
-    ((customer.isLoading || customerType.isLoading) &&
-      sortedCustomers.length === 0) ||
-    isPreparingList;
+    !hasVisibleCustomers &&
+    (customer.isLoading ||
+      customerType.isLoading ||
+      isPreparingList ||
+      !hasLatestSortedList);
   const isPaginating =
-    customer.isLoading &&
-    sortedCustomers.length > 0 &&
-    customer.listItems.length > sortedCustomers.length &&
-    !isPreparingList;
+    hasVisibleCustomers &&
+    (customer.isLoading || isPreparingList || !hasLatestSortedList);
 
   return (
     <View style={styles.container}>
@@ -483,47 +519,81 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   rowContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  cardContent: {
     flex: 1,
+  },
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  topRowSpacer: {
+    width: 30,
+  },
+  topLeftWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    paddingRight: 12,
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
   },
   leadingStatus: {
-    flex: 0.1,
+    width: 30,
     flexDirection: 'column',
+    alignItems: 'center',
+    paddingTop: 2,
   },
   customerInfo: {
-    flex: 0.62,
+    flex: 1,
     flexDirection: 'column',
-    paddingRight: 8,
-  },
-  distanceWrap: {
-    flex: 0.16,
-    minWidth: 72,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    paddingRight: 8,
+    paddingRight: 12,
+    maxWidth: '100%',
   },
   indexText: {
     fontSize: hp('1.9%'),
+    marginRight: 6,
+    color: '#6A7480',
   },
   codeText: {
-    fontSize: hp('1.9%'),
+    fontSize: hp('2%'),
     fontWeight: 'bold',
   },
   nameText: {
     fontSize: hp('1.9%'),
+    marginBottom: 2,
   },
   addressText: {
     fontSize: hp('1.8%'),
+    color: '#5E6975',
   },
   distanceText: {
-    fontSize: hp('1.55%'),
+    fontSize: hp('1.75%'),
+    fontWeight: 'bold',
     color: MainTheme.colorPrimary,
     textAlign: 'right',
+    width: 86,
   },
   footerLoading: {
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  chevronButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: -8,
+  },
+  chevronIcon: {
+    textAlign: 'center',
   },
 });

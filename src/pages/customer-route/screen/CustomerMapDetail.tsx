@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
 import { WebView } from 'react-native-webview';
 import { getCurrentPosition } from '../../../action/geolocation';
@@ -72,6 +72,91 @@ const buildAddress = (customer?: RouteCustomer) => {
   return addressParts.length > 0 ? addressParts.join(' ') : '-';
 };
 
+const buildRouteHtml = (
+  current: { latitude: number; longitude: number },
+  customer: { latitude: number; longitude: number },
+) => `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <style>
+      html, body, #map {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: #ffffff;
+      }
+      .leaflet-control-attribution {
+        font-size: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+      const start = [${current.latitude}, ${current.longitude}];
+      const end = [${customer.latitude}, ${customer.longitude}];
+
+      const map = L.map('map', { zoomControl: true });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors',
+      }).addTo(map);
+
+      L.marker(start).addTo(map).bindPopup('ตำแหน่งปัจจุบัน');
+      L.marker(end).addTo(map).bindPopup('ลูกค้า');
+
+      map.fitBounds(L.latLngBounds([start, end]), { padding: [30, 30] });
+
+      fetch(
+        'https://router.project-osrm.org/route/v1/driving/' +
+          start[1] + ',' + start[0] + ';' + end[1] + ',' + end[0] +
+          '?overview=full&geometries=geojson'
+      )
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+          if (!data.routes || !data.routes.length) {
+            throw new Error('route not found');
+          }
+
+          const route = data.routes[0].geometry.coordinates.map(function(point) {
+            return [point[1], point[0]];
+          });
+
+          L.polyline(route, {
+            color: '#2B60DE',
+            weight: 5,
+            opacity: 0.95,
+          }).addTo(map);
+
+          map.fitBounds(L.latLngBounds(route), { padding: [30, 30] });
+          window.ReactNativeWebView.postMessage(
+            JSON.stringify({ type: 'route-ready' })
+          );
+        })
+        .catch(function(error) {
+          window.ReactNativeWebView.postMessage(
+            JSON.stringify({
+              type: 'route-error',
+              message: error && error.message ? error.message : 'route failed',
+            })
+          );
+        });
+    </script>
+  </body>
+</html>`;
+
 const CustomerMapDetailBase: React.FC<CustomerMapDetailProps> = ({
   geolocation,
   getCurrentPosition,
@@ -79,6 +164,7 @@ const CustomerMapDetailBase: React.FC<CustomerMapDetailProps> = ({
 }) => {
   const customer = route?.params?.customer;
   const [isLoading, setIsLoading] = useState(false);
+  const [routeError, setRouteError] = useState<string | null>(null);
   const [distanceText, setDistanceText] = useState(
     customer?.distanceText ?? 'กำลังคำนวณระยะทาง',
   );
@@ -99,17 +185,24 @@ const CustomerMapDetailBase: React.FC<CustomerMapDetailProps> = ({
     [geolocation.position.latitude, geolocation.position.longitude],
   );
 
-  const directionsUrl = useMemo(() => {
-    if (!hasCompleteCoordinate(customerCoordinate)) {
+  const mapHtml = useMemo(() => {
+    if (
+      !hasCompleteCoordinate(currentCoordinate) ||
+      !hasCompleteCoordinate(customerCoordinate)
+    ) {
       return null;
     }
 
-    const destination = `${customerCoordinate.latitude},${customerCoordinate.longitude}`;
-    const webOriginQuery = hasCompleteCoordinate(currentCoordinate)
-      ? `&origin=${currentCoordinate.latitude},${currentCoordinate.longitude}`
-      : '';
-
-    return `https://www.google.com/maps/dir/?api=1${webOriginQuery}&destination=${destination}&travelmode=driving`;
+    return buildRouteHtml(
+      {
+        latitude: currentCoordinate.latitude as number,
+        longitude: currentCoordinate.longitude as number,
+      },
+      {
+        latitude: customerCoordinate.latitude as number,
+        longitude: customerCoordinate.longitude as number,
+      },
+    );
   }, [currentCoordinate, customerCoordinate]);
 
   useEffect(() => {
@@ -180,8 +273,11 @@ const CustomerMapDetailBase: React.FC<CustomerMapDetailProps> = ({
 
     const destination = `${customerCoordinate.latitude},${customerCoordinate.longitude}`;
     const fallbackUrl =
-      directionsUrl ??
-      `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
+      `https://www.google.com/maps/dir/?api=1${
+        hasCompleteCoordinate(currentCoordinate)
+          ? `&origin=${currentCoordinate.latitude},${currentCoordinate.longitude}`
+          : ''
+      }&destination=${destination}&travelmode=driving`;
 
     const candidateUrls =
       Platform.OS === 'android'
@@ -211,14 +307,27 @@ const CustomerMapDetailBase: React.FC<CustomerMapDetailProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.mapSection}>
-        {directionsUrl ? (
+        {mapHtml ? (
           <WebView
-            source={{ uri: directionsUrl }}
+            originWhitelist={['*']}
+            source={{ html: mapHtml }}
             style={styles.map}
             javaScriptEnabled
             domStorageEnabled
             startInLoadingState
             setSupportMultipleWindows={false}
+            onMessage={event => {
+              try {
+                const payload = JSON.parse(event.nativeEvent.data);
+                if (payload.type === 'route-ready') {
+                  setRouteError(null);
+                } else if (payload.type === 'route-error') {
+                  setRouteError('ไม่สามารถโหลดเส้นทางตามถนนได้');
+                }
+              } catch (_error) {
+                setRouteError('ไม่สามารถโหลดเส้นทางตามถนนได้');
+              }
+            }}
             renderLoading={() => (
               <View style={styles.webViewLoading}>
                 <Text style={styles.webViewLoadingText} allowFontScaling={false}>
@@ -229,8 +338,8 @@ const CustomerMapDetailBase: React.FC<CustomerMapDetailProps> = ({
           />
         ) : (
           <View style={styles.mapFallback}>
-            <AntDesign
-              name="environment"
+            <MaterialCommunityIcons
+              name="navigation-variant"
               size={34}
               color={MainTheme.colorPrimary}
             />
@@ -242,6 +351,13 @@ const CustomerMapDetailBase: React.FC<CustomerMapDetailProps> = ({
             </Text>
           </View>
         )}
+        {routeError ? (
+          <View style={styles.routeErrorBanner}>
+            <Text style={styles.routeErrorText} allowFontScaling={false}>
+              {routeError}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       <ScrollView
@@ -269,7 +385,11 @@ const CustomerMapDetailBase: React.FC<CustomerMapDetailProps> = ({
               }}
               disabled={!hasCompleteCoordinate(customerCoordinate)}
             >
-              <AntDesign name="environment" size={18} color="#FFFFFF" />
+              <MaterialCommunityIcons
+                name="navigation-variant"
+                size={18}
+                color="#FFFFFF"
+              />
               <Text style={styles.mapButtonText} allowFontScaling={false}>
                 นำทาง
               </Text>
@@ -363,6 +483,21 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: hp('1.7%'),
     color: '#6A7480',
+    textAlign: 'center',
+  },
+  routeErrorBanner: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: 12,
+    backgroundColor: 'rgba(191, 67, 67, 0.92)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  routeErrorText: {
+    color: '#FFFFFF',
+    fontSize: hp('1.55%'),
     textAlign: 'center',
   },
   detailSection: {

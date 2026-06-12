@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SectionGrid } from 'react-native-super-grid';
 import { homeMenuList, MenuItem } from '../constant/HomeMenuList';
 import Navigator from '../../../services/Navigator';
@@ -90,11 +91,21 @@ const MenuList: React.FC = () => {
           }
           style={styles.touchable}
         >
-          <Image
-            style={styles.image}
-            resizeMode="contain"
-            source={item.imgSrc}
-          />
+          {item.iconType === 'MaterialCommunityIcons' && item.iconName ? (
+            <View style={styles.iconWrap}>
+              <MaterialCommunityIcons
+                name={item.iconName}
+                size={item.iconSize || 96}
+                color={item.iconColor || '#444444'}
+              />
+            </View>
+          ) : item.imgSrc ? (
+            <Image
+              style={styles.image}
+              resizeMode="contain"
+              source={item.imgSrc}
+            />
+          ) : null}
           <Text style={styles.title} numberOfLines={2} allowFontScaling={false}>
             {item.title}
           </Text>
@@ -141,6 +152,13 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     alignSelf: 'center',
+    marginBottom: 8,
+  },
+  iconWrap: {
+    width: 96,
+    height: 96,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 8,
   },
   title: {

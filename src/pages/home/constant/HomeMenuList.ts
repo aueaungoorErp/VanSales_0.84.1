@@ -3,7 +3,11 @@ import { strings } from '../../../locales/i18n';
 
 export interface MenuItem {
   title: string;
-  imgSrc: ImageSourcePropType;
+  imgSrc?: ImageSourcePropType;
+  iconType?: 'MaterialCommunityIcons';
+  iconName?: string;
+  iconColor?: string;
+  iconSize?: number;
   screen: string;
   methodType: string;
   methodName: string | null;
@@ -64,7 +68,10 @@ export const homeMenuList: MenuItem[] = [
   {
     title: 'จัดสายลูกค้า',
     buttonStyle: { backgroundColor: '#FFA500' },
-    imgSrc: require('../../../images/Visit_Customer.png'),
+    iconType: 'MaterialCommunityIcons',
+    iconName: 'selection-marker',
+    iconColor: '#47BA8F',
+    iconSize: 88,
     screen: 'CustomerRoute',
     methodType: 'new-page',
     methodName: null,
