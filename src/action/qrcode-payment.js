@@ -1,4 +1,9 @@
-import { authForGetAccessTokenApi, requestQrCodeSCBApi } from '../api/qrcode-payment'
+import {
+    authForGetAccessTokenApi,
+    requestBBLPaymentInquiryApi,
+    requestBBLQrCodeApi,
+    requestQrCodeSCBApi,
+} from '../api/qrcode-payment'
 // import { QRCODE_PAYMENT_AUTH_USERNAME, QRCODE_PAYMENT_AUTH_PASSWORD } from '../../appConfig'
 
 export const authForGetAccessToken = (auth) => dispatch => {
@@ -45,6 +50,64 @@ export const requestQrCodeSCB = (data, amount) => (dispatch) => {
                 'Request QRCode SCB failed'
 
             reject(errorMessage)
+        })
+    })
+}
+
+export const requestBBLQrCode = payload => dispatch => {
+    return new Promise((resolve) => {
+        requestBBLQrCodeApi(payload).then((v) => {
+            resolve({
+                isError: !v?.success,
+                data: v?.data || null,
+                message: v?.responseMesg || v?.message || null,
+                raw: v,
+            })
+        }).catch((error) => {
+            const errorMessage =
+                error?.response?.data?.responseMesg ||
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.response?.data?.details?.responseBody?.responseMesg ||
+                error?.message ||
+                'Request BBL QR Code failed'
+
+            resolve({
+                isError: true,
+                data: null,
+                message: errorMessage,
+                raw: error?.response?.data || null,
+            })
+        })
+    })
+}
+
+export const requestBBLPaymentInquiry = payload => dispatch => {
+    return new Promise((resolve) => {
+        requestBBLPaymentInquiryApi(payload).then((v) => {
+            const isApproved = v?.success === true && v?.data?.statusCode === '00'
+
+            resolve({
+                isError: !isApproved,
+                data: v?.data || null,
+                message: v?.responseMesg || v?.message || v?.data?.statusMesg || null,
+                raw: v,
+            })
+        }).catch((error) => {
+            const errorMessage =
+                error?.response?.data?.details?.responseBody?.responseMesg ||
+                error?.response?.data?.responseMesg ||
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.message ||
+                'Request BBL payment inquiry failed'
+
+            resolve({
+                isError: true,
+                data: null,
+                message: errorMessage,
+                raw: error?.response?.data || null,
+            })
         })
     })
 }

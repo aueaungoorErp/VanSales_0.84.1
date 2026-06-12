@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { ComponentType, Dispatch, SetStateAction } from 'react';
 import {
+  Animated,
   Alert,
+  Easing,
   Image,
   ScrollView,
   StyleSheet,
@@ -116,6 +118,14 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
   const [bblMessageType, setBblMessageType] =
     useState<BBLMessageType>(null);
   const [isTestingBbl, setIsTestingBbl] = useState(false);
+  const [tabHeights, setTabHeights] = useState<Record<SettingsTab, number>>({
+    service: 0,
+    bbl: 0,
+  });
+  const tabContentHeight = useRef(new Animated.Value(0)).current;
+  const hasInitialTabHeight = useRef(false);
+  const isWaitingForTabMeasurement = useRef(false);
+  const activeTabHeight = tabHeights[activeTab];
 
   useEffect(() => {
     let isMounted = true;
@@ -157,6 +167,64 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
   const clearBBLMessage = () => {
     setBblMessage(null);
     setBblMessageType(null);
+  };
+
+  const animateTabHeight = (nextHeight: number) => {
+    Animated.timing(tabContentHeight, {
+      toValue: nextHeight,
+      duration: 350,
+      easing: Easing.inOut(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const changeTab = (nextTab: SettingsTab) => {
+    if (activeTab === nextTab) {
+      return;
+    }
+
+    const nextHeight = tabHeights[nextTab];
+    isWaitingForTabMeasurement.current = nextHeight <= 0;
+    setActiveTab(nextTab);
+
+    if (nextHeight > 0) {
+      animateTabHeight(nextHeight);
+    }
+  };
+
+  const handleTabContentLayout = (tab: SettingsTab, nextHeight: number) => {
+    const normalizedHeight = Math.ceil(nextHeight);
+
+    setTabHeights(currentHeights => {
+      if (currentHeights[tab] === normalizedHeight) {
+        return currentHeights;
+      }
+
+      return {
+        ...currentHeights,
+        [tab]: normalizedHeight,
+      };
+    });
+
+    if (activeTab !== tab) {
+      return;
+    }
+
+    if (!hasInitialTabHeight.current) {
+      hasInitialTabHeight.current = true;
+      tabContentHeight.setValue(normalizedHeight);
+      return;
+    }
+
+    if (isWaitingForTabMeasurement.current) {
+      isWaitingForTabMeasurement.current = false;
+      animateTabHeight(normalizedHeight);
+      return;
+    }
+
+    if (tabHeights[tab] !== normalizedHeight) {
+      animateTabHeight(normalizedHeight);
+    }
   };
 
   const getNetworkErrorMessage = (
@@ -366,7 +434,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     setBblBaseUrl('');
     setIsTestingBbl(false);
     clearBBLMessage();
-    setActiveTab('service');
+    changeTab('service');
     setErrorMessage('');
   };
 
@@ -444,7 +512,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
         key={tab}
         style={[styles.tabButton, isActive ? styles.tabButtonActive : null]}
         onPress={() => {
-          setActiveTab(tab);
+          changeTab(tab);
         }}
         activeOpacity={0.8}
       >
@@ -476,98 +544,114 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>ข้อมูลเซอร์วิส</Text>
-
           <View style={styles.tabRow}>
             {renderTabButton('service', 'ข้อมูลเซอร์วิส')}
             {renderTabButton('bbl', 'BBL Payment')}
           </View>
 
-          {activeTab === 'service' ? (
-            <>
-              <View style={styles.fieldBlock}>
-                <Text style={styles.label}>
-                  {strings('login_setting.web_servicename')}
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={strings('login_setting.web_servicename')}
-                  placeholderTextColor={MainTheme.placeholerTextInput}
-                  value={toInputValue(serviceName)}
-                  underlineColorAndroid="transparent"
-                  onChangeText={setServiceName}
-                />
-              </View>
-
-              <View style={styles.fieldBlock}>
-                <Text style={styles.label}>
-                  {strings('login_setting.web_serviceurl')}
-                </Text>
-                <TextInput
-                  multiline
-                  style={[styles.input, styles.multilineInput]}
-                  value={toInputValue(webURL)}
-                  underlineColorAndroid="transparent"
-                  placeholder={DEFAULT_SERVICE_URL}
-                  placeholderTextColor={MainTheme.placeholerTextInput}
-                  onChangeText={setWebURL}
-                />
-              </View>
-
-              <View style={styles.fieldBlock}>
-                <Text style={styles.label}>
-                  {strings('login_setting.van_machine')}
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={strings('login_setting.van_machine')}
-                  placeholderTextColor={MainTheme.placeholerTextInput}
-                  value={toInputValue(number)}
-                  underlineColorAndroid="transparent"
-                  onChangeText={setNumber}
-                />
-              </View>
-            </>
-          ) : (
-            <>
-              <Text style={styles.helperText}>
-                กำหนด Base URL สำหรับเรียก BBL QR Payment และใช้ปุ่มทดสอบเพื่อตรวจสอบ
-                {` ${'{baseurl}/health'}`}
-              </Text>
-
-              <View style={styles.fieldBlock}>
-                <Text style={styles.label}>Base URL</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="https://example.com"
-                  placeholderTextColor={MainTheme.placeholerTextInput}
-                  value={toInputValue(bblBaseUrl)}
-                  underlineColorAndroid="transparent"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  onChangeText={onChangeBBLBaseUrl}
-                />
-              </View>
-
-              <TouchableOpacity
-                style={styles.testButton}
-                onPress={onTestBBLConnection}
-                activeOpacity={0.8}
+          <Animated.View
+            style={[
+              styles.tabContentFrame,
+              activeTabHeight > 0 ? { height: tabContentHeight } : null,
+            ]}
+          >
+            {activeTab === 'service' ? (
+              <View
+                onLayout={event => {
+                  handleTabContentLayout(
+                    'service',
+                    event.nativeEvent.layout.height,
+                  );
+                }}
               >
-                <Text style={styles.testButtonTitle}>Test Connection</Text>
-              </TouchableOpacity>
+                <View style={styles.fieldBlock}>
+                  <Text style={styles.label}>
+                    {strings('login_setting.web_servicename')}
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={strings('login_setting.web_servicename')}
+                    placeholderTextColor={MainTheme.placeholerTextInput}
+                    value={toInputValue(serviceName)}
+                    underlineColorAndroid="transparent"
+                    onChangeText={setServiceName}
+                  />
+                </View>
 
-              <View style={styles.bblMessageBox}>
-                {bblMessageType === 'error' ? (
-                  <ITextWithErrorMessage message={bblMessage} />
-                ) : null}
-                {bblMessageType === 'success' && bblMessage ? (
-                  <Text style={styles.successText}>{bblMessage}</Text>
-                ) : null}
-                <ILoading isLoading={isTestingBbl} />
+                <View style={styles.fieldBlock}>
+                  <Text style={styles.label}>
+                    {strings('login_setting.web_serviceurl')}
+                  </Text>
+                  <TextInput
+                    multiline
+                    style={[styles.input, styles.multilineInput]}
+                    value={toInputValue(webURL)}
+                    underlineColorAndroid="transparent"
+                    placeholder={DEFAULT_SERVICE_URL}
+                    placeholderTextColor={MainTheme.placeholerTextInput}
+                    onChangeText={setWebURL}
+                  />
+                </View>
+
+                <View style={styles.fieldBlock}>
+                  <Text style={styles.label}>
+                    {strings('login_setting.van_machine')}
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={strings('login_setting.van_machine')}
+                    placeholderTextColor={MainTheme.placeholerTextInput}
+                    value={toInputValue(number)}
+                    underlineColorAndroid="transparent"
+                    onChangeText={setNumber}
+                  />
+                </View>
               </View>
-            </>
-          )}
+            ) : (
+              <View
+                onLayout={event => {
+                  handleTabContentLayout('bbl', event.nativeEvent.layout.height);
+                }}
+              >
+                <Text style={styles.helperText}>
+                  กำหนด Base URL สำหรับเรียก BBL QR Payment และใช้ปุ่มทดสอบเพื่อตรวจสอบ
+                  {` ${'{baseurl}/health'}`}
+                </Text>
+
+                <View style={styles.fieldBlock}>
+                  <Text style={styles.label}>Base URL</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="https://example.com"
+                    placeholderTextColor={MainTheme.placeholerTextInput}
+                    value={toInputValue(bblBaseUrl)}
+                    underlineColorAndroid="transparent"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    onChangeText={onChangeBBLBaseUrl}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={styles.testButton}
+                  onPress={onTestBBLConnection}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.testButtonTitle}>Test Connection</Text>
+                </TouchableOpacity>
+
+                <View style={styles.bblMessageBox}>
+                  {bblMessageType === 'error' ? (
+                    <ITextWithErrorMessage message={bblMessage} />
+                  ) : null}
+                  {bblMessageType === 'success' && bblMessage ? (
+                    <Text style={styles.successText}>{bblMessage}</Text>
+                  ) : null}
+                  <ILoading isLoading={isTestingBbl} />
+                </View>
+              </View>
+            )}
+          </Animated.View>
         </View>
 
         <View style={styles.sectionCard}>
@@ -693,30 +777,37 @@ const styles = StyleSheet.create({
   tabRow: {
     flexDirection: 'row',
     marginBottom: 14,
-    marginHorizontal: -4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D6E2D9',
+    paddingHorizontal: 2,
   },
   tabButton: {
     flex: 1,
-    backgroundColor: '#E8F1EB',
-    borderRadius: 12,
-    paddingVertical: 12,
+    backgroundColor: 'transparent',
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    paddingVertical: 11,
     paddingHorizontal: 10,
-    marginHorizontal: 4,
+    marginBottom: -1,
     borderWidth: 1,
-    borderColor: '#D6E2D9',
+    borderColor: 'transparent',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
     alignItems: 'center',
   },
   tabButtonActive: {
-    backgroundColor: MainTheme.colorPrimary,
-    borderColor: MainTheme.colorPrimary,
+    backgroundColor: '#F9FCFA',
+    borderColor: '#D6E2D9',
+    borderBottomColor: MainTheme.colorSecondary,
   },
   tabButtonTitle: {
-    color: MainTheme.colorQuaternary,
+    color: '#7E9184',
     fontSize: hp('1.7%'),
-    fontWeight: '700',
+    fontWeight: '600',
   },
   tabButtonTitleActive: {
-    color: MainTheme.colorSecondary,
+    color: MainTheme.colorPrimary,
+    fontWeight: '700',
   },
   titleSection: {
     paddingLeft: 15,
@@ -758,6 +849,9 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     borderWidth: 1,
     borderColor: '#E2E8E4',
+  },
+  tabContentFrame: {
+    overflow: 'hidden',
   },
   sectionTitle: {
     color: MainTheme.colorQuaternary,

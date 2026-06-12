@@ -30,6 +30,8 @@ import {
   saveCredentials,
 } from '../../../services/SecureCredentials';
 import {
+  getBBLPaymentBaseUrl,
+  getBBLQrPaymentEnabled,
   getBiometricLoginState,
   getLoginInfo,
   getSettingConfig,
@@ -38,6 +40,7 @@ import {
   removeLoginInfo,
   removeUserToken,
   setAccessTimeToken,
+  setBBLQrPaymentEnabled,
   setLoginInfo,
   setSettingConfig,
 } from '../../../utils/Token';
@@ -49,6 +52,7 @@ class CTListItems extends React.Component {
     super(props);
 
     this.state = {
+      bblQrPaymentEnabled: false,
       config: null,
     };
 
@@ -59,6 +63,18 @@ class CTListItems extends React.Component {
 
   componentDidMount() {
     this.props.hydrateUserBiometricState();
+    this._loadBBLQrPaymentSetting();
+
+    this.focusSubscription = this.props.navigation?.addListener(
+      'focus',
+      this._handleFocus,
+    );
+  }
+
+  componentWillUnmount() {
+    if (typeof this.focusSubscription === 'function') {
+      this.focusSubscription();
+    }
   }
 
   _checkPermission = async () => {
@@ -83,6 +99,23 @@ class CTListItems extends React.Component {
         };
       });
     }
+  };
+
+  _handleFocus = () => {
+    this._getSettingConfig();
+    this._loadBBLQrPaymentSetting();
+  };
+
+  _loadBBLQrPaymentSetting = async () => {
+    const [storedEnabled, bblBaseUrl] = await Promise.all([
+      getBBLQrPaymentEnabled(),
+      getBBLPaymentBaseUrl(),
+    ]);
+
+    this.setState({
+      bblQrPaymentEnabled:
+        storedEnabled === null ? !!String(bblBaseUrl || '').trim() : !!storedEnabled,
+    });
   };
 
   _header = () => {
@@ -127,7 +160,9 @@ class CTListItems extends React.Component {
 
   _canPressItem = item =>
     item.methodType === 'new-page' ||
-    (item.methodType === 'function' && item.methodName !== 'toggleBiometrics');
+    (item.methodType === 'function' &&
+      item.methodName !== 'toggleBiometrics' &&
+      item.methodName !== 'toggleBBLQrPayment');
 
   _renderRightArrow = item => {
     if (!this._canPressItem(item)) {
@@ -138,6 +173,14 @@ class CTListItems extends React.Component {
   };
 
   _getListItems = () => {
+    const bblQrPaymentItem = {
+      title: 'ชำระผ่าน BBL QR Payment',
+      iconName: 'qrcode-scan',
+      iconType: 'material-design',
+      methodType: 'function',
+      methodName: 'toggleBBLQrPayment',
+      screen: null,
+    };
     const biometricItem = {
       title: 'เปิด/ปิดการใช้งาน Biometrics',
       iconName: 'fingerprint',
@@ -151,11 +194,12 @@ class CTListItems extends React.Component {
     );
 
     if (manualIndex < 0) {
-      return [...settingListItems, biometricItem];
+      return [...settingListItems, bblQrPaymentItem, biometricItem];
     }
 
     return [
       ...settingListItems.slice(0, manualIndex),
+      bblQrPaymentItem,
       biometricItem,
       ...settingListItems.slice(manualIndex),
     ];
@@ -163,6 +207,10 @@ class CTListItems extends React.Component {
 
   _renderItem = ({ item }, key) => {
     console.log('itemaaa', item);
+    if (item.methodName === 'toggleBBLQrPayment') {
+      return this._renderBBLQrPaymentPattern(item);
+    }
+
     if (item.methodName === 'toggleBiometrics') {
       return this._renderBiometricsPattern(item);
     }
@@ -336,6 +384,42 @@ class CTListItems extends React.Component {
     );
   };
 
+  _renderBBLQrPaymentPattern = item => {
+    const isEnabled = !!this.state.bblQrPaymentEnabled;
+
+    return (
+      <View style={itemStyles.row}>
+        <View style={itemStyles.iconContainer}>
+          <MaterialDesignIcons
+            name={item.iconName}
+            color={MainTheme.colorPrimary}
+            size={24}
+          />
+        </View>
+        <View style={itemStyles.textContainer}>
+          <Text style={itemStyles.title} allowFontScaling={false}>
+            {item.title}
+          </Text>
+          <Text
+            style={[
+              itemStyles.subtitle,
+              { color: isEnabled ? MainTheme.colorPrimary : '#777777' },
+            ]}
+            allowFontScaling={false}
+          >
+            {isEnabled ? 'เปิดอยู่' : 'ปิดอยู่'}
+          </Text>
+        </View>
+        <Switch
+          value={isEnabled}
+          onValueChange={this._toggleBBLQrPayment}
+          trackColor={{ false: '#D6D7DA', true: MainTheme.colorSeptenary }}
+          thumbColor={isEnabled ? MainTheme.colorPrimary : '#F4F3F4'}
+        />
+      </View>
+    );
+  };
+
   _onPress = async item => {
     if (item.methodType === 'new-page') {
       Navigator.navigate(item.screen, item.params);
@@ -412,6 +496,11 @@ class CTListItems extends React.Component {
         error?.message || 'เกิดข้อผิดพลาดในการตรวจสอบ Biometrics',
       );
     }
+  };
+
+  _toggleBBLQrPayment = async value => {
+    await setBBLQrPaymentEnabled(value);
+    this.setState({ bblQrPaymentEnabled: !!value });
   };
 
   _logout = async item => {

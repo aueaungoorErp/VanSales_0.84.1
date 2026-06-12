@@ -1,6 +1,6 @@
 import moment from 'moment';
 import React, { Component } from 'react';
-import { Keyboard, Text, TouchableOpacity } from 'react-native';
+import { Alert, Keyboard, Text, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import { setIsSubmit as setCheckInIsSubmit } from '../../../../action/check-in';
 import { getCurrentPosition } from '../../../../action/geolocation';
@@ -24,6 +24,8 @@ import {
 } from '../../../../action/order';
 import {
   authForGetAccessToken,
+  requestBBLPaymentInquiry,
+  requestBBLQrCode,
   requestQrCodeSCB,
 } from '../../../../action/qrcode-payment';
 import { paymentButtonGroup } from '../../../../constant/lov';
@@ -33,7 +35,13 @@ import {
   genenrateAttachImageToServer,
   genenrateOrderForCreateToServer,
 } from '../../../../utils/Order';
-import { getLoginGuID, getUserToken } from '../../../../utils/Token';
+import {
+  getBBLPaymentBaseUrl,
+  getBBLQrPaymentEnabled,
+  getLoginGuID,
+  getSettingConfig,
+  getUserToken,
+} from '../../../../utils/Token';
 import PaymentForm from '../presenter/PaymentForm';
 
 import { BPAPUS_BPAPSV } from '../../../../../appConfig';
@@ -76,6 +84,9 @@ class CTPaymentForm extends Component {
       },
       buttonDisabled: false,
       userToken: {
+        COMPANYINFO: {
+          CMPNY_REG_NO: null,
+        },
         VANCONFIG: {
           VANCNF_BANK_QRCODE_USE: null,
           VANCNF_BANK_TRANSFER_USE: null,
@@ -85,11 +96,18 @@ class CTPaymentForm extends Component {
       },
       isQRCodeDialogOpen: false,
       isDialogOpen: false,
+      isScreenFocused: true,
 
       qrCode: null,
       qrLogo: require('../../../../images/Icon_App.png'),
       qrContentItem: null,
       qrContentName: null,
+      bblPaymentBaseUrl: '',
+      bblQrPaymentEnabled: false,
+      bblQrCodeId: null,
+      bblReference2: null,
+      isQRCodeGenerating: false,
+      isBBLPaymentChecking: false,
 
       dscfTxnId: null,
       accessToken: null,
@@ -109,6 +127,7 @@ class CTPaymentForm extends Component {
     };
 
     this._getUserToken();
+    this._loadBBLPaymentConfig();
     this._getOtherPaymentType();
     this._getbankAccount();
     this._getQRContent();
@@ -177,6 +196,27 @@ class CTPaymentForm extends Component {
     }
   };
 
+  componentDidMount() {
+    const navigation = this.props.navigation;
+    if (navigation && typeof navigation.addListener === 'function') {
+      this._unsubscribeFocus = navigation.addListener('focus', () => {
+        this._setState('isScreenFocused', true);
+      });
+      this._unsubscribeBlur = navigation.addListener('blur', () => {
+        this.setState({ isScreenFocused: false, isQRCodeDialogOpen: false });
+      });
+    }
+  }
+
+  componentWillUnmount() {
+    if (typeof this._unsubscribeFocus === 'function') {
+      this._unsubscribeFocus();
+    }
+    if (typeof this._unsubscribeBlur === 'function') {
+      this._unsubscribeBlur();
+    }
+  }
+
   componentDidUpdate(prevProps, prevState) {
     const previousAmount = this._getCurrentPayin(prevState);
     const currentAmount = this._getCurrentPayin(this.state);
@@ -213,17 +253,63 @@ class CTPaymentForm extends Component {
   // }
 
   _getUserToken = async () => {
-    const userToken = await getUserToken();
+    const [userToken, settingConfig] = await Promise.all([
+      getUserToken(),
+      getSettingConfig(),
+    ]);
 
-    if (userToken) {
+    const mergedUserToken = {
+      ...(userToken ?? {}),
+      COMPANYINFO: userToken?.COMPANYINFO ?? settingConfig?.COMPANYINFO ?? null,
+      SALESMAN: userToken?.SALESMAN ?? settingConfig?.SALESMAN ?? null,
+      VANCONFIG: userToken?.VANCONFIG ?? settingConfig?.VANCONFIG ?? null,
+    };
+
+    if (userToken || settingConfig) {
       await this.setState(oldState => {
         return {
-          userToken: userToken,
+          userToken: mergedUserToken,
         };
       });
     }
 
-    console.log('userToken', userToken);
+    console.log('userToken', mergedUserToken);
+  };
+
+  _loadBBLPaymentConfig = async () => {
+    const [storedEnabled, bblPaymentBaseUrl] = await Promise.all([
+      getBBLQrPaymentEnabled(),
+      getBBLPaymentBaseUrl(),
+    ]);
+
+    await this.setState({
+      bblPaymentBaseUrl: bblPaymentBaseUrl || '',
+      bblQrPaymentEnabled:
+        storedEnabled === null
+          ? !!String(bblPaymentBaseUrl || '').trim()
+          : !!storedEnabled,
+    });
+  };
+
+  _isBBLQrPaymentEnabled = () => {
+    return (
+      !!this.state.bblQrPaymentEnabled &&
+      !!String(this.state.bblPaymentBaseUrl || '').trim()
+    );
+  };
+
+  _getCompanyTaxIdNo = () => {
+    return String(this.state.userToken?.COMPANYINFO?.CMPNY_REG_NO || '').trim();
+  };
+
+  _showQrCreationError = message => {
+    const alertMessage =
+      typeof message === 'string' && message.trim()
+        ? message.trim()
+        : 'ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบข้อมูลและลองใหม่อีกครั้ง';
+
+    this._setState('errorMessage', alertMessage);
+    Alert.alert('สร้าง QR Code ไม่สำเร็จ', alertMessage);
   };
 
   _getOtherPaymentType = async () => {
@@ -977,6 +1063,7 @@ class CTPaymentForm extends Component {
 
             if (
               this.state.groupofpaymentType.has('qrcode') &&
+              !this._isBBLQrPaymentEnabled() &&
               this.state.qrContentItem === null
             ) {
               this._setState('errorMessage', 'กรุณาระบุธนาคาร (QrCode) ');
@@ -2034,6 +2121,7 @@ class CTPaymentForm extends Component {
   _requestQrCode = async obj => {
     this._setState('errorMessage', null);
     const totalPrice = this._getResolvedOrderAmount();
+    const useBBLQrPayment = this._isBBLQrPaymentEnabled();
 
     const selectedQrContent = this.state.qrContent?.find(
       item =>
@@ -2056,15 +2144,16 @@ class CTPaymentForm extends Component {
       (this.state.qrin === null || Number(this.state.qrin) <= 0)
     ) {
       await this._setState('isQRCodeDialogOpen', false);
-      this._setState('errorMessage', 'กรุณาระบุจำนวนเงิน (QrCode)');
+      this._showQrCreationError('กรุณาระบุจำนวนเงิน (QrCode)');
       return;
     }
 
     if (
       this.state.groupofpaymentType.has('qrcode') &&
+      !useBBLQrPayment &&
       this.state.qrContentItem === null
     ) {
-      this._setState('errorMessage', 'กรุณาระบุธนาคาร (QrCode) ');
+      this._showQrCreationError('กรุณาระบุธนาคาร (QrCode) ');
       return;
     }
 
@@ -2090,7 +2179,7 @@ class CTPaymentForm extends Component {
       Number(payin) < Number(totalPrice) - this.state.differBy
     ) {
       await this._setState('isQRCodeDialogOpen', false);
-      this._setState('errorMessage', 'ยอดชำระยังไม่ครบ กรุณาตรวจสอบ ');
+      this._showQrCreationError('ยอดชำระยังไม่ครบ กรุณาตรวจสอบ ');
       return;
     }
 
@@ -2130,22 +2219,131 @@ class CTPaymentForm extends Component {
     }
 
     try {
+      if (useBBLQrPayment) {
+        const amount = Number(this.state.qrin || 0);
+        const taxIdNo = this._getCompanyTaxIdNo();
+
+        if (!taxIdNo) {
+          this._showQrCreationError(
+            'ไม่ขึ้น modal เพราะไม่มีเลขทะเบียนบริษัท (CMPNY_REG_NO) สำหรับสร้าง BBL QR Payment',
+          );
+          return;
+        }
+
+        if (!String(this.state.bblPaymentBaseUrl || '').trim()) {
+          this._showQrCreationError(
+            'ไม่ขึ้น modal เพราะไม่มี BBL URL กรุณาตั้งค่า BBL Payment URL ก่อนใช้งาน BBL QR Payment',
+          );
+          return;
+        }
+
+        await this.setState({
+          isLoading: true,
+          isQRCodeGenerating: true,
+        });
+
+        const response = await this.props.requestBBLQrCode({
+          amount,
+          baseUrl: this.state.bblPaymentBaseUrl,
+          taxIdNo,
+        });
+
+        await this.setState({
+          isLoading: false,
+          isQRCodeGenerating: false,
+        });
+
+        if (response?.isError || !response?.data?.qrData) {
+          this._showQrCreationError(
+            response?.message ||
+              'ไม่ขึ้น modal เพราะสร้าง BBL QR Code ไม่สำเร็จ กรุณาตรวจสอบ BBL URL, เลขทะเบียนบริษัท และการเชื่อมต่อ',
+          );
+          return;
+        }
+
+        await this.setState({
+          bblQrCodeId: response.data.qrCodeId || null,
+          bblReference2: response.data.reference2 || null,
+          isQRCodeDialogOpen: true,
+          isScreenFocused: true,
+          qrCode: response.data.qrData,
+          qrConfirm: false,
+        });
+        return;
+      }
+
       const isError = false;
       const data = qrCodeSeedCandidates[0] || obj;
 
       if (isError || !data) {
-        this._setState(
-          'errorMessage',
+        this._showQrCreationError(
           'ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบการเชื่อมต่อหรือข้อมูล QR',
         );
         return;
       }
 
       await this._setState('qrCode', data);
+      await this._setState('bblQrCodeId', null);
+      await this._setState('bblReference2', null);
+      await this._setState('isScreenFocused', true);
       await this._setState('isQRCodeDialogOpen', true);
     } catch (error) {
-      this._setState('errorMessage', error);
+      await this.setState({
+        isLoading: false,
+        isQRCodeGenerating: false,
+      });
+      this._showQrCreationError(error?.message || error);
     }
+  };
+
+  _confirmBBLPayment = async () => {
+    const amount = Number(this.state.qrin || 0);
+    const taxIdNo = this._getCompanyTaxIdNo();
+
+    if (!this._isBBLQrPaymentEnabled()) {
+      await this._setqrConfirm(true);
+      return;
+    }
+
+    if (!amount || !taxIdNo || !this.state.bblQrCodeId || !this.state.bblReference2) {
+      const incompleteMessage =
+        'ข้อมูล BBL QR Payment ไม่ครบถ้วน กรุณาสร้าง QR Code ใหม่';
+      this._setState('errorMessage', incompleteMessage);
+      Alert.alert('ยืนยันการชำระเงินไม่สำเร็จ', incompleteMessage);
+      return;
+    }
+
+    await this._setState('errorMessage', null);
+    await this._setState('isBBLPaymentChecking', true);
+
+    let response;
+    try {
+      response = await this.props.requestBBLPaymentInquiry({
+        amount,
+        baseUrl: this.state.bblPaymentBaseUrl,
+        qrCodeId: this.state.bblQrCodeId,
+        reference2: this.state.bblReference2,
+        taxIdNo,
+      });
+    } catch (error) {
+      response = {
+        isError: true,
+        message: error?.message || error,
+      };
+    } finally {
+      await this._setState('isBBLPaymentChecking', false);
+    }
+
+    if (response?.isError) {
+      const notPaidMessage =
+        response?.message || 'ยังไม่พบรายการชำระเงินจาก BBL QR Payment';
+      this._setState('errorMessage', notPaidMessage);
+      Alert.alert('ยังไม่พบการชำระเงิน', notPaidMessage);
+      return;
+    }
+
+    await this._setState('isQRCodeDialogOpen', false);
+    await this._setqrConfirm(true);
   };
 
   // _requestQrCodeSCB = async (obj) => {
@@ -2343,7 +2541,7 @@ class CTPaymentForm extends Component {
 
   _orderAttachImage = async () => {
     try {
-      response = await this.props.orderAttachImage(
+      const response = await this.props.orderAttachImage(
         genenrateAttachImageToServer(
           this.props.order.headerProcessed.VDI_KEY,
           this.props.order.headerProcessed.VDI_AR,
@@ -2363,7 +2561,7 @@ class CTPaymentForm extends Component {
 
   _orderMileAttachImage = async () => {
     try {
-      response = await this.props.orderAttachImage(
+      const response = await this.props.orderAttachImage(
         genenrateAttachImageToServer(
           this.props.order.headerProcessed.VDI_KEY,
           this.props.order.headerProcessed.VDI_AR,
@@ -2759,11 +2957,16 @@ class CTPaymentForm extends Component {
           setremainConfirm={this._setremainConfirm}
           isQRCodeDialogOpen={this.state.isQRCodeDialogOpen}
           isDialogOpen={this.state.isDialogOpen}
+          screenFocused={this.state.isScreenFocused}
           setState={this._setState}
           qrCode={this.state.qrCode}
           qrAmount={this.state.qrin}
           qrLogo={this.state.qrLogo}
           userToken={this.state.userToken}
+          bblQrPaymentEnabled={this._isBBLQrPaymentEnabled()}
+          isQRCodeGenerating={this.state.isQRCodeGenerating}
+          isBBLPaymentChecking={this.state.isBBLPaymentChecking}
+          onConfirmBBLPayment={this._confirmBBLPayment}
           otherPaymentType={this.state.otherPaymentType}
           remainOptionItem={this.state.reMainOption1}
           differBy={this.state.differBy}
@@ -2802,6 +3005,9 @@ const mapDispatchToProps = dispatch => {
     setMileIsSubmit: bool => dispatch(setMileIsSubmit(bool)),
     orderAttachImage: data => dispatch(orderAttachImage(data)),
     authForGetAccessToken: auth => dispatch(authForGetAccessToken(auth)),
+    requestBBLQrCode: payload => dispatch(requestBBLQrCode(payload)),
+    requestBBLPaymentInquiry: payload =>
+      dispatch(requestBBLPaymentInquiry(payload)),
     requestQrCodeSCB: (data, amount) =>
       dispatch(requestQrCodeSCB(data, amount)),
     auth: () => dispatch(auth()),

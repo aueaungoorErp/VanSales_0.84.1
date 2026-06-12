@@ -127,6 +127,28 @@ export const getBBLPaymentBaseUrl = async () => {
   }
 };
 
+export const setBBLQrPaymentEnabled = async value => {
+  try {
+    return await storeData('@BBLQrPaymentEnabled', JSON.stringify(!!value));
+  } catch (e) {
+    return false;
+  }
+};
+
+export const getBBLQrPaymentEnabled = async () => {
+  try {
+    const value = await retrieveData('@BBLQrPaymentEnabled');
+
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    return !!JSON.parse(value);
+  } catch (e) {
+    return null;
+  }
+};
+
 export const setUserToken = async token => {
   try {
     return await storeData('@UserToken', JSON.stringify(token));

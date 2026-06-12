@@ -23,6 +23,7 @@ import { MainTheme } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';
 import Navigator from '../../../services/Navigator';
 import {
+  getBBLPaymentBaseUrl,
   getListServiceSetting,
   getSettingConfig,
   getUserToken,
@@ -132,6 +133,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [service, setService] = useState<string | null>(null);
   const [listServiceSettings, setList] = useState<ServiceSetting[]>([]);
+  const [bblPaymentBaseUrl, setBblPaymentBaseUrl] = useState('');
 
   const {
     baseUrl,
@@ -223,7 +225,10 @@ const SettingForm: React.FC<SettingFormProps> = props => {
     let isMounted = true;
 
     const loadServices = async () => {
-      const configList = await getListServiceSetting();
+      const [configList, storedBblPaymentBaseUrl] = await Promise.all([
+        getListServiceSetting(),
+        getBBLPaymentBaseUrl(),
+      ]);
       const nextList = Array.isArray(configList)
         ? normalizeServices(configList)
         : [];
@@ -233,6 +238,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
       }
 
       setList(nextList);
+      setBblPaymentBaseUrl(toInputValue(storedBblPaymentBaseUrl));
 
       const matchedService = nextList.find(item => {
         return item.webURL === baseUrl && item.number === vanCNFMachine;
@@ -512,6 +518,13 @@ const SettingForm: React.FC<SettingFormProps> = props => {
               placeholderTextColor={MainTheme.placeholerTextInput}
               underlineColorAndroid="transparent"
             />
+          </View>
+        </View>
+
+        <View style={styles.fieldBlock}>
+          <Text style={styles.label}>BBL Payment URL</Text>
+          <View style={styles.inputContainer}>
+            <Text style={styles.input}>{toInputValue(bblPaymentBaseUrl) || '-'}</Text>
           </View>
         </View>
       </View>

@@ -8,7 +8,10 @@ const Payment = props => {
   const { processResult } = route.params;
   return (
     <View style={styles.container}>
-      <CTPaymentForm processResult={processResult} />
+      <CTPaymentForm
+        processResult={processResult}
+        navigation={props.navigation}
+      />
     </View>
   );
 };

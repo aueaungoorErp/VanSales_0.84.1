@@ -2,6 +2,7 @@
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Modal,
   ScrollView,
   StyleSheet,
@@ -110,10 +111,15 @@ const PaymentForm = props => {
     setState,
     isQRCodeDialogOpen,
     isDialogOpen,
+    screenFocused,
     qrCode,
     qrAmount,
     qrLogo,
     userToken,
+    bblQrPaymentEnabled,
+    isQRCodeGenerating,
+    isBBLPaymentChecking,
+    onConfirmBBLPayment,
     // cashin,
     // setcashin,
     remainOptionItem,
@@ -151,6 +157,7 @@ const PaymentForm = props => {
   const safeTotalPrice = Number.isFinite(Number(totalPrice))
     ? Number(totalPrice)
     : 0;
+  const showBBLQrPayment = !!bblQrPaymentEnabled;
 
   //console.log("remainOption >>", remainOptionItem)
   // console.log("bankAccountItem >>", listbankAccountItem)
@@ -847,6 +854,7 @@ const PaymentForm = props => {
     : checkpayment(qrAmount, qrContentItem) || checkpayment(qrAmount, qrCode);
   const qrDisplayAmount =
     normalizeQrAmount(qrAmount) || normalizeQrAmount(qrCode) || '0.00';
+  const qrDialogBusy = showBBLQrPayment && isBBLPaymentChecking;
 
   console.log('qrPaymentValue', qrPaymentValue);
 
@@ -1104,90 +1112,115 @@ const PaymentForm = props => {
             ) : null}
             <View style={styles.line} />
 
-            <Item
-              style={[
-                styles.otherPickerSection,
-                {
-                  backgroundColor: checkedItems.item2
-                    ? '#f0ffff'
-                    : checkedItems.item3
-                    ? '#f0ffff'
-                    : 'transparent',
-                },
-              ]}
-            >
-              <Form
+            {checkedItems.item3 && showQrCodeOption && showBBLQrPayment ? (
+              <View style={styles.bblQrInfoBox}>
+                <Text
+                  style={styles.bblQrInfoText}
+                  allowFontScaling={false}
+                >
+                  ระบบจะสร้าง QR Code จาก BBL QR Payment อัตโนมัติ
+                </Text>
+                {isQRCodeGenerating ? (
+                  <View style={styles.bblQrLoadingRow}>
+                    <ActivityIndicator
+                      size="small"
+                      color={MainTheme.colorPrimary}
+                    />
+                    <Text
+                      style={styles.bblQrLoadingText}
+                      allowFontScaling={false}
+                    >
+                      กำลังสร้าง QR Code...
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            ) : (
+              <Item
                 style={[
-                  styles.inputSection2,
+                  styles.otherPickerSection,
                   {
-                    borderBottomColor: 'transparent',
-                    borderBottomWidth: 0,
-                    height: 40,
-                    padding: 0,
+                    backgroundColor: checkedItems.item2
+                      ? '#f0ffff'
+                      : checkedItems.item3
+                      ? '#f0ffff'
+                      : 'transparent',
                   },
                 ]}
               >
-                <RNPickerSelect
-                  items={
-                    checkedItems.item2 == true
-                      ? bankAccount
-                      : checkedItems.item3 == true && showQrCodeOption
-                      ? qrCodeContent
-                      : []
-                  }
-                  disabled={
-                    checkedItems.item2 == true
-                      ? !checkedItems.item2
-                      : checkedItems.item3 == true && showQrCodeOption
-                      ? !checkedItems.item3
-                      : true
-                  }
-                  onValueChange={value => {
-                    checkedItems.item2 == true
-                      ? setBankAccountItem
-                        ? setBankAccountItem(value)
+                <Form
+                  style={[
+                    styles.inputSection2,
+                    {
+                      borderBottomColor: 'transparent',
+                      borderBottomWidth: 0,
+                      height: 40,
+                      padding: 0,
+                    },
+                  ]}
+                >
+                  <RNPickerSelect
+                    items={
+                      checkedItems.item2 == true
+                        ? bankAccount
+                        : checkedItems.item3 == true && showQrCodeOption
+                        ? qrCodeContent
+                        : []
+                    }
+                    disabled={
+                      checkedItems.item2 == true
+                        ? !checkedItems.item2
+                        : checkedItems.item3 == true && showQrCodeOption
+                        ? !checkedItems.item3
+                        : true
+                    }
+                    onValueChange={value => {
+                      checkedItems.item2 == true
+                        ? setBankAccountItem
+                          ? setBankAccountItem(value)
+                          : null
+                        : checkedItems.item3 == true && showQrCodeOption
+                        ? setqrContentItem
+                          ? setqrContentItem(value)
+                          : null
+                        : null;
+                    }}
+                    value={
+                      checkedItems.item2 == true
+                        ? bankAccountItem
+                        : checkedItems.item3 == true && showQrCodeOption
+                        ? qrContentItem
                         : null
-                      : checkedItems.item3 == true && showQrCodeOption
-                      ? setqrContentItem
-                        ? setqrContentItem(value)
-                        : null
-                      : null;
-                  }}
-                  value={
-                    checkedItems.item2 == true
-                      ? bankAccountItem
-                      : checkedItems.item3 == true && showQrCodeOption
-                      ? qrContentItem
-                      : null
-                  }
-                  style={getBorderlessPickerStyle(
-                    checkedItems.item2 ||
-                      (checkedItems.item3 && showQrCodeOption),
-                  )}
-                  placeholder={{ label: 'เลือก', value: null }}
-                  placeholderTextColor={
-                    checkedItems.item2
-                      ? '#808080'
-                      : MainTheme.placeholerTextInput
-                  }
-                  textInputProps={{
-                    underlineColorAndroid: 'transparent',
-                    underlineColor: 'transparent',
-                  }}
-                  useNativeAndroidPickerStyle={false}
-                  Icon={() => {
-                    return (
-                      <AntDesign
-                        name="down"
-                        size={20}
-                        color={MainTheme.colorPrimary}
-                        style={{ marginTop: 0 }}
-                      />
-                    );
-                  }}
-                />
-              </Form>
-            </Item>
+                    }
+                    style={getBorderlessPickerStyle(
+                      checkedItems.item2 ||
+                        (checkedItems.item3 && showQrCodeOption),
+                    )}
+                    placeholder={{ label: 'เลือก', value: null }}
+                    placeholderTextColor={
+                      checkedItems.item2
+                        ? '#808080'
+                        : MainTheme.placeholerTextInput
+                    }
+                    textInputProps={{
+                      underlineColorAndroid: 'transparent',
+                      underlineColor: 'transparent',
+                    }}
+                    useNativeAndroidPickerStyle={false}
+                    Icon={() => {
+                      return (
+                        <AntDesign
+                          name="down"
+                          size={20}
+                          color={MainTheme.colorPrimary}
+                          style={{ marginTop: 0 }}
+                        />
+                      );
+                    }}
+                  />
+                </Form>
+              </Item>
+            )}
           </View>
         ) : null}
         <View style={styles.line} />
@@ -1631,72 +1664,31 @@ const PaymentForm = props => {
         <Modal
           animationType="fade"
           transparent={true}
-          visible={showQrCodeOption && isQRCodeDialogOpen}
+          visible={showQrCodeOption && isQRCodeDialogOpen && screenFocused !== false}
           onRequestClose={() => {
-            setState ? setState('isQRCodeDialogOpen', false) : null;
+            qrDialogBusy
+              ? null
+              : setState
+              ? setState('isQRCodeDialogOpen', false)
+              : null;
           }}
         >
-          <View
-            style={{
-              width: '100%',
-              height: '100%',
-              backgroundColor: 'rgba(0, 0, 0, 0.30)',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <View
-              style={{
-                width: '80%',
-                height: '80%',
-                backgroundColor: '#FFFFFF',
-                borderRadius: 5,
-              }}
-            >
-              <View
-                style={{
-                  flex: 0.1,
-                  // width: '100%',
-                  backgroundColor: '#2554C7',
-                  borderTopRightRadius: 5,
-                  borderTopLeftRadius: 5,
-                  alignItems: 'center',
-                  padding: 10,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+          <View style={styles.qrModalBackdrop}>
+            <View style={styles.qrModalCard}>
+              <View style={styles.qrModalHeader}>
                 <Text
-                  style={{ fontSize: hp('1.7%'), color: '#FFFFFF' }}
+                  style={styles.qrModalHeaderText}
                   allowFontScaling={false}
                 >
-                  Thai QR Payment
+                  {showBBLQrPayment ? 'BBL QR Payment' : 'Thai QR Payment'}
                 </Text>
               </View>
-              <View
-                style={{
-                  flex: 0.1,
-                  alignItems: 'center',
-                  padding: 5,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text style={{ fontSize: hp('1.7%') }} allowFontScaling={false}>
-                  Thai QR Payment
+              <View style={styles.qrModalTitleWrap}>
+                <Text style={styles.qrModalTitle} allowFontScaling={false}>
+                  {showBBLQrPayment ? 'BBL QR Payment' : 'Thai QR Payment'}
                 </Text>
               </View>
-              <View
-                style={{
-                  flex: 0.6,
-                  // width: '100%',
-                  backgroundColor: '#FFFFFF',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  // paddingTop: 15,
-                  // paddingBottom: 30,
-                }}
-              >
+              <View style={styles.qrCodeArea}>
                 {/* <View style={{ position: 'absolute', zIndex: 998, width: 60, height: 60, borderRadius: 60/2, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
                                         <Text style={{  }}>QR</Text>
                                     </View> */}
@@ -1711,7 +1703,7 @@ const PaymentForm = props => {
                   />
                 ) : (
                   <Text
-                    style={{ fontSize: hp('1.7%'), color: '#666666' }}
+                    style={styles.qrEmptyText}
                     allowFontScaling={false}
                   >
                     ไม่สามารถสร้าง QR Code ได้ กรุณาตรวจสอบข้อมูลการชำระ
@@ -1725,16 +1717,7 @@ const PaymentForm = props => {
                                             fgColor='white'/>
                                     </View> */}
               </View>
-              <View
-                style={{
-                  flex: 0.2,
-                  width: '100%',
-                  backgroundColor: '#FFFFFF',
-                  paddingBottom: 30,
-                  borderBottomRightRadius: 5,
-                  borderBottomLeftRadius: 5,
-                }}
-              >
+              <View style={styles.qrModalFooter}>
                 {/* <View style={{
                                     flexDirection: 'row', 
                                     justifyContent: 'space-between', 
@@ -1746,23 +1729,15 @@ const PaymentForm = props => {
                                     <Text style={{ fontSize: hp('1.7%') }} allowFontScaling={false} >เลขที่บัญชี</Text>
                                     <Text style={{ fontSize: hp('1.7%') }} allowFontScaling={false} >260-210-5460</Text>
                                 </View> */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    marginHorizontal: 10,
-                    paddingVertical: 10,
-                    borderBottomWidth: 0.3,
-                  }}
-                >
+                <View style={styles.qrAmountRow}>
                   <Text
-                    style={{ fontSize: hp('1.7%') }}
+                    style={styles.qrAmountLabel}
                     allowFontScaling={false}
                   >
                     จำนวนเงิน
                   </Text>
                   <Text
-                    style={{ fontSize: hp('1.7%') }}
+                    style={styles.qrAmountValue}
                     allowFontScaling={false}
                   >
                     {Number(qrDisplayAmount)
@@ -1777,29 +1752,37 @@ const PaymentForm = props => {
                 style={iButtonGroupCustomStyles}
               /> */}
 
-                <View
-                  style={{
-                    flex: 1.9,
-                    flexDirection: 'row',
-                    borderTopRightRadius: 5,
-                    borderTopLeftRadius: 5,
-                    alignItems: 'center',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
+                <View style={styles.qrActionRow}>
                   <Button
                     large
-                    buttonStyle={{
-                      backgroundColor: MainTheme.colorPrimary,
-                      height: 40,
-                      width: 110,
-                      borderRadius: 0,
-                      borderColor: MainTheme.colorQuaternary,
-                      borderWidth: 0.3,
-                    }}
-                    title={'ตกลง'}
+                    containerStyle={styles.qrActionButtonContainer}
+                    buttonStyle={styles.qrConfirmButton}
+                    titleStyle={styles.qrConfirmButtonText}
+                    disabledStyle={styles.qrConfirmButtonDisabled}
+                    disabledTitleStyle={styles.qrConfirmButtonDisabledText}
+                    icon={
+                      qrDialogBusy ? (
+                        <ActivityIndicator
+                          size="small"
+                          color="#FFFFFF"
+                          style={styles.qrButtonSpinner}
+                        />
+                      ) : null
+                    }
+                    title={
+                      showBBLQrPayment
+                        ? isBBLPaymentChecking
+                          ? 'กำลังตรวจสอบ...'
+                          : 'ยืนยันการชำระ'
+                        : 'ตกลง'
+                    }
+                    disabled={qrDialogBusy}
                     onPress={() => {
+                      if (showBBLQrPayment) {
+                        runIfFunction(onConfirmBBLPayment);
+                        return;
+                      }
+
                       setqrConfirm ? setqrConfirm(true) : false;
                       setState ? setState('isQRCodeDialogOpen', false) : null;
                     }}
@@ -1807,16 +1790,16 @@ const PaymentForm = props => {
 
                   <Button
                     large
-                    buttonStyle={{
-                      backgroundColor: MainTheme.colorSecondary,
-                      borderRadius: 0,
-                      width: 110,
-                      borderColor: MainTheme.colorButtonBorder,
-                      borderWidth: 0.3,
-                    }}
+                    containerStyle={[
+                      styles.qrActionButtonContainer,
+                      styles.qrCancelButtonContainer,
+                    ]}
+                    buttonStyle={styles.qrCancelButton}
                     title={'ยกเลิก'}
-                    containerStyle={{ marginLeft: 1 }} // กำหนดระยะห่างระหว่างปุ่มที่ 100px
-                    titleStyle={{ color: '#000000' }}
+                    titleStyle={styles.qrCancelButtonText}
+                    disabledStyle={styles.qrCancelButtonDisabled}
+                    disabledTitleStyle={styles.qrCancelButtonDisabledText}
+                    disabled={qrDialogBusy}
                     onPress={() => {
                       setState ? setState('isQRCodeDialogOpen', false) : null;
                     }}
@@ -1892,6 +1875,164 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     paddingVertical: 0,
+  },
+  bblQrInfoBox: {
+    marginHorizontal: 14,
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    minHeight: 48,
+    justifyContent: 'center',
+    backgroundColor: '#F0FFFF',
+    borderWidth: 1,
+    borderColor: '#D7EAF0',
+    borderRadius: 12,
+  },
+  bblQrInfoText: {
+    fontSize: hp('1.55%'),
+    color: MainTheme.colorPrimary,
+  },
+  bblQrLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  bblQrLoadingText: {
+    marginLeft: 8,
+    fontSize: hp('1.45%'),
+    color: '#4F6272',
+  },
+  qrModalBackdrop: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  qrModalCard: {
+    width: '100%',
+    maxWidth: 430,
+    maxHeight: '86%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  qrModalHeader: {
+    backgroundColor: '#2554C7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  qrModalHeaderText: {
+    fontSize: hp('1.8%'),
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  qrModalTitleWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  qrModalTitle: {
+    fontSize: hp('1.75%'),
+    color: '#1D3557',
+    fontWeight: '600',
+  },
+  qrCodeArea: {
+    minHeight: 280,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+  },
+  qrEmptyText: {
+    fontSize: hp('1.7%'),
+    color: '#666666',
+    textAlign: 'center',
+  },
+  qrModalFooter: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingBottom: 18,
+  },
+  qrAmountRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#E6EBF0',
+  },
+  qrAmountLabel: {
+    fontSize: hp('1.65%'),
+    color: '#4A5568',
+  },
+  qrAmountValue: {
+    fontSize: hp('1.75%'),
+    color: '#1D3557',
+    fontWeight: '700',
+  },
+  qrActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 16,
+  },
+  qrActionButtonContainer: {
+    flex: 1,
+  },
+  qrCancelButtonContainer: {
+    marginLeft: 10,
+  },
+  qrConfirmButton: {
+    minHeight: 46,
+    borderRadius: 8,
+    backgroundColor: MainTheme.colorPrimary,
+    borderWidth: 1,
+    borderColor: MainTheme.colorPrimary,
+  },
+  qrConfirmButtonText: {
+    color: '#FFFFFF',
+    fontSize: hp('1.6%'),
+    fontWeight: '700',
+  },
+  qrConfirmButtonDisabled: {
+    backgroundColor: MainTheme.colorPrimary,
+    borderColor: MainTheme.colorPrimary,
+    opacity: 0.72,
+  },
+  qrConfirmButtonDisabledText: {
+    color: '#FFFFFF',
+  },
+  qrCancelButton: {
+    minHeight: 46,
+    borderRadius: 8,
+    backgroundColor: '#F3F6FA',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
+  qrCancelButtonText: {
+    color: '#1F2937',
+    fontSize: hp('1.6%'),
+    fontWeight: '700',
+  },
+  qrCancelButtonDisabled: {
+    backgroundColor: '#EDF2F7',
+    borderColor: '#CBD5E1',
+    opacity: 0.72,
+  },
+  qrCancelButtonDisabledText: {
+    color: '#6B7280',
+  },
+  qrButtonSpinner: {
+    marginRight: 8,
   },
   messageBox: {
     marginTop: 15,
