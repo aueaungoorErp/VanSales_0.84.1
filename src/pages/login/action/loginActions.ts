@@ -16,6 +16,7 @@ import {
   getLoginInfo,
   getSettingConfig,
   getUserToken,
+  setAccessTimeToken,
   setLoginGuID,
   setLoginInfo,
   setSettingConfig,
@@ -442,6 +443,7 @@ export const performLogin = async (
           fetchCustomerTypeList(deps),
           fetchProductCategoryList(deps),
         ]);
+        await setAccessTimeToken(Date.now().toString());
         Navigator.navigate('Main');
 
         // Dispatch onLoginSuccess AFTER navigating to Main so any modal

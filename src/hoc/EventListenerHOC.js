@@ -16,6 +16,7 @@ import {
 import { setAppState } from '../../src/action/appState';
 import { setConnectionInfo } from '../../src/action/network';
 import Navigator from '../../src/services/Navigator';
+import { getCredentials } from '../../src/services/SecureCredentials';
 
 import {
   setAccessTimeToken,
@@ -164,11 +165,16 @@ const EventListenerHOC = Component => {
             // background long enough (same 15-min threshold as session
             // timeout). This prevents a double-scan right after a
             // successful biometric login navigates to Main.
+            // Also verify credentials still exist — if the user logged out
+            // the password was cleared, so we skip biometric re-auth.
             if (biometricState?.isBiometrics && timeSinceLastAccess > 900000) {
-              Navigator.navigate('Splash');
-              this.props.setAppState(nextAppState);
-              if (this.done) this.done = false;
-              return;
+              const creds = await getCredentials();
+              if (creds?.username && creds?.password) {
+                Navigator.navigate('Splash');
+                this.props.setAppState(nextAppState);
+                if (this.done) this.done = false;
+                return;
+              }
             }
 
             // console.log('ACCESS', accessTimeToken)

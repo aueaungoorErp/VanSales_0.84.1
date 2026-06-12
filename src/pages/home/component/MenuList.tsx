@@ -14,7 +14,6 @@ import Navigator from '../../../services/Navigator';
 import Request from '../../../utils/Request';
 import { clearPassword } from '../../../services/SecureCredentials';
 import {
-  getBiometricLoginState,
   getLoginGuID,
   getSettingConfig,
   getUserToken,
@@ -50,16 +49,14 @@ const MenuList: React.FC = () => {
 
   const logout = async () => {
     const settingConfig = await getSettingConfig();
-    const biometricState = await getBiometricLoginState();
 
     Request.setTimeCutOff();
     await removeUserToken();
 
-    // Keep keychain credentials when biometrics is enabled so fingerprint
-    // login can still work after logout.
-    if (!biometricState?.isBiometrics) {
-      await clearPassword();
-    }
+    // Always clear the saved password from the keychain on logout.
+    // Fingerprint login is unaffected because it reads credentials from
+    // the persisted userWithFinger data, not from the keychain.
+    await clearPassword();
 
     await removeLoginGuID();
     await removeLoginInfo();

@@ -442,21 +442,25 @@ class CTForm extends React.Component {
     }
 
     if (biometricState?.isBiometrics) {
+      // Only enter biometric path when credentials (username + password)
+      // are still present. If the user logged out, the password was cleared
+      // from the keychain so we skip biometrics and fall through to normal
+      // login instead.
+      const bioCredentials = await getCredentials();
+      const bioUserCode = bioCredentials?.username || null;
+      const bioUserPassword = bioCredentials?.password || null;
+
       this._log('prepareData:biometricPath', {
         biometricState,
-        hasCredentialsInKeychain: !!credentials,
+        hasUsername: !!bioUserCode,
+        hasPassword: !!bioUserPassword,
         canAutoLogin: autoLogin,
       });
 
-      // Attempt biometric scan directly on Splash screen
-      const biometricPassed = await this._attemptBiometricOnSplash();
-      if (biometricPassed) {
-        // Biometric passed — get credentials and do startup relogin
-        const bioCredentials = await getCredentials();
-        const bioUserCode = bioCredentials?.username || null;
-        const bioUserPassword = bioCredentials?.password || null;
-
-        if (bioUserCode && bioUserPassword) {
+      if (bioUserCode && bioUserPassword) {
+        // Attempt biometric scan directly on Splash screen
+        const biometricPassed = await this._attemptBiometricOnSplash();
+        if (biometricPassed) {
           Request.setBaseUrl(setting.baseUrl);
           Request.setHeaders({ vanCNFMachine: setting.vanCNFMachine });
 
@@ -467,11 +471,16 @@ class CTForm extends React.Component {
           await this._retryStartupRelogin(setting, rememberedLogin);
           return;
         }
+
+        // Biometric scan failed — fall through to manual login
+        await this._goToAuth('biometric failed');
+        return;
       }
 
-      // Biometric failed or no credentials — fall through to manual login
-      await this._goToAuth('biometric failed or no credentials');
-      return;
+      // No credentials (user logged out) — skip biometrics, go to login
+      this._log('prepareData:biometricSkipped', {
+        reason: 'missing credentials after logout',
+      });
     }
 
     if (setting && setting.baseUrl) {
