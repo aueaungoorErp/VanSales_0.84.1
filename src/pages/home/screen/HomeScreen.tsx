@@ -14,6 +14,7 @@ import {
   hydrateUserBiometricState,
   isSameUserIdentity,
   persistBiometricPreference,
+  setAlreadyAskBiometrics,
   setUserWithFinger,
 } from '../../../action/user';
 import { MainTheme } from '../../../constant/lov';
@@ -35,8 +36,14 @@ type HomeScreenProps = {
     value: boolean,
     userInfo: UserIdentity,
   ) => Promise<void>;
+  setAlreadyAskBiometrics: (
+    value: boolean,
+    userInfo: UserIdentity | null,
+  ) => Promise<void>;
   setUserWithFinger: (userInfo: UserIdentity | null) => void;
   user?: {
+    alreadyAskBiometrics?: boolean;
+    alreadyAskBiometricsUser?: UserIdentity | null;
     isBiometrics?: boolean;
     newUser?: UserIdentity | null;
     userInfo?: UserIdentity | null;
@@ -58,9 +65,22 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
 
   React.useEffect(() => {
     const latestUser = props.user?.newUser ?? null;
+    const shouldAskBiometrics = props.user?.alreadyAskBiometrics !== false;
+    const lastAskedUser = props.user?.alreadyAskBiometricsUser ?? null;
     const linkedFingerUser = props.user?.userWithFinger ?? null;
 
     if (!latestUser?.USER_CODE) {
+      return;
+    }
+
+    if (
+      !shouldAskBiometrics &&
+      isSameUserIdentity(lastAskedUser, latestUser)
+    ) {
+      setPendingUser(null);
+      setIsModalVisible(false);
+      setIsFingerModalVisible(false);
+      props.clearNewUser();
       return;
     }
 
@@ -71,18 +91,16 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
       return;
     }
 
-    if (isSameUserIdentity(linkedFingerUser, latestUser)) {
-      setPendingUser(null);
-      setIsModalVisible(false);
-      setIsFingerModalVisible(false);
-      props.clearNewUser();
-      return;
-    }
-
     setPendingUser(latestUser);
     setIsFingerModalVisible(false);
     setIsModalVisible(true);
-  }, [props.clearNewUser, props.user?.newUser, props.user?.userWithFinger]);
+  }, [
+    props.clearNewUser,
+    props.user?.alreadyAskBiometrics,
+    props.user?.alreadyAskBiometricsUser,
+    props.user?.newUser,
+    props.user?.userWithFinger,
+  ]);
 
   const closeModal = React.useCallback(() => {
     setIsModalVisible(false);
@@ -100,13 +118,19 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
 
     setIsSavingPreference(true);
     try {
+      await props.setAlreadyAskBiometrics(false, pendingUser);
       props.clearNewUser();
       closeModal();
       setPendingUser(null);
     } finally {
       setIsSavingPreference(false);
     }
-  }, [closeModal, pendingUser, props.clearNewUser]);
+  }, [
+    closeModal,
+    pendingUser,
+    props.clearNewUser,
+    props.setAlreadyAskBiometrics,
+  ]);
 
   const handleAccept = React.useCallback(async () => {
     if (!pendingUser?.USER_CODE || !pendingUser?.USER_PASSWORD) {
@@ -144,6 +168,18 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
       }
 
       const hasLinkedFingerUser = !!props.user?.userWithFinger?.USER_CODE;
+      const isSameLinkedFingerUser = isSameUserIdentity(
+        props.user?.userWithFinger,
+        pendingUser,
+      );
+
+      if (hasLinkedFingerUser && isSameLinkedFingerUser) {
+        await props.persistBiometricPreference(true, pendingUser);
+        props.clearNewUser();
+        setPendingUser(null);
+        closeModal();
+        return;
+      }
 
       if (!hasLinkedFingerUser) {
         await props.persistBiometricPreference(true, pendingUser);
@@ -154,6 +190,7 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
         return;
       }
 
+      await props.setAlreadyAskBiometrics(false, pendingUser);
       props.clearNewUser();
       closeModal();
       setIsFingerModalVisible(true);
@@ -165,34 +202,31 @@ const HomeScreen: React.FC<HomeScreenProps> = props => {
     pendingUser,
     props.clearNewUser,
     props.persistBiometricPreference,
+    props.setAlreadyAskBiometrics,
     props.setUserWithFinger,
     props.user?.userWithFinger,
   ]);
 
   const handleFingerSave = React.useCallback(async () => {
     if (!pendingUser?.USER_CODE || !pendingUser?.USER_PASSWORD) {
+      Alert.alert(
+        'ไม่สามารถเชื่อมลายนิ้วมือ',
+        'ไม่พบข้อมูลผู้ใช้สำหรับเชื่อมลายนิ้วมือ',
+      );
       return;
     }
 
     setIsSavingPreference(true);
     try {
-      const saved = await saveCredentials(
-        pendingUser.USER_CODE,
-        pendingUser.USER_PASSWORD,
-      );
-
-      if (!saved) {
-        Alert.alert(
-          'ไม่สามารถเปิดใช้งาน Biometrics',
-          'ไม่สามารถบันทึกข้อมูลเข้าสู่ระบบสำหรับ Biometrics ได้',
-        );
-        return;
-      }
-
       await props.persistBiometricPreference(true, pendingUser);
-      props.setUserWithFinger(pendingUser);
+      await props.setUserWithFinger(pendingUser);
       props.clearNewUser();
       closeFingerModal();
+    } catch (error: any) {
+      Alert.alert(
+        'ไม่สามารถเชื่อมลายนิ้วมือ',
+        error?.message || 'เกิดข้อผิดพลาดในการบันทึกการเชื่อมลายนิ้วมือ',
+      );
     } finally {
       setIsSavingPreference(false);
     }
@@ -289,6 +323,8 @@ const mapDispatchToProps = (dispatch: any) => ({
   hydrateUserBiometricState: () => dispatch(hydrateUserBiometricState()),
   persistBiometricPreference: (value: boolean, userInfo: UserIdentity) =>
     dispatch(persistBiometricPreference(value, userInfo)),
+  setAlreadyAskBiometrics: (value: boolean, userInfo: UserIdentity | null) =>
+    dispatch(setAlreadyAskBiometrics(value, userInfo as any)),
   clearNewUser: () => dispatch(clearNewUser()),
   setUserWithFinger: (userInfo: UserIdentity | null) =>
     dispatch(setUserWithFinger(userInfo)),

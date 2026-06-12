@@ -16,6 +16,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
 import {
+  findPersistedBiometricUser,
   hydrateUserBiometricState,
   persistBiometricPreference,
 } from '../../../action/user';
@@ -53,6 +54,7 @@ class CTListItems extends React.Component {
 
     this.state = {
       bblQrPaymentEnabled: false,
+      biometricEnabled: false,
       config: null,
     };
 
@@ -64,6 +66,7 @@ class CTListItems extends React.Component {
   componentDidMount() {
     this.props.hydrateUserBiometricState();
     this._loadBBLQrPaymentSetting();
+    this._loadBiometricSetting();
 
     this.focusSubscription = this.props.navigation?.addListener(
       'focus',
@@ -104,6 +107,7 @@ class CTListItems extends React.Component {
   _handleFocus = () => {
     this._getSettingConfig();
     this._loadBBLQrPaymentSetting();
+    this._loadBiometricSetting();
   };
 
   _loadBBLQrPaymentSetting = async () => {
@@ -115,6 +119,15 @@ class CTListItems extends React.Component {
     this.setState({
       bblQrPaymentEnabled:
         storedEnabled === null ? !!String(bblBaseUrl || '').trim() : !!storedEnabled,
+    });
+  };
+
+  _loadBiometricSetting = async () => {
+    const userInfo = await this._getCurrentBiometricUser();
+    const biometricUser = await findPersistedBiometricUser(userInfo);
+
+    this.setState({
+      biometricEnabled: !!biometricUser?.isOpenBio,
     });
   };
 
@@ -349,7 +362,7 @@ class CTListItems extends React.Component {
   };
 
   _renderBiometricsPattern = item => {
-    const isEnabled = !!this.props.user?.isBiometrics;
+    const isEnabled = !!this.state.biometricEnabled;
 
     return (
       <View style={itemStyles.row}>
@@ -436,12 +449,13 @@ class CTListItems extends React.Component {
     const biometricState = await getBiometricLoginState();
     const loginInfo = await getLoginInfo();
     const savedUsername = await getSavedUsername();
+    const currentUser = {
+      service: loginInfo?.service ?? this.state.config?.service ?? null,
+      USER_CODE: savedUsername || null,
+    };
 
     return (
-      biometricState?.userInfo ?? {
-        service: loginInfo?.service ?? this.state.config?.service ?? null,
-        USER_CODE: savedUsername || null,
-      }
+      currentUser.USER_CODE ? currentUser : biometricState?.userInfo ?? currentUser
     );
   };
 
@@ -450,6 +464,7 @@ class CTListItems extends React.Component {
 
     if (!value) {
       await this.props.persistBiometricPreference(false, userInfo);
+      this.setState({ biometricEnabled: false });
       return;
     }
 
@@ -489,7 +504,9 @@ class CTListItems extends React.Component {
       await this.props.persistBiometricPreference(true, {
         ...userInfo,
         USER_CODE: username,
+        USER_PASSWORD: password,
       });
+      this.setState({ biometricEnabled: true });
     } catch (error) {
       Alert.alert(
         'ไม่สามารถเปิดใช้งาน Biometrics',

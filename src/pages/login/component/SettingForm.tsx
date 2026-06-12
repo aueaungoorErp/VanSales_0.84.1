@@ -295,6 +295,11 @@ const SettingForm: React.FC<SettingFormProps> = props => {
             response2.VANCNF_SLMN,
           );
           const responseData3 = JSON.parse(response3.ResponseData);
+          const salesman =
+            responseData3?.SaleMan ??
+            (Array.isArray(responseData3?.SL000130)
+              ? responseData3.SL000130[0]
+              : null);
 
           if (
             response3.ResponseCode == 200 &&
@@ -302,7 +307,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
           ) {
             const nextConfig = {
               ...currentConfig,
-              SALESMAN: responseData3.SaleMan,
+              SALESMAN: salesman,
               VANCONFIG: response2,
             };
             const userToken = await getUserToken();
@@ -311,7 +316,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
             await setSettingConfig(nextConfig);
             await setUserToken({
               ...(userToken ?? {}),
-              SALESMAN: responseData3.SaleMan,
+              SALESMAN: salesman,
               VANCONFIG: response2,
             });
 

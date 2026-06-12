@@ -204,6 +204,59 @@ export const fetchArPricetab = async (
   }
 };
 
+export const ensureDeviceRegistrationForLogin = async (
+  vanCNFMachine: string,
+  loginGuid: string,
+) => {
+  const uniqueId = await getDeviceUniqeId();
+  const responsemember = await findMemberNameV3Api(vanCNFMachine, loginGuid);
+  const responseMemberData =
+    typeof responsemember?.ResponseData === 'string' &&
+    responsemember.ResponseData.trim()
+      ? safeJsonParse(responsemember.ResponseData)
+      : responsemember?.ResponseData;
+  const existingMember = Array.isArray(responseMemberData?.Mb000130)
+    ? responseMemberData.Mb000130[0]
+    : null;
+
+  console.log('[Login] device check', {
+    uniqueId,
+    MB_E_NAME: existingMember?.MB_E_NAME ?? null,
+  });
+
+  const existingMemberCount = Number(responseMemberData?.RECORD_COUNT ?? 0);
+
+  if (
+    responsemember.ResponseCode == 200 &&
+    responsemember.ReasonString === 'Completed' &&
+    existingMemberCount > 0
+  ) {
+    if (existingMember?.MB_E_NAME !== uniqueId) {
+      throw new Error('duplicateUser');
+    }
+
+    return;
+  }
+
+  if (responsemember.ReasonString !== 'Not Login') {
+    try {
+      const responseNewmember = await newMemberV3Api(
+        vanCNFMachine,
+        loginGuid,
+        uniqueId,
+      );
+
+      if (
+        responseNewmember.ResponseCode == 200 &&
+        safeJsonParse(responseNewmember.ResponseData)?.RECORD_COUNT > 0
+      ) {
+      }
+    } catch (error) {
+      console.log('newMemberV3Api error', error);
+    }
+  }
+};
+
 // ── Fetch initial data ──
 
 export type FetchDataResult = {
@@ -358,52 +411,10 @@ export const performLogin = async (
           setErrorMessage('ข้อมูลการลงทะเบียนไม่ถูกต้อง');
           return;
         }
-        const uniqueId = await getDeviceUniqeId();
-        const responsemember = await findMemberNameV3Api(
+        await ensureDeviceRegistrationForLogin(
           vanCNFMachine,
           registerResponseData.BPAPUS_GUID,
         );
-        const responseMemberData =
-          typeof responsemember?.ResponseData === 'string' &&
-          responsemember.ResponseData.trim()
-            ? safeJsonParse(responsemember.ResponseData)
-            : responsemember?.ResponseData;
-        const existingMember = Array.isArray(responseMemberData?.Mb000130)
-          ? responseMemberData.Mb000130[0]
-          : null;
-        console.log('[Login] device check', {
-          uniqueId,
-          MB_E_NAME: existingMember?.MB_E_NAME ?? null,
-        });
-        const existingMemberCount = Number(
-          responseMemberData?.RECORD_COUNT ?? 0,
-        );
-
-        if (
-          responsemember.ResponseCode == 200 &&
-          responsemember.ReasonString === 'Completed' &&
-          existingMemberCount > 0
-        ) {
-          if (existingMember?.MB_E_NAME !== uniqueId) {
-            setErrorMessage(strings('error_ser.duplicateUser'));
-            return;
-          }
-        } else if (responsemember.ReasonString !== 'Not Login') {
-          try {
-            const responseNewmember = await newMemberV3Api(
-              vanCNFMachine,
-              registerResponseData.BPAPUS_GUID,
-              uniqueId,
-            );
-            if (
-              responseNewmember.ResponseCode == 200 &&
-              safeJsonParse(responseNewmember.ResponseData)?.RECORD_COUNT > 0
-            ) {
-            }
-          } catch (error) {
-            console.log('newMemberV3Api error', error);
-          }
-        }
 
         await setLoginGuID(registerResponseData.BPAPUS_GUID);
         await fetchVanConfig(
@@ -469,7 +480,7 @@ export const performLogin = async (
     let errret: any = '';
     console.log('oooooo ....', error);
 
-    const errorText = '' + error;
+    const errorText = String(error?.message ?? error ?? '').trim();
     const isTimeoutError =
       /timeout of \d+ms exceeded/i.test(errorText) ||
       (error && error.code === 'ECONNABORTED');

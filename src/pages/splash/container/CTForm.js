@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Alert,
   AppState,
   InteractionManager,
   PermissionsAndroid,
@@ -26,7 +27,8 @@ import {
   readCompanyInfoV3,
   systemCheck2,
 } from '../../../action/setting';
-import { registerV3 } from '../../../action/user';
+import { findPersistedBiometricUser, registerV3 } from '../../../action/user';
+import { ensureDeviceRegistrationForLogin } from '../../login/action/loginActions';
 import Navigate from '../../../services/Navigator';
 import Request from '../../../utils/Request';
 import {
@@ -35,7 +37,6 @@ import {
   getSavedUsername,
 } from '../../../services/SecureCredentials';
 import {
-  getBiometricLoginState,
   getLoginGuID,
   getLoginInfo,
   getSettingConfig,
@@ -277,6 +278,9 @@ class CTForm extends React.Component {
     if (
       /user id not found or wrong password/i.test(message) ||
       /บัญชีผู้ใช้ หรือ รหัสผ่านไม่ถูกต้อง/i.test(message) ||
+      /duplicateuser/i.test(message) ||
+      /เครื่องเกินขีดจำกัด/i.test(message) ||
+      /ลงทะเบียนเกินขีดจำกัด/i.test(message) ||
       /609/.test(message)
     ) {
       return false;
@@ -342,6 +346,19 @@ class CTForm extends React.Component {
         });
 
         if (!retryable) {
+          const errorMessage = String(error?.message ?? error ?? '');
+
+          if (
+            /duplicateuser/i.test(errorMessage) ||
+            /เครื่องเกินขีดจำกัด/i.test(errorMessage) ||
+            /ลงทะเบียนเกินขีดจำกัด/i.test(errorMessage)
+          ) {
+            Alert.alert(
+              'ไม่สามารถเข้าสู่ระบบได้',
+              'หมายเลขรถคันนี้ลงทะเบียนเกินขีดจำกัด หรือมีการใช้งานซ้ำกับเครื่องอื่น',
+            );
+          }
+
           await this._goToAuth(error?.message ?? 'startup relogin failed');
           return;
         }
@@ -419,9 +436,15 @@ class CTForm extends React.Component {
 
   _prepareData = async () => {
     const setting = await getSettingConfig();
-    const biometricState = await getBiometricLoginState();
+    const loginInfo = await getLoginInfo();
     const autoLogin = await canAutoLogin();
     const credentials = autoLogin ? await getCredentials() : null;
+    const savedUsername =
+      (await getSavedUsername()) || credentials?.username || null;
+    const currentBiometricUser = await findPersistedBiometricUser({
+      service: loginInfo?.service ?? null,
+      USER_CODE: savedUsername,
+    });
     const hasSettingConfig = Boolean(
       setting && setting.baseUrl && setting.vanCNFMachine,
     );
@@ -431,7 +454,9 @@ class CTForm extends React.Component {
       hasBaseUrl: !!setting?.baseUrl,
       hasVanCNFMachine: !!setting?.vanCNFMachine,
       hasSettingVanConfig: !!setting?.VANCONFIG,
-      isBiometricEnabled: !!biometricState?.isBiometrics,
+      latestService: loginInfo?.service ?? null,
+      isBiometricEnabled: !!currentBiometricUser?.isOpenBio,
+      biometricUserCode: currentBiometricUser?.USER_CODE ?? null,
       canAutoLogin: autoLogin,
       hasCredentials: !!credentials,
     });
@@ -441,7 +466,7 @@ class CTForm extends React.Component {
       return;
     }
 
-    if (biometricState?.isBiometrics) {
+    if (currentBiometricUser?.isOpenBio) {
       // Only enter biometric path when credentials (username + password)
       // are still present. If the user logged out, the password was cleared
       // from the keychain so we skip biometrics and fall through to normal
@@ -451,7 +476,7 @@ class CTForm extends React.Component {
       const bioUserPassword = bioCredentials?.password || null;
 
       this._log('prepareData:biometricPath', {
-        biometricState,
+        biometricUser: currentBiometricUser,
         hasUsername: !!bioUserCode,
         hasPassword: !!bioUserPassword,
         canAutoLogin: autoLogin,
@@ -664,6 +689,11 @@ class CTForm extends React.Component {
         if (!responseData || !responseData.BPAPUS_GUID) {
           throw new Error('missing BPAPUS_GUID after register');
         }
+
+        await ensureDeviceRegistrationForLogin(
+          activeConfig.vanCNFMachine,
+          responseData.BPAPUS_GUID,
+        );
 
         await setLoginGuID(responseData.BPAPUS_GUID);
         await this._getVanConfigV3(

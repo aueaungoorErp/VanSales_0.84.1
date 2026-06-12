@@ -5,9 +5,19 @@ import { removeData, retrieveData, storeData } from '../utils/Storage';
 
 const BIOMETRIC_HYDRATE_COOLDOWN_MS = 1000;
 const USER_WITH_FINGER_STORAGE_KEY = '@UserWithFinger';
+const BIOMETRIC_USERS_STORAGE_KEY = '@BiometricUsers';
 
 let lastBiometricHydrateAt = 0;
 let biometricHydratePromise = null;
+
+const normalizeBiometricState = rawState => ({
+  isBiometrics: !!rawState?.isBiometrics,
+  userInfo: normalizeUserIdentity(rawState?.userInfo),
+  alreadyAskBiometrics: rawState?.alreadyAskBiometrics !== false,
+  alreadyAskBiometricsUser: normalizeUserIdentity(
+    rawState?.alreadyAskBiometricsUser,
+  ),
+});
 
 const persistUserWithFinger = async userInfo => {
   if (!userInfo) {
@@ -87,6 +97,84 @@ export const isSameUserIdentity = (left, right) => {
   );
 };
 
+const normalizeBiometricUserEntry = user => {
+  const normalizedUser = normalizeUserIdentity(user, { includePassword: true });
+
+  if (!normalizedUser) {
+    return null;
+  }
+
+  return {
+    ...normalizedUser,
+    isOpenBio: !!user?.isOpenBio,
+  };
+};
+
+const getPersistedBiometricUsers = async () => {
+  try {
+    const raw = await retrieveData(BIOMETRIC_USERS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .map(item => normalizeBiometricUserEntry(item))
+      .filter(Boolean);
+  } catch (_error) {
+    return [];
+  }
+};
+
+const setPersistedBiometricUsers = async users => {
+  await storeData(BIOMETRIC_USERS_STORAGE_KEY, JSON.stringify(users));
+};
+
+const upsertPersistedBiometricUser = async (userInfo, isOpenBio) => {
+  const normalizedUser = normalizeBiometricUserEntry({
+    ...userInfo,
+    isOpenBio,
+  });
+
+  if (!normalizedUser) {
+    return null;
+  }
+
+  const persistedUsers = await getPersistedBiometricUsers();
+  const existingEntry = persistedUsers.find(item =>
+    isSameUserIdentity(item, normalizedUser),
+  );
+  const nextEntry = {
+    ...(existingEntry ?? {}),
+    ...normalizedUser,
+    USER_PASSWORD:
+      normalizedUser.USER_PASSWORD ?? existingEntry?.USER_PASSWORD ?? null,
+    isOpenBio,
+  };
+  const nextUsers = [
+    ...persistedUsers.filter(item => !isSameUserIdentity(item, normalizedUser)),
+    nextEntry,
+  ];
+
+  await setPersistedBiometricUsers(nextUsers);
+  return nextEntry;
+};
+
+export const findPersistedBiometricUser = async userInfo => {
+  const normalizedUser = normalizeUserIdentity(userInfo);
+
+  if (!normalizedUser) {
+    return null;
+  }
+
+  const persistedUsers = await getPersistedBiometricUsers();
+  return (
+    persistedUsers.find(item => isSameUserIdentity(item, normalizedUser)) ??
+    null
+  );
+};
+
 export const setIsBiometrics = value => dispatch => {
   dispatch({ type: types.USER_SET_ISBIOMETRICS, payload: !!value });
 };
@@ -98,10 +186,37 @@ export const setUserInfo = userInfo => dispatch => {
   });
 };
 
-export const setNewUser = userInfo => dispatch => {
+export const setNewUser = userInfo => async dispatch => {
+  const normalizedNewUser = normalizeUserIdentity(userInfo, {
+    includePassword: true,
+  });
+
+  if (normalizedNewUser?.USER_CODE) {
+    const persistedBiometricUser =
+      await findPersistedBiometricUser(normalizedNewUser);
+    const shouldAskBiometrics = !persistedBiometricUser;
+    const normalizedAskUser = normalizeUserIdentity(normalizedNewUser);
+
+    if (persistedBiometricUser) {
+      await upsertPersistedBiometricUser(
+        normalizedNewUser,
+        !!persistedBiometricUser.isOpenBio,
+      );
+    }
+
+    dispatch({
+      type: types.USER_SET_ALREADY_ASK_BIOMETRICS,
+      payload: shouldAskBiometrics,
+    });
+    dispatch({
+      type: types.USER_SET_ALREADY_ASK_BIOMETRICS_USER,
+      payload: normalizedAskUser,
+    });
+  }
+
   dispatch({
     type: types.USER_SET_NEW_USER,
-    payload: normalizeUserIdentity(userInfo, { includePassword: true }),
+    payload: normalizedNewUser,
   });
 };
 
@@ -140,17 +255,27 @@ export const hydrateUserBiometricState = () => async dispatch => {
   ]);
 
   try {
-    const [biometricState, persistedFingerUser] = await biometricHydratePromise;
+    const [rawBiometricState, persistedFingerUser] =
+      await biometricHydratePromise;
+    const biometricState = normalizeBiometricState(rawBiometricState);
 
     lastBiometricHydrateAt = Date.now();
 
     dispatch({
       type: types.USER_SET_ISBIOMETRICS,
-      payload: !!biometricState?.isBiometrics,
+      payload: biometricState.isBiometrics,
     });
     dispatch({
       type: types.USER_SET_USER_INFO,
-      payload: normalizeUserIdentity(biometricState?.userInfo),
+      payload: biometricState.userInfo,
+    });
+    dispatch({
+      type: types.USER_SET_ALREADY_ASK_BIOMETRICS,
+      payload: biometricState.alreadyAskBiometrics,
+    });
+    dispatch({
+      type: types.USER_SET_ALREADY_ASK_BIOMETRICS_USER,
+      payload: biometricState.alreadyAskBiometricsUser,
     });
     dispatch({
       type: types.USER_SET_USER_WITH_FINGER,
@@ -165,7 +290,18 @@ export const hydrateUserBiometricState = () => async dispatch => {
 
 export const persistBiometricPreference =
   (value, userInfo) => async dispatch => {
+    const existingBiometricState = normalizeBiometricState(
+      await getBiometricLoginState(),
+    );
     const normalizedUserInfo = normalizeUserIdentity(userInfo);
+    const normalizedBiometricUser = normalizeUserIdentity(userInfo, {
+      includePassword: true,
+    });
+
+    if (normalizedBiometricUser?.USER_CODE) {
+      await upsertPersistedBiometricUser(normalizedBiometricUser, !!value);
+    }
+
     const payload = {
       isBiometrics: !!value,
       userInfo: normalizedUserInfo,
@@ -180,5 +316,39 @@ export const persistBiometricPreference =
     dispatch({
       type: types.USER_SET_USER_INFO,
       payload: payload.userInfo,
+    });
+    dispatch({
+      type: types.USER_SET_ALREADY_ASK_BIOMETRICS,
+      payload: false,
+    });
+    dispatch({
+      type: types.USER_SET_ALREADY_ASK_BIOMETRICS_USER,
+      payload:
+        normalizedUserInfo ?? existingBiometricState.alreadyAskBiometricsUser,
+    });
+  };
+
+export const setAlreadyAskBiometrics =
+  (value, userInfo = null) => async dispatch => {
+    const biometricState = normalizeBiometricState(
+      await getBiometricLoginState(),
+    );
+    const normalizedUserInfo = normalizeUserIdentity(userInfo, {
+      includePassword: true,
+    });
+
+    if (!value && normalizedUserInfo?.USER_CODE) {
+      await upsertPersistedBiometricUser(normalizedUserInfo, false);
+    }
+
+    dispatch({
+      type: types.USER_SET_ALREADY_ASK_BIOMETRICS,
+      payload: !!value,
+    });
+    dispatch({
+      type: types.USER_SET_ALREADY_ASK_BIOMETRICS_USER,
+      payload:
+        normalizeUserIdentity(normalizedUserInfo) ??
+        biometricState.alreadyAskBiometricsUser,
     });
   };

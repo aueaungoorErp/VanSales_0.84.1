@@ -76,14 +76,21 @@ class IDurationDateSearchForm extends Component {
     }
     
     render() {
+        const titleLines = this.props.title
+            ? this.props.title.split('ตาม')
+            : ['รายงานสรุปการขาย', 'ประเภทสินค้า']
+
         return (
             <View style={styles.container}>
                 <View style={styles.formCard}>
                     <View style={styles.cardHeaderRow}>
                         <View style={[,{flexDirection: 'column'}]} > 
-                            <Text allowFontScaling={false} style={styles.sectionTitle}>รายงานสรุปการขาย</Text> 
-                            <Text allowFontScaling={false} style={styles.sectionTitle}>ตามประเภทสินค้า</Text> 
-                            </View>
+                            {titleLines.map((line, index) => (
+                                <Text key={`${line}-${index}`} allowFontScaling={false} style={styles.sectionTitle}>
+                                    {index === 0 || !this.props.title ? line : `ตาม${line}`}
+                                </Text>
+                            ))}
+                        </View>
                        
                         <View style={styles.actionRow}>
                             {this._renderActionButton({
