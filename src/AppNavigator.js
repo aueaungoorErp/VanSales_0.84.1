@@ -307,6 +307,18 @@ function HomeNavigator() {
         initialParams={{ title: 'การตั้งค่า' }}
       />
       <HomeStack.Screen
+        name="CustomerRoute"
+        component={require('./pages/customer-route/screen/CustomerMap').default}
+        initialParams={{ title: 'จัดสายลูกค้า' }}
+      />
+      <HomeStack.Screen
+        name="CustomerMapDetail"
+        component={
+          require('./pages/customer-route/screen/CustomerMapDetail').default
+        }
+        initialParams={{ title: 'แผนที่ลูกค้า' }}
+      />
+      <HomeStack.Screen
         name="Stock"
         component={require('./pages/stock/screen/Index').default}
         initialParams={{ title: 'คลังสินค้า' }}

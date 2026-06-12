@@ -62,6 +62,14 @@ export const homeMenuList: MenuItem[] = [
     methodName: null,
   },
   {
+    title: 'จัดสายลูกค้า',
+    buttonStyle: { backgroundColor: '#FFA500' },
+    imgSrc: require('../../../images/Visit_Customer.png'),
+    screen: 'CustomerRoute',
+    methodType: 'new-page',
+    methodName: null,
+  },
+  {
     title: 'ออกจากระบบ',
     buttonStyle: { backgroundColor: '#FFA500' },
     imgSrc: require('../../../images/LogOut.png'),

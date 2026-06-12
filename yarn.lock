@@ -4722,6 +4722,7 @@ __metadata:
     react-native-toggle-calendar: ^1.0.3
     react-native-vector-icons: ^10.3.0
     react-native-vision-camera: ^4.7.3
+    react-native-webview: ^13.16.1
     react-redux: ^9.2.0
     react-test-renderer: 19.2.3
     reactotron-react-native: ^5.1.18
@@ -7310,7 +7311,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"invariant@npm:*, invariant@npm:^2.2.4":
+"invariant@npm:*, invariant@npm:2.2.4, invariant@npm:^2.2.4":
   version: 2.2.4
   resolution: "invariant@npm:2.2.4"
   dependencies:
@@ -10663,6 +10664,19 @@ __metadata:
     react-native-worklets-core:
       optional: true
   checksum: e3abe484e4303d4fa9088e546e846642f4be503180ed24eaf74fc9e11c667cee779c5a9de4f27999dccb830ee60760badc641ee869fc6015e7ab7bec0f494f6d
+  languageName: node
+  linkType: hard
+
+"react-native-webview@npm:^13.16.1":
+  version: 13.16.1
+  resolution: "react-native-webview@npm:13.16.1"
+  dependencies:
+    escape-string-regexp: ^4.0.0
+    invariant: 2.2.4
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: c202500df090114877d7a92549dbac1c36bdcc2010d50ddffb57aedcec81870d9695f1e4e3ef852cbe02a8ef952ef8626b120b774813c396a32b4fdc5838a4a5
   languageName: node
   linkType: hard
 

@@ -12,6 +12,7 @@ export interface CustomerItem {
   IS_SKIP?: boolean;
   AR_CODE?: string;
   AR_NAME?: string;
+  ADDB_COMPANY?: string;
   ADDB_ADDB_1?: string;
   ADDB_ADDB_2?: string;
   ADDB_ADDB_3?: string;
@@ -19,6 +20,8 @@ export interface CustomerItem {
   ADDB_DISTRICT?: string;
   ADDB_PROVINCE?: string;
   ADDB_POST?: string;
+  ADDB_GPS_LAT_S?: string | number | null;
+  ADDB_GPS_LONG_S?: string | number | null;
   ARCAT_KEY?: string | null;
   ARCAT_NAME?: string | null;
 }
