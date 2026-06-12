@@ -36,6 +36,8 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>ใช้กล้องสำหรับสแกนบาร์โค้ดและถ่ายรูปประกอบการทำรายการ</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>ใช้ Face ID หรือ Touch ID เพื่อยืนยันตัวตนในการเข้าสู่ระบบ</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>UILaunchStoryboardName</key>

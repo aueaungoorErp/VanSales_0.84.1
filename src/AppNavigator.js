@@ -41,6 +41,7 @@ function LoginNavigator() {
       <LoginStack.Screen
         name="Login"
         component={require('./pages/login/screen/LoginScreen').default}
+        options={{ headerShown: false }}
       />
       <LoginStack.Screen
         name="LoginSetting"

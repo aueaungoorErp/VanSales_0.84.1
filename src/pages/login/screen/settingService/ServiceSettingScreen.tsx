@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { ComponentType, Dispatch, SetStateAction } from 'react';
 import {
   Alert,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import * as appConfig from '../../../../../appConfig';
+import { requestBBLPaymentHealthApi } from '../../../../api/qrcode-payment';
 import { systemCheckApi2 } from '../../../../api/setting';
 import ILoading from '../../../../component/loading/ILoading';
 import ITextWithErrorMessage from '../../../../component/text/ITextWithErrorMessage';
@@ -19,10 +20,15 @@ import { MainTheme } from '../../../../constant/lov';
 import { strings } from '../../../../locales/i18n';
 import Navigator from '../../../../services/Navigator';
 import {
+  getBBLPaymentBaseUrl,
   getListServiceSetting,
   saveListServiceSetting,
+  setBBLPaymentBaseUrl,
 } from '../../../../utils/Token';
-import { normalizeWebServiceUrl } from '../../../../utils/webService';
+import {
+  normalizePaymentBaseUrl,
+  normalizeWebServiceUrl,
+} from '../../../../utils/webService';
 
 const AntDesign = require('react-native-vector-icons/AntDesign')
   .default as ComponentType<any>;
@@ -53,6 +59,9 @@ type ServiceSettingItem = {
   USER_CODE?: string | null;
   USER_PASSWORD?: string | null;
 };
+
+type SettingsTab = 'service' | 'bbl';
+type BBLMessageType = 'success' | 'error' | null;
 
 type ApplySelectedService = (
   selectedService: ServiceSettingItem | null | undefined,
@@ -101,6 +110,30 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
   const [isLoading, setIsLoading] = useState(false);
   const [number, setNumber] = useState(_number || '');
   const [isShow, setIsShow] = useState(true);
+  const [activeTab, setActiveTab] = useState<SettingsTab>('service');
+  const [bblBaseUrl, setBblBaseUrl] = useState('');
+  const [bblMessage, setBblMessage] = useState<string | null>(null);
+  const [bblMessageType, setBblMessageType] =
+    useState<BBLMessageType>(null);
+  const [isTestingBbl, setIsTestingBbl] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadBblBaseUrl = async () => {
+      const storedBaseUrl = await getBBLPaymentBaseUrl();
+
+      if (isMounted) {
+        setBblBaseUrl(toInputValue(storedBaseUrl));
+      }
+    };
+
+    loadBblBaseUrl();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const showConfirm = (title: string, message: string) => {
     return new Promise<boolean>(resolve => {
@@ -119,6 +152,26 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
   const handleErrorMessage = (error: unknown) => {
     setIsLoading(false);
     setErrorMessage(typeof error === 'string' ? error : String(error));
+  };
+
+  const clearBBLMessage = () => {
+    setBblMessage(null);
+    setBblMessageType(null);
+  };
+
+  const getNetworkErrorMessage = (
+    error: any,
+    fallbackMessage: string,
+  ): string => {
+    if (typeof error?.response?.data?.message === 'string') {
+      return error.response.data.message;
+    }
+
+    if (typeof error?.message === 'string' && error.message.trim() !== '') {
+      return error.message;
+    }
+
+    return fallbackMessage;
   };
 
   const validateItem = () => {
@@ -153,6 +206,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     setErrorMessage('');
     const list: ServiceSettingItem[] = [];
     const normalizedWebURL = normalizeWebServiceUrl(webURL);
+    const normalizedBBLBaseUrl = normalizePaymentBaseUrl(bblBaseUrl);
 
     try {
       setIsLoading(true);
@@ -184,6 +238,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
 
         list.push(savedService);
         await saveListServiceSetting(list);
+  await setBBLPaymentBaseUrl(normalizedBBLBaseUrl);
         setService?.(uuid);
         await applySelectedService?.(savedService, uuid);
 
@@ -198,13 +253,13 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
           [{ text: 'ตกลง', onPress: () => Navigator.back() }],
           { cancelable: false },
         );
-      } else if (ResponseCode == '607') {
+      } else if (ResponseCode === '607') {
         setErrorMessage('จำนวนสิทธิ์ใช้งานเกิน');
       } else {
         setErrorMessage('Web Service หรือ หน่วยรถ ไม่ถูกต้อง');
       }
     } catch (error) {
-      if (error == '607') {
+      if (error === '607') {
         setErrorMessage('จำนวนสิทธิ์ใช้งานเกิน');
       } else {
         handleErrorMessage(error);
@@ -222,6 +277,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     const config = await getListServiceSetting();
     setErrorMessage('');
     const normalizedWebURL = normalizeWebServiceUrl(webURL);
+    const normalizedBBLBaseUrl = normalizePaymentBaseUrl(bblBaseUrl);
 
     try {
       if (!Array.isArray(config)) {
@@ -286,6 +342,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
               text: 'ใช่',
               onPress: async () => {
                 await saveListServiceSetting(config);
+                await setBBLPaymentBaseUrl(normalizedBBLBaseUrl);
                 setService?.(_webServiceKey);
                 await applySelectedService?.(savedService, _webServiceKey);
                 Navigator.back();
@@ -306,6 +363,10 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     setNumber('');
     setUserCode('');
     setUserPassword('');
+    setBblBaseUrl('');
+    setIsTestingBbl(false);
+    clearBBLMessage();
+    setActiveTab('service');
     setErrorMessage('');
   };
 
@@ -335,6 +396,70 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     setIsShow(oldValue => !oldValue);
   };
 
+  const onChangeBBLBaseUrl = (value: string) => {
+    setBblBaseUrl(value);
+    clearBBLMessage();
+  };
+
+  const onTestBBLConnection = async () => {
+    const normalizedBaseUrl = normalizePaymentBaseUrl(bblBaseUrl);
+
+    if (isEmptyValue(normalizedBaseUrl)) {
+      setBblMessage('กรุณาระบุ Base URL');
+      setBblMessageType('error');
+      return;
+    }
+
+    clearBBLMessage();
+    setIsTestingBbl(true);
+
+    try {
+      const response = await requestBBLPaymentHealthApi(normalizedBaseUrl);
+
+      if (
+        response?.ok === true &&
+        response?.service === 'bbl-qr-payment-service'
+      ) {
+        setBblMessage('เชื่อมต่อ BBL Payment สำเร็จ');
+        setBblMessageType('success');
+      } else {
+        setBblMessage('ไม่พบบริการ BBL Payment ที่รองรับ');
+        setBblMessageType('error');
+      }
+    } catch (error) {
+      setBblMessage(
+        getNetworkErrorMessage(error, 'ทดสอบการเชื่อมต่อ BBL Payment ไม่สำเร็จ'),
+      );
+      setBblMessageType('error');
+    } finally {
+      setIsTestingBbl(false);
+    }
+  };
+
+  const renderTabButton = (tab: SettingsTab, title: string) => {
+    const isActive = activeTab === tab;
+
+    return (
+      <TouchableOpacity
+        key={tab}
+        style={[styles.tabButton, isActive ? styles.tabButtonActive : null]}
+        onPress={() => {
+          setActiveTab(tab);
+        }}
+        activeOpacity={0.8}
+      >
+        <Text
+          style={[
+            styles.tabButtonTitle,
+            isActive ? styles.tabButtonTitleActive : null,
+          ]}
+        >
+          {title}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={styles.screen}>
       <View style={styles.titleSection}>
@@ -353,48 +478,96 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>ข้อมูลเซอร์วิส</Text>
 
-          <View style={styles.fieldBlock}>
-            <Text style={styles.label}>
-              {strings('login_setting.web_servicename')}
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder={strings('login_setting.web_servicename')}
-              placeholderTextColor={MainTheme.placeholerTextInput}
-              value={toInputValue(serviceName)}
-              underlineColorAndroid="transparent"
-              onChangeText={setServiceName}
-            />
+          <View style={styles.tabRow}>
+            {renderTabButton('service', 'ข้อมูลเซอร์วิส')}
+            {renderTabButton('bbl', 'BBL Payment')}
           </View>
 
-          <View style={styles.fieldBlock}>
-            <Text style={styles.label}>
-              {strings('login_setting.web_serviceurl')}
-            </Text>
-            <TextInput
-              multiline
-              style={[styles.input, styles.multilineInput]}
-              value={toInputValue(webURL)}
-              underlineColorAndroid="transparent"
-              placeholder={DEFAULT_SERVICE_URL}
-              placeholderTextColor={MainTheme.placeholerTextInput}
-              onChangeText={setWebURL}
-            />
-          </View>
+          {activeTab === 'service' ? (
+            <>
+              <View style={styles.fieldBlock}>
+                <Text style={styles.label}>
+                  {strings('login_setting.web_servicename')}
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={strings('login_setting.web_servicename')}
+                  placeholderTextColor={MainTheme.placeholerTextInput}
+                  value={toInputValue(serviceName)}
+                  underlineColorAndroid="transparent"
+                  onChangeText={setServiceName}
+                />
+              </View>
 
-          <View style={styles.fieldBlock}>
-            <Text style={styles.label}>
-              {strings('login_setting.van_machine')}
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder={strings('login_setting.van_machine')}
-              placeholderTextColor={MainTheme.placeholerTextInput}
-              value={toInputValue(number)}
-              underlineColorAndroid="transparent"
-              onChangeText={setNumber}
-            />
-          </View>
+              <View style={styles.fieldBlock}>
+                <Text style={styles.label}>
+                  {strings('login_setting.web_serviceurl')}
+                </Text>
+                <TextInput
+                  multiline
+                  style={[styles.input, styles.multilineInput]}
+                  value={toInputValue(webURL)}
+                  underlineColorAndroid="transparent"
+                  placeholder={DEFAULT_SERVICE_URL}
+                  placeholderTextColor={MainTheme.placeholerTextInput}
+                  onChangeText={setWebURL}
+                />
+              </View>
+
+              <View style={styles.fieldBlock}>
+                <Text style={styles.label}>
+                  {strings('login_setting.van_machine')}
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={strings('login_setting.van_machine')}
+                  placeholderTextColor={MainTheme.placeholerTextInput}
+                  value={toInputValue(number)}
+                  underlineColorAndroid="transparent"
+                  onChangeText={setNumber}
+                />
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={styles.helperText}>
+                กำหนด Base URL สำหรับเรียก BBL QR Payment และใช้ปุ่มทดสอบเพื่อตรวจสอบ
+                {` ${'{baseurl}/health'}`}
+              </Text>
+
+              <View style={styles.fieldBlock}>
+                <Text style={styles.label}>Base URL</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="https://example.com"
+                  placeholderTextColor={MainTheme.placeholerTextInput}
+                  value={toInputValue(bblBaseUrl)}
+                  underlineColorAndroid="transparent"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  onChangeText={onChangeBBLBaseUrl}
+                />
+              </View>
+
+              <TouchableOpacity
+                style={styles.testButton}
+                onPress={onTestBBLConnection}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.testButtonTitle}>Test Connection</Text>
+              </TouchableOpacity>
+
+              <View style={styles.bblMessageBox}>
+                {bblMessageType === 'error' ? (
+                  <ITextWithErrorMessage message={bblMessage} />
+                ) : null}
+                {bblMessageType === 'success' && bblMessage ? (
+                  <Text style={styles.successText}>{bblMessage}</Text>
+                ) : null}
+                <ILoading isLoading={isTestingBbl} />
+              </View>
+            </>
+          )}
         </View>
 
         <View style={styles.sectionCard}>
@@ -461,13 +634,8 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
 
         <View style={styles.buttonGroup}>
           <TouchableOpacity
-            style={[
-              styles.primaryButton,
-              { justifyContent: 'center', alignItems: 'center' },
-            ]}
-            onPress={() => {
-              void (mode === 'add' ? onSave() : onEdit());
-            }}
+            style={styles.primaryButton}
+            onPress={mode === 'add' ? onSave : onEdit}
             activeOpacity={0.7}
           >
             <Text style={styles.primaryButtonTitle} numberOfLines={1}>
@@ -477,10 +645,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
 
           {mode === 'add' ? (
             <TouchableOpacity
-              style={[
-                styles.secondaryButton,
-                { justifyContent: 'center', alignItems: 'center' },
-              ]}
+              style={styles.secondaryButton}
               onPress={onReset}
               activeOpacity={0.7}
             >
@@ -490,18 +655,8 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
 
           {mode === 'edit' ? (
             <TouchableOpacity
-              style={[
-                styles.secondaryButton,
-                {
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  paddingVertical: 1,
-                  paddingHorizontal: 16,
-                },
-              ]}
-              onPress={() => {
-                void onDelete();
-              }}
+              style={[styles.secondaryButton, styles.deleteButton]}
+              onPress={onDelete}
               activeOpacity={0.7}
             >
               <Text style={styles.secondaryButtonTitle}>{'ลบ'}</Text>
@@ -509,15 +664,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
           ) : null}
 
           <TouchableOpacity
-            style={[
-              styles.secondaryButton,
-              {
-                justifyContent: 'center',
-                alignItems: 'center',
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-              },
-            ]}
+            style={[styles.secondaryButton, styles.backButton]}
             onPress={onBack}
             activeOpacity={0.7}
           >
@@ -542,6 +689,34 @@ const styles = StyleSheet.create({
   formContent: {
     padding: 14,
     paddingBottom: 28,
+  },
+  tabRow: {
+    flexDirection: 'row',
+    marginBottom: 14,
+    marginHorizontal: -4,
+  },
+  tabButton: {
+    flex: 1,
+    backgroundColor: '#E8F1EB',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    marginHorizontal: 4,
+    borderWidth: 1,
+    borderColor: '#D6E2D9',
+    alignItems: 'center',
+  },
+  tabButtonActive: {
+    backgroundColor: MainTheme.colorPrimary,
+    borderColor: MainTheme.colorPrimary,
+  },
+  tabButtonTitle: {
+    color: MainTheme.colorQuaternary,
+    fontSize: hp('1.7%'),
+    fontWeight: '700',
+  },
+  tabButtonTitleActive: {
+    color: MainTheme.colorSecondary,
   },
   titleSection: {
     paddingLeft: 15,
@@ -615,6 +790,7 @@ const styles = StyleSheet.create({
   },
   helperText: {
     marginTop: 6,
+    marginBottom: 14,
     color: '#708070',
     fontSize: hp('1.5%'),
   },
@@ -647,6 +823,29 @@ const styles = StyleSheet.create({
     minHeight: 30,
     marginBottom: 8,
   },
+  bblMessageBox: {
+    minHeight: 30,
+    marginTop: 12,
+  },
+  successText: {
+    color: '#1B7F47',
+    fontSize: hp('1.55%'),
+  },
+  testButton: {
+    backgroundColor: MainTheme.colorSecondary,
+    borderWidth: 1,
+    borderColor: MainTheme.colorPrimary,
+    borderRadius: 12,
+    minHeight: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  testButtonTitle: {
+    color: MainTheme.colorPrimary,
+    fontSize: hp('1.7%'),
+    fontWeight: '700',
+  },
   buttonGroup: {
     flexDirection: 'row',
     paddingVertical: 5,
@@ -661,6 +860,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     width: 120,
     minHeight: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   primaryButtonTitle: {
     color: MainTheme.colorSecondary,
@@ -675,6 +876,16 @@ const styles = StyleSheet.create({
     borderColor: MainTheme.colorButtonBorder,
     borderRadius: 12,
     minHeight: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteButton: {
+    paddingVertical: 1,
+    paddingHorizontal: 16,
+  },
+  backButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   secondaryButtonTitle: {
     color: MainTheme.colorPrimary,

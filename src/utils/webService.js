@@ -61,6 +61,28 @@ export const normalizeWebServiceUrl = (value) => {
   }
 };
 
+export const normalizePaymentBaseUrl = value => {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  const trimmedValue = String(value).trim();
+  if (!trimmedValue) {
+    return '';
+  }
+
+  const { protocol } = getDefaultParts();
+
+  try {
+    const parsedUrl = new URL(ensureProtocol(trimmedValue, protocol));
+    parsedUrl.pathname = (parsedUrl.pathname || '').replace(/\/+$/, '');
+
+    return parsedUrl.toString().replace(/\/+$/, '');
+  } catch (error) {
+    return trimmedValue.replace(/\/+$/, '');
+  }
+};
+
 export const getWebServiceLabel = (value) => {
   const normalizedUrl = normalizeWebServiceUrl(value);
 
