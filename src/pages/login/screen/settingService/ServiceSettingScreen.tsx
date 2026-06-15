@@ -32,6 +32,9 @@ import {
 
 const AntDesign = require('react-native-vector-icons/AntDesign')
   .default as ComponentType<any>;
+const MaterialCommunityIcons =
+  require('react-native-vector-icons/MaterialCommunityIcons')
+    .default as ComponentType<any>;
 
 const DEFAULT_SERVICE_URL = appConfig.API_ENDPOINT_V3;
 const DEFAULT_VANSALES_SERVICE_URL = '';
@@ -563,8 +566,8 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
                 underlineColorAndroid="transparent"
                 onChangeText={setUserPassword}
               />
-              <AntDesign
-                name={isShow ? 'eyeo' : 'eye'}
+              <MaterialCommunityIcons
+                name={isShow ? 'eye-off-outline' : 'eye-outline'}
                 size={22}
                 onPress={toggleShow}
                 style={styles.trailingIcon}

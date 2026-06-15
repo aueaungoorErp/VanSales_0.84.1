@@ -558,9 +558,9 @@ const Form: React.FC<FormProps> = props => {
               onChangeText={handleChangePassword}
             />
 
-            <AntDesign
-              name={isShow ? 'eyeo' : 'eye'}
-              size={28}
+            <MaterialCommunityIcons
+              name={isShow ? 'eye-off-outline' : 'eye-outline'}
+              size={22}
               color={MainTheme.colorTertiary}
               onPress={() => {
                 setIsShow(old => !old);
