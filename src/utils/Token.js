@@ -127,6 +127,14 @@ export const getBBLPaymentBaseUrl = async () => {
   }
 };
 
+export const setVanSalesWebServiceUrl = async value => {
+  return setBBLPaymentBaseUrl(value);
+};
+
+export const getVanSalesWebServiceUrl = async () => {
+  return getBBLPaymentBaseUrl();
+};
+
 export const setBBLQrPaymentEnabled = async value => {
   try {
     return await storeData('@BBLQrPaymentEnabled', JSON.stringify(!!value));

@@ -1476,13 +1476,13 @@ export const reportMenu = [
     pattern: 'A',
     seachForm: 'A',
   },
-  // {
-  //   title: strings('report.payment_type_summary_report'),
-  //   screen: 'ReportSummary',
-  //   type: 'SalesOrderByPmt',
-  //   pattern: 'A',
-  //   seachForm: 'A',
-  // },
+  {
+    title: strings('report.payment_type_summary_report'),
+    screen: 'ReportBlank',
+    type: 'SalesOrderByPmt',
+    pattern: 'A',
+    seachForm: 'A',
+  },
   {
     title: strings('report.sales_detail_report_by_document'),
     screen: 'ReportSummary',
@@ -1498,34 +1498,34 @@ export const reportMenu = [
     seachForm: 'A',
   },
   //----------------------
-  // {
-  //   title: strings('report.performance_reports_based_on_customer_lines'),
-  //   screen: 'ReportSummary',
-  //   type: 'PerformanceByArlineItem',
-  //   pattern: 'B',
-  //   seachForm: 'A',
-  // },
-  // {
-  //   title: strings('report.performance_report_by_product_category'),
-  //   screen: 'ReportSummary',
-  //   type: 'PeformanceByProductCategory',
-  //   pattern: 'B',
-  //   seachForm: 'A',
-  // },
-  // {
-  //   title: strings('report.sales_performance_report_by_saleman'),
-  //   screen: 'ReportSummary',
-  //   type: 'SalesOrderBySaleman',
-  //   pattern: 'C',
-  //   seachForm: 'B',
-  // },
-  // {
-  //   title: strings('report.stock_report_from_warehouse'),
-  //   screen: 'ReportSummary',
-  //   type: 'StockBalanceByWL',
-  //   pattern: 'D',
-  //   seachForm: 'B',
-  // },
+  {
+    title: strings('report.performance_reports_based_on_customer_lines'),
+    screen: 'ReportBlank',
+    type: 'PerformanceByArlineItem',
+    pattern: 'B',
+    seachForm: 'A',
+  },
+  {
+    title: strings('report.performance_report_by_product_category'),
+    screen: 'ReportBlank',
+    type: 'PeformanceByProductCategory',
+    pattern: 'B',
+    seachForm: 'A',
+  },
+  {
+    title: strings('report.sales_performance_report_by_saleman'),
+    screen: 'ReportBlank',
+    type: 'SalesOrderBySaleman',
+    pattern: 'C',
+    seachForm: 'B',
+  },
+  {
+    title: strings('report.stock_report_from_warehouse'),
+    screen: 'ReportBlank',
+    type: 'StockBalanceByWL',
+    pattern: 'D',
+    seachForm: 'B',
+  },
 ];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

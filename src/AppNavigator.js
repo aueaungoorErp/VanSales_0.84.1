@@ -297,6 +297,11 @@ function HomeNavigator() {
         initialParams={{ title: 'รายงานต่างๆ' }}
       />
       <HomeStack.Screen
+        name="ReportBlank"
+        component={require('./pages/report/screen/BlankReport').default}
+        initialParams={{ title: 'รายงานต่างๆ' }}
+      />
+      <HomeStack.Screen
         name="ReportSales"
         component={require('./pages/report-sales/screen/Index').default}
         initialParams={{ title: 'แสดงยอดขาย' }}

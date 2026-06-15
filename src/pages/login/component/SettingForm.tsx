@@ -23,10 +23,10 @@ import { MainTheme } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';
 import Navigator from '../../../services/Navigator';
 import {
-  getBBLPaymentBaseUrl,
   getListServiceSetting,
   getSettingConfig,
   getUserToken,
+  getVanSalesWebServiceUrl,
   removeSettingConfig,
   setLoginInfo,
   setSettingConfig,
@@ -133,7 +133,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [service, setService] = useState<string | null>(null);
   const [listServiceSettings, setList] = useState<ServiceSetting[]>([]);
-  const [bblPaymentBaseUrl, setBblPaymentBaseUrl] = useState('');
+  const [vanSalesWebServiceUrl, setVanSalesWebServiceUrl] = useState('');
 
   const {
     baseUrl,
@@ -225,9 +225,9 @@ const SettingForm: React.FC<SettingFormProps> = props => {
     let isMounted = true;
 
     const loadServices = async () => {
-      const [configList, storedBblPaymentBaseUrl] = await Promise.all([
+      const [configList, storedVanSalesWebServiceUrl] = await Promise.all([
         getListServiceSetting(),
-        getBBLPaymentBaseUrl(),
+        getVanSalesWebServiceUrl(),
       ]);
       const nextList = Array.isArray(configList)
         ? normalizeServices(configList)
@@ -238,7 +238,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
       }
 
       setList(nextList);
-      setBblPaymentBaseUrl(toInputValue(storedBblPaymentBaseUrl));
+      setVanSalesWebServiceUrl(toInputValue(storedVanSalesWebServiceUrl));
 
       const matchedService = nextList.find(item => {
         return item.webURL === baseUrl && item.number === vanCNFMachine;
@@ -527,9 +527,11 @@ const SettingForm: React.FC<SettingFormProps> = props => {
         </View>
 
         <View style={styles.fieldBlock}>
-          <Text style={styles.label}>BBL Payment URL</Text>
+          <Text style={styles.label}>ที่อยู่เว็บเซอร์วิส VanSales</Text>
           <View style={styles.inputContainer}>
-            <Text style={styles.input}>{toInputValue(bblPaymentBaseUrl) || '-'}</Text>
+            <Text style={styles.input}>
+              {toInputValue(vanSalesWebServiceUrl) || '-'}
+            </Text>
           </View>
         </View>
       </View>

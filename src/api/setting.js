@@ -61,7 +61,13 @@ export const unRegisterApi = async () => {
   });
 };
 
-export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
+export const systemCheckApi2 = async (
+  baseUrl,
+  queryString,
+  user,
+  pass,
+  options = {},
+) => {
   const uniqueId = await getDeviceUniqeId();
   const normalizedBaseUrl = normalizeWebServiceUrl(baseUrl);
   return new Promise(async (resolve, reject) => {
@@ -236,7 +242,7 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
         errret,
         normalizedBaseUrl,
       });
-      reject(await return_Errmessage(errret, normalizedBaseUrl));
+      reject(await return_Errmessage(errret, normalizedBaseUrl, options));
     }
   });
 };
@@ -244,6 +250,7 @@ export const systemCheckApi2 = async (baseUrl, queryString, user, pass) => {
 export const return_Errmessage = async (
   reecode,
   attemptedBaseUrl = appConfig.API_ENDPOINT_V3,
+  options = {},
 ) => {
   return new Promise(function (resolve, reject) {
     setTimeout(function () {
@@ -264,20 +271,22 @@ export const return_Errmessage = async (
             ' ' +
             strings('login_setting.UnableConnec2');
 
-          Alert.alert(
-            'พบข้อผิดพลาด',
-            errmessage,
-            [
+          if (!options?.suppressAlert) {
+            Alert.alert(
+              'พบข้อผิดพลาด',
+              errmessage,
+              [
+                {
+                  text: 'ตกลง',
+                  onPress: () => null,
+                },
+              ],
               {
-                text: 'ตกลง',
-                onPress: () => null,
+                cancelable: false,
               },
-            ],
-            {
-              cancelable: false,
-            },
-          );
-          errmessage = '';
+            );
+            errmessage = '';
+          }
           break;
         case '609':
           errmessage = strings('error_ser.' + normalizedCode);

@@ -1,9 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { ComponentType, Dispatch, SetStateAction } from 'react';
 import {
-  Animated,
   Alert,
-  Easing,
   Image,
   ScrollView,
   StyleSheet,
@@ -12,9 +10,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import axios from 'axios';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import * as appConfig from '../../../../../appConfig';
-import { requestBBLPaymentHealthApi } from '../../../../api/qrcode-payment';
 import { systemCheckApi2 } from '../../../../api/setting';
 import ILoading from '../../../../component/loading/ILoading';
 import ITextWithErrorMessage from '../../../../component/text/ITextWithErrorMessage';
@@ -22,10 +20,10 @@ import { MainTheme } from '../../../../constant/lov';
 import { strings } from '../../../../locales/i18n';
 import Navigator from '../../../../services/Navigator';
 import {
-  getBBLPaymentBaseUrl,
   getListServiceSetting,
+  getVanSalesWebServiceUrl,
   saveListServiceSetting,
-  setBBLPaymentBaseUrl,
+  setVanSalesWebServiceUrl,
 } from '../../../../utils/Token';
 import {
   normalizePaymentBaseUrl,
@@ -36,6 +34,7 @@ const AntDesign = require('react-native-vector-icons/AntDesign')
   .default as ComponentType<any>;
 
 const DEFAULT_SERVICE_URL = appConfig.API_ENDPOINT_V3;
+const DEFAULT_VANSALES_SERVICE_URL = '';
 
 const createLocalId = () =>
   `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -61,9 +60,6 @@ type ServiceSettingItem = {
   USER_CODE?: string | null;
   USER_PASSWORD?: string | null;
 };
-
-type SettingsTab = 'service' | 'bbl';
-type BBLMessageType = 'success' | 'error' | null;
 
 type ApplySelectedService = (
   selectedService: ServiceSettingItem | null | undefined,
@@ -112,33 +108,24 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
   const [isLoading, setIsLoading] = useState(false);
   const [number, setNumber] = useState(_number || '');
   const [isShow, setIsShow] = useState(true);
-  const [activeTab, setActiveTab] = useState<SettingsTab>('service');
-  const [bblBaseUrl, setBblBaseUrl] = useState('');
-  const [bblMessage, setBblMessage] = useState<string | null>(null);
-  const [bblMessageType, setBblMessageType] =
-    useState<BBLMessageType>(null);
-  const [isTestingBbl, setIsTestingBbl] = useState(false);
-  const [tabHeights, setTabHeights] = useState<Record<SettingsTab, number>>({
-    service: 0,
-    bbl: 0,
-  });
-  const tabContentHeight = useRef(new Animated.Value(0)).current;
-  const hasInitialTabHeight = useRef(false);
-  const isWaitingForTabMeasurement = useRef(false);
-  const activeTabHeight = tabHeights[activeTab];
+  const [vanSalesServiceUrl, setVanSalesServiceUrl] = useState(
+    DEFAULT_VANSALES_SERVICE_URL,
+  );
+  const [databaseUrlError, setDatabaseUrlError] = useState(false);
+  const [vanSalesUrlError, setVanSalesUrlError] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
 
-    const loadBblBaseUrl = async () => {
-      const storedBaseUrl = await getBBLPaymentBaseUrl();
+    const loadVanSalesWebServiceUrl = async () => {
+      const storedBaseUrl = await getVanSalesWebServiceUrl();
 
       if (isMounted) {
-        setBblBaseUrl(toInputValue(storedBaseUrl));
+        setVanSalesServiceUrl(toInputValue(storedBaseUrl));
       }
     };
 
-    loadBblBaseUrl();
+    loadVanSalesWebServiceUrl();
 
     return () => {
       isMounted = false;
@@ -164,92 +151,78 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     setErrorMessage(typeof error === 'string' ? error : String(error));
   };
 
-  const clearBBLMessage = () => {
-    setBblMessage(null);
-    setBblMessageType(null);
-  };
-
-  const animateTabHeight = (nextHeight: number) => {
-    Animated.timing(tabContentHeight, {
-      toValue: nextHeight,
-      duration: 350,
-      easing: Easing.inOut(Easing.cubic),
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const changeTab = (nextTab: SettingsTab) => {
-    if (activeTab === nextTab) {
+  const showConnectionResultModal = (
+    databaseConnected: boolean,
+    vanSalesConnected: boolean,
+    onSuccess?: () => void,
+  ) => {
+    if (databaseConnected && vanSalesConnected) {
+      Alert.alert(
+        'สำเร็จ',
+        'เชื่อมต่อฐานข้อมูลสำเร็จ',
+        [{ text: 'ตกลง', onPress: onSuccess }],
+        { cancelable: false },
+      );
       return;
     }
 
-    const nextHeight = tabHeights[nextTab];
-    isWaitingForTabMeasurement.current = nextHeight <= 0;
-    setActiveTab(nextTab);
-
-    if (nextHeight > 0) {
-      animateTabHeight(nextHeight);
+    if (!databaseConnected && !vanSalesConnected) {
+      Alert.alert('ไม่สำเร็จ', 'ไม่สามารถเชื่อมต่อได้');
+      return;
     }
+
+    Alert.alert(
+      'ไม่สำเร็จ',
+      databaseConnected
+        ? 'ที่อยู่เว็บเซอร์วิส VanSales เชื่อมต่อไม่สำเร็จ'
+        : 'ที่อยู่ฐานข้อมูล เชื่อมต่อไม่สำเร็จ',
+    );
   };
 
-  const handleTabContentLayout = (tab: SettingsTab, nextHeight: number) => {
-    const normalizedHeight = Math.ceil(nextHeight);
+  const testDatabaseConnection = async (normalizedWebURL: string) => {
+    const response = await systemCheckApi2(
+      normalizedWebURL,
+      number,
+      userCode,
+      userPassword,
+      { suppressAlert: true },
+    );
+    const { ResponseData, ResponseCode } = response;
+    const responseData =
+      ResponseData !== '' ? JSON.parse(ResponseData) : ResponseData;
 
-    setTabHeights(currentHeights => {
-      if (currentHeights[tab] === normalizedHeight) {
-        return currentHeights;
-      }
+    return {
+      isConnected: Boolean(responseData && responseData.RECORD_COUNT !== 0),
+      responseCode: ResponseCode,
+    };
+  };
 
-      return {
-        ...currentHeights,
-        [tab]: normalizedHeight,
-      };
+  const testVanSalesWebServiceConnection = async (normalizedUrl: string) => {
+    if (isEmptyValue(normalizedUrl)) {
+      throw new Error('กรุณาระบุที่อยู่เว็บเซอร์วิส VanSales');
+    }
+
+    await axios.get(`${normalizedUrl}/health`, {
+      timeout: appConfig.REQUEST_TIMEOUT_MS,
+      headers: { 'Content-Type': 'application/json' },
     });
-
-    if (activeTab !== tab) {
-      return;
-    }
-
-    if (!hasInitialTabHeight.current) {
-      hasInitialTabHeight.current = true;
-      tabContentHeight.setValue(normalizedHeight);
-      return;
-    }
-
-    if (isWaitingForTabMeasurement.current) {
-      isWaitingForTabMeasurement.current = false;
-      animateTabHeight(normalizedHeight);
-      return;
-    }
-
-    if (tabHeights[tab] !== normalizedHeight) {
-      animateTabHeight(normalizedHeight);
-    }
-  };
-
-  const getNetworkErrorMessage = (
-    error: any,
-    fallbackMessage: string,
-  ): string => {
-    if (typeof error?.response?.data?.message === 'string') {
-      return error.response.data.message;
-    }
-
-    if (typeof error?.message === 'string' && error.message.trim() !== '') {
-      return error.message;
-    }
-
-    return fallbackMessage;
   };
 
   const validateItem = () => {
     let validate = true;
+    setDatabaseUrlError(false);
+    setVanSalesUrlError(false);
 
     if (isEmptyValue(serviceName)) {
       setErrorMessage('กรุณาระบุ' + strings('login_setting.web_servicename'));
       validate = false;
     } else if (isEmptyValue(webURL)) {
       setErrorMessage('กรุณาระบุ' + strings('login_setting.web_serviceurl'));
+      setDatabaseUrlError(true);
+      validate = false;
+    } else if (isEmptyValue(vanSalesServiceUrl)) {
+      setErrorMessage('กรุณาระบุที่อยู่เว็บเซอร์วิส VanSales');
+      setVanSalesUrlError(true);
       validate = false;
     } else if (isEmptyValue(number)) {
       setErrorMessage('กรุณาระบุ' + strings('login_setting.van_machine'));
@@ -274,21 +247,24 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     setErrorMessage('');
     const list: ServiceSettingItem[] = [];
     const normalizedWebURL = normalizeWebServiceUrl(webURL);
-    const normalizedBBLBaseUrl = normalizePaymentBaseUrl(bblBaseUrl);
+    const normalizedVanSalesServiceUrl =
+      normalizePaymentBaseUrl(vanSalesServiceUrl);
 
     try {
       setIsLoading(true);
-      const response = await systemCheckApi2(
-        normalizedWebURL,
-        number,
-        userCode,
-        userPassword,
-      );
-      const { ResponseData, ResponseCode } = response;
-      const responseData =
-        ResponseData !== '' ? JSON.parse(ResponseData) : ResponseData;
+      const [databaseResult, vanSalesResult] = await Promise.allSettled([
+        testDatabaseConnection(normalizedWebURL),
+        testVanSalesWebServiceConnection(normalizedVanSalesServiceUrl),
+      ]);
+      const databaseConnected =
+        databaseResult.status === 'fulfilled' &&
+        databaseResult.value.isConnected;
+      const vanSalesConnected = vanSalesResult.status === 'fulfilled';
 
-      if (responseData && responseData.RECORD_COUNT !== 0) {
+      setDatabaseUrlError(!databaseConnected);
+      setVanSalesUrlError(!vanSalesConnected);
+
+      if (databaseConnected && vanSalesConnected) {
         if (Array.isArray(config) && config.length >= 0) {
           list.push(...config);
         }
@@ -306,25 +282,18 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
 
         list.push(savedService);
         await saveListServiceSetting(list);
-  await setBBLPaymentBaseUrl(normalizedBBLBaseUrl);
+        await setVanSalesWebServiceUrl(normalizedVanSalesServiceUrl);
         setService?.(uuid);
         await applySelectedService?.(savedService, uuid);
 
-        Alert.alert(
-          'สำเร็จ',
-          strings('login_setting.connect') +
-            strings('login_setting.web_service') +
-            ' ' +
-            serviceName +
-            ' ' +
-            strings('login_setting.success'),
-          [{ text: 'ตกลง', onPress: () => Navigator.back() }],
-          { cancelable: false },
-        );
-      } else if (ResponseCode === '607') {
+        showConnectionResultModal(true, true, () => Navigator.back());
+      } else if (
+        databaseResult.status === 'fulfilled' &&
+        databaseResult.value.responseCode === '607'
+      ) {
         setErrorMessage('จำนวนสิทธิ์ใช้งานเกิน');
       } else {
-        setErrorMessage('Web Service หรือ หน่วยรถ ไม่ถูกต้อง');
+        showConnectionResultModal(databaseConnected, vanSalesConnected);
       }
     } catch (error) {
       if (error === '607') {
@@ -345,49 +314,47 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     const config = await getListServiceSetting();
     setErrorMessage('');
     const normalizedWebURL = normalizeWebServiceUrl(webURL);
-    const normalizedBBLBaseUrl = normalizePaymentBaseUrl(bblBaseUrl);
+    const normalizedVanSalesServiceUrl =
+      normalizePaymentBaseUrl(vanSalesServiceUrl);
 
     try {
+      setIsLoading(true);
       if (!Array.isArray(config)) {
         setErrorMessage('ไม่พบรายการเว็บเซอร์วิส');
+        setIsLoading(false);
         return;
       }
 
       const objIndex = config.findIndex(obj => obj.value === _webServiceKey);
       if (objIndex < 0) {
         setErrorMessage('ไม่พบรายการเว็บเซอร์วิส');
+        setIsLoading(false);
         return;
       }
 
-      if (normalizeWebServiceUrl(_webURL) !== normalizedWebURL) {
+      if (_serviceName !== serviceName) {
         const confirmed = await showConfirm(
-          'มีข้อมูลนี้ในระบบ',
-          strings('announce.Alert2') + strings('login_setting.web_serviceurl'),
-        );
-        if (!confirmed) {
-          return;
-        }
-      } else if (_serviceName !== serviceName) {
-        const confirmed = await showConfirm(
-          'มีข้อมูลนี้ในระบบ',
-          strings('announce.Alert2') + strings('login_setting.web_servicename'),
+          'แจ้งเตือน',
+          'ต้องการแก้ไขชื่อเว็บเซอร์วิสหรือไม่',
         );
         if (!confirmed) {
           return;
         }
       }
 
-      const response = await systemCheckApi2(
-        normalizedWebURL,
-        number,
-        userCode,
-        userPassword,
-      );
-      const { ResponseData } = response;
-      const responseData =
-        ResponseData !== '' ? JSON.parse(ResponseData) : ResponseData;
+      const [databaseResult, vanSalesResult] = await Promise.allSettled([
+        testDatabaseConnection(normalizedWebURL),
+        testVanSalesWebServiceConnection(normalizedVanSalesServiceUrl),
+      ]);
+      const databaseConnected =
+        databaseResult.status === 'fulfilled' &&
+        databaseResult.value.isConnected;
+      const vanSalesConnected = vanSalesResult.status === 'fulfilled';
 
-      if (responseData && responseData.RECORD_COUNT !== 0) {
+      setDatabaseUrlError(!databaseConnected);
+      setVanSalesUrlError(!vanSalesConnected);
+
+      if (databaseConnected && vanSalesConnected) {
         config[objIndex].webURL = normalizedWebURL;
         config[objIndex].label = serviceName;
         config[objIndex].serviceName = serviceName;
@@ -397,31 +364,23 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
 
         const savedService: ServiceSettingItem = { ...config[objIndex] };
 
-        Alert.alert(
-          'สำเร็จ',
-          strings('login_setting.connect') +
-            strings('login_setting.web_service') +
-            ' ' +
-            serviceName +
-            ' ' +
-            strings('login_setting.success'),
-          [
-            {
-              text: 'ใช่',
-              onPress: async () => {
-                await saveListServiceSetting(config);
-                await setBBLPaymentBaseUrl(normalizedBBLBaseUrl);
-                setService?.(_webServiceKey);
-                await applySelectedService?.(savedService, _webServiceKey);
-                Navigator.back();
-              },
-            },
-          ],
-          { cancelable: true },
-        );
+        await saveListServiceSetting(config);
+        await setVanSalesWebServiceUrl(normalizedVanSalesServiceUrl);
+        setService?.(_webServiceKey);
+        await applySelectedService?.(savedService, _webServiceKey);
+        showConnectionResultModal(true, true, () => Navigator.back());
+      } else if (
+        databaseResult.status === 'fulfilled' &&
+        databaseResult.value.responseCode === '607'
+      ) {
+        setErrorMessage('จำนวนสิทธิ์ใช้งานเกิน');
+      } else {
+        showConnectionResultModal(databaseConnected, vanSalesConnected);
       }
     } catch (error) {
       handleErrorMessage(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -431,10 +390,9 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     setNumber('');
     setUserCode('');
     setUserPassword('');
-    setBblBaseUrl('');
-    setIsTestingBbl(false);
-    clearBBLMessage();
-    changeTab('service');
+    setVanSalesServiceUrl(DEFAULT_VANSALES_SERVICE_URL);
+    setDatabaseUrlError(false);
+    setVanSalesUrlError(false);
     setErrorMessage('');
   };
 
@@ -464,68 +422,14 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     setIsShow(oldValue => !oldValue);
   };
 
-  const onChangeBBLBaseUrl = (value: string) => {
-    setBblBaseUrl(value);
-    clearBBLMessage();
+  const onChangeWebURL = (value: string) => {
+    setWebURL(value);
+    setDatabaseUrlError(false);
   };
 
-  const onTestBBLConnection = async () => {
-    const normalizedBaseUrl = normalizePaymentBaseUrl(bblBaseUrl);
-
-    if (isEmptyValue(normalizedBaseUrl)) {
-      setBblMessage('กรุณาระบุ Base URL');
-      setBblMessageType('error');
-      return;
-    }
-
-    clearBBLMessage();
-    setIsTestingBbl(true);
-
-    try {
-      const response = await requestBBLPaymentHealthApi(normalizedBaseUrl);
-
-      if (
-        response?.ok === true &&
-        response?.service === 'bbl-qr-payment-service'
-      ) {
-        setBblMessage('เชื่อมต่อ BBL Payment สำเร็จ');
-        setBblMessageType('success');
-      } else {
-        setBblMessage('ไม่พบบริการ BBL Payment ที่รองรับ');
-        setBblMessageType('error');
-      }
-    } catch (error) {
-      setBblMessage(
-        getNetworkErrorMessage(error, 'ทดสอบการเชื่อมต่อ BBL Payment ไม่สำเร็จ'),
-      );
-      setBblMessageType('error');
-    } finally {
-      setIsTestingBbl(false);
-    }
-  };
-
-  const renderTabButton = (tab: SettingsTab, title: string) => {
-    const isActive = activeTab === tab;
-
-    return (
-      <TouchableOpacity
-        key={tab}
-        style={[styles.tabButton, isActive ? styles.tabButtonActive : null]}
-        onPress={() => {
-          changeTab(tab);
-        }}
-        activeOpacity={0.8}
-      >
-        <Text
-          style={[
-            styles.tabButtonTitle,
-            isActive ? styles.tabButtonTitleActive : null,
-          ]}
-        >
-          {title}
-        </Text>
-      </TouchableOpacity>
-    );
+  const onChangeVanSalesServiceUrl = (value: string) => {
+    setVanSalesServiceUrl(value);
+    setVanSalesUrlError(false);
   };
 
   return (
@@ -541,117 +445,75 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
       <ScrollView
         style={styles.form}
         contentContainerStyle={styles.formContent}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.sectionCard}>
-          <View style={styles.tabRow}>
-            {renderTabButton('service', 'ข้อมูลเซอร์วิส')}
-            {renderTabButton('bbl', 'BBL Payment')}
+          <Text style={styles.sectionTitle}>ข้อมูลเซอร์วิส</Text>
+
+          <View style={styles.fieldBlock}>
+            <Text style={styles.label}>
+              {strings('login_setting.web_servicename')}
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder={strings('login_setting.web_servicename')}
+              placeholderTextColor={MainTheme.placeholerTextInput}
+              value={toInputValue(serviceName)}
+              underlineColorAndroid="transparent"
+              onChangeText={setServiceName}
+            />
           </View>
 
-          <Animated.View
-            style={[
-              styles.tabContentFrame,
-              activeTabHeight > 0 ? { height: tabContentHeight } : null,
-            ]}
-          >
-            {activeTab === 'service' ? (
-              <View
-                onLayout={event => {
-                  handleTabContentLayout(
-                    'service',
-                    event.nativeEvent.layout.height,
-                  );
-                }}
-              >
-                <View style={styles.fieldBlock}>
-                  <Text style={styles.label}>
-                    {strings('login_setting.web_servicename')}
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={strings('login_setting.web_servicename')}
-                    placeholderTextColor={MainTheme.placeholerTextInput}
-                    value={toInputValue(serviceName)}
-                    underlineColorAndroid="transparent"
-                    onChangeText={setServiceName}
-                  />
-                </View>
+          <View style={styles.fieldBlock}>
+            <Text style={styles.label}>
+              {strings('login_setting.web_serviceurl')}
+            </Text>
+            <TextInput
+              multiline
+              style={[
+                styles.input,
+                styles.multilineInput,
+                databaseUrlError ? styles.inputError : null,
+              ]}
+              value={toInputValue(webURL)}
+              underlineColorAndroid="transparent"
+              placeholder={DEFAULT_SERVICE_URL}
+              placeholderTextColor={MainTheme.placeholerTextInput}
+              onChangeText={onChangeWebURL}
+            />
+          </View>
 
-                <View style={styles.fieldBlock}>
-                  <Text style={styles.label}>
-                    {strings('login_setting.web_serviceurl')}
-                  </Text>
-                  <TextInput
-                    multiline
-                    style={[styles.input, styles.multilineInput]}
-                    value={toInputValue(webURL)}
-                    underlineColorAndroid="transparent"
-                    placeholder={DEFAULT_SERVICE_URL}
-                    placeholderTextColor={MainTheme.placeholerTextInput}
-                    onChangeText={setWebURL}
-                  />
-                </View>
+          <View style={styles.fieldBlock}>
+            <Text style={styles.label}>ที่อยู่เว็บเซอร์วิส VanSales</Text>
+            <TextInput
+              style={[
+                styles.input,
+                vanSalesUrlError ? styles.inputError : null,
+              ]}
+              placeholder="https://example.com"
+              placeholderTextColor={MainTheme.placeholerTextInput}
+              value={toInputValue(vanSalesServiceUrl)}
+              underlineColorAndroid="transparent"
+              autoCapitalize="none"
+              autoCorrect={false}
+              onChangeText={onChangeVanSalesServiceUrl}
+            />
+          </View>
 
-                <View style={styles.fieldBlock}>
-                  <Text style={styles.label}>
-                    {strings('login_setting.van_machine')}
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={strings('login_setting.van_machine')}
-                    placeholderTextColor={MainTheme.placeholerTextInput}
-                    value={toInputValue(number)}
-                    underlineColorAndroid="transparent"
-                    onChangeText={setNumber}
-                  />
-                </View>
-              </View>
-            ) : (
-              <View
-                onLayout={event => {
-                  handleTabContentLayout('bbl', event.nativeEvent.layout.height);
-                }}
-              >
-                <Text style={styles.helperText}>
-                  กำหนด Base URL สำหรับเรียก BBL QR Payment และใช้ปุ่มทดสอบเพื่อตรวจสอบ
-                  {` ${'{baseurl}/health'}`}
-                </Text>
-
-                <View style={styles.fieldBlock}>
-                  <Text style={styles.label}>Base URL</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="https://example.com"
-                    placeholderTextColor={MainTheme.placeholerTextInput}
-                    value={toInputValue(bblBaseUrl)}
-                    underlineColorAndroid="transparent"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    onChangeText={onChangeBBLBaseUrl}
-                  />
-                </View>
-
-                <TouchableOpacity
-                  style={styles.testButton}
-                  onPress={onTestBBLConnection}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.testButtonTitle}>Test Connection</Text>
-                </TouchableOpacity>
-
-                <View style={styles.bblMessageBox}>
-                  {bblMessageType === 'error' ? (
-                    <ITextWithErrorMessage message={bblMessage} />
-                  ) : null}
-                  {bblMessageType === 'success' && bblMessage ? (
-                    <Text style={styles.successText}>{bblMessage}</Text>
-                  ) : null}
-                  <ILoading isLoading={isTestingBbl} />
-                </View>
-              </View>
-            )}
-          </Animated.View>
+          <View style={styles.fieldBlock}>
+            <Text style={styles.label}>
+              {strings('login_setting.van_machine')}
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder={strings('login_setting.van_machine')}
+              placeholderTextColor={MainTheme.placeholerTextInput}
+              value={toInputValue(number)}
+              underlineColorAndroid="transparent"
+              onChangeText={setNumber}
+            />
+          </View>
         </View>
 
         <View style={styles.sectionCard}>
@@ -718,8 +580,9 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
 
         <View style={styles.buttonGroup}>
           <TouchableOpacity
-            style={styles.primaryButton}
+            style={[styles.primaryButton, isLoading ? styles.disabledButton : null]}
             onPress={mode === 'add' ? onSave : onEdit}
+            disabled={isLoading}
             activeOpacity={0.7}
           >
             <Text style={styles.primaryButtonTitle} numberOfLines={1}>
@@ -729,8 +592,9 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
 
           {mode === 'add' ? (
             <TouchableOpacity
-              style={styles.secondaryButton}
+              style={[styles.secondaryButton, isLoading ? styles.disabledButton : null]}
               onPress={onReset}
+              disabled={isLoading}
               activeOpacity={0.7}
             >
               <Text style={styles.secondaryButtonTitle}>{'ล้าง'}</Text>
@@ -739,8 +603,13 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
 
           {mode === 'edit' ? (
             <TouchableOpacity
-              style={[styles.secondaryButton, styles.deleteButton]}
+              style={[
+                styles.secondaryButton,
+                styles.deleteButton,
+                isLoading ? styles.disabledButton : null,
+              ]}
               onPress={onDelete}
+              disabled={isLoading}
               activeOpacity={0.7}
             >
               <Text style={styles.secondaryButtonTitle}>{'ลบ'}</Text>
@@ -748,8 +617,13 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
           ) : null}
 
           <TouchableOpacity
-            style={[styles.secondaryButton, styles.backButton]}
+            style={[
+              styles.secondaryButton,
+              styles.backButton,
+              isLoading ? styles.disabledButton : null,
+            ]}
             onPress={onBack}
+            disabled={isLoading}
             activeOpacity={0.7}
           >
             <Text style={styles.secondaryButtonTitle}>{'ย้อนกลับ'}</Text>
@@ -773,41 +647,6 @@ const styles = StyleSheet.create({
   formContent: {
     padding: 14,
     paddingBottom: 28,
-  },
-  tabRow: {
-    flexDirection: 'row',
-    marginBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#D6E2D9',
-    paddingHorizontal: 2,
-  },
-  tabButton: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
-    paddingVertical: 11,
-    paddingHorizontal: 10,
-    marginBottom: -1,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-    alignItems: 'center',
-  },
-  tabButtonActive: {
-    backgroundColor: '#F9FCFA',
-    borderColor: '#D6E2D9',
-    borderBottomColor: MainTheme.colorSecondary,
-  },
-  tabButtonTitle: {
-    color: '#7E9184',
-    fontSize: hp('1.7%'),
-    fontWeight: '600',
-  },
-  tabButtonTitleActive: {
-    color: MainTheme.colorPrimary,
-    fontWeight: '700',
   },
   titleSection: {
     paddingLeft: 15,
@@ -850,9 +689,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8E4',
   },
-  tabContentFrame: {
-    overflow: 'hidden',
-  },
   sectionTitle: {
     color: MainTheme.colorQuaternary,
     fontSize: hp('2%'),
@@ -878,15 +714,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#D6E2D9',
   },
-  multilineInput: {
-    minHeight: 96,
-    textAlignVertical: 'top',
+  inputError: {
+    borderColor: MainTheme.colorDanger,
+    borderWidth: 1.5,
+    backgroundColor: '#FFF7F7',
   },
-  helperText: {
-    marginTop: 6,
-    marginBottom: 14,
-    color: '#708070',
-    fontSize: hp('1.5%'),
+  multilineInput: {
+    minHeight: 54,
+    textAlignVertical: 'top',
   },
   iconInputRow: {
     flexDirection: 'row',
@@ -916,29 +751,6 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     minHeight: 30,
     marginBottom: 8,
-  },
-  bblMessageBox: {
-    minHeight: 30,
-    marginTop: 12,
-  },
-  successText: {
-    color: '#1B7F47',
-    fontSize: hp('1.55%'),
-  },
-  testButton: {
-    backgroundColor: MainTheme.colorSecondary,
-    borderWidth: 1,
-    borderColor: MainTheme.colorPrimary,
-    borderRadius: 12,
-    minHeight: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  testButtonTitle: {
-    color: MainTheme.colorPrimary,
-    fontSize: hp('1.7%'),
-    fontWeight: '700',
   },
   buttonGroup: {
     flexDirection: 'row',
@@ -972,6 +784,9 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  disabledButton: {
+    opacity: 0.55,
   },
   deleteButton: {
     paddingVertical: 1,
