@@ -6,7 +6,6 @@ import React, {
   useState,
 } from 'react';
 import {
-  ActivityIndicator,
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -21,6 +20,7 @@ import { connect } from 'react-redux';
 import { ProgressDialog } from 'react-native-simple-dialogs';
 import SnackBar from 'react-native-snackbar-component';
 import { getCurrentPosition } from '../../../action/geolocation';
+import { setLastPosition } from '../../../action/longdomap';
 import {
   clearCustomerList,
   searchCustomerList,
@@ -32,9 +32,15 @@ import ErrorMessage from '../../../component/announce/ErrorMessage';
 import { ListItem } from '../../../component/elements';
 import { mainDivider, MainTheme } from '../../../constant/lov';
 import {
+  clearCustomerRouteDistanceCache,
   formatDistanceLabel,
-  getDistanceFromCurrentLocation,
+  getCustomerRouteDistanceCache,
+  getDistanceBetweenCoordinates,
+  getDistancesFromCurrentLocation,
   hasCompleteCoordinate,
+  isWithinDistanceThreshold,
+  mergeCustomerRouteDistanceCache,
+  parseCoordinate,
 } from '../../../services/longdomap';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
@@ -53,6 +59,12 @@ type GeolocationState = {
 
 type CustomerRouteListStateProps = CustomerListStateProps & {
   geolocation: GeolocationState;
+  longdomap: {
+    lastPosition: {
+      latitude: number | null;
+      longitude: number | null;
+    };
+  };
 };
 
 type CustomerRouteItem = CustomerItem & {
@@ -67,6 +79,10 @@ type CustomerRouteListDispatchProps = {
   setCustomerType: (value: CustomerItem) => void;
   searchCustomerNextDestination: () => void;
   getCurrentPosition: () => Promise<any>;
+  setLastPosition: (position: {
+    latitude: number | null;
+    longitude: number | null;
+  }) => void;
 };
 
 type CustomerRouteListProps = CustomerRouteListStateProps &
@@ -80,8 +96,10 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
   clearCustomerList,
   geolocation,
   getCurrentPosition,
+  longdomap,
   searchCustomerList,
   searchCustomerNextDestination,
+  setLastPosition,
   setCustomerType,
   setError,
 }) => {
@@ -180,42 +198,146 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
         longitude: geolocation.position.longitude,
       };
       const canCompareDistance = hasCompleteCoordinate(currentLocation);
+      const currentNumericPosition = {
+        latitude: parseCoordinate(currentLocation.latitude),
+        longitude: parseCoordinate(currentLocation.longitude),
+      };
+      const customerLocations = customer.listItems.map(item => ({
+        latitude: (item as any).ADDB_GPS_LAT_S ?? null,
+        longitude: (item as any).ADDB_GPS_LONG_S ?? null,
+      }));
+      const hasLastPosition = hasCompleteCoordinate(longdomap.lastPosition);
+      const distanceFromLastPosition = hasLastPosition
+        ? getDistanceBetweenCoordinates(currentLocation, longdomap.lastPosition)
+        : null;
+      const shouldReuseCachedDistances =
+        canCompareDistance &&
+        hasLastPosition &&
+        isWithinDistanceThreshold(currentLocation, longdomap.lastPosition, 15);
+      const shouldClearDistanceCache =
+        canCompareDistance && !shouldReuseCachedDistances;
+      if (shouldClearDistanceCache) {
+        await clearCustomerRouteDistanceCache();
+      }
 
-      const nextCustomers = await Promise.all(
-        customer.listItems.map(async item => {
-          const customerLocation = {
-            latitude: (item as any).ADDB_GPS_LAT_S ?? null,
-            longitude: (item as any).ADDB_GPS_LONG_S ?? null,
-          };
+      const cachedDistances = shouldReuseCachedDistances
+        ? await getCustomerRouteDistanceCache()
+        : {};
+      const distanceEntriesByIndex: Record<
+        number,
+        { distance: number | null; distanceText: string }
+      > = {};
+      const customersToCompute: Array<{
+        index: number;
+        arKey: string | null;
+        location: { latitude: string | number | null; longitude: string | number | null };
+      }> = [];
 
-          if (!hasCompleteCoordinate(customerLocation)) {
-            return {
-              ...item,
-              distance: null,
-              distanceText: 'ไม่มีข้อมูลพิกัด',
-            };
-          }
+      customer.listItems.forEach((item, index) => {
+        if (!canCompareDistance || !hasCompleteCoordinate(customerLocations[index])) {
+          return;
+        }
 
-          if (!canCompareDistance) {
-            return {
-              ...item,
-              distance: null,
-              distanceText: 'ไม่พบตำแหน่งปัจจุบัน',
-            };
-          }
+        const arKey =
+          item.AR_KEY !== undefined && item.AR_KEY !== null
+            ? String(item.AR_KEY)
+            : null;
+        const cachedEntry =
+          arKey && shouldReuseCachedDistances ? cachedDistances[arKey] : null;
 
-          const distance = await getDistanceFromCurrentLocation(
-            currentLocation,
-            customerLocation,
-          );
+        if (
+          cachedEntry &&
+          typeof cachedEntry.distanceText === 'string'
+        ) {
+          distanceEntriesByIndex[index] = cachedEntry;
+          return;
+        }
 
-          return {
-            ...item,
+        customersToCompute.push({
+          index,
+          arKey,
+          location: customerLocations[index],
+        });
+      });
+
+      if (customersToCompute.length > 0) {
+        const computedDistances = await getDistancesFromCurrentLocation(
+          currentLocation,
+          customersToCompute.map(item => item.location),
+        );
+        const cacheUpdates: Record<
+          string,
+          { distance: number | null; distanceText: string }
+        > = {};
+
+        customersToCompute.forEach((item, index) => {
+          const distance = computedDistances[index] ?? null;
+          const entry = {
             distance,
             distanceText: formatDistanceLabel(distance),
           };
-        }),
-      );
+
+          distanceEntriesByIndex[item.index] = entry;
+
+          if (item.arKey) {
+            cacheUpdates[item.arKey] = entry;
+          }
+        });
+
+        if (Object.keys(cacheUpdates).length > 0) {
+          await mergeCustomerRouteDistanceCache(cacheUpdates);
+        }
+      }
+
+      if (
+        canCompareDistance &&
+        !shouldReuseCachedDistances &&
+        currentNumericPosition.latitude !== null &&
+        currentNumericPosition.longitude !== null
+      ) {
+        setLastPosition(currentNumericPosition);
+      }
+
+      console.log('[CustomerRoute] distance cache decision', {
+        customerCount: customer.listItems.length,
+        hasLastPosition,
+        distanceFromLastPosition,
+        shouldReuseCachedDistances,
+        shouldClearDistanceCache,
+        cachedCount: Object.keys(cachedDistances).length,
+        recomputedCount: customersToCompute.length,
+      });
+
+      const nextCustomers = customer.listItems.map((item, index) => {
+        const customerLocation = customerLocations[index];
+
+        if (!hasCompleteCoordinate(customerLocation)) {
+          return {
+            ...item,
+            distance: null,
+            distanceText: 'ไม่มีข้อมูลพิกัด',
+          };
+        }
+
+        if (!canCompareDistance) {
+          return {
+            ...item,
+            distance: null,
+            distanceText: 'ไม่พบตำแหน่งปัจจุบัน',
+          };
+        }
+
+        const cachedOrComputedEntry = distanceEntriesByIndex[index];
+        const distance = cachedOrComputedEntry?.distance ?? null;
+        const distanceText =
+          cachedOrComputedEntry?.distanceText ?? formatDistanceLabel(distance);
+
+        return {
+          ...item,
+          distance,
+          distanceText,
+        };
+      });
 
       nextCustomers.sort((left, right) => {
         const leftHasDistance = typeof left.distance === 'number';
@@ -249,6 +371,8 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     currentListSignature,
     geolocation.position.latitude,
     geolocation.position.longitude,
+    longdomap.lastPosition,
+    setLastPosition,
   ]);
 
   const onRefresh = useCallback(async () => {
@@ -275,6 +399,8 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     userToken.VANCONFIG.VANCNF_AR_LIMIT,
   ]);
 
+  const hasLatestSortedList = sortedListSignature === currentListSignature;
+
   const onScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       if (userToken.VANCONFIG.VANCNF_AR_LIMIT !== 2) {
@@ -295,7 +421,9 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
         if (
           currentOffset > 0 &&
           currentOffset >= maxOffset &&
-          !customer.isLoading
+          !customer.isLoading &&
+          !isPreparingList &&
+          hasLatestSortedList
         ) {
           searchCustomerList(true);
         }
@@ -303,6 +431,8 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     },
     [
       customer.isLoading,
+      hasLatestSortedList,
+      isPreparingList,
       searchCustomerList,
       userToken.VANCONFIG.VANCNF_AR_LIMIT,
     ],
@@ -417,38 +547,22 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     (customer.isError && customer.listItems.length === 0) ||
     customerType.isError;
   const isSnackBarVisible = customer.isError && customer.listItems.length > 0;
-  const hasLatestSortedList = sortedListSignature === currentListSignature;
-  const hasVisibleCustomers = sortedCustomers.length > 0;
-  const isInitialLoading =
-    !hasVisibleCustomers &&
-    (customer.isLoading ||
-      customerType.isLoading ||
-      isPreparingList ||
-      !hasLatestSortedList);
-  const isPaginating =
-    hasVisibleCustomers &&
-    (customer.isLoading || isPreparingList || !hasLatestSortedList);
+  const isRouteListLoading =
+    customer.isLoading ||
+    customerType.isLoading ||
+    isPreparingList ||
+    !hasLatestSortedList;
 
   return (
     <View style={styles.container}>
-      {!isNotFound && !isError && !isInitialLoading ? (
+      {!isNotFound && !isError && !isRouteListLoading ? (
         <FlatList
           data={sortedCustomers}
           renderItem={renderItem}
           keyExtractor={(_, index) => index.toString()}
-          ListFooterComponent={
-            isPaginating ? (
-              <View style={styles.footerLoading}>
-                <ActivityIndicator
-                  size="small"
-                  color={MainTheme.colorPrimary}
-                />
-              </View>
-            ) : null
-          }
           refreshControl={
             <RefreshControl
-              refreshing={customer.isLoading || customerType.isLoading}
+              refreshing={isRouteListLoading}
               onRefresh={() => {
                 void onRefresh();
               }}
@@ -461,7 +575,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
       ) : null}
 
       <ProgressDialog
-        visible={isInitialLoading}
+        visible={isRouteListLoading}
         message="กำลังโหลดและคำนวณเส้นทาง"
         animationType="fade"
         dialogStyle={{ borderRadius: 5 }}
@@ -492,6 +606,7 @@ const mapStateToProps = (state: any): CustomerRouteListStateProps => ({
   customer: state.customer,
   customerType: state.customerType,
   geolocation: state.geolocation,
+  longdomap: state.longdomap,
 });
 
 const mapDispatchToProps = (dispatch: any): CustomerRouteListDispatchProps => {
@@ -503,6 +618,7 @@ const mapDispatchToProps = (dispatch: any): CustomerRouteListDispatchProps => {
       dispatch(setError(bool));
     },
     setCustomerType: value => dispatch(setCustomerType(value)),
+    setLastPosition: position => dispatch(setLastPosition(position)),
     searchCustomerNextDestination: () => {
       dispatch(searchCustomerNextDestination());
     },
@@ -579,11 +695,6 @@ const styles = StyleSheet.create({
     color: MainTheme.colorPrimary,
     textAlign: 'right',
     width: 86,
-  },
-  footerLoading: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   chevronButton: {
     width: 36,

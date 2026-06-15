@@ -30,15 +30,18 @@ const initialState = {
 export const customer = (state = initialState, action) => {
   switch (action.type) {
     case types.CUSTOMER_SET_INITIAL_STATE:
-      return {...initialState, arPriceTab: state.arPriceTab};
+      return { ...initialState, arPriceTab: state.arPriceTab };
     case types.CUSTOMER_CLEAR_LIST:
-      return {...state, listItems: [], isNotFound: false, isError: false};
+      return { ...state, listItems: [], isNotFound: false, isError: false };
     case types.CUSTOMER_SET_CRITERIA:
-      return {...state, criteria: action.payload};
+      return { ...state, criteria: action.payload };
     case types.CUSTOMER_SET_KEYWORD:
-      return {...state, criteria: {...state.criteria, KEYWORD: action.payload}};
+      return {
+        ...state,
+        criteria: { ...state.criteria, KEYWORD: action.payload },
+      };
     case types.CUSTOMER_SEARCH_LIST:
-      return {...state, isLoading: true, isNotFound: false, isError: false};
+      return { ...state, isLoading: true, isNotFound: false, isError: false };
     case types.CUSTOMER_SEARCH_LIST_SUCCESS:
       const incomingItems = Array.isArray(action.payload) ? action.payload : [];
       const hasExistingItems = state.listItems.length > 0;
@@ -54,31 +57,37 @@ export const customer = (state = initialState, action) => {
         isError: false,
       };
     case types.CUSTOMER_SEARCH_LIST_FAIL:
-      return {...state, isLoading: false, isError: true};
+      return { ...state, isLoading: false, isError: true };
     case types.CUSTOMER_SET_ARSUMMARY:
-      return {...state, item: {...state.item, AR_SUMMARY: action.payload}};
+      return { ...state, item: { ...state.item, AR_SUMMARY: action.payload } };
     case types.CUSTOMER_SET_ARPRB:
-      return {...state, item: {...state.item, ARPRB: action.payload}};
+      return { ...state, item: { ...state.item, ARPRB: action.payload } };
     case types.CUSTOMER_SET_ITEM_INFO:
-      return {...state, item: {...state.item, INFO: action.payload}};
+      return { ...state, item: { ...state.item, INFO: action.payload } };
     case types.CUSTOMER_SET_ITEM_CUS_ADDB:
-      return {...state, item: {...state.item, CUS_ADDB: action.payload}};
+      return { ...state, item: { ...state.item, CUS_ADDB: action.payload } };
     case types.CUSTOMER_SET_ITEM_LST_VISIT_DOC:
-      return {...state, item: {...state.item, LST_VISIT_DOC: action.payload}};
+      return {
+        ...state,
+        item: { ...state.item, LST_VISIT_DOC: action.payload },
+      };
     case types.CUSTOMER_SET_ITEM_LST_BILL_DOC:
-      return {...state, item: {...state.item, LST_BILL_DOC: action.payload}};
+      return {
+        ...state,
+        item: { ...state.item, LST_BILL_DOC: action.payload },
+      };
     case types.CUSTOMER_SET_ITEM_CUS_PAY_INF:
-      return {...state, item: {...state.item, CUS_PAY_INF: action.payload}};
+      return { ...state, item: { ...state.item, CUS_PAY_INF: action.payload } };
     case types.CUSTOMER_SET_ITEM_CREDIT_LIM:
-      return {...state, item: {...state.item, CREDIT_LIM: action.payload}};
+      return { ...state, item: { ...state.item, CREDIT_LIM: action.payload } };
     case types.CUSTOMER_SET_ITEM_ARCONDITION:
-      return {...state, item: {...state.item, ARCONDITION: action.payload}};
+      return { ...state, item: { ...state.item, ARCONDITION: action.payload } };
     case types.CUSTOMER_SET_ITEM_TEMP_CUS:
-      return {...state, item: {...state.item, TEMP_CUS: action.payload}};
+      return { ...state, item: { ...state.item, TEMP_CUS: action.payload } };
     case types.CUSTOMER_SET_ERROR:
-      return {...state, isError: action.payload};
+      return { ...state, isError: action.payload };
     case types.CUSTOMER_SEARCH_NEAR_BY:
-      return {...state, isLoading: true, isNotFound: false, isError: false};
+      return { ...state, isLoading: true, isNotFound: false, isError: false };
     case types.CUSTOMER_SEARCH_NEAR_BY_SUCCESS:
       return {
         ...state,
@@ -87,9 +96,9 @@ export const customer = (state = initialState, action) => {
         isNotFound: false,
       };
     case types.CUSTOMER_SEARCH_NEAR_BY_FAIL:
-      return {...state, isLoading: false, isError: true, nearByListItems: []};
+      return { ...state, isLoading: false, isError: true, nearByListItems: [] };
     case types.CUSTOMER_GET_AR_LINE:
-      return {...state, isLoading: true, isNotFound: false, isError: false};
+      return { ...state, isLoading: true, isNotFound: false, isError: false };
     case types.CUSTOMER_GET_AR_LINE_SUCCESS:
       return {
         ...state,
@@ -98,7 +107,7 @@ export const customer = (state = initialState, action) => {
         isNotFound: false,
       };
     case types.CUSTOMER_GET_AR_LINE_FAIL:
-      return {...state, isLoading: false, isError: true, arLineListItems: []};
+      return { ...state, isLoading: false, isError: true, arLineListItems: [] };
     case types.CUSTOMER_GET_AR_PRICE_TAB_SUCCESS:
       return {
         ...state,
@@ -107,7 +116,7 @@ export const customer = (state = initialState, action) => {
         arPriceTab: action.payload,
       };
     case types.CUSTOMER_GET_AR_PRICE_TAB_FAIL:
-      return {...state, isLoading: false, isError: true};
+      return { ...state, isLoading: false, isError: true };
     default:
       return state;
   }

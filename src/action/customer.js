@@ -284,6 +284,7 @@ export const searchCustomerList = nextPage => async (dispatch, getState) => {
               'searchCustomerList merged customer data',
               Response.filter(hasKongInName),
             );
+            console.log('[searchCustomerList] customer response payload', Response);
             // console.log('Response 2222if  ', JSON.stringify(Response));
             dispatch(
               setCriteria({

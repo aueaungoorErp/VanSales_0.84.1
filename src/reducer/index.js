@@ -16,6 +16,7 @@ import {productSkuAlt} from './product-sku-alt';
 import {order} from './order';
 import {outstandingBalance} from './outstanding-balance';
 import {geolocation} from './geolocation';
+import {longdomap} from './longdomap';
 import {checkin} from './check-in';
 import {mile} from './mile';
 import {masterData} from './masterData';
@@ -41,6 +42,7 @@ export default combineReducers({
   order: order,
   outstandingBalance: outstandingBalance,
   geolocation: geolocation,
+  longdomap: longdomap,
   checkin: checkin,
   mile: mile,
   masterData: masterData,
