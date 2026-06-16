@@ -50,6 +50,7 @@ import {
 
 import { setIsSubmit as setCheckInIsSubmit } from '../../../../action/check-in';
 import { setIsSubmit as setMileIsSubmit } from '../../../../action/mile';
+import { useUpdateVanPosition } from '../../../../api/VanSalesServices/useTanStack';
 import FinalizeDetail from '../presenter/FinalizeDetail';
 
 const defaultReservationDate = moment().add(30, 'days').format('DD/MM/YYYY');
@@ -265,7 +266,8 @@ class CTFinalizeDetail extends Component {
     const isSalesOrder =
       this.props.order?.header?.AR_ORDER_TYPE === 'ขายสินค้า';
     const isCashPayment = this.state.paymentType === '1';
-    const iaAbleOverLimit = false;
+    const iaAbleOverLimit =
+      Number(this.state.userToken?.VANCONFIG?.VANCNF_NOV_CRE_LIM) === 2;
     const creditSummary = this.props.customer?.item?.AR_SUMMARY;
     const creditLimit = this._parseAmount(creditSummary?.ARS_CRE_LIM);
     const creditRemain = this._parseAmount(creditSummary?.ARS_CRE_REMAIN_NPDC);
@@ -273,7 +275,6 @@ class CTFinalizeDetail extends Component {
 
     if (this.state.iaAbleOverLimit !== iaAbleOverLimit) {
       this._isMounted && this.setState({ iaAbleOverLimit });
-      return false;
     }
 
     if (!isSalesOrder || isCashPayment) {
@@ -875,6 +876,7 @@ class CTFinalizeDetail extends Component {
             // }
 
             this._setSuccessMessage('ส่งรายการเรียบร้อย');
+            await this._syncCreditSaleVanPosition();
 
             Navigator.navigate('OrderSalesSummary', {
               actionType: 'orderProductSummaryProcessed',
@@ -917,6 +919,44 @@ class CTFinalizeDetail extends Component {
     this._setIsLoading(false);
   };
 
+  _syncCreditSaleVanPosition = async () => {
+    try {
+      let position = this.props.geolocation?.position ?? null;
+
+      if (!position?.latitude || !position?.longitude) {
+        const currentPosition = await this.props.getCurrentPosition();
+        position = currentPosition?.coords
+          ? {
+              latitude: currentPosition.coords.latitude,
+              longitude: currentPosition.coords.longitude,
+            }
+          : position;
+      }
+
+      const userToken = await getUserToken();
+      const vanCode = String(userToken?.VANCONFIG?.VANCNF_MACHINE || '').trim();
+      const driverName = String(userToken?.SALESMAN?.SLMN_NAME || '').trim();
+
+      if (!vanCode || !driverName) {
+        console.log(
+          '[VanSalesServices] skip credit_sale sync: missing van/driver',
+        );
+        return;
+      }
+
+      await this.props.updateVanPosition({
+        vanCode,
+        recordedTypeCode: 'credit_sale',
+        driverName,
+        latitude: Number(position?.latitude) || 0,
+        longitude: Number(position?.longitude) || 0,
+        recordedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.log('[VanSalesServices] credit_sale position failed', error);
+    }
+  };
+
   _updateOrderSale = async () => {
     try {
       if (this.state.paymentType !== null) {
@@ -956,6 +996,7 @@ class CTFinalizeDetail extends Component {
           }
 
           this._setSuccessMessage('ส่งรายการเรียบร้อย');
+          await this._syncCreditSaleVanPosition();
           Navigator.navigate('OrderSalesSummary', {
             actionType: 'orderProductSummaryProcessed',
             printType: 'credit',
@@ -1678,4 +1719,20 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(CTFinalizeDetail);
+const ConnectedCTFinalizeDetail = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(CTFinalizeDetail);
+
+const CTFinalizeDetailWithMutation = props => {
+  const updateVanPositionMutation = useUpdateVanPosition();
+
+  return (
+    <ConnectedCTFinalizeDetail
+      {...props}
+      updateVanPosition={updateVanPositionMutation.mutateAsync}
+    />
+  );
+};
+
+export default CTFinalizeDetailWithMutation;

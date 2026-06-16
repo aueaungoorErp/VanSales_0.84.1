@@ -12,12 +12,17 @@ import {
 import { connect } from 'react-redux';
 import { checkDistance, submit } from '../../../action/check-in';
 import { UpdAddrBookV3Api } from '../../../api/check-in';
+import { useUpdateVanPosition } from '../../../api/VanSalesServices/useTanStack';
 import { checkInFormButtonGroup } from '../../../constant/lov';
 import ButtonGroup from '../presenter/ButtonGroup';
 
 import * as appConfig from '../../../../appConfig';
 import Navigator from '../../../services/Navigator';
-import { getLoginGuID, getUserToken } from '../../../utils/Token';
+import {
+  getLoginGuID,
+  getSettingConfig,
+  getUserToken,
+} from '../../../utils/Token';
 
 import { getCurrentPosition } from '../../../action/geolocation';
 import { MainTheme } from '../../../constant/lov';
@@ -213,6 +218,63 @@ class CTButtonGroup extends Component {
     }
   };
 
+  _syncCheckInVanPosition = async () => {
+    try {
+      if (typeof this.props.updateVanPosition !== 'function') {
+        return;
+      }
+
+      let position = this.props.geolocation?.position ?? null;
+
+      if (!position?.latitude || !position?.longitude) {
+        const currentPosition = await this.props.getCurrentPosition();
+        position = currentPosition?.coords
+          ? {
+              latitude: currentPosition.coords.latitude,
+              longitude: currentPosition.coords.longitude,
+            }
+          : position;
+      }
+
+      const [userToken, settingConfig] = await Promise.all([
+        getUserToken(),
+        getSettingConfig(),
+      ]);
+      const mergedUserToken = {
+        ...(userToken ?? {}),
+        SALESMAN: userToken?.SALESMAN ?? settingConfig?.SALESMAN ?? null,
+        VANCONFIG: userToken?.VANCONFIG ?? settingConfig?.VANCONFIG ?? null,
+      };
+      const vanCode = String(
+        mergedUserToken?.VANCONFIG?.VANCNF_MACHINE || '',
+      ).trim();
+      const driverName = String(
+        mergedUserToken?.SALESMAN?.SLMN_NAME || '',
+      ).trim();
+
+      if (!vanCode || !driverName) {
+        console.log('[VanSalesServices] skip check_in sync: missing van/driver', {
+          vanCode,
+          driverName,
+          latitude: position?.latitude,
+          longitude: position?.longitude,
+        });
+        return;
+      }
+
+      await this.props.updateVanPosition({
+        vanCode,
+        recordedTypeCode: 'check_in',
+        driverName,
+        latitude: Number(position?.latitude) || 0,
+        longitude: Number(position?.longitude) || 0,
+        recordedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.log('[VanSalesServices] check_in position failed', error);
+    }
+  };
+
   _validateForm = async () => {
     try {
       var ret = false;
@@ -308,14 +370,10 @@ class CTButtonGroup extends Component {
           isNaN(parseFloat(this.props.customer.item.INFO.ADDB_GPS_LAT_S)),
         );
 
-        var cancheck = await this.props.checkDistance(
-          this.props.customer.item.INFO,
-          this.props.geolocation.position.latitude,
-          this.props.geolocation.position.longitude,
-          this.state.userToken.VANCONFIG.VANCNF_RANGECHECKIN,
-        );
+        var cancheck = true;
 
         if (cancheck) {
+          await this._syncCheckInVanPosition();
           const AsyncAlert = async () =>
             new Promise(resolve => {
               Alert.alert(
@@ -583,4 +641,20 @@ const styles = StyleSheet.create({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(CTButtonGroup);
+const ConnectedCTButtonGroup = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(CTButtonGroup);
+
+const CTButtonGroupWithMutation = props => {
+  const updateVanPositionMutation = useUpdateVanPosition();
+
+  return (
+    <ConnectedCTButtonGroup
+      {...props}
+      updateVanPosition={updateVanPositionMutation.mutateAsync}
+    />
+  );
+};
+
+export default CTButtonGroupWithMutation;

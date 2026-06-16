@@ -323,16 +323,32 @@ class CTPaymentForm extends Component {
           : position;
       }
 
+      const [userToken, settingConfig] = await Promise.all([
+        getUserToken(),
+        getSettingConfig(),
+      ]);
+      const mergedUserToken = {
+        ...(userToken ?? {}),
+        COMPANYINFO: userToken?.COMPANYINFO ?? settingConfig?.COMPANYINFO ?? null,
+        SALESMAN: userToken?.SALESMAN ?? settingConfig?.SALESMAN ?? null,
+        VANCONFIG: userToken?.VANCONFIG ?? settingConfig?.VANCONFIG ?? null,
+      };
       const vanCode = String(
-        this.state.userToken?.VANCONFIG?.VANCNF_MACHINE || '',
+        mergedUserToken?.VANCONFIG?.VANCNF_MACHINE || '',
       ).trim();
       const driverName = String(
-        this.state.userToken?.SALESMAN?.SLMN_NAME || '',
+        mergedUserToken?.SALESMAN?.SLMN_NAME || '',
       ).trim();
 
       if (!vanCode || !driverName) {
         console.log(
           '[VanSalesServices] skip cash_sale sync: missing van/driver',
+          {
+            vanCode,
+            driverName,
+            latitude: position?.latitude,
+            longitude: position?.longitude,
+          },
         );
         return;
       }

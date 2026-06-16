@@ -19,7 +19,7 @@ export const updateVanPosition = async (critial: updateVanPositionParam) => {
     const url = VanSalesBaseUrl(normalizedBaseUrl) + 'vehicle-locations';
 
     console.log('requestPayload', critial);
-    console.log('baseUrl', url, loginGuid);
+    console.log('baseUrlaaa', url, loginGuid);
 
     const response = await axios.post(url, critial, {
       timeout: appConfig.REQUEST_TIMEOUT_MS,
