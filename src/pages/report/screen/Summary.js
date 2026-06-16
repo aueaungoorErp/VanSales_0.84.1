@@ -28,9 +28,13 @@ const styles = StyleSheet.create({
     },
     searchSection: {
         zIndex: 1,
+        paddingHorizontal: 12,
+        paddingTop: 8,
     },
     listSection: {
         flex: 1,
-        paddingTop: 4,
+        paddingTop: 6,
+        paddingHorizontal: 12,
+        paddingBottom: 12,
     }
 })

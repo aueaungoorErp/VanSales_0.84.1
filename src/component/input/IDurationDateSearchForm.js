@@ -76,22 +76,20 @@ class IDurationDateSearchForm extends Component {
     }
     
     render() {
-        const titleLines = this.props.title
-            ? this.props.title.split('ตาม')
-            : ['รายงานสรุปการขาย', 'ประเภทสินค้า']
+        const reportTitle = this.props.title || 'รายงานสรุปการขายประเภทสินค้า'
 
         return (
             <View style={styles.container}>
                 <View style={styles.formCard}>
                     <View style={styles.cardHeaderRow}>
-                        <View style={[,{flexDirection: 'column'}]} > 
-                            {titleLines.map((line, index) => (
-                                <Text key={`${line}-${index}`} allowFontScaling={false} style={styles.sectionTitle}>
-                                    {index === 0 || !this.props.title ? line : `ตาม${line}`}
-                                </Text>
-                            ))}
+                        <View style={styles.titleWrap}>
+                            <Text
+                                allowFontScaling={false}
+                                style={styles.sectionTitle}>
+                                {reportTitle}
+                            </Text>
                         </View>
-                       
+
                         <View style={styles.actionRow}>
                             {this._renderActionButton({
                                 icon: 'search1',
@@ -211,7 +209,7 @@ export default IDurationDateSearchForm
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'column',
-        paddingHorizontal: 14,
+        paddingHorizontal: 0,
         paddingTop: 4,
         paddingBottom: 8,
     },
@@ -230,17 +228,21 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     sectionTitle: {
-        flex: 1,
         fontSize: hp('1.75%'),
         color: '#355244',
         fontWeight: '700',
         marginBottom: 0,
-        paddingRight: 10,
     },
     cardHeaderRow: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         marginBottom: 12,
+        width: '100%',
+    },
+    titleWrap: {
+        flex: 1,
+        paddingRight: 12,
+        justifyContent: 'center',
     },
     sectionInline: {
         flexDirection: 'row',
@@ -267,6 +269,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
         alignItems: 'center',
         flexShrink: 0,
+        marginLeft: 'auto',
         paddingTop: 2,
     },
     actionButton: {

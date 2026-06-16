@@ -10,9 +10,11 @@ const ListItem = ({title, containerStyle, bottomDivider}) => (
   </View>
 );
 const fontDefault = '1.7%';
+const REPORT_HEADER_BACKGROUND = MainTheme.colorPrimary;
+const REPORT_HEADER_TEXT = MainTheme.colorSecondary;
 const salesOrderByCategoryStyles = StyleSheet.create({
   headerContainer: {
-    backgroundColor: MainTheme.colorQuinary,
+    backgroundColor: REPORT_HEADER_BACKGROUND,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingVertical: 14,
@@ -42,7 +44,7 @@ const salesOrderByCategoryStyles = StyleSheet.create({
   },
   groupHeader: {
     flexDirection: 'row',
-    backgroundColor: '#EAF6EF',
+    backgroundColor: REPORT_HEADER_BACKGROUND,
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderBottomWidth: 1,
@@ -50,7 +52,7 @@ const salesOrderByCategoryStyles = StyleSheet.create({
   },
   groupHeaderText: {
     flex: 1,
-    color: MainTheme.colorQuaternary,
+    color: REPORT_HEADER_TEXT,
     fontSize: hp(fontDefault),
     fontWeight: '700',
   },
@@ -105,7 +107,7 @@ const salesOrderByCategoryStyles = StyleSheet.create({
   },
   summaryTitleRow: {
     flexDirection: 'row',
-    backgroundColor: '#EAF6EF',
+    backgroundColor: REPORT_HEADER_BACKGROUND,
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderBottomWidth: 1,
@@ -113,7 +115,7 @@ const salesOrderByCategoryStyles = StyleSheet.create({
   },
   summaryTitleText: {
     flex: 1,
-    color: MainTheme.colorQuaternary,
+    color: REPORT_HEADER_TEXT,
     fontSize: hp('1.7%'),
     fontWeight: '700',
   },
@@ -446,7 +448,7 @@ export const salesOrderByProduct = {
             </View>
           )
         }
-        containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
         titleNumberOfLines={1}
       />
     );
@@ -460,14 +462,14 @@ export const salesOrderByProduct = {
             <View
               style={{
                 flexDirection: 'row',
-                backgroundColor: MainTheme.colorSeptenary,
+                backgroundColor: REPORT_HEADER_BACKGROUND,
                 paddingVertical: 15,
                 paddingHorizontal: 5,
               }}>
               <Text
                 style={{
                   flex: 1,
-                  color: MainTheme.colorQuaternary,
+                  color: REPORT_HEADER_TEXT,
                   fontSize: hp(fontDefault),
                 }}
                 allowFontScaling={false}>
@@ -610,13 +612,13 @@ export const salesOrderByProduct = {
         <View
           style={{
             flexDirection: 'row',
-            backgroundColor: MainTheme.colorSeptenary,
+            backgroundColor: REPORT_HEADER_BACKGROUND,
             padding: 15,
           }}>
           <Text
             style={{
               flex: 1,
-              color: MainTheme.colorQuaternary,
+              color: REPORT_HEADER_TEXT,
               fontSize: hp('1.7%'),
             }}
             allowFontScaling={false}>
@@ -716,13 +718,13 @@ export const salesOrderByProduct = {
         <View
           style={{
             flexDirection: 'row',
-            backgroundColor: MainTheme.colorSeptenary,
+            backgroundColor: REPORT_HEADER_BACKGROUND,
             padding: 15,
           }}>
           <Text
             style={{
               flex: 1,
-              color: MainTheme.colorQuaternary,
+              color: REPORT_HEADER_TEXT,
               fontSize: hp('1.7%'),
             }}
             allowFontScaling={false}>
@@ -973,7 +975,7 @@ export const salesOrderByArline = {
             </Text>
           </View>
         }
-        containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
         titleNumberOfLines={1}
       />
     );
@@ -986,14 +988,14 @@ export const salesOrderByArline = {
             <View
               style={{
                 flexDirection: 'row',
-                backgroundColor: MainTheme.colorSeptenary,
+                backgroundColor: REPORT_HEADER_BACKGROUND,
                 paddingVertical: 15,
                 paddingHorizontal: 5,
               }}>
               <Text
                 style={{
                   flex: 1,
-                  color: MainTheme.colorQuaternary,
+                  color: REPORT_HEADER_TEXT,
                   fontSize: hp(fontDefault),
                 }}
                 allowFontScaling={false}>
@@ -1067,13 +1069,13 @@ export const salesOrderByArline = {
         <View
           style={{
             flexDirection: 'row',
-            backgroundColor: MainTheme.colorSeptenary,
+            backgroundColor: REPORT_HEADER_BACKGROUND,
             padding: 15,
           }}>
           <Text
             style={{
               flex: 1,
-              color: MainTheme.colorQuaternary,
+              color: REPORT_HEADER_TEXT,
               fontSize: hp('1.7%'),
             }}
             allowFontScaling={false}>
@@ -1261,7 +1263,7 @@ export const salesOrderByDocType = {
             </Text>
           </View>
         }
-        containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
         titleNumberOfLines={1}
       />
     );
@@ -1274,13 +1276,13 @@ export const salesOrderByDocType = {
             <View
               style={{
                 flexDirection: 'row',
-                backgroundColor: MainTheme.colorSeptenary,
+                backgroundColor: REPORT_HEADER_BACKGROUND,
                 padding: 15,
               }}>
               <Text
                 style={{
                   flex: 1,
-                  color: MainTheme.colorQuaternary,
+                  color: REPORT_HEADER_TEXT,
                   fontSize: hp(fontDefault),
                 }}
                 allowFontScaling={false}>
@@ -1348,17 +1350,17 @@ export const salesOrderByDocType = {
   },
   footerRenderItem: (item) => {
     return (
-      <View style={{backgroundColor: MainTheme.colorSeptenary}}>
+      <View style={{backgroundColor: REPORT_HEADER_BACKGROUND}}>
         <View
           style={{
             flexDirection: 'row',
-            backgroundColor: MainTheme.colorSeptenary,
+            backgroundColor: REPORT_HEADER_BACKGROUND,
             padding: 15,
           }}>
           <Text
             style={{
               flex: 1,
-              color: MainTheme.colorQuaternary,
+              color: REPORT_HEADER_TEXT,
               fontSize: hp('1.7%'),
             }}
             allowFontScaling={false}>
@@ -1518,7 +1520,7 @@ export const salesOrderByPmt = {
             </View>
           </View>
         }
-        containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
         titleNumberOfLines={1}
       />
     );
@@ -1531,13 +1533,13 @@ export const salesOrderByPmt = {
             <View
               style={{
                 flexDirection: 'row',
-                backgroundColor: MainTheme.colorSeptenary,
+                backgroundColor: REPORT_HEADER_BACKGROUND,
                 padding: 15,
               }}>
               <Text
                 style={{
                   flex: 1,
-                  color: MainTheme.colorQuaternary,
+                  color: REPORT_HEADER_TEXT,
                   fontSize: hp(fontDefault),
                 }}
                 allowFontScaling={false}>
@@ -1591,17 +1593,17 @@ export const salesOrderByPmt = {
   },
   footerRenderItem: (item) => {
     return (
-      <View style={{backgroundColor: MainTheme.colorSeptenary}}>
+      <View style={{backgroundColor: REPORT_HEADER_BACKGROUND}}>
         <View
           style={{
             flexDirection: 'row',
-            backgroundColor: MainTheme.colorSeptenary,
+            backgroundColor: REPORT_HEADER_BACKGROUND,
             padding: 15,
           }}>
           <Text
             style={{
               flex: 1,
-              color: MainTheme.colorQuaternary,
+              color: REPORT_HEADER_TEXT,
               fontSize: hp('1.7%'),
             }}
             allowFontScaling={false}>
@@ -1671,7 +1673,7 @@ export const salesOrderByPmt = {
       <View
         style={{
           flexDirection: 'row',
-          backgroundColor: MainTheme.colorSeptenary,
+          backgroundColor: REPORT_HEADER_BACKGROUND,
           padding: 15,
         }}>
         <Text
@@ -1787,7 +1789,7 @@ export const documentItems = {
             </Text>
           </View>
         }
-        containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
         titleNumberOfLines={1}
       />
     );
@@ -1801,13 +1803,13 @@ export const documentItems = {
             <View
               style={{
                 flexDirection: 'row',
-                backgroundColor: MainTheme.colorSeptenary,
+                backgroundColor: REPORT_HEADER_BACKGROUND,
                 padding: 15,
               }}>
               <Text
                 style={{
                   flex: 1,
-                  color: MainTheme.colorQuaternary,
+                  color: REPORT_HEADER_TEXT,
                   fontSize: hp(fontDefault),
                 }}
                 allowFontScaling={false}>
@@ -1926,13 +1928,13 @@ export const documentItems = {
         <View
           style={{
             flexDirection: 'row',
-            backgroundColor: MainTheme.colorSeptenary,
+            backgroundColor: REPORT_HEADER_BACKGROUND,
             padding: 15,
           }}>
           <Text
             style={{
               flex: 1,
-              color: MainTheme.colorQuaternary,
+              color: REPORT_HEADER_TEXT,
               fontSize: hp('1.7%'),
             }}
             allowFontScaling={false}>
@@ -2269,7 +2271,7 @@ export const documentItemsDetails = {
             </Text>
           </View>
         }
-        containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
         titleNumberOfLines={1}
       />
     );
@@ -2282,13 +2284,13 @@ export const documentItemsDetails = {
             <View
               style={{
                 flexDirection: 'row',
-                backgroundColor: MainTheme.colorSeptenary,
+                backgroundColor: REPORT_HEADER_BACKGROUND,
                 padding: 15,
               }}>
               <Text
                 style={{
                   flex: 1,
-                  color: MainTheme.colorQuaternary,
+                  color: REPORT_HEADER_TEXT,
                   fontSize: hp(fontDefault),
                 }}
                 allowFontScaling={false}>
@@ -2567,13 +2569,13 @@ export const documentItemsDetails = {
         {/* <View
           style={{
             flexDirection: 'row',
-            backgroundColor: MainTheme.colorSeptenary,
+            backgroundColor: REPORT_HEADER_BACKGROUND,
             padding: 15,
           }}>
           <Text
             style={{
               flex: 1,
-              color: MainTheme.colorQuaternary,
+              color: REPORT_HEADER_TEXT,
               fontSize: hp('1.7%'),
             }}
             allowFontScaling={false}>
@@ -2865,7 +2867,7 @@ export const performanceByArlineItem = {
             </Text>
           </View>
         }
-        containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
         titleNumberOfLines={1}
       />
     );
@@ -2878,13 +2880,13 @@ export const performanceByArlineItem = {
             <View
               style={{
                 flexDirection: 'row',
-                backgroundColor: MainTheme.colorSeptenary,
+                backgroundColor: REPORT_HEADER_BACKGROUND,
                 padding: 15,
               }}>
               <Text
                 style={{
                   flex: 1,
-                  color: MainTheme.colorQuaternary,
+                  color: REPORT_HEADER_TEXT,
                   fontSize: hp(fontDefault),
                 }}
                 allowFontScaling={false}>
@@ -3009,13 +3011,13 @@ export const performanceByArlineItem = {
             <View
               style={{
                 flexDirection: 'row',
-                backgroundColor: MainTheme.colorSeptenary,
+                backgroundColor: REPORT_HEADER_BACKGROUND,
                 padding: 15,
               }}>
               <Text
                 style={{
                   flex: 1,
-                  color: MainTheme.colorQuaternary,
+                  color: REPORT_HEADER_TEXT,
                   fontSize: hp(fontDefault),
                 }}
                 allowFontScaling={false}>
@@ -3515,7 +3517,7 @@ export const peformanceByProductCategory = {
             </Text>
           </View>
         }
-        containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
         titleNumberOfLines={1}
       />
     );
@@ -3528,13 +3530,13 @@ export const peformanceByProductCategory = {
             <View
               style={{
                 flexDirection: 'row',
-                backgroundColor: MainTheme.colorSeptenary,
+                backgroundColor: REPORT_HEADER_BACKGROUND,
                 padding: 15,
               }}>
               <Text
                 style={{
                   flex: 1,
-                  color: MainTheme.colorQuaternary,
+                  color: REPORT_HEADER_TEXT,
                   fontSize: hp(fontDefault),
                 }}
                 allowFontScaling={false}>
@@ -3606,13 +3608,13 @@ export const peformanceByProductCategory = {
             <View
               style={{
                 flexDirection: 'row',
-                backgroundColor: MainTheme.colorSeptenary,
+                backgroundColor: REPORT_HEADER_BACKGROUND,
                 padding: 15,
               }}>
               <Text
                 style={{
                   flex: 1,
-                  color: MainTheme.colorQuaternary,
+                  color: REPORT_HEADER_TEXT,
                   fontSize: hp(fontDefault),
                 }}
                 allowFontScaling={false}>
@@ -4700,7 +4702,7 @@ export const stockBalanceByWL = {
                         <Text style={{ width: 120, textAlign: 'right', color: MainTheme.colorSecondary, fontSize: hp(fontDefault) }} allowFontScaling={false} >จำนวนค้างส่ง</Text> */}
           </View>
         }
-        containerStyle={{backgroundColor: MainTheme.colorQuinary}}
+        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
         titleNumberOfLines={1}
       />
     );
@@ -4713,13 +4715,13 @@ export const stockBalanceByWL = {
             <View
               style={{
                 flexDirection: 'row',
-                backgroundColor: MainTheme.colorSeptenary,
+                backgroundColor: REPORT_HEADER_BACKGROUND,
                 padding: 15,
               }}>
               <Text
                 style={{
                   flex: 1,
-                  color: MainTheme.colorQuaternary,
+                  color: REPORT_HEADER_TEXT,
                   fontSize: hp(fontDefault),
                 }}
                 allowFontScaling={false}>
@@ -4911,3 +4913,5 @@ export const stockBalanceByWL = {
   horizontalScreen: 'none',
   footerSummary: false,
 };
+
+

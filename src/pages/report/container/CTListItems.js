@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Dimensions, ScrollView, View } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { connect } from 'react-redux';
 import ErrorMessage from '../../../component/announce/ErrorMessage';
@@ -127,6 +127,47 @@ class CTListItems extends Component {
 
   _buttons = [{element: this._listButton}, {element: this._gridButton}];
 
+  _renderViewToggle = () => (
+    <View style={styles.toggleSection}>
+      <View style={styles.toggleHeader}>
+        <Text style={styles.toggleTitle} allowFontScaling={false}>
+          รูปแบบการแสดงผล
+        </Text>
+        <Text style={styles.toggleSubtitle} allowFontScaling={false}>
+          สลับดูยอดรวมและเปอร์เซ็นต์
+        </Text>
+      </View>
+      <IButtonGroup
+        buttons={this._buttons}
+        selectedIndex={this.state.selectedIndex}
+        onPress={(value) => {
+          this._setState('selectedIndex', value);
+        }}
+        containerStyle={styles.toggleButtonGroup}
+        buttonStyle={styles.toggleButton}
+        selectedButtonStyle={styles.toggleButtonSelected}
+        selectedTextStyle={{color: MainTheme.inActivePrimary}}
+        textStyle={{color: MainTheme.colorPrimary}}
+        containerBorderRadius={999}
+      />
+    </View>
+  );
+
+  _renderFooterSummary = content =>
+    content ? <View style={styles.footerSummary}>{content}</View> : null;
+
+  _renderCardContainer = (content, horizontal = false) =>
+    horizontal ? (
+      <ScrollView
+        horizontal
+        style={styles.horizontalScroll}
+        contentContainerStyle={styles.horizontalScrollContent}>
+        <View style={styles.reportCard}>{content}</View>
+      </ScrollView>
+    ) : (
+      <View style={styles.reportCard}>{content}</View>
+    );
+
   _patternA = (reportPattern) => {
     let listData = [];
     console.log(
@@ -156,14 +197,12 @@ class CTListItems extends Component {
       JSON.stringify(this.props.report.data),
     );
     return (
-      <View style={{flex: 1}}>
+      <View style={styles.contentArea}>
         {(reportPattern &&
           reportPattern.horizontalScreen === 'phone' &&
           Dimensions.get('window').width < 450) ||
         (reportPattern && reportPattern.horizontalScreen === 'both') ? (
-          <ScrollView
-            horizontal
-            contentContainerStyle={{flexDirection: 'column'}}>
+          this._renderCardContainer(
             <View
               style={{
                 flex:
@@ -182,21 +221,16 @@ class CTListItems extends Component {
                 renderItem={reportPattern.renderItem}
                 stickyHeaderIndices={[0]}
               />
-            </View>
-            {reportPattern.footerSummary && this.props.report.data ? (
-              <View
-                style={{
-                  flex: 0.1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: MainTheme.colorThirteendary,
-                }}>
-                {reportPattern.footer(this.props.report.data)}
-              </View>
-            ) : null}
-          </ScrollView>
+              {this._renderFooterSummary(
+                reportPattern.footerSummary && this.props.report.data
+                  ? reportPattern.footer(this.props.report.data)
+                  : null,
+              )}
+            </View>,
+            true,
+          )
         ) : (
-          <View style={{flex: 1}}>
+          this._renderCardContainer(
             <View
               style={{
                 flex:
@@ -215,20 +249,13 @@ class CTListItems extends Component {
                 renderItem={reportPattern.renderItem}
                 stickyHeaderIndices={[0]}
               />
-            </View>
-
-            {reportPattern.footerSummary && this.props.report.data ? (
-              <View
-                style={{
-                  flex: 0.1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: MainTheme.colorThirteendary,
-                }}>
-                {reportPattern.footer(this.props.report.data)}
-              </View>
-            ) : null}
-          </View>
+              {this._renderFooterSummary(
+                reportPattern.footerSummary && this.props.report.data
+                  ? reportPattern.footer(this.props.report.data)
+                  : null,
+              )}
+            </View>,
+          )
         )}
       </View>
     );
@@ -278,34 +305,13 @@ class CTListItems extends Component {
     // }
 
     return (
-      <View style={{flex: 1}}>
-        <View style={{alignItems: 'center', marginBottom: 5}}>
-          <IButtonGroup
-            buttons={this._buttons}
-            selectedIndex={this.state.selectedIndex}
-            onPress={(value) => {
-              this._setState('selectedIndex', value);
-            }}
-            containerStyle={{
-              flex: 0.2,
-              height: 40,
-              borderRadius: 6,
-              borderColor: MainTheme.colorPrimary,
-            }}
-            buttonStyle={{backgroundColor: MainTheme.colorSecondary}}
-            selectedButtonStyle={{backgroundColor: MainTheme.colorPrimary}}
-            selectedTextStyle={{color: MainTheme.inActivePrimary}}
-            textStyle={{color: MainTheme.colorPrimary}}
-            containerBorderRadius={50}
-          />
-        </View>
+      <View style={styles.contentArea}>
+        {this._renderViewToggle()}
 
         {(reportPattern.horizontalScreen === 'phone' &&
           Dimensions.get('window').width < 450) ||
         reportPattern.horizontalScreen === 'both' ? (
-          <ScrollView
-            horizontal
-            contentContainerStyle={{flexDirection: 'column'}}>
+          this._renderCardContainer(
             <View
               style={{
                 flex:
@@ -313,12 +319,6 @@ class CTListItems extends Component {
                     ? 0.9
                     : 1,
               }}>
-              {/* <IList 
-                                        header={reportPattern.header}
-                                        data={listData} 
-                                        footer={reportPattern.footerItem && this.props.report.data ? reportPattern.footerItem(this.props.report.data) : null}
-                                        renderItem={this.state.selectedIndex == 0 ? reportPattern.renderItem : reportPattern.renderItemPercent} 
-                                        stickyHeaderIndices={[0]} /> */}
               <IList
                 header={reportPattern.header}
                 data={listData}
@@ -338,39 +338,19 @@ class CTListItems extends Component {
                 }
                 stickyHeaderIndices={[0]}
               />
-            </View>
-
-            {reportPattern.footerSummary && this.props.report.data ? (
-              <View
-                style={{
-                  flex: 0.1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: MainTheme.colorThirteendary,
-                }}>
-                {reportPattern.footer(
-                  this.state.selectedIndex,
-                  this.props.report.data,
-                )}
-              </View>
-            ) : null}
-
-            {/* {
-                                    reportPattern.footerSummary && this.props.report.data ? 
-                                        <View 
-                                            style={{ 
-                                                flex: 0.1, 
-                                                alignItems: 'center', 
-                                                justifyContent: 'center',
-                                                backgroundColor: MainTheme.colorThirteendary 
-                                            }}>
-                                                { reportPattern.footer(this.state.selectedIndex, this.props.report.data) }
-                                        </View>
-                                    : null
-                                } */}
-          </ScrollView>
+              {this._renderFooterSummary(
+                reportPattern.footerSummary && this.props.report.data
+                  ? reportPattern.footer(
+                      this.state.selectedIndex,
+                      this.props.report.data,
+                    )
+                  : null,
+              )}
+            </View>,
+            true,
+          )
         ) : (
-          <View style={{flex: 1}}>
+          this._renderCardContainer(
             <View
               style={{
                 flex:
@@ -397,23 +377,16 @@ class CTListItems extends Component {
                 }
                 stickyHeaderIndices={[0]}
               />
-            </View>
-
-            {reportPattern.footerSummary && this.props.report.data ? (
-              <View
-                style={{
-                  flex: 0.1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: MainTheme.colorThirteendary,
-                }}>
-                {reportPattern.footer(
-                  this.state.selectedIndex,
-                  this.props.report.data,
-                )}
-              </View>
-            ) : null}
-          </View>
+              {this._renderFooterSummary(
+                reportPattern.footerSummary && this.props.report.data
+                  ? reportPattern.footer(
+                      this.state.selectedIndex,
+                      this.props.report.data,
+                    )
+                  : null,
+              )}
+            </View>,
+          )
         )}
       </View>
     );
@@ -458,7 +431,7 @@ class CTListItems extends Component {
     }
 
     return (
-      <View style={{flex: 1}}>
+      <View style={styles.root}>
         {!this.props.report.errorMessage
           ? this._renderList(reportPattern)
           : null}
@@ -492,3 +465,82 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(CTListItems);
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  contentArea: {
+    flex: 1,
+  },
+  toggleSection: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#DCE7E1',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 10,
+    shadowColor: '#173126',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  toggleHeader: {
+    marginBottom: 10,
+  },
+  toggleTitle: {
+    color: '#355244',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  toggleSubtitle: {
+    color: '#6C8478',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  toggleButtonGroup: {
+    flex: 0,
+    width: 150,
+    height: 42,
+    borderRadius: 999,
+    borderColor: '#BFD5C8',
+    backgroundColor: '#F2F7F4',
+  },
+  toggleButton: {
+    backgroundColor: '#F2F7F4',
+  },
+  toggleButtonSelected: {
+    backgroundColor: MainTheme.colorPrimary,
+  },
+  horizontalScroll: {
+    flex: 1,
+  },
+  horizontalScrollContent: {
+    flexDirection: 'column',
+    paddingBottom: 4,
+  },
+  reportCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#DCE7E1',
+    overflow: 'hidden',
+    shadowColor: '#173126',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  footerSummary: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ECF5EF',
+    borderTopWidth: 1,
+    borderTopColor: '#D7E5DC',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+});

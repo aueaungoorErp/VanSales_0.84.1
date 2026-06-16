@@ -35,6 +35,7 @@ const Content = ({ children }) => (
   <ScrollView
     style={styles.contentScroll}
     contentContainerStyle={styles.contentContainer}
+    keyboardShouldPersistTaps="handled"
   >
     {children}
   </ScrollView>

@@ -1478,7 +1478,7 @@ export const reportMenu = [
   },
   {
     title: strings('report.payment_type_summary_report'),
-    screen: 'ReportBlank',
+    screen: 'ReportSummary',
     type: 'SalesOrderByPmt',
     pattern: 'A',
     seachForm: 'A',
@@ -1500,28 +1500,28 @@ export const reportMenu = [
   //----------------------
   {
     title: strings('report.performance_reports_based_on_customer_lines'),
-    screen: 'ReportBlank',
+    screen: 'ReportSummary',
     type: 'PerformanceByArlineItem',
     pattern: 'B',
     seachForm: 'A',
   },
   {
     title: strings('report.performance_report_by_product_category'),
-    screen: 'ReportBlank',
+    screen: 'ReportSummary',
     type: 'PeformanceByProductCategory',
     pattern: 'B',
     seachForm: 'A',
   },
   {
     title: strings('report.sales_performance_report_by_saleman'),
-    screen: 'ReportBlank',
+    screen: 'ReportSummary',
     type: 'SalesOrderBySaleman',
     pattern: 'C',
     seachForm: 'B',
   },
   {
     title: strings('report.stock_report_from_warehouse'),
-    screen: 'ReportBlank',
+    screen: 'ReportSummary',
     type: 'StockBalanceByWL',
     pattern: 'D',
     seachForm: 'B',
