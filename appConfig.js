@@ -6,19 +6,20 @@
 // export const API_ENDPOINT = 'http://103.47.87.140:9911/api'
 // export const API_ENDPOINT = 'http://192.168.6.22:5000/api'
 
-
 export const API_ENDPOINT_V3 =
-   'http://192.168.0.110:38802/BplusErpDvSvrIIS31.dll';
-   
+  'http://192.168.0.110:38802/BplusErpDvSvrIIS31.dll';
+
 //  export const API_ENDPOINT_V3 =
 //    'http://192.168.0.110:8800/BplusVansalesV3/BplusErpDvSvrIIS31.dll';
 
-  //export const API_ENDPOINT_V3 =
-  //'http://192.168.0.110:8879/BplusVansalesV3/BplusErpDvSvrIIS.dll';
+//export const API_ENDPOINT_V3 =
+//'http://192.168.0.110:8879/BplusVansalesV3/BplusErpDvSvrIIS.dll';
 export const BPAPUS_BPAPSV = '{4c6be9a1-8692-436e-89d0-291aa876b559}';
 export const BPAPUS_MOBILE = '0999999999';
 export const fake_USERNAME = '';
 export const fake_Password = '';
+
+export const ApiVersion = 'v1';
 
 export const RPTSVR_GRANT = '{6C1850A9-1B1A-4E13-A5B9-E7E46C367FE4}';
 

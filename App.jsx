@@ -1,11 +1,13 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { Provider as ReduxProvider } from 'react-redux'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { applyMiddleware, createStore } from 'redux'
 import { thunk } from 'redux-thunk'
 
 import AppNavigator from './src/AppNavigator'
 import EventListenerHOC from './src/hoc/EventListenerHOC'
+import { queryClient } from './src/queryClient'
 import reducer from './src/reducer'
 
 const MainApp = EventListenerHOC(AppNavigator)
@@ -61,9 +63,11 @@ const styles = StyleSheet.create({
 
 const App = () => (
   <ErrorBoundary>
-    <ReduxProvider store={store}>
-      <MainApp />
-    </ReduxProvider>
+    <QueryClientProvider client={queryClient}>
+      <ReduxProvider store={store}>
+        <MainApp />
+      </ReduxProvider>
+    </QueryClientProvider>
   </ErrorBoundary>
 )
 

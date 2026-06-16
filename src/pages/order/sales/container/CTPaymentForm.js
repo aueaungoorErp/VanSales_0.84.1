@@ -46,6 +46,7 @@ import PaymentForm from '../presenter/PaymentForm';
 
 import { BPAPUS_BPAPSV } from '../../../../../appConfig';
 import { lookupErpV3Api } from '../../../../api/bPlusApi';
+import { useUpdateVanPosition } from '../../../../api/VanSalesServices/useTanStack';
 import {
   BPAPUS_LOOKUP_OT_REC_CODE,
   BPAPUS_LOOKUP_QR_CODE,
@@ -300,6 +301,53 @@ class CTPaymentForm extends Component {
 
   _getCompanyTaxIdNo = () => {
     return String(this.state.userToken?.COMPANYINFO?.CMPNY_REG_NO || '').trim();
+  };
+
+  _toCoordinateNumber = value => {
+    const parsedValue = Number(value);
+
+    return Number.isFinite(parsedValue) ? parsedValue : 0;
+  };
+
+  _syncCashSaleVanPosition = async () => {
+    try {
+      let position = this.props.geolocation?.position ?? null;
+
+      if (!position?.latitude || !position?.longitude) {
+        const currentPosition = await this.props.getCurrentPosition();
+        position = currentPosition?.coords
+          ? {
+              latitude: currentPosition.coords.latitude,
+              longitude: currentPosition.coords.longitude,
+            }
+          : position;
+      }
+
+      const vanCode = String(
+        this.state.userToken?.VANCONFIG?.VANCNF_MACHINE || '',
+      ).trim();
+      const driverName = String(
+        this.state.userToken?.SALESMAN?.SLMN_NAME || '',
+      ).trim();
+
+      if (!vanCode || !driverName) {
+        console.log(
+          '[VanSalesServices] skip cash_sale sync: missing van/driver',
+        );
+        return;
+      }
+
+      await this.props.updateVanPosition({
+        vanCode,
+        recordedTypeCode: 'cash_sale',
+        driverName,
+        latitude: this._toCoordinateNumber(position?.latitude),
+        longitude: this._toCoordinateNumber(position?.longitude),
+        recordedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.log('[VanSalesServices] updateVanPosition failed', error);
+    }
   };
 
   _showQrCreationError = message => {
@@ -1693,28 +1741,21 @@ class CTPaymentForm extends Component {
             //edcApproveCode: '',
           };
 
-          console.log('data: ', data);
-          console.log(
-            'data.invoice.invoiceDtl.items ',
-            data.invoice.invoiceDtl.items,
-          );
-          console.log(
-            'data.invoice.invoiceHdr.paidAmountDtl ',
-            data.invoice.invoiceHdr.paidAmountDtl,
-          );
           const postinvoice = await this.props.postinvoice(
             data,
             this.state.accessToken,
           );
-          console.log('postinvoice: ', postinvoice);
+
           const { txnStatusCode } = postinvoice;
           if (txnStatusCode === 200) {
+            await this._syncCashSaleVanPosition();
             Navigator.navigate('OrderSalesSummary', {
               actionType: 'orderProductSummaryProcessed',
               printType: 'cash',
             });
             this._setState('successMessage', 'ส่งรายการเรียบร้อย');
           } else {
+            await this._syncCashSaleVanPosition();
             Navigator.navigate('OrderSalesSummary', {
               actionType: 'orderProductSummaryProcessed',
               printType: 'cash',
@@ -1727,6 +1768,7 @@ class CTPaymentForm extends Component {
           this._setState('isLoading', false);
         }
       } else {
+        await this._syncCashSaleVanPosition();
         Navigator.navigate('OrderSalesSummary', {
           actionType: 'orderProductSummaryProcessed',
           printType: 'cash',
@@ -2305,7 +2347,12 @@ class CTPaymentForm extends Component {
       return;
     }
 
-    if (!amount || !taxIdNo || !this.state.bblQrCodeId || !this.state.bblReference2) {
+    if (
+      !amount ||
+      !taxIdNo ||
+      !this.state.bblQrCodeId ||
+      !this.state.bblReference2
+    ) {
       const incompleteMessage =
         'ข้อมูล BBL QR Payment ไม่ครบถ้วน กรุณาสร้าง QR Code ใหม่';
       this._setState('errorMessage', incompleteMessage);
@@ -3021,4 +3068,20 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(CTPaymentForm);
+const ConnectedCTPaymentForm = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(CTPaymentForm);
+
+const CTPaymentFormWithMutation = props => {
+  const updateVanPositionMutation = useUpdateVanPosition();
+
+  return (
+    <ConnectedCTPaymentForm
+      {...props}
+      updateVanPosition={updateVanPositionMutation.mutateAsync}
+    />
+  );
+};
+
+export default CTPaymentFormWithMutation;

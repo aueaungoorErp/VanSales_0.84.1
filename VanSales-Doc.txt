@@ -1,0 +1,5 @@
+location_record_types
+-- check_in   ล็อคอิน
+-- cash_sale   ขายสด
+-- credit_sale  ขายเชื้อ
+

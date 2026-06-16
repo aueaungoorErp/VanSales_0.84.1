@@ -6,6 +6,8 @@ import { normalizePaymentBaseUrl, normalizeWebServiceUrl } from './webService';
 
 let _settingConfigVanTimeRefreshPromise = null;
 let _settingConfigVanTimeLastRefresh = 0;
+const VAN_SALES_SERVICES_BASE_URL_KEY = '@VanSalesServicesBaseUrl';
+const LEGACY_BBL_PAYMENT_BASE_URL_KEY = '@BBLPaymentBaseUrl';
 
 const normalizeServiceSetting = item => {
   if (!item || typeof item !== 'object') {
@@ -109,7 +111,7 @@ export const getListServiceSetting = async () => {
 export const setBBLPaymentBaseUrl = async value => {
   try {
     return await storeData(
-      '@BBLPaymentBaseUrl',
+      VAN_SALES_SERVICES_BASE_URL_KEY,
       JSON.stringify(normalizePaymentBaseUrl(value)),
     );
   } catch (e) {
@@ -119,7 +121,11 @@ export const setBBLPaymentBaseUrl = async value => {
 
 export const getBBLPaymentBaseUrl = async () => {
   try {
-    const value = await retrieveData('@BBLPaymentBaseUrl');
+    let value = await retrieveData(VAN_SALES_SERVICES_BASE_URL_KEY);
+
+    if (value === null || value === undefined) {
+      value = await retrieveData(LEGACY_BBL_PAYMENT_BASE_URL_KEY);
+    }
 
     return normalizePaymentBaseUrl(value ? JSON.parse(value) : '');
   } catch (e) {
