@@ -77,12 +77,53 @@ class IDurationDateSearchForm extends Component {
     
     render() {
         const reportTitle = this.props.title || 'รายงานสรุปการขายประเภทสินค้า'
+        const inlineActionsWithFields = this.props.inlineActionsWithFields === true
+        const titleFullWidth = this.props.titleFullWidth === true
+
+        const actionButtons = (
+            <View style={[
+                styles.actionRow,
+                inlineActionsWithFields ? styles.actionRowInline : null,
+            ]}>
+                {this._renderActionButton({
+                    icon: 'search1',
+                    label: 'ค้นหารายงาน',
+                    onPress: () => this.props.onSearch ? this.props.onSearch(this.state.dateFrom, this.state.dateTo) : null,
+                    compact: true,
+                })}
+
+                {
+                    this.props.printEnabled ?
+                        this.props.printerType === 'BLUETOOTH' ?
+                            this._renderActionButton({
+                                icon: 'printer',
+                                label: 'พิมพ์ผ่านเครื่องพิมพ์',
+                                onPress: () => this.props.printerReport ? this.props.printerReport() : null,
+                                variant: 'secondary',
+                                compact: true,
+                            })
+                        :
+                            this._renderActionButton({
+                                icon: 'file-pdf',
+                                label: 'ส่งออก PDF',
+                                onPress: () => this.props.printPDF ? this.props.printPDF() : null,
+                                variant: 'secondary',
+                                compact: true,
+                                iconType: 'font-awesome-5',
+                            })
+                    : null
+                }
+            </View>
+        )
 
         return (
             <View style={styles.container}>
                 <View style={styles.formCard}>
                     <View style={styles.cardHeaderRow}>
-                        <View style={styles.titleWrap}>
+                        <View style={[
+                            styles.titleWrap,
+                            titleFullWidth ? styles.titleWrapFullWidth : null,
+                        ]}>
                             <Text
                                 allowFontScaling={false}
                                 style={styles.sectionTitle}>
@@ -90,39 +131,13 @@ class IDurationDateSearchForm extends Component {
                             </Text>
                         </View>
 
-                        <View style={styles.actionRow}>
-                            {this._renderActionButton({
-                                icon: 'search1',
-                                label: 'ค้นหารายงาน',
-                                onPress: () => this.props.onSearch ? this.props.onSearch(this.state.dateFrom, this.state.dateTo) : null,
-                                compact: true,
-                            })}
-
-                            {
-                                this.props.printEnabled ?
-                                    this.props.printerType === 'BLUETOOTH' ?
-                                        this._renderActionButton({
-                                            icon: 'printer',
-                                            label: 'พิมพ์ผ่านเครื่องพิมพ์',
-                                            onPress: () => this.props.printerReport ? this.props.printerReport() : null,
-                                            variant: 'secondary',
-                                            compact: true,
-                                        })
-                                    :
-                                        this._renderActionButton({
-                                            icon: 'file-pdf',
-                                            label: 'ส่งออก PDF',
-                                            onPress: () => this.props.printPDF ? this.props.printPDF() : null,
-                                            variant: 'secondary',
-                                            compact: true,
-                                            iconType: 'font-awesome-5',
-                                        })
-                                : null
-                            }
-                        </View>
+                        {!inlineActionsWithFields ? actionButtons : null}
                     </View>
 
-                    <View style={styles.sectionInline}>
+                    <View style={[
+                        styles.sectionInline,
+                        inlineActionsWithFields ? styles.sectionInlineWithActions : null,
+                    ]}>
                         <View style={styles.fieldCard}>
                             <IDatePicker
                                 label='จาก'
@@ -131,50 +146,56 @@ class IDurationDateSearchForm extends Component {
                                 onDateChange={this._onDateFromChange} />
                         </View>
 
-                        <View style={[styles.fieldCard, this.props.hideRight ? styles.fieldCardSingle : null]}>
-                            {
-                                !this.props.hideRight ?
-                                    <IDatePicker
-                                        label='ถึง'
-                                        value={this.state.dateTo}
-                                        hideBorder
-                                        onDateChange={this._onDateToChange} />
-                                : null
-                            }
-                            {
-                                this.props.showDropdown ?
-                                    <RNPickerSelect
-                                        items={this.props.selectItems}
-                                        onValueChange={(value) => { this.props.setState ? this.props.setState('selected', value) : null }}
-                                        style={{
-                                            iconContainer: {
-                                                top: 14,
-                                                right: 10,
-                                            },
-                                            inputAndroid: {
-                                                color: '#000000',
-                                                paddingTop: 15,
-                                                paddingBottom: 12,
-                                                paddingHorizontal: 4,
-                                                fontSize: hp('1.7%')
-                                            }
-                                        }}
-                                        value={this.props.selected}
-                                        placeholder={{
-                                            label: 'เลือก',
-                                            value: null
-                                        }}
-                                        textInputProps={{ underlineColorAndroid: 'cyan' }}
-                                        useNativeAndroidPickerStyle={false}
-                                        Icon={() => {
-                                            return <AntDesign
-                                                name='down'
-                                                size={20}
-                                                color={MainTheme.colorPrimary} />
-                                        }} />
-                                : null
-                            }
-                        </View>
+                        {
+                            !this.props.hideRight || this.props.showDropdown ? (
+                                <View style={[styles.fieldCard, this.props.hideRight ? styles.fieldCardSingle : null]}>
+                                    {
+                                        !this.props.hideRight ?
+                                            <IDatePicker
+                                                label='ถึง'
+                                                value={this.state.dateTo}
+                                                hideBorder
+                                                onDateChange={this._onDateToChange} />
+                                        : null
+                                    }
+                                    {
+                                        this.props.showDropdown ?
+                                            <RNPickerSelect
+                                                items={this.props.selectItems}
+                                                onValueChange={(value) => { this.props.setState ? this.props.setState('selected', value) : null }}
+                                                style={{
+                                                    iconContainer: {
+                                                        top: 14,
+                                                        right: 10,
+                                                    },
+                                                    inputAndroid: {
+                                                        color: '#000000',
+                                                        paddingTop: 15,
+                                                        paddingBottom: 12,
+                                                        paddingHorizontal: 4,
+                                                        fontSize: hp('1.7%')
+                                                    }
+                                                }}
+                                                value={this.props.selected}
+                                                placeholder={{
+                                                    label: 'เลือก',
+                                                    value: null
+                                                }}
+                                                textInputProps={{ underlineColorAndroid: 'cyan' }}
+                                                useNativeAndroidPickerStyle={false}
+                                                Icon={() => {
+                                                    return <AntDesign
+                                                        name='down'
+                                                        size={20}
+                                                        color={MainTheme.colorPrimary} />
+                                                }} />
+                                        : null
+                                    }
+                                </View>
+                            ) : null
+                        }
+
+                        {inlineActionsWithFields ? actionButtons : null}
                     </View>
 
                 </View>
@@ -244,11 +265,17 @@ const styles = StyleSheet.create({
         paddingRight: 12,
         justifyContent: 'center',
     },
+    titleWrapFullWidth: {
+        paddingRight: 0,
+    },
     sectionInline: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'stretch',
         marginHorizontal: -2,
+    },
+    sectionInlineWithActions: {
+        alignItems: 'center',
     },
     fieldCard: {
         flex: 1,
@@ -271,6 +298,10 @@ const styles = StyleSheet.create({
         flexShrink: 0,
         marginLeft: 'auto',
         paddingTop: 2,
+    },
+    actionRowInline: {
+        marginLeft: 8,
+        paddingTop: 0,
     },
     actionButton: {
         flex: 1,

@@ -1,25 +1,26 @@
+import { VanSalesBaseUrl } from './vansales-services';
+import { getLoginGuID, getVanSalesWebServiceUrl } from '../../utils/Token';
+import { normalizePaymentBaseUrl } from '../../utils/webService';
 import axios from 'axios';
 import * as appConfig from '../../../appConfig';
-import { getVanSalesWebServiceUrl, getLoginGuID } from '../../utils/Token';
-import { normalizePaymentBaseUrl } from '../../utils/webService';
-import type { updateVanPositionParam } from './param-request';
-export const VanSalesBaseUrl = (baseUrl: string) =>
-  `${baseUrl}/api/${appConfig.ApiVersion}/`;
+import { customerReportPerformanceParam } from './param-request';
 
-export const updateVanPosition = async (critial: updateVanPositionParam) => {
+export const customerReportPerformance = async (
+  critial: customerReportPerformanceParam,
+) => {
   try {
     const storedBaseUrl = await getVanSalesWebServiceUrl();
     const loginGuid = await getLoginGuID();
+
     const normalizedBaseUrl = normalizePaymentBaseUrl(storedBaseUrl);
 
     if (!normalizedBaseUrl) {
       throw new Error('ไม่พบ VanSalesServicesBaseUrl');
     }
 
-    const url = VanSalesBaseUrl(normalizedBaseUrl) + 'vehicle-locations';
-
-    console.log('requestPayload', critial);
-    console.log('baseUrlaaa', url, loginGuid);
+    const url =
+      VanSalesBaseUrl(normalizedBaseUrl) +
+      '/erp/reports/customer-line-performance';
 
     const response = await axios.post(url, critial, {
       timeout: appConfig.REQUEST_TIMEOUT_MS,
@@ -28,12 +29,8 @@ export const updateVanPosition = async (critial: updateVanPositionParam) => {
         'x-erp-login-guid': loginGuid ?? '',
       },
     });
-
-    console.log('responseaaa', response);
-
-    return response.data;
   } catch (error: any) {
-    console.log('[VanSalesServices] updateVanPosition failed', {
+    console.log('[VanSalesServices] customerReportPerformance failed', {
       message: error?.message,
       status: error?.response?.status,
       data: error?.response?.data,

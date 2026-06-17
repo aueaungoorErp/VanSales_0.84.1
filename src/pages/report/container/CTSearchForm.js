@@ -629,10 +629,15 @@ class CTSearchForm extends Component {
     const wareLocationListItems = this.props.masterData.wareLocationListItems.map(
       (item) => ({label: item.WL_NAME, value: item.WL_KEY}),
     );
+    const useInlineReportLayout =
+      this.state.reportParams.type === 'SalesOrderBySaleman' ||
+      this.state.reportParams.type === 'StockBalanceByWL';
 
     return (
       <IDurationDateSearchForm
         title={this.state.reportParams.title}
+        inlineActionsWithFields={useInlineReportLayout}
+        titleFullWidth={useInlineReportLayout}
         hideRight={this.state.reportParams.seachForm === 'B' ? true : false}
         // showDropdown={this.state.reportParams.type === 'StockBalanceByWL'}
         selected={this.state.selected}

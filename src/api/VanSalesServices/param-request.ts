@@ -6,3 +6,9 @@ export type updateVanPositionParam = {
   longitude: number;
   recordedAt?: string;
 };
+
+export type customerReportPerformanceParam = {
+  fromDate: string;
+  toDate: string;
+  vanCode: string;
+};

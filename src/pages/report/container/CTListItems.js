@@ -1,6 +1,13 @@
 import React, { Component } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
 import ErrorMessage from '../../../component/announce/ErrorMessage';
 import IButtonGroup from '../../../component/button/IButtonGroup';
@@ -110,33 +117,25 @@ class CTListItems extends Component {
           ? MainTheme.colorSecondary
           : MainTheme.colorPrimary
       }
-      size={24}
+      size={20}
     />
   );
   _gridButton = () => (
-    <AntDesign
-      name="percentage"
+    <MaterialCommunityIcons
+      name="percent"
       color={
         this.state.selectedIndex == 1
           ? MainTheme.colorSecondary
           : MainTheme.colorPrimary
       }
-      size={24}
+      size={20}
     />
   );
 
   _buttons = [{element: this._listButton}, {element: this._gridButton}];
 
   _renderViewToggle = () => (
-    <View style={styles.toggleSection}>
-      <View style={styles.toggleHeader}>
-        <Text style={styles.toggleTitle} allowFontScaling={false}>
-          รูปแบบการแสดงผล
-        </Text>
-        <Text style={styles.toggleSubtitle} allowFontScaling={false}>
-          สลับดูยอดรวมและเปอร์เซ็นต์
-        </Text>
-      </View>
+    <View style={styles.toggleActionRow}>
       <IButtonGroup
         buttons={this._buttons}
         selectedIndex={this.state.selectedIndex}
@@ -473,43 +472,23 @@ const styles = StyleSheet.create({
   contentArea: {
     flex: 1,
   },
-  toggleSection: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#DCE7E1',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+  toggleActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
     marginBottom: 10,
-    shadowColor: '#173126',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  toggleHeader: {
-    marginBottom: 10,
-  },
-  toggleTitle: {
-    color: '#355244',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  toggleSubtitle: {
-    color: '#6C8478',
-    fontSize: 12,
-    marginTop: 2,
   },
   toggleButtonGroup: {
     flex: 0,
-    width: 150,
-    height: 42,
+    width: 126,
+    height: 36,
     borderRadius: 999,
+    borderWidth: 1,
     borderColor: '#BFD5C8',
     backgroundColor: '#F2F7F4',
   },
   toggleButton: {
     backgroundColor: '#F2F7F4',
+    paddingVertical: 6,
   },
   toggleButtonSelected: {
     backgroundColor: MainTheme.colorPrimary,
