@@ -48,7 +48,9 @@ const createLocalId = () =>
 const normalizeApiKeys = (value: unknown): string[] => {
   if (Array.isArray(value)) {
     return value
-      .map(item => (item === null || item === undefined ? '' : String(item).trim()))
+      .map(item =>
+        item === null || item === undefined ? '' : String(item).trim(),
+      )
       .filter(item => item !== '')
       .slice(0, 3);
   }
@@ -588,7 +590,9 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
 
   const onChangeApiKey = (index: number, value: string) => {
     setApiKeys(currentKeys =>
-      currentKeys.map((item, itemIndex) => (itemIndex === index ? value : item)),
+      currentKeys.map((item, itemIndex) =>
+        itemIndex === index ? value : item,
+      ),
     );
     setApiKeyValidations(current => {
       const nextValidations = { ...current };
@@ -609,7 +613,9 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
 
   const onRemoveApiKey = (index: number) => {
     setApiKeys(currentKeys => {
-      const nextKeys = currentKeys.filter((_, itemIndex) => itemIndex !== index);
+      const nextKeys = currentKeys.filter(
+        (_, itemIndex) => itemIndex !== index,
+      );
       return nextKeys.length > 0 ? nextKeys : [''];
     });
     setApiKeyValidations(current => {

@@ -166,8 +166,8 @@ const normalizeLongdoConfigsFromConfig = (
   const normalizedKeys = Array.isArray(apiKeys)
     ? apiKeys
     : apiKey
-      ? [apiKey]
-      : [];
+    ? [apiKey]
+    : [];
 
   return normalizedKeys
     .map(item => String(item ?? '').trim())
@@ -312,124 +312,133 @@ const SettingForm: React.FC<SettingFormProps> = props => {
     });
   };
 
-  const assessLongdoApiKeys = useCallback(async (): Promise<LongdoKeyAssessment> => {
-    const keysToValidate = longdoApiKeyConfigs
-      .map((item, index) => ({
-        key: String(item?.key ?? '').trim(),
-        index,
-      }))
-      .filter(item => item.key !== '');
-    const duplicateIndexes = getDuplicateLongdoKeyIndexes(longdoApiKeyConfigs);
-
-    if (keysToValidate.length === 0) {
-      setLongdoKeyValidations({});
-      return {
-        failedResults: [],
-        hasAnyKey: false,
-      };
-    }
-
-    if (duplicateIndexes.length > 0) {
-      const nextValidations: Record<number, LongdoKeyValidation> = {};
-      duplicateIndexes.forEach(index => {
-        nextValidations[index] = {
-          status: 'invalid',
-          message: 'API Key ซ้ำกับช่องอื่น',
-        };
-      });
-      setLongdoKeyValidations(nextValidations);
-
-      return {
-        failedResults: duplicateIndexes.map(index => ({
+  const assessLongdoApiKeys =
+    useCallback(async (): Promise<LongdoKeyAssessment> => {
+      const keysToValidate = longdoApiKeyConfigs
+        .map((item, index) => ({
+          key: String(item?.key ?? '').trim(),
           index,
-          result: {
-            status: 'invalid' as const,
-            message: 'API Key ซ้ำกับช่องอื่น',
-            key: String(longdoApiKeyConfigs[index]?.key ?? '').trim(),
-            httpStatus: null,
-          },
-        })),
-        hasAnyKey: true,
-      };
-    }
+        }))
+        .filter(item => item.key !== '');
+      const duplicateIndexes =
+        getDuplicateLongdoKeyIndexes(longdoApiKeyConfigs);
 
-    setIsTestingLongdoKeys(true);
-
-    try {
-      const results = await Promise.all(
-        keysToValidate.map(async item => ({
-          ...item,
-          result: await testLongdoMapApiKey(item.key),
-        })),
-      );
-      const nextValidations: Record<number, LongdoKeyValidation> = {};
-      const failedResults = results.filter(item => {
-        const failed = item.result.status !== 'success';
-        nextValidations[item.index] = {
-          status: item.result.status,
-          message: item.result.message,
+      if (keysToValidate.length === 0) {
+        setLongdoKeyValidations({});
+        return {
+          failedResults: [],
+          hasAnyKey: false,
         };
+      }
 
-        return failed;
-      });
-
-      setLongdoKeyValidations(nextValidations);
-      const nextConfigs = longdoApiKeyConfigs.map((item, index) => {
-        const result = results.find(resultItem => resultItem.index === index);
-
-        if (!result) {
-          return item;
-        }
+      if (duplicateIndexes.length > 0) {
+        const nextValidations: Record<number, LongdoKeyValidation> = {};
+        duplicateIndexes.forEach(index => {
+          nextValidations[index] = {
+            status: 'invalid',
+            message: 'API Key ซ้ำกับช่องอื่น',
+          };
+        });
+        setLongdoKeyValidations(nextValidations);
 
         return {
-          ...item,
-          outoflimit: result.result.status === 'limit',
+          failedResults: duplicateIndexes.map(index => ({
+            index,
+            result: {
+              status: 'invalid' as const,
+              message: 'API Key ซ้ำกับช่องอื่น',
+              key: String(longdoApiKeyConfigs[index]?.key ?? '').trim(),
+              httpStatus: null,
+            },
+          })),
+          hasAnyKey: true,
         };
-      });
-      setLongdoApiKeyConfigsState(nextConfigs);
-      await persistLongdoApiKeyConfigs(nextConfigs, config.vanCNFMachine ?? null);
+      }
 
-      return {
-        failedResults,
-        hasAnyKey: true,
-      };
-    } finally {
-      setIsTestingLongdoKeys(false);
-    }
-  }, [config.vanCNFMachine, longdoApiKeyConfigs]);
+      setIsTestingLongdoKeys(true);
 
-  const applySelectedService = useCallback(async (
-    selectedService: ServiceSetting | null | undefined,
-    nextValueOverride: string | null = null,
-  ) => {
-    if (!selectedService) {
-      return;
-    }
+      try {
+        const results = await Promise.all(
+          keysToValidate.map(async item => ({
+            ...item,
+            result: await testLongdoMapApiKey(item.key),
+          })),
+        );
+        const nextValidations: Record<number, LongdoKeyValidation> = {};
+        const failedResults = results.filter(item => {
+          const failed = item.result.status !== 'success';
+          nextValidations[item.index] = {
+            status: item.result.status,
+            message: item.result.message,
+          };
 
-    const nextValue = nextValueOverride ?? selectedService.value ?? null;
-    const normalizedApiKeys = Array.isArray(selectedService.API_KEYS)
-      ? selectedService.API_KEYS
-      : selectedService.API_KEY
+          return failed;
+        });
+
+        setLongdoKeyValidations(nextValidations);
+        const nextConfigs = longdoApiKeyConfigs.map((item, index) => {
+          const result = results.find(resultItem => resultItem.index === index);
+
+          if (!result) {
+            return item;
+          }
+
+          return {
+            ...item,
+            outoflimit: result.result.status === 'limit',
+          };
+        });
+        setLongdoApiKeyConfigsState(nextConfigs);
+        await persistLongdoApiKeyConfigs(
+          nextConfigs,
+          config.vanCNFMachine ?? null,
+        );
+
+        return {
+          failedResults,
+          hasAnyKey: true,
+        };
+      } finally {
+        setIsTestingLongdoKeys(false);
+      }
+    }, [config.vanCNFMachine, longdoApiKeyConfigs]);
+
+  const applySelectedService = useCallback(
+    async (
+      selectedService: ServiceSetting | null | undefined,
+      nextValueOverride: string | null = null,
+    ) => {
+      if (!selectedService) {
+        return;
+      }
+
+      const nextValue = nextValueOverride ?? selectedService.value ?? null;
+      const normalizedApiKeys = Array.isArray(selectedService.API_KEYS)
+        ? selectedService.API_KEYS
+        : selectedService.API_KEY
         ? [selectedService.API_KEY]
         : [];
-    const { webURL, number, USER_CODE, USER_PASSWORD, API_KEY } = selectedService;
+      const { webURL, number, USER_CODE, USER_PASSWORD, API_KEY } =
+        selectedService;
 
-    if (nextValue) {
-      setService(nextValue);
-    }
+      if (nextValue) {
+        setService(nextValue);
+      }
 
-    await onApplyConfig({
-      ...config,
-      baseUrl: webURL ?? null,
-      vanCNFMachine: number ?? null,
-      USER_CODE: USER_CODE ?? null,
-      USER_PASSWORD: USER_PASSWORD ?? null,
-      API_KEY: API_KEY ?? normalizedApiKeys[0] ?? null,
-      API_KEYS: normalizedApiKeys,
-      SALESMAN: null,
-      VANCONFIG: null,
-    });
-  }, [config]);
+      await onApplyConfig({
+        ...config,
+        baseUrl: webURL ?? null,
+        vanCNFMachine: number ?? null,
+        USER_CODE: USER_CODE ?? null,
+        USER_PASSWORD: USER_PASSWORD ?? null,
+        API_KEY: API_KEY ?? normalizedApiKeys[0] ?? null,
+        API_KEYS: normalizedApiKeys,
+        SALESMAN: null,
+        VANCONFIG: null,
+      });
+    },
+    [config],
+  );
 
   useEffect(() => {
     const loadSettingConfig = async () => {
@@ -452,9 +461,10 @@ const SettingForm: React.FC<SettingFormProps> = props => {
         config.API_KEYS ?? null,
         config.API_KEY ?? null,
       );
-      const nextConfigs = Array.isArray(storedConfigs) && storedConfigs.length > 0
-        ? storedConfigs
-        : fallbackConfigs;
+      const nextConfigs =
+        Array.isArray(storedConfigs) && storedConfigs.length > 0
+          ? storedConfigs
+          : fallbackConfigs;
 
       setLongdoApiKeyConfigsState(normalizeLongdoConfigsForUi(nextConfigs));
     };
@@ -505,130 +515,131 @@ const SettingForm: React.FC<SettingFormProps> = props => {
     };
   }, [baseUrl, navigation, vanCNFMachine]);
 
-  const onConfirmConnection = useCallback(async (
-    configOverride: ConfigState | null = null,
-  ) => {
-    try {
-      if (isLoading) {
-        return;
-      }
-
-      const currentConfig = configOverride ?? config;
-
-      setIsLoading(true);
-      onSetErrorMessage(null);
-      onSetSuccessMessage(null);
-
-      const longdoKeyAssessment = await assessLongdoApiKeys();
-      if (!longdoKeyAssessment.hasAnyKey) {
-        const confirmed = await confirmConnectWithoutLongdoApiKey();
-        if (!confirmed) {
-          setIsLoading(false);
+  const onConfirmConnection = useCallback(
+    async (configOverride: ConfigState | null = null) => {
+      try {
+        if (isLoading) {
           return;
         }
-      } else if (longdoKeyAssessment.failedResults.length > 0) {
-        const confirmed = await confirmConnectWithInvalidLongdoApiKey();
-        if (!confirmed) {
-          setIsLoading(false);
-          return;
-        }
-      }
 
-      const response = await systemCheck2(currentConfig);
-      const { ResponseData, RESPONSE_DATETIME } = response;
-      const responseData = JSON.parse(ResponseData);
+        const currentConfig = configOverride ?? config;
 
-      if (!RESPONSE_DATETIME) {
-        onSetErrorMessage('ไม่พบหน่วยรถ ' + currentConfig.vanCNFMachine);
-      } else if (responseData?.BPAPUS_KEY && responseData?.BPAPUS_GUID) {
-        const response2 = await getVanConfigV3(
-          currentConfig.vanCNFMachine ?? '',
-        );
+        setIsLoading(true);
+        onSetErrorMessage(null);
+        onSetSuccessMessage(null);
 
-        if (response2) {
-          const response3 = await getSaleManV3(
-            responseData.BPAPUS_GUID,
-            response2.VANCNF_SLMN,
-          );
-          const responseData3 = JSON.parse(response3.ResponseData);
-          const salesman =
-            responseData3?.SaleMan ??
-            (Array.isArray(responseData3?.SL000130)
-              ? responseData3.SL000130[0]
-              : null);
-
-          if (
-            response3.ResponseCode == 200 &&
-            responseData3.RECORD_COUNT != '0'
-          ) {
-            const nextConfig = {
-              ...currentConfig,
-              SALESMAN: salesman,
-              VANCONFIG: response2,
-            };
-            const userToken = await getUserToken();
-
-            setConfig(nextConfig);
-            await setSettingConfig(nextConfig);
-            await setUserToken({
-              ...(userToken ?? {}),
-              SALESMAN: salesman,
-              VANCONFIG: response2,
-            });
-
-            onSetSuccessMessage(strings('login_setting.connect_success'));
-            props.onConnnect?.(true);
-
-            const serviceToSave =
-              service ||
-              listServiceSettings.find(
-                item => item.number === currentConfig.vanCNFMachine,
-              )?.value ||
-              currentConfig.vanCNFMachine;
-            if (serviceToSave) {
-              await setLoginInfo({ service: serviceToSave });
-            }
-
-            try {
-              await unRegister();
-            } catch (unregisterError) {
-              console.log('_systemCheck unRegister warning', unregisterError);
-            }
-
+        const longdoKeyAssessment = await assessLongdoApiKeys();
+        if (!longdoKeyAssessment.hasAnyKey) {
+          const confirmed = await confirmConnectWithoutLongdoApiKey();
+          if (!confirmed) {
             setIsLoading(false);
             return;
           }
-
-          onSetErrorMessage(response3.ReasonString);
-        } else {
-          onSetErrorMessage(
-            'ไม่พบข้อมูลหน่วยรถ ' +
-              currentConfig.vanCNFMachine +
-              ' กรุณาตรวจสอบการตั้งค่า',
-          );
+        } else if (longdoKeyAssessment.failedResults.length > 0) {
+          const confirmed = await confirmConnectWithInvalidLongdoApiKey();
+          if (!confirmed) {
+            setIsLoading(false);
+            return;
+          }
         }
-      } else {
-        onSetErrorMessage(response.ReasonString);
-      }
 
-      setIsLoading(false);
-    } catch (error: any) {
-      setIsLoading(false);
-      onSetErrorMessage(error?.message ?? 'เชื่อมต่อระบบไม่สำเร็จ');
-      props.onConnnect?.(false);
-    }
-  }, [
-    config,
-    getSaleManV3,
-    getVanConfigV3,
-    isLoading,
-    listServiceSettings,
-    props,
-    service,
-    systemCheck2,
-    unRegister,
-    assessLongdoApiKeys,
-  ]);
+        const response = await systemCheck2(currentConfig);
+        const { ResponseData, RESPONSE_DATETIME } = response;
+        const responseData = JSON.parse(ResponseData);
+
+        if (!RESPONSE_DATETIME) {
+          onSetErrorMessage('ไม่พบหน่วยรถ ' + currentConfig.vanCNFMachine);
+        } else if (responseData?.BPAPUS_KEY && responseData?.BPAPUS_GUID) {
+          const response2 = await getVanConfigV3(
+            currentConfig.vanCNFMachine ?? '',
+          );
+
+          if (response2) {
+            const response3 = await getSaleManV3(
+              responseData.BPAPUS_GUID,
+              response2.VANCNF_SLMN,
+            );
+            const responseData3 = JSON.parse(response3.ResponseData);
+            const salesman =
+              responseData3?.SaleMan ??
+              (Array.isArray(responseData3?.SL000130)
+                ? responseData3.SL000130[0]
+                : null);
+
+            if (
+              response3.ResponseCode == 200 &&
+              responseData3.RECORD_COUNT != '0'
+            ) {
+              const nextConfig = {
+                ...currentConfig,
+                SALESMAN: salesman,
+                VANCONFIG: response2,
+              };
+              const userToken = await getUserToken();
+
+              setConfig(nextConfig);
+              await setSettingConfig(nextConfig);
+              await setUserToken({
+                ...(userToken ?? {}),
+                SALESMAN: salesman,
+                VANCONFIG: response2,
+              });
+
+              onSetSuccessMessage(strings('login_setting.connect_success'));
+              props.onConnnect?.(true);
+
+              const serviceToSave =
+                service ||
+                listServiceSettings.find(
+                  item => item.number === currentConfig.vanCNFMachine,
+                )?.value ||
+                currentConfig.vanCNFMachine;
+              if (serviceToSave) {
+                await setLoginInfo({ service: serviceToSave });
+              }
+
+              try {
+                await unRegister();
+              } catch (unregisterError) {
+                console.log('_systemCheck unRegister warning', unregisterError);
+              }
+
+              setIsLoading(false);
+              return;
+            }
+
+            onSetErrorMessage(response3.ReasonString);
+          } else {
+            onSetErrorMessage(
+              'ไม่พบข้อมูลหน่วยรถ ' +
+                currentConfig.vanCNFMachine +
+                ' กรุณาตรวจสอบการตั้งค่า',
+            );
+          }
+        } else {
+          onSetErrorMessage(response.ReasonString);
+        }
+
+        setIsLoading(false);
+      } catch (error: any) {
+        setIsLoading(false);
+        onSetErrorMessage(error?.message ?? 'เชื่อมต่อระบบไม่สำเร็จ');
+        props.onConnnect?.(false);
+      }
+    },
+    [
+      config,
+      getSaleManV3,
+      getVanConfigV3,
+      isLoading,
+      listServiceSettings,
+      props,
+      service,
+      systemCheck2,
+      unRegister,
+      assessLongdoApiKeys,
+    ],
+  );
 
   const onClearConfig = async () => {
     await removeSettingConfig();
@@ -658,8 +669,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
 
       Object.keys(nextValidations).forEach(key => {
         if (
-          nextValidations[Number(key)]?.message ===
-          'API Key ซ้ำกับช่องอื่น'
+          nextValidations[Number(key)]?.message === 'API Key ซ้ำกับช่องอื่น'
         ) {
           delete nextValidations[Number(key)];
         }
@@ -682,7 +692,10 @@ const SettingForm: React.FC<SettingFormProps> = props => {
       return;
     }
 
-    const nextConfigs = [...longdoApiKeyConfigs, createDefaultLongdoApiKeyConfig()];
+    const nextConfigs = [
+      ...longdoApiKeyConfigs,
+      createDefaultLongdoApiKeyConfig(),
+    ];
     setLongdoApiKeyConfigsState(nextConfigs);
   };
 
@@ -707,32 +720,36 @@ const SettingForm: React.FC<SettingFormProps> = props => {
     void persistLongdoApiKeyConfigs(nextConfigs);
   };
 
-  const validateLongdoApiKeys = useCallback(async (
-    showSuccessAlert = false,
-  ) => {
-    const { failedResults, hasAnyKey } = await assessLongdoApiKeys();
+  const validateLongdoApiKeys = useCallback(
+    async (showSuccessAlert = false) => {
+      const { failedResults, hasAnyKey } = await assessLongdoApiKeys();
 
-    if (!hasAnyKey) {
-      Alert.alert('ไม่สำเร็จ', 'กรุณาระบุ Longdo Map API Key อย่างน้อย 1 ช่อง');
-      return false;
-    }
+      if (!hasAnyKey) {
+        Alert.alert(
+          'ไม่สำเร็จ',
+          'กรุณาระบุ Longdo Map API Key อย่างน้อย 1 ช่อง',
+        );
+        return false;
+      }
 
-    if (failedResults.length > 0) {
-      Alert.alert(
-        'ตรวจสอบ Longdo API Key',
-        failedResults
-          .map(item => `ช่องที่ ${item.index + 1}: ${item.result.message}`)
-          .join('\n'),
-      );
-      return false;
-    }
+      if (failedResults.length > 0) {
+        Alert.alert(
+          'ตรวจสอบ Longdo API Key',
+          failedResults
+            .map(item => `ช่องที่ ${item.index + 1}: ${item.result.message}`)
+            .join('\n'),
+        );
+        return false;
+      }
 
-    if (showSuccessAlert) {
-      Alert.alert('สำเร็จ', 'Longdo Map API Key ใช้งานได้ทั้งหมด');
-    }
+      if (showSuccessAlert) {
+        Alert.alert('สำเร็จ', 'Longdo Map API Key ใช้งานได้ทั้งหมด');
+      }
 
-    return true;
-  }, [assessLongdoApiKeys]);
+      return true;
+    },
+    [assessLongdoApiKeys],
+  );
 
   const onChangeService = async (value: string | null) => {
     if (value === 'add') {
@@ -918,10 +935,10 @@ const SettingForm: React.FC<SettingFormProps> = props => {
           const statusText = validation
             ? validation.message
             : !String(apiKeyConfig.key ?? '').trim()
-              ? 'ยังไม่ได้กำหนด'
-              : apiKeyConfig.outoflimit
-                ? 'limit เต็ม'
-                : 'ยังไม่ทดสอบ';
+            ? 'ยังไม่ได้กำหนด'
+            : apiKeyConfig.outoflimit
+            ? 'limit เต็ม'
+            : 'ยังไม่ทดสอบ';
 
           return (
             <View key={`longdo-api-key-${index}`} style={styles.fieldBlock}>
@@ -958,8 +975,8 @@ const SettingForm: React.FC<SettingFormProps> = props => {
                   hasSuccess
                     ? styles.keySuccessText
                     : hasError
-                      ? styles.keyErrorText
-                      : styles.keyNeutralText,
+                    ? styles.keyErrorText
+                    : styles.keyNeutralText,
                 ]}
               >
                 {statusText}
@@ -982,7 +999,6 @@ const SettingForm: React.FC<SettingFormProps> = props => {
             });
           }}
         />
-
       </View>
 
       <View style={styles.sectionCard}>
