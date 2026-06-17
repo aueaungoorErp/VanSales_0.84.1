@@ -25,6 +25,7 @@ import {
   getListServiceSetting,
   getVanSalesWebServiceUrl,
   saveListServiceSetting,
+  setLongdoMapApiKeyConfigs,
   setVanSalesWebServiceUrl,
 } from '../../../../utils/Token';
 import {
@@ -408,6 +409,10 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
 
         list.push(savedService);
         await saveListServiceSetting(list);
+        await setLongdoMapApiKeyConfigs(
+          normalizedApiKeys.map(key => ({ key, outoflimit: false })),
+          number || null,
+        );
         await setVanSalesWebServiceUrl(normalizedVanSalesServiceUrl);
         setService?.(uuid);
         await applySelectedService?.(savedService, uuid);
@@ -508,6 +513,10 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
         const savedService: ServiceSettingItem = { ...config[objIndex] };
 
         await saveListServiceSetting(config);
+        await setLongdoMapApiKeyConfigs(
+          normalizedApiKeys.map(key => ({ key, outoflimit: false })),
+          number || null,
+        );
         await setVanSalesWebServiceUrl(normalizedVanSalesServiceUrl);
         setService?.(_webServiceKey);
         await applySelectedService?.(savedService, _webServiceKey);

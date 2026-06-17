@@ -159,6 +159,26 @@ const normalizeLongdoConfigsForUi = (
   return configs.length > 0 ? configs : [createDefaultLongdoApiKeyConfig()];
 };
 
+const normalizeLongdoConfigsFromConfig = (
+  apiKeys?: string[] | null,
+  apiKey?: string | null,
+): LongdoApiKeyConfig[] => {
+  const normalizedKeys = Array.isArray(apiKeys)
+    ? apiKeys
+    : apiKey
+      ? [apiKey]
+      : [];
+
+  return normalizedKeys
+    .map(item => String(item ?? '').trim())
+    .filter(item => item !== '')
+    .slice(0, 3)
+    .map(item => ({
+      key: item,
+      outoflimit: false,
+    }));
+};
+
 const getDuplicateLongdoKeyIndexes = (configs: LongdoApiKeyConfig[]) => {
   const indexesByKey: Record<string, number[]> = {};
 
@@ -428,11 +448,19 @@ const SettingForm: React.FC<SettingFormProps> = props => {
       const storedConfigs = await (getLongdoMapApiKeyConfigs as any)(
         config.vanCNFMachine ?? null,
       );
-      setLongdoApiKeyConfigsState(normalizeLongdoConfigsForUi(storedConfigs));
+      const fallbackConfigs = normalizeLongdoConfigsFromConfig(
+        config.API_KEYS ?? null,
+        config.API_KEY ?? null,
+      );
+      const nextConfigs = Array.isArray(storedConfigs) && storedConfigs.length > 0
+        ? storedConfigs
+        : fallbackConfigs;
+
+      setLongdoApiKeyConfigsState(normalizeLongdoConfigsForUi(nextConfigs));
     };
 
     void loadLongdoApiKeys();
-  }, [config.vanCNFMachine]);
+  }, [config.API_KEY, config.API_KEYS, config.vanCNFMachine]);
 
   useEffect(() => {
     let isMounted = true;
