@@ -14,11 +14,13 @@ import axios from 'axios';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import * as appConfig from '../../../../../appConfig';
 import { systemCheckApi2 } from '../../../../api/setting';
+import IActionButton from '../../../../component/button/IActionButton';
 import ILoading from '../../../../component/loading/ILoading';
 import ITextWithErrorMessage from '../../../../component/text/ITextWithErrorMessage';
 import { MainTheme } from '../../../../constant/lov';
 import { strings } from '../../../../locales/i18n';
 import Navigator from '../../../../services/Navigator';
+import { testLongdoMapApiKey } from '../../../../services/longdomap';
 import {
   getListServiceSetting,
   getVanSalesWebServiceUrl,
@@ -42,6 +44,22 @@ const DEFAULT_VANSALES_SERVICE_URL = '';
 const createLocalId = () =>
   `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
+const normalizeApiKeys = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map(item => (item === null || item === undefined ? '' : String(item).trim()))
+      .filter(item => item !== '')
+      .slice(0, 3);
+  }
+
+  if (value === null || value === undefined) {
+    return [];
+  }
+
+  const singleValue = String(value).trim();
+  return singleValue ? [singleValue] : [];
+};
+
 const toInputValue = (value: string | null | undefined) => {
   if (value === null || value === undefined) {
     return '';
@@ -62,6 +80,8 @@ type ServiceSettingItem = {
   number?: string | null;
   USER_CODE?: string | null;
   USER_PASSWORD?: string | null;
+  API_KEY?: string | null;
+  API_KEYS?: string[] | null;
 };
 
 type ApplySelectedService = (
@@ -77,6 +97,8 @@ type ServiceSettingRouteParams = {
   _number: string | null;
   _user_code: string | null;
   _user_password: string | null;
+  _api_key: string | null;
+  _api_keys?: string[] | null;
   setService?: Dispatch<SetStateAction<string | null>>;
   applySelectedService?: ApplySelectedService;
 };
@@ -85,6 +107,19 @@ type ServiceSettingProps = {
   route: {
     params: ServiceSettingRouteParams;
   };
+};
+
+type ApiKeyValidation = {
+  status: 'success' | 'limit' | 'invalid' | 'error';
+  message: string;
+};
+
+type ApiKeyAssessment = {
+  failedResults: Array<{
+    index: number;
+    result: ApiKeyValidation & { key?: string; httpStatus?: number | null };
+  }>;
+  hasAnyKey: boolean;
 };
 
 const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
@@ -96,6 +131,8 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     _number,
     _user_code,
     _user_password,
+    _api_key,
+    _api_keys,
     setService,
     applySelectedService,
   } = props.route.params;
@@ -106,6 +143,10 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
   );
   const [userCode, setUserCode] = useState(_user_code || '');
   const [userPassword, setUserPassword] = useState(_user_password || '');
+  const [apiKeys, setApiKeys] = useState<string[]>(() => {
+    const normalized = normalizeApiKeys(_api_keys ?? _api_key);
+    return normalized.length > 0 ? normalized : [''];
+  });
   const [serviceName, setServiceName] = useState(_serviceName || '');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -116,6 +157,10 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
   );
   const [databaseUrlError, setDatabaseUrlError] = useState(false);
   const [vanSalesUrlError, setVanSalesUrlError] = useState(false);
+  const [apiKeyValidations, setApiKeyValidations] = useState<
+    Record<number, ApiKeyValidation>
+  >({});
+  const [isTestingApiKeys, setIsTestingApiKeys] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -241,9 +286,84 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     return validate;
   };
 
+  const confirmSaveWithoutApiKey = async () => {
+    return await showConfirm(
+      'แจ้งเตือน',
+      'ยังไม่ได้กำหนด API Key ต้องการบันทึกต่อหรือไม่',
+    );
+  };
+
+  const confirmSaveWithInvalidApiKey = async () => {
+    return await showConfirm(
+      'แจ้งเตือน',
+      'API Key ใช้งานไม่ได้ ต้องการบันทึกและเชื่อมต่อต่อหรือไม่',
+    );
+  };
+
+  const assessApiKeys = async (): Promise<ApiKeyAssessment> => {
+    const keysToValidate = apiKeys
+      .map((key, index) => ({
+        key: key.trim(),
+        index,
+      }))
+      .filter(item => item.key !== '');
+
+    if (keysToValidate.length === 0) {
+      setApiKeyValidations({});
+      return {
+        failedResults: [],
+        hasAnyKey: false,
+      };
+    }
+
+    setIsTestingApiKeys(true);
+
+    try {
+      const results = await Promise.all(
+        keysToValidate.map(async item => ({
+          ...item,
+          result: await testLongdoMapApiKey(item.key),
+        })),
+      );
+
+      const nextValidations: Record<number, ApiKeyValidation> = {};
+      const failedResults = results.filter(item => {
+        const failed = item.result.status !== 'success';
+        nextValidations[item.index] = {
+          status: item.result.status,
+          message: item.result.message,
+        };
+        return failed;
+      });
+
+      setApiKeyValidations(nextValidations);
+
+      return {
+        failedResults,
+        hasAnyKey: true,
+      };
+    } finally {
+      setIsTestingApiKeys(false);
+    }
+  };
+
   const onSave = async () => {
     if (!validateItem()) {
       return;
+    }
+
+    const apiKeyAssessment = await assessApiKeys();
+
+    if (!apiKeyAssessment.hasAnyKey) {
+      const confirmed = await confirmSaveWithoutApiKey();
+      if (!confirmed) {
+        return;
+      }
+    } else if (apiKeyAssessment.failedResults.length > 0) {
+      const confirmed = await confirmSaveWithInvalidApiKey();
+      if (!confirmed) {
+        return;
+      }
     }
 
     const config = await getListServiceSetting();
@@ -252,6 +372,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     const normalizedWebURL = normalizeWebServiceUrl(webURL);
     const normalizedVanSalesServiceUrl =
       normalizePaymentBaseUrl(vanSalesServiceUrl);
+    const normalizedApiKeys = normalizeApiKeys(apiKeys);
 
     try {
       setIsLoading(true);
@@ -281,6 +402,8 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
           number,
           USER_CODE: userCode,
           USER_PASSWORD: userPassword,
+          API_KEY: normalizedApiKeys[0] ?? null,
+          API_KEYS: normalizedApiKeys,
         };
 
         list.push(savedService);
@@ -314,11 +437,26 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
       return;
     }
 
+    const apiKeyAssessment = await assessApiKeys();
+
+    if (!apiKeyAssessment.hasAnyKey) {
+      const confirmed = await confirmSaveWithoutApiKey();
+      if (!confirmed) {
+        return;
+      }
+    } else if (apiKeyAssessment.failedResults.length > 0) {
+      const confirmed = await confirmSaveWithInvalidApiKey();
+      if (!confirmed) {
+        return;
+      }
+    }
+
     const config = await getListServiceSetting();
     setErrorMessage('');
     const normalizedWebURL = normalizeWebServiceUrl(webURL);
     const normalizedVanSalesServiceUrl =
       normalizePaymentBaseUrl(vanSalesServiceUrl);
+    const normalizedApiKeys = normalizeApiKeys(apiKeys);
 
     try {
       setIsLoading(true);
@@ -364,6 +502,8 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
         config[objIndex].number = number;
         config[objIndex].USER_CODE = userCode;
         config[objIndex].USER_PASSWORD = userPassword;
+        config[objIndex].API_KEY = normalizedApiKeys[0] ?? null;
+        config[objIndex].API_KEYS = normalizedApiKeys;
 
         const savedService: ServiceSettingItem = { ...config[objIndex] };
 
@@ -393,6 +533,8 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     setNumber('');
     setUserCode('');
     setUserPassword('');
+    setApiKeys(['']);
+    setApiKeyValidations({});
     setVanSalesServiceUrl(DEFAULT_VANSALES_SERVICE_URL);
     setDatabaseUrlError(false);
     setVanSalesUrlError(false);
@@ -433,6 +575,123 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
   const onChangeVanSalesServiceUrl = (value: string) => {
     setVanSalesServiceUrl(value);
     setVanSalesUrlError(false);
+  };
+
+  const onChangeApiKey = (index: number, value: string) => {
+    setApiKeys(currentKeys =>
+      currentKeys.map((item, itemIndex) => (itemIndex === index ? value : item)),
+    );
+    setApiKeyValidations(current => {
+      const nextValidations = { ...current };
+      delete nextValidations[index];
+      return nextValidations;
+    });
+  };
+
+  const onAddApiKey = () => {
+    setApiKeys(currentKeys => {
+      if (currentKeys.length >= 3) {
+        return currentKeys;
+      }
+
+      return [...currentKeys, ''];
+    });
+  };
+
+  const onRemoveApiKey = (index: number) => {
+    setApiKeys(currentKeys => {
+      const nextKeys = currentKeys.filter((_, itemIndex) => itemIndex !== index);
+      return nextKeys.length > 0 ? nextKeys : [''];
+    });
+    setApiKeyValidations(current => {
+      const nextValidations: Record<number, ApiKeyValidation> = {};
+      Object.keys(current).forEach(key => {
+        const numericKey = Number(key);
+        if (numericKey < index) {
+          nextValidations[numericKey] = current[numericKey];
+        } else if (numericKey > index) {
+          nextValidations[numericKey - 1] = current[numericKey];
+        }
+      });
+      return nextValidations;
+    });
+  };
+
+  const validateApiKeys = async (showSuccessAlert = false) => {
+    const { failedResults, hasAnyKey } = await assessApiKeys();
+
+    if (!hasAnyKey) {
+      Alert.alert('ไม่สำเร็จ', 'กรุณาระบุ API Key อย่างน้อย 1 ช่อง');
+      return false;
+    }
+
+    if (failedResults.length > 0) {
+      Alert.alert(
+        'ตรวจสอบ API Key',
+        failedResults
+          .map(item => {
+            const message =
+              item.result.status === 'invalid' || item.result.status === 'error'
+                ? 'API Key ไม่ถูกต้อง'
+                : item.result.message;
+
+            return `ช่องที่ ${item.index + 1}: ${message}`;
+          })
+          .join('\n'),
+      );
+      return false;
+    }
+
+    if (showSuccessAlert) {
+      Alert.alert('สำเร็จ', 'API Key ใช้งานได้ทั้งหมด');
+    }
+
+    return true;
+  };
+
+  const renderApiKeyField = (apiKey: string, index: number) => {
+    const validation = apiKeyValidations[index];
+    const hasError =
+      validation && ['limit', 'invalid', 'error'].includes(validation.status);
+    const hasSuccess = validation?.status === 'success';
+
+    return (
+      <View key={`service-api-key-${index}`} style={styles.fieldBlock}>
+        <View style={styles.keyLabelRow}>
+          <Text style={styles.label}>API Key {index + 1}</Text>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => onRemoveApiKey(index)}
+          >
+            <Text style={styles.removeKeyText}>ลบ</Text>
+          </TouchableOpacity>
+        </View>
+        <TextInput
+          style={[
+            styles.input,
+            hasError ? styles.inputError : null,
+            hasSuccess ? styles.inputSuccess : null,
+          ]}
+          placeholder="API Key"
+          placeholderTextColor={MainTheme.placeholerTextInput}
+          value={toInputValue(apiKey)}
+          underlineColorAndroid="transparent"
+          autoCapitalize="none"
+          autoCorrect={false}
+          onChangeText={value => onChangeApiKey(index, value)}
+        />
+        {validation ? (
+          <Text
+            style={[
+              styles.keyStatusText,
+              hasError ? styles.keyErrorText : styles.keySuccessText,
+            ]}
+          >
+            {validation.message}
+          </Text>
+        ) : null}
+      </View>
+    );
   };
 
   return (
@@ -574,18 +833,56 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
               />
             </View>
           </View>
+
+          <View style={styles.keyHeaderRow}>
+            <Text style={styles.sectionSubTitle}>API Key</Text>
+            {apiKeys.length < 3 ? (
+              <TouchableOpacity
+                style={styles.addKeyButton}
+                activeOpacity={0.7}
+                onPress={onAddApiKey}
+              >
+                <AntDesign
+                  name="plus"
+                  size={14}
+                  color={MainTheme.colorPrimary}
+                />
+                <Text style={styles.addKeyText}>เพิ่ม</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+
+          {apiKeys.map(renderApiKeyField)}
+
+          <IActionButton
+            title="ทดสอบ API Key"
+            variant="secondary"
+            disabled={isLoading || isTestingApiKeys}
+            onPress={() => {
+              validateApiKeys(true).catch(error => {
+                setIsTestingApiKeys(false);
+                Alert.alert(
+                  'ไม่สำเร็จ',
+                  error?.message || 'ทดสอบ API Key ไม่สำเร็จ',
+                );
+              });
+            }}
+          />
         </View>
 
         <View style={styles.messageBox}>
           <ITextWithErrorMessage message={errorMessage} />
-          <ILoading isLoading={isLoading} />
+          <ILoading isLoading={isLoading || isTestingApiKeys} />
         </View>
 
         <View style={styles.buttonGroup}>
           <TouchableOpacity
-            style={[styles.primaryButton, isLoading ? styles.disabledButton : null]}
+            style={[
+              styles.primaryButton,
+              isLoading || isTestingApiKeys ? styles.disabledButton : null,
+            ]}
             onPress={mode === 'add' ? onSave : onEdit}
-            disabled={isLoading}
+            disabled={isLoading || isTestingApiKeys}
             activeOpacity={0.7}
           >
             <Text style={styles.primaryButtonTitle} numberOfLines={1}>
@@ -595,9 +892,12 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
 
           {mode === 'add' ? (
             <TouchableOpacity
-              style={[styles.secondaryButton, isLoading ? styles.disabledButton : null]}
+              style={[
+                styles.secondaryButton,
+                isLoading || isTestingApiKeys ? styles.disabledButton : null,
+              ]}
               onPress={onReset}
-              disabled={isLoading}
+              disabled={isLoading || isTestingApiKeys}
               activeOpacity={0.7}
             >
               <Text style={styles.secondaryButtonTitle}>{'ล้าง'}</Text>
@@ -609,10 +909,10 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
               style={[
                 styles.secondaryButton,
                 styles.deleteButton,
-                isLoading ? styles.disabledButton : null,
+                isLoading || isTestingApiKeys ? styles.disabledButton : null,
               ]}
               onPress={onDelete}
-              disabled={isLoading}
+              disabled={isLoading || isTestingApiKeys}
               activeOpacity={0.7}
             >
               <Text style={styles.secondaryButtonTitle}>{'ลบ'}</Text>
@@ -623,10 +923,10 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
             style={[
               styles.secondaryButton,
               styles.backButton,
-              isLoading ? styles.disabledButton : null,
+              isLoading || isTestingApiKeys ? styles.disabledButton : null,
             ]}
             onPress={onBack}
-            disabled={isLoading}
+            disabled={isLoading || isTestingApiKeys}
             activeOpacity={0.7}
           >
             <Text style={styles.secondaryButtonTitle}>{'ย้อนกลับ'}</Text>
@@ -698,6 +998,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 14,
   },
+  sectionSubTitle: {
+    color: MainTheme.colorQuaternary,
+    fontSize: hp('1.75%'),
+    fontWeight: '700',
+  },
   fieldBlock: {
     marginBottom: 14,
   },
@@ -721,6 +1026,11 @@ const styles = StyleSheet.create({
     borderColor: MainTheme.colorDanger,
     borderWidth: 1.5,
     backgroundColor: '#FFF7F7',
+  },
+  inputSuccess: {
+    borderColor: MainTheme.colorPrimary,
+    borderWidth: 1.5,
+    backgroundColor: '#F2FBF4',
   },
   multilineInput: {
     minHeight: 54,
@@ -749,6 +1059,48 @@ const styles = StyleSheet.create({
   trailingIcon: {
     color: MainTheme.colorTertiary,
     marginLeft: 8,
+  },
+  keyHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 2,
+    marginBottom: 12,
+  },
+  addKeyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: MainTheme.colorButtonBorder,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: MainTheme.colorSecondary,
+  },
+  addKeyText: {
+    color: MainTheme.colorPrimary,
+    fontSize: hp('1.55%'),
+    marginLeft: 4,
+  },
+  keyLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  removeKeyText: {
+    color: '#D64545',
+    fontSize: hp('1.55%'),
+    marginBottom: 8,
+  },
+  keyStatusText: {
+    fontSize: hp('1.45%'),
+    marginTop: 6,
+  },
+  keySuccessText: {
+    color: MainTheme.colorPrimary,
+  },
+  keyErrorText: {
+    color: '#D64545',
   },
   messageBox: {
     alignContent: 'center',

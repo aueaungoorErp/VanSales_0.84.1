@@ -1,12 +1,16 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { Linking } from 'react-native'
+import { Alert, Linking } from 'react-native'
 import MapLine from '../presenter/MapLine'
 import  { getCurrentPosition } from '../../../action/geolocation'
 import { getARCustomerLine, setCustomerInfo, findCustomerById } from '../../../action/customer'
 import IPatternCusCoordListItem from '../../../component/list-item/IPatternCusCoordListItem'
 import { setInitialState as setMileInitialState } from '../../../action/mile'
 import { setInitialState as setCheckInInitialState } from '../../../action/check-in'
+import {
+    assessLongdoApiKeyAvailability,
+    getLongdoApiKeyAlertMessage,
+} from '../../../services/longdomap'
 import { getUserToken } from '../../../utils/Token'
 import Navigator from '../../../services/Navigator'
 
@@ -174,6 +178,12 @@ class CTMapLine extends React.Component {
             }
 
             if (userToken.VANCONFIG.VANCNF_FORCE_GPS == 1) {
+                const vanCode = String(userToken?.VANCONFIG?.VANCNF_MACHINE || '').trim()
+                const availability = await assessLongdoApiKeyAvailability(vanCode)
+                if (!availability.ok) {
+                    Alert.alert('แจ้งเตือน', getLongdoApiKeyAlertMessage(availability.reason))
+                    return
+                }
                 Navigator.navigate('CheckIn')
                 return
             }

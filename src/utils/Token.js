@@ -8,6 +8,15 @@ let _settingConfigVanTimeRefreshPromise = null;
 let _settingConfigVanTimeLastRefresh = 0;
 const VAN_SALES_SERVICES_BASE_URL_KEY = '@VanSalesServicesBaseUrl';
 const LEGACY_BBL_PAYMENT_BASE_URL_KEY = '@BBLPaymentBaseUrl';
+const LONGDO_MAP_API_KEYS_KEY = '@LongdoMapApiKeys';
+
+const normalizeVanCode = value => {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  return String(value).trim();
+};
 
 const normalizeServiceSetting = item => {
   if (!item || typeof item !== 'object') {
@@ -139,6 +148,133 @@ export const setVanSalesWebServiceUrl = async value => {
 
 export const getVanSalesWebServiceUrl = async () => {
   return getBBLPaymentBaseUrl();
+};
+
+const normalizeLongdoMapApiKeys = value => {
+  const source = Array.isArray(value) ? value : [];
+
+  return source
+    .map(item =>
+      item && typeof item === 'object'
+        ? item.key
+        : item === null || item === undefined
+          ? ''
+          : String(item).trim(),
+    )
+    .filter(item => item !== '')
+    .slice(0, 3);
+};
+
+const normalizeLongdoMapApiKeyConfigs = value => {
+  const keys = normalizeLongdoMapApiKeys(value);
+  const source = Array.isArray(value) ? value : [];
+
+  return keys.map((key, index) => {
+    const rawItem = source[index];
+    const outoflimit =
+      rawItem && typeof rawItem === 'object'
+        ? Boolean(rawItem.outoflimit)
+        : false;
+
+    return {
+      key,
+      outoflimit,
+    };
+  });
+};
+
+const normalizeLongdoMapApiKeyStore = value => {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    const byVanSource =
+      value.byVan && typeof value.byVan === 'object' ? value.byVan : {};
+    const byVan = Object.keys(byVanSource).reduce((result, key) => {
+      const normalizedKey = normalizeVanCode(key);
+      if (!normalizedKey) {
+        return result;
+      }
+
+      result[normalizedKey] = normalizeLongdoMapApiKeyConfigs(byVanSource[key]);
+      return result;
+    }, {});
+
+    return {
+      default: normalizeLongdoMapApiKeyConfigs(value.default),
+      byVan,
+    };
+  }
+
+  return {
+    default: normalizeLongdoMapApiKeyConfigs(value),
+    byVan: {},
+  };
+};
+
+export const setLongdoMapApiKeyConfigs = async (value, vanCode = null) => {
+  try {
+    const rawValue = await retrieveData(LONGDO_MAP_API_KEYS_KEY);
+    const store = normalizeLongdoMapApiKeyStore(
+      rawValue ? JSON.parse(rawValue) : [],
+    );
+    const normalizedConfigs = normalizeLongdoMapApiKeyConfigs(value);
+    const normalizedVanCode = normalizeVanCode(vanCode);
+
+    const nextStore = normalizedVanCode
+      ? {
+          ...store,
+          byVan: {
+            ...store.byVan,
+            [normalizedVanCode]: normalizedConfigs,
+          },
+        }
+      : {
+          ...store,
+          default: normalizedConfigs,
+        };
+
+    return await storeData(
+      LONGDO_MAP_API_KEYS_KEY,
+      JSON.stringify(nextStore),
+    );
+  } catch (e) {
+    return false;
+  }
+};
+
+export const getLongdoMapApiKeyConfigs = async (vanCode = null) => {
+  try {
+    const value = await retrieveData(LONGDO_MAP_API_KEYS_KEY);
+    const store = normalizeLongdoMapApiKeyStore(value ? JSON.parse(value) : []);
+    const normalizedVanCode = normalizeVanCode(vanCode);
+
+    if (normalizedVanCode && Array.isArray(store.byVan[normalizedVanCode])) {
+      return store.byVan[normalizedVanCode];
+    }
+
+    return store.default;
+  } catch (e) {
+    return [];
+  }
+};
+
+export const setLongdoMapApiKeys = async (value, vanCode = null) => {
+  return await setLongdoMapApiKeyConfigs(value, vanCode);
+};
+
+export const getLongdoMapApiKeys = async (vanCode = null) => {
+  try {
+    const configs = await getLongdoMapApiKeyConfigs(vanCode);
+    return configs.map(item => item.key);
+  } catch (e) {
+    return [];
+  }
+};
+
+export const removeLongdoMapApiKeys = async () => {
+  try {
+    return await removeData(LONGDO_MAP_API_KEYS_KEY);
+  } catch (e) {
+    return false;
+  }
 };
 
 export const setBBLQrPaymentEnabled = async value => {

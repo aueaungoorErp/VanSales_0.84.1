@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Dimensions,
   Image,
   StyleSheet,
@@ -11,6 +12,10 @@ import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SectionGrid } from 'react-native-super-grid';
 import { homeMenuList, MenuItem } from '../constant/HomeMenuList';
+import {
+  assessLongdoApiKeyAvailability,
+  getLongdoApiKeyAlertMessage,
+} from '../../../services/longdomap';
 import Navigator from '../../../services/Navigator';
 import Request from '../../../utils/Request';
 import { clearPassword } from '../../../services/SecureCredentials';
@@ -40,10 +45,31 @@ const MenuList: React.FC = () => {
     init();
   }, []);
 
+  const ensureLongdoApiKeyBeforeNavigate = async (screen?: string) => {
+    if (screen !== 'CustomerRoute' && screen !== 'CheckIn') {
+      return true;
+    }
+
+    const token = userToken ?? (await getUserToken());
+    const vanCode = String(token?.VANCONFIG?.VANCNF_MACHINE || '').trim();
+    const availability = await assessLongdoApiKeyAvailability(vanCode);
+
+    if (availability.ok) {
+      return true;
+    }
+
+    Alert.alert('แจ้งเตือน', getLongdoApiKeyAlertMessage(availability.reason));
+    return false;
+  };
+
   const onPress = async (screen?: string, functionName?: string) => {
     if (functionName === 'logout') {
       await logout();
     } else if (screen) {
+      const canNavigate = await ensureLongdoApiKeyBeforeNavigate(screen);
+      if (!canNavigate) {
+        return;
+      }
       Navigator.navigate(screen);
     }
   };

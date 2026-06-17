@@ -20,6 +20,10 @@ import {
   MainTheme,
 } from '../../../constant/lov';
 import { strings } from '../../../locales/i18n';
+import {
+  assessLongdoApiKeyAvailability,
+  getLongdoApiKeyAlertMessage,
+} from '../../../services/longdomap';
 import Navigator from '../../../services/Navigator';
 import { getLoginGuID, getUserToken } from '../../../utils/Token';
 import ButtonGroup from '../presenter/ButtonGroup';
@@ -82,6 +86,12 @@ class CTButtonGroup extends React.Component {
           }
 
           if (userToken.VANCONFIG.VANCNF_FORCE_GPS == 1) {
+            const vanCode = String(userToken?.VANCONFIG?.VANCNF_MACHINE || '').trim();
+            const availability = await assessLongdoApiKeyAvailability(vanCode);
+            if (!availability.ok) {
+              Alert.alert('แจ้งเตือน', getLongdoApiKeyAlertMessage(availability.reason));
+              return;
+            }
             Navigator.navigate('CheckIn');
             return;
           }

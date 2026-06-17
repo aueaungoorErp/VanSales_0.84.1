@@ -31,6 +31,9 @@ export type ServiceSetting = {
   number?: string;
   vanCNFMachine?: string;
   USER_CODE?: string;
+  USER_PASSWORD?: string;
+  API_KEY?: string;
+  API_KEYS?: string[];
   webURL?: string;
   baseUrl?: string;
   baseURL?: string;

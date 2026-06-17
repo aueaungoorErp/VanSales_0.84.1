@@ -202,17 +202,31 @@ class CTListItems extends React.Component {
       methodName: 'toggleBiometrics',
       screen: null,
     };
+    const longdoApiKeyItem = {
+      title: 'ตั้งค่า Longdo API Key',
+      iconName: 'key',
+      iconType: 'ant-design',
+      methodType: 'new-page',
+      methodName: null,
+      screen: 'LongdoApiKeySettingScreen',
+    };
     const manualIndex = settingListItems.findIndex(
       item => item.screen === 'Manual',
     );
 
     if (manualIndex < 0) {
-      return [...settingListItems, bblQrPaymentItem, biometricItem];
+      return [
+        ...settingListItems,
+        bblQrPaymentItem,
+        longdoApiKeyItem,
+        biometricItem,
+      ];
     }
 
     return [
       ...settingListItems.slice(0, manualIndex),
       bblQrPaymentItem,
+      longdoApiKeyItem,
       biometricItem,
       ...settingListItems.slice(manualIndex),
     ];

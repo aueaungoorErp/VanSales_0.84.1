@@ -5,7 +5,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
+  Alert,
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -31,11 +33,13 @@ import ErrorMessage from '../../../component/announce/ErrorMessage';
 import { ListItem } from '../../../component/elements';
 import { mainDivider, MainTheme } from '../../../constant/lov';
 import {
+  assessLongdoApiKeyAvailability,
   clearCustomerRouteDistanceCache,
   formatDistanceLabel,
   getCustomerRouteDistanceCache,
   getDistanceBetweenCoordinates,
   getDistancesFromCurrentLocation,
+  getLongdoApiKeyAlertMessage,
   hasCompleteCoordinate,
   isWithinDistanceThreshold,
   mergeCustomerRouteDistanceCache,
@@ -70,6 +74,18 @@ type CustomerRouteItem = CustomerItem & {
   distance: number | null;
   distanceText: string;
 };
+
+const getCustomerRouteItemKey = (
+  item: CustomerRouteItem | CustomerItem,
+  index: number,
+) =>
+  [
+    item.AR_KEY ?? '',
+    item.AR_CODE ?? '',
+    item.ADDB_GPS_LAT_S ?? '',
+    item.ADDB_GPS_LONG_S ?? '',
+    index,
+  ].join('|');
 
 type CustomerRouteListDispatchProps = {
   clearCustomerList: () => void;
@@ -116,6 +132,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
   const [sortedListSignature, setSortedListSignature] = useState('');
   const mountedRef = useRef(true);
   const distanceJobRef = useRef(0);
+  const longdoAlertReasonRef = useRef<string | null>(null);
   const currentListSignature = useMemo(
     () =>
       customer.listItems
@@ -160,6 +177,42 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     getCurrentPosition,
   ]);
 
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
+
+      const checkLongdoApiKeys = async () => {
+        const vanCode = String(
+          (userToken?.VANCONFIG as any)?.VANCNF_MACHINE ?? '',
+        ).trim();
+        const availability = await assessLongdoApiKeyAvailability(vanCode);
+
+        if (!mounted || availability.ok) {
+          if (availability.ok) {
+            longdoAlertReasonRef.current = null;
+          }
+          return;
+        }
+
+        if (longdoAlertReasonRef.current === availability.reason) {
+          return;
+        }
+
+        longdoAlertReasonRef.current = availability.reason;
+        Alert.alert(
+          'แจ้งเตือน',
+          getLongdoApiKeyAlertMessage(availability.reason),
+        );
+      };
+
+      void checkLongdoApiKeys();
+
+      return () => {
+        mounted = false;
+      };
+    }, [userToken]),
+  );
+
   useEffect(() => {
     if (!customer.listItems?.length) {
       setSortedCustomers([]);
@@ -191,6 +244,34 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
       if (mountedRef.current) {
         setIsPreparingList(true);
       }
+
+      const vanCode = String(
+        (userToken?.VANCONFIG as any)?.VANCNF_MACHINE ?? '',
+      ).trim();
+      const longdoAvailability = await assessLongdoApiKeyAvailability(vanCode);
+
+      if (!longdoAvailability.ok) {
+        const alertReason = longdoAvailability.reason;
+        longdoAlertReasonRef.current = alertReason;
+
+        const nextCustomers = customer.listItems.map(item => ({
+          ...item,
+          distance: null,
+          distanceText:
+            alertReason === 'missing'
+              ? 'ยังไม่ได้ตั้งค่า API Key'
+              : 'API Key limit หมด',
+        }));
+
+        if (mountedRef.current && distanceJobRef.current === jobId) {
+          setSortedCustomers(nextCustomers);
+          setSortedListSignature(currentListSignature);
+          setIsPreparingList(false);
+        }
+        return;
+      }
+
+      longdoAlertReasonRef.current = null;
 
       const currentLocation = {
         latitude: geolocation.position.latitude,
@@ -260,10 +341,49 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
       });
 
       if (customersToCompute.length > 0) {
-        const computedDistances = await getDistancesFromCurrentLocation(
-          currentLocation,
-          customersToCompute.map(item => item.location),
-        );
+        let computedDistances: Array<number | null> = [];
+
+        try {
+          computedDistances = await getDistancesFromCurrentLocation(
+            currentLocation,
+            customersToCompute.map(item => item.location),
+            vanCode,
+          );
+        } catch (error: any) {
+          if (
+            error?.code === 'LONGDO_API_KEY_MISSING' ||
+            error?.code === 'LONGDO_API_KEY_LIMIT_EXHAUSTED'
+          ) {
+            const alertReason =
+              error?.code === 'LONGDO_API_KEY_MISSING' ? 'missing' : 'limit';
+
+            if (longdoAlertReasonRef.current !== alertReason) {
+              longdoAlertReasonRef.current = alertReason;
+              Alert.alert(
+                'แจ้งเตือน',
+                getLongdoApiKeyAlertMessage(alertReason),
+              );
+            }
+
+            const nextCustomers = customer.listItems.map(item => ({
+              ...item,
+              distance: null,
+              distanceText:
+                alertReason === 'missing'
+                  ? 'ยังไม่ได้ตั้งค่า API Key'
+                  : 'API Key limit หมด',
+            }));
+
+            if (mountedRef.current && distanceJobRef.current === jobId) {
+              setSortedCustomers(nextCustomers);
+              setSortedListSignature(currentListSignature);
+              setIsPreparingList(false);
+            }
+            return;
+          }
+
+          throw error;
+        }
         const cacheUpdates: Record<
           string,
           { distance: number | null; distanceText: string }
@@ -372,6 +492,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     geolocation.position.longitude,
     longdomap.lastPosition,
     setLastPosition,
+    (userToken?.VANCONFIG as any)?.VANCNF_MACHINE,
   ]);
 
   const onRefresh = useCallback(async () => {
@@ -451,7 +572,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
   const renderItem = useCallback(
     ({ item, index }: { item: CustomerRouteItem; index: number }) => (
       <ListItem
-        key={item.AR_KEY || index}
+        key={getCustomerRouteItemKey(item, index)}
         containerStyle={mainDivider}
         bottomDivider
         onPress={() => {
@@ -556,11 +677,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
         <FlatList
           data={sortedCustomers}
           renderItem={renderItem}
-          keyExtractor={(item, index) =>
-            item.AR_KEY !== undefined && item.AR_KEY !== null
-              ? `${item.AR_KEY}`
-              : index.toString()
-          }
+          keyExtractor={(item, index) => getCustomerRouteItemKey(item, index)}
           maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
           onScroll={event => {
             onScroll(event);

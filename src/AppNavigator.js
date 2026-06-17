@@ -56,6 +56,13 @@ function LoginNavigator() {
         }
         initialParams={{ title: 'จัดการเว็ปเซอร์วิส' }}
       />
+      <LoginStack.Screen
+        name="LongdoApiKeySettingScreen"
+        component={
+          require('./pages/login/screen/LongdoApiKeySettingScreen').default
+        }
+        initialParams={{ title: 'ตั้งค่า Longdo API Key' }}
+      />
     </LoginStack.Navigator>
   );
 }
@@ -305,6 +312,13 @@ function HomeNavigator() {
         name="Setting"
         component={require('./pages/setting/screen/Index').default}
         initialParams={{ title: 'การตั้งค่า' }}
+      />
+      <HomeStack.Screen
+        name="LongdoApiKeySettingScreen"
+        component={
+          require('./pages/login/screen/LongdoApiKeySettingScreen').default
+        }
+        initialParams={{ title: 'ตั้งค่า Longdo API Key' }}
       />
       <HomeStack.Screen
         name="CustomerRoute"

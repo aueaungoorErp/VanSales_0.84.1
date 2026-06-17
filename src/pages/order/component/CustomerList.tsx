@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -27,6 +28,10 @@ import { setInitialState as setMileInitialState } from '../../../action/mile';
 import ErrorMessage from '../../../component/announce/ErrorMessage';
 import { ListItem } from '../../../component/elements';
 import { mainDivider, MainTheme } from '../../../constant/lov';
+import {
+  assessLongdoApiKeyAvailability,
+  getLongdoApiKeyAlertMessage,
+} from '../../../services/longdomap';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
 import type {
@@ -104,6 +109,12 @@ const CustomerListBase: React.FC<CustomerListProps> = ({
         }
 
         if (token.VANCONFIG.VANCNF_FORCE_GPS === 1) {
+          const vanCode = String((token?.VANCONFIG as any)?.VANCNF_MACHINE || '').trim();
+          const availability = await assessLongdoApiKeyAvailability(vanCode);
+          if (!availability.ok) {
+            Alert.alert('แจ้งเตือน', getLongdoApiKeyAlertMessage(availability.reason));
+            return;
+          }
           Navigator.navigate('CheckIn');
           return;
         }

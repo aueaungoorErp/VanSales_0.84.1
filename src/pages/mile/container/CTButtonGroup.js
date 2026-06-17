@@ -1,9 +1,13 @@
 ﻿import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Keyboard, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { Alert, Keyboard, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { mileFormButtonGroup } from '../../../constant/lov';
 import ButtonGroup from '../presenter/ButtonGroup';
 import { setInitialState } from '../../../action/mile';
+import {
+  assessLongdoApiKeyAvailability,
+  getLongdoApiKeyAlertMessage,
+} from '../../../services/longdomap';
 import { getUserToken } from '../../../utils/Token';
 import Navigator from '../../../services/Navigator';
 import { MainTheme } from '../../../constant/lov';
@@ -97,6 +101,12 @@ class CTButtonGroup extends Component {
         userToken.VANCONFIG.VANCNF_FORCE_GPS == 1 &&
         (routeName === 'OrderScreen' || routeName === 'CustomerProfileDetail')
       ) {
+        const vanCode = String(userToken?.VANCONFIG?.VANCNF_MACHINE || '').trim();
+        const availability = await assessLongdoApiKeyAvailability(vanCode);
+        if (!availability.ok) {
+          Alert.alert('แจ้งเตือน', getLongdoApiKeyAlertMessage(availability.reason));
+          return;
+        }
         Navigator.pop(1, true);
         Navigator.navigate('CheckIn');
         return;
@@ -119,6 +129,12 @@ class CTButtonGroup extends Component {
         userToken.VANCONFIG.VANCNF_FORCE_GPS == 1 &&
         (routeName === 'OrderScreen' || routeName === 'CustomerProfileDetail')
       ) {
+        const vanCode = String(userToken?.VANCONFIG?.VANCNF_MACHINE || '').trim();
+        const availability = await assessLongdoApiKeyAvailability(vanCode);
+        if (!availability.ok) {
+          Alert.alert('แจ้งเตือน', getLongdoApiKeyAlertMessage(availability.reason));
+          return;
+        }
         Navigator.pop(1, true);
         Navigator.navigate('CheckIn');
         return;
