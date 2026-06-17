@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     },
     listSection: {
         flex: 1,
-        paddingTop: 6,
+        paddingTop: 0,
         paddingHorizontal: 12,
         paddingBottom: 12,
     }

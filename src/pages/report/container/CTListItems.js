@@ -1,11 +1,5 @@
 import React, { Component } from 'react';
-import {
-  Dimensions,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
@@ -17,17 +11,17 @@ import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
 
 import {
-    documentItems,
-    documentItemsDetails,
-    peformanceByProductCategory,
-    performanceByArlineItem,
-    salesOrderByArline,
-    salesOrderByCategory,
-    salesOrderByDocType,
-    salesOrderByPmt,
-    salesOrderByProduct,
-    salesOrderBySaleman,
-    stockBalanceByWL,
+  documentItems,
+  documentItemsDetails,
+  peformanceByProductCategory,
+  performanceByArlineItem,
+  salesOrderByArline,
+  salesOrderByCategory,
+  salesOrderByDocType,
+  salesOrderByPmt,
+  salesOrderByProduct,
+  salesOrderBySaleman,
+  stockBalanceByWL,
 } from '../../../constant/report-lov';
 
 class CTListItems extends Component {
@@ -50,12 +44,12 @@ class CTListItems extends Component {
     this._getUserToken();
   }
 
-  componentDidMount = (props) => {
+  componentDidMount = props => {
     this._isMounted = true;
     this._prepareData();
   };
 
-  componentWillUnmount = (props) => {
+  componentWillUnmount = props => {
     this._isMounted = false;
   };
 
@@ -68,14 +62,14 @@ class CTListItems extends Component {
   };
 
   _prepareData = async () => {
-    const {routes, index} = Navigator.getCurrentRoute();
-    const {params} = routes[index].params;
+    const { routes, index } = Navigator.getCurrentRoute();
+    const { params } = routes[index].params;
     await this._setReportParams(params);
   };
 
-  _setReportParams = async (value) => {
+  _setReportParams = async value => {
     this._isMounted &&
-      (await this.setState((oldState) => {
+      (await this.setState(oldState => {
         return {
           reportParams: value,
         };
@@ -84,14 +78,14 @@ class CTListItems extends Component {
 
   _setState = async (key, value) => {
     this._isMounted &&
-      (await this.setState((oldState) => {
+      (await this.setState(oldState => {
         return {
           [key]: value,
         };
       }));
   };
 
-  _renderList = (reportPattern) => {
+  _renderList = reportPattern => {
     console.log('_renderList reportPattern ', reportPattern);
     console.log(
       '_renderList this.state.reportParams ',
@@ -117,7 +111,7 @@ class CTListItems extends Component {
           ? MainTheme.colorSecondary
           : MainTheme.colorPrimary
       }
-      size={20}
+      size={18}
     />
   );
   _gridButton = () => (
@@ -128,25 +122,25 @@ class CTListItems extends Component {
           ? MainTheme.colorSecondary
           : MainTheme.colorPrimary
       }
-      size={20}
+      size={18}
     />
   );
 
-  _buttons = [{element: this._listButton}, {element: this._gridButton}];
+  _buttons = [{ element: this._listButton }, { element: this._gridButton }];
 
   _renderViewToggle = () => (
     <View style={styles.toggleActionRow}>
       <IButtonGroup
         buttons={this._buttons}
         selectedIndex={this.state.selectedIndex}
-        onPress={(value) => {
+        onPress={value => {
           this._setState('selectedIndex', value);
         }}
         containerStyle={styles.toggleButtonGroup}
         buttonStyle={styles.toggleButton}
         selectedButtonStyle={styles.toggleButtonSelected}
-        selectedTextStyle={{color: MainTheme.inActivePrimary}}
-        textStyle={{color: MainTheme.colorPrimary}}
+        selectedTextStyle={{ color: MainTheme.inActivePrimary }}
+        textStyle={{ color: MainTheme.colorPrimary }}
         containerBorderRadius={999}
       />
     </View>
@@ -160,14 +154,15 @@ class CTListItems extends Component {
       <ScrollView
         horizontal
         style={styles.horizontalScroll}
-        contentContainerStyle={styles.horizontalScrollContent}>
+        contentContainerStyle={styles.horizontalScrollContent}
+      >
         <View style={styles.reportCard}>{content}</View>
       </ScrollView>
     ) : (
       <View style={styles.reportCard}>{content}</View>
     );
 
-  _patternA = (reportPattern) => {
+  _patternA = reportPattern => {
     let listData = [];
     console.log(
       'this.state.reportParams ',
@@ -200,67 +195,67 @@ class CTListItems extends Component {
         {(reportPattern &&
           reportPattern.horizontalScreen === 'phone' &&
           Dimensions.get('window').width < 450) ||
-        (reportPattern && reportPattern.horizontalScreen === 'both') ? (
-          this._renderCardContainer(
-            <View
-              style={{
-                flex:
+        (reportPattern && reportPattern.horizontalScreen === 'both')
+          ? this._renderCardContainer(
+              <View
+                style={{
+                  flex:
+                    reportPattern.footerSummary && this.props.report.data
+                      ? 0.9
+                      : 1,
+                }}
+              >
+                <IList
+                  header={reportPattern.header}
+                  data={listData}
+                  footer={
+                    reportPattern.footerItem && this.props.report.data
+                      ? reportPattern.footerRenderItem(this.props.report.data)
+                      : null
+                  }
+                  renderItem={reportPattern.renderItem}
+                  stickyHeaderIndices={[0]}
+                />
+                {this._renderFooterSummary(
                   reportPattern.footerSummary && this.props.report.data
-                    ? 0.9
-                    : 1,
-              }}>
-              <IList
-                header={reportPattern.header}
-                data={listData}
-                footer={
-                  reportPattern.footerItem && this.props.report.data
-                    ? reportPattern.footerRenderItem(this.props.report.data)
-                    : null
-                }
-                renderItem={reportPattern.renderItem}
-                stickyHeaderIndices={[0]}
-              />
-              {this._renderFooterSummary(
-                reportPattern.footerSummary && this.props.report.data
-                  ? reportPattern.footer(this.props.report.data)
-                  : null,
-              )}
-            </View>,
-            true,
-          )
-        ) : (
-          this._renderCardContainer(
-            <View
-              style={{
-                flex:
+                    ? reportPattern.footer(this.props.report.data)
+                    : null,
+                )}
+              </View>,
+              true,
+            )
+          : this._renderCardContainer(
+              <View
+                style={{
+                  flex:
+                    reportPattern.footerSummary && this.props.report.data
+                      ? 0.9
+                      : 1,
+                }}
+              >
+                <IList
+                  header={reportPattern.header}
+                  data={listData.ITEMS}
+                  footer={
+                    reportPattern.footerItem && this.props.report.data
+                      ? reportPattern.footerRenderItem(this.props.report.data)
+                      : null
+                  }
+                  renderItem={reportPattern.renderItem}
+                  stickyHeaderIndices={[0]}
+                />
+                {this._renderFooterSummary(
                   reportPattern.footerSummary && this.props.report.data
-                    ? 0.9
-                    : 1,
-              }}>
-              <IList
-                header={reportPattern.header}
-                data={listData.ITEMS}
-                footer={
-                  reportPattern.footerItem && this.props.report.data
-                    ? reportPattern.footerRenderItem(this.props.report.data)
-                    : null
-                }
-                renderItem={reportPattern.renderItem}
-                stickyHeaderIndices={[0]}
-              />
-              {this._renderFooterSummary(
-                reportPattern.footerSummary && this.props.report.data
-                  ? reportPattern.footer(this.props.report.data)
-                  : null,
-              )}
-            </View>,
-          )
-        )}
+                    ? reportPattern.footer(this.props.report.data)
+                    : null,
+                )}
+              </View>,
+            )}
       </View>
     );
   };
 
-  _patternB = (reportPattern) => {
+  _patternB = reportPattern => {
     let listData = [];
     console.log('_patternB', this.state.reportParams.pattern);
     // if (this.state.selectedIndex == 0) {
@@ -286,8 +281,8 @@ class CTListItems extends Component {
 
     // if (this.state.selectedIndex == 0) {
 
-    const {routes, index} = Navigator.getCurrentRoute();
-    const {params} = routes[index].params;
+    const { routes, index } = Navigator.getCurrentRoute();
+    const { params } = routes[index].params;
 
     // if (params.type == 'PeformanceByProductCategory') {
     //     if (this.state.selectedIndex === 0) {
@@ -309,89 +304,89 @@ class CTListItems extends Component {
 
         {(reportPattern.horizontalScreen === 'phone' &&
           Dimensions.get('window').width < 450) ||
-        reportPattern.horizontalScreen === 'both' ? (
-          this._renderCardContainer(
-            <View
-              style={{
-                flex:
+        reportPattern.horizontalScreen === 'both'
+          ? this._renderCardContainer(
+              <View
+                style={{
+                  flex:
+                    reportPattern.footerSummary && this.props.report.data
+                      ? 0.9
+                      : 1,
+                }}
+              >
+                <IList
+                  header={reportPattern.header}
+                  data={listData}
+                  footer={
+                    reportPattern.footerItem && this.props.report.data
+                      ? this.state.selectedIndex === 0
+                        ? reportPattern.footerRenderItem(this.props.report.data)
+                        : reportPattern.footerRenderItemPercent(
+                            this.props.report.data,
+                          )
+                      : null
+                  }
+                  renderItem={
+                    this.state.selectedIndex == 0
+                      ? reportPattern.renderItem
+                      : reportPattern.renderItemPercent
+                  }
+                  stickyHeaderIndices={[0]}
+                />
+                {this._renderFooterSummary(
                   reportPattern.footerSummary && this.props.report.data
-                    ? 0.9
-                    : 1,
-              }}>
-              <IList
-                header={reportPattern.header}
-                data={listData}
-                footer={
-                  reportPattern.footerItem && this.props.report.data
-                    ? this.state.selectedIndex === 0
-                      ? reportPattern.footerRenderItem(this.props.report.data)
-                      : reportPattern.footerRenderItemPercent(
-                          this.props.report.data,
-                        )
-                    : null
-                }
-                renderItem={
-                  this.state.selectedIndex == 0
-                    ? reportPattern.renderItem
-                    : reportPattern.renderItemPercent
-                }
-                stickyHeaderIndices={[0]}
-              />
-              {this._renderFooterSummary(
-                reportPattern.footerSummary && this.props.report.data
-                  ? reportPattern.footer(
-                      this.state.selectedIndex,
-                      this.props.report.data,
-                    )
-                  : null,
-              )}
-            </View>,
-            true,
-          )
-        ) : (
-          this._renderCardContainer(
-            <View
-              style={{
-                flex:
+                    ? reportPattern.footer(
+                        this.state.selectedIndex,
+                        this.props.report.data,
+                      )
+                    : null,
+                )}
+              </View>,
+              true,
+            )
+          : this._renderCardContainer(
+              <View
+                style={{
+                  flex:
+                    reportPattern.footerSummary && this.props.report.data
+                      ? 0.9
+                      : 1,
+                }}
+              >
+                <IList
+                  header={reportPattern.header}
+                  data={listData}
+                  footer={
+                    reportPattern.footerItem && this.props.report.data
+                      ? this.state.selectedIndex == 0
+                        ? reportPattern.footerRenderItem(this.props.report.data)
+                        : reportPattern.footerRenderItemPercent(
+                            this.props.report.data,
+                          )
+                      : null
+                  }
+                  renderItem={
+                    this.state.selectedIndex == 0
+                      ? reportPattern.renderItem
+                      : reportPattern.renderItemPercent
+                  }
+                  stickyHeaderIndices={[0]}
+                />
+                {this._renderFooterSummary(
                   reportPattern.footerSummary && this.props.report.data
-                    ? 0.9
-                    : 1,
-              }}>
-              <IList
-                header={reportPattern.header}
-                data={listData}
-                footer={
-                  reportPattern.footerItem && this.props.report.data
-                    ? this.state.selectedIndex == 0
-                      ? reportPattern.footerRenderItem(this.props.report.data)
-                      : reportPattern.footerRenderItemPercent(
-                          this.props.report.data,
-                        )
-                    : null
-                }
-                renderItem={
-                  this.state.selectedIndex == 0
-                    ? reportPattern.renderItem
-                    : reportPattern.renderItemPercent
-                }
-                stickyHeaderIndices={[0]}
-              />
-              {this._renderFooterSummary(
-                reportPattern.footerSummary && this.props.report.data
-                  ? reportPattern.footer(
-                      this.state.selectedIndex,
-                      this.props.report.data,
-                    )
-                  : null,
-              )}
-            </View>,
-          )
-        )}
+                    ? reportPattern.footer(
+                        this.state.selectedIndex,
+                        this.props.report.data,
+                      )
+                    : null,
+                )}
+              </View>,
+            )}
       </View>
     );
   };
 
-  _patternC = (reportPattern) => {
+  _patternC = reportPattern => {
     return reportPattern.renderItem(
       this.state.userToken && this.state.userToken.SALESMAN
         ? this.state.userToken.SALESMAN
@@ -401,8 +396,8 @@ class CTListItems extends Component {
   };
 
   render() {
-    const {routes, index} = Navigator.getCurrentRoute();
-    const {params} = routes[index].params;
+    const { routes, index } = Navigator.getCurrentRoute();
+    const { params } = routes[index].params;
     let reportPattern = null;
 
     if (params.type === 'SalesOrderByCategory') {
@@ -446,20 +441,20 @@ class CTListItems extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   report: state.report,
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
-    setDiscountPercentFirstRound: (value) =>
+    setDiscountPercentFirstRound: value =>
       dispatch(setDiscountPercentFirstRound(value)),
-    setDiscountPercentSecondRound: (value) =>
+    setDiscountPercentSecondRound: value =>
       dispatch(setDiscountPercentSecondRound(value)),
     calculateOrderNetPriceAfterDiscount: () =>
       dispatch(calculateOrderNetPriceAfterDiscount()),
     clearDiscountPercent: () => dispatch(clearDiscountPercent()),
-    sendOrder: (data) => dispatch(sendOrder(data)),
+    sendOrder: data => dispatch(sendOrder(data)),
   };
 };
 
@@ -475,12 +470,13 @@ const styles = StyleSheet.create({
   toggleActionRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginBottom: 10,
+    marginTop: -18,
+    marginBottom: -2,
   },
   toggleButtonGroup: {
     flex: 0,
-    width: 126,
-    height: 36,
+    width: 112,
+    height: 30,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: '#BFD5C8',
@@ -488,7 +484,7 @@ const styles = StyleSheet.create({
   },
   toggleButton: {
     backgroundColor: '#F2F7F4',
-    paddingVertical: 6,
+    paddingVertical: 1,
   },
   toggleButtonSelected: {
     backgroundColor: MainTheme.colorPrimary,
@@ -508,7 +504,7 @@ const styles = StyleSheet.create({
     borderColor: '#DCE7E1',
     overflow: 'hidden',
     shadowColor: '#173126',
-    shadowOffset: {width: 0, height: 3},
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.07,
     shadowRadius: 8,
     elevation: 2,

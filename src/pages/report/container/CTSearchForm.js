@@ -16,6 +16,7 @@ import { BluetoothFinder, BplusPrinting } from '../../../module';
 import Navigator from '../../../services/Navigator';
 import { toBuddhistYear } from '../../../utils/Date';
 import { getSettingConfig, getUserToken } from '../../../utils/Token';
+import { getCustomerReportPerformance } from '../customer-line-performance/action';
 
 class CTSearchForm extends Component {
   _isMounted = false;
@@ -82,6 +83,14 @@ class CTSearchForm extends Component {
         console.log("ถึง 3 :" , dateTo);
       await this._setState('dateFrom', dateFrom);
       await this._setState('dateTo', dateTo);
+
+      if (this.state.reportParams.type === 'PerformanceByArlineItem') {
+        await this.props.getCustomerReportPerformance({
+          FROM: dateFrom,
+          TO: dateTo,
+        });
+        return;
+      }
 
       const reportParams = {
         FROM: moment(dateFrom, 'DD/MM/YYYY').add(1, 'days').toJSON(),
@@ -678,6 +687,8 @@ const mapDispatchToProps = (dispatch) => {
       dispatch(getReportData(uri, pattern, data)),
     getReportDataNoGroup: (uri, pattern, data) =>
       dispatch(getReportDataNoGroup(uri, pattern, data)),
+    getCustomerReportPerformance: (criteria) =>
+      dispatch(getCustomerReportPerformance(criteria)),
     getReportV3: (uri, pattern, data) =>
       dispatch(getReportV3(uri, pattern, data)),
     systemCheck: (data) => dispatch(systemCheck(data)),

@@ -252,6 +252,9 @@ export const salesOrderByCategory = {
     );
   },
   footerRenderItem: (item) => {
+    const summarySection = item?.SUMMARY_SECTION || {};
+    const summaryItems = summarySection.ITEMS || [];
+
     return (
       <View style={salesOrderByCategoryStyles.summaryCard}>
         <View style={salesOrderByCategoryStyles.summaryTitleRow}>
@@ -1064,6 +1067,9 @@ export const salesOrderByArline = {
     );
   },
   footerRenderItem: (item) => {
+    const summarySection = item?.SUMMARY_SECTION || {};
+    const summaryItems = summarySection.ITEMS || [];
+
     return (
       <View>
         <View
@@ -2564,6 +2570,8 @@ export const documentItemsDetails = {
     );
   },
   footerRenderItem: (item) => {
+    const summarySection = item?.SUMMARY_SECTION || {};
+    const summaryItems = summarySection.ITEMS || [];
     return (
       <View>
         {/* <View
@@ -3142,6 +3150,9 @@ export const performanceByArlineItem = {
     );
   },
   footerRenderItem: (item) => {
+    const summarySection = item?.SUMMARY_SECTION || {};
+    const summaryItems = summarySection.ITEMS || [];
+
     return (
       <View>
         <View
@@ -3161,7 +3172,7 @@ export const performanceByArlineItem = {
           </Text>
         </View>
 
-        {item.SUMMARY_SECTION.ITEMS.map((item, key) => (
+        {summaryItems.map((item, key) => (
           <View
             key={key}
             style={{
@@ -3244,7 +3255,7 @@ export const performanceByArlineItem = {
               fontSize: hp(fontDefault),
             }}
             allowFontScaling={false}>
-            {item.SUMMARY_SECTION.SUM_COUNTAR}
+            {summarySection.SUM_COUNTAR}
           </Text>
           <Text
             style={{
@@ -3254,7 +3265,7 @@ export const performanceByArlineItem = {
               fontSize: hp(fontDefault),
             }}
             allowFontScaling={false}>
-            {item.SUMMARY_SECTION.SUM_COUNTSELLBOOK}
+            {summarySection.SUM_COUNTSELLBOOK}
           </Text>
           <Text
             style={{
@@ -3264,7 +3275,7 @@ export const performanceByArlineItem = {
               fontSize: hp(fontDefault),
             }}
             allowFontScaling={false}>
-            {item.SUMMARY_SECTION.SUM_COUNTVISIT}
+            {summarySection.SUM_COUNTVISIT}
           </Text>
           <Text
             style={{
@@ -3274,13 +3285,16 @@ export const performanceByArlineItem = {
               fontSize: hp(fontDefault),
             }}
             allowFontScaling={false}>
-            {item.SUMMARY_SECTION.SUM_COUNTSURVEY}
+            {summarySection.SUM_COUNTSURVEY}
           </Text>
         </View>
       </View>
     );
   },
   footerRenderItemPercent: (item) => {
+    const summarySectionPercent = item?.SUMMARY_SECTION_PERCENT || {};
+    const summaryPercentItems = summarySectionPercent.ITEMS || [];
+
     return (
       <View>
         <View
@@ -3299,7 +3313,7 @@ export const performanceByArlineItem = {
             รวมทั้งสิ้น
           </Text>
         </View>
-        {item.SUMMARY_SECTION_PERCENT.ITEMS.map((item, key) => (
+        {summaryPercentItems.map((item, key) => (
           <View
             key={key}
             style={{
@@ -3382,7 +3396,9 @@ export const performanceByArlineItem = {
               fontSize: hp(fontDefault),
             }}
             allowFontScaling={false}>
-            {item.SUMMARY_SECTION_PERCENT.SUM_COUNTAR_PERCENT + '%'}
+            {summarySectionPercent.SUM_COUNTAR_PERCENT
+              ? summarySectionPercent.SUM_COUNTAR_PERCENT + '%'
+              : ''}
           </Text>
           <Text
             style={{
@@ -3392,7 +3408,9 @@ export const performanceByArlineItem = {
               fontSize: hp(fontDefault),
             }}
             allowFontScaling={false}>
-            {item.SUMMARY_SECTION_PERCENT.SUM_COUNTSELLBOOK_PERCENT + '%'}
+            {summarySectionPercent.SUM_COUNTSELLBOOK_PERCENT
+              ? summarySectionPercent.SUM_COUNTSELLBOOK_PERCENT + '%'
+              : ''}
           </Text>
           <Text
             style={{
@@ -3402,7 +3420,9 @@ export const performanceByArlineItem = {
               fontSize: hp(fontDefault),
             }}
             allowFontScaling={false}>
-            {item.SUMMARY_SECTION_PERCENT.SUM_COUNTVISIT_PERCENT + '%'}
+            {summarySectionPercent.SUM_COUNTVISIT_PERCENT
+              ? summarySectionPercent.SUM_COUNTVISIT_PERCENT + '%'
+              : ''}
           </Text>
           <Text
             style={{
@@ -3412,13 +3432,31 @@ export const performanceByArlineItem = {
               fontSize: hp(fontDefault),
             }}
             allowFontScaling={false}>
-            {item.SUMMARY_SECTION_PERCENT.SUM_COUNTSURVEY_PERCENT + '%'}
+            {summarySectionPercent.SUM_COUNTSURVEY_PERCENT
+              ? summarySectionPercent.SUM_COUNTSURVEY_PERCENT + '%'
+              : ''}
           </Text>
         </View>
       </View>
     );
   },
   footer: (displayType, item) => {
+    const countSellBookPercent =
+      item?.SUM_COUNTSELLBOOK_PERCENT !== undefined &&
+      item?.SUM_COUNTSELLBOOK_PERCENT !== null
+        ? item.SUM_COUNTSELLBOOK_PERCENT + '%'
+        : '';
+    const countVisitPercent =
+      item?.SUM_COUNTVISIT_PERCENT !== undefined &&
+      item?.SUM_COUNTVISIT_PERCENT !== null
+        ? item.SUM_COUNTVISIT_PERCENT + '%'
+        : '';
+    const countSurveyPercent =
+      item?.SUM_COUNTSURVEY_PERCENT !== undefined &&
+      item?.SUM_COUNTSURVEY_PERCENT !== null
+        ? item.SUM_COUNTSURVEY_PERCENT + '%'
+        : '';
+
     return (
       <View
         style={{
@@ -3445,7 +3483,7 @@ export const performanceByArlineItem = {
           allowFontScaling={false}>
           {displayType === 0
             ? item.SUM_COUNTSELLBOOK
-            : item.SUM_COUNTSELLBOOK_PERCENT + '%'}
+            : countSellBookPercent}
         </Text>
         <Text
           style={{
@@ -3457,7 +3495,7 @@ export const performanceByArlineItem = {
           allowFontScaling={false}>
           {displayType === 0
             ? item.SUM_COUNTVISIT
-            : item.SUM_COUNTVISIT_PERCENT + '%'}
+            : countVisitPercent}
         </Text>
         <Text
           style={{
@@ -3469,7 +3507,7 @@ export const performanceByArlineItem = {
           allowFontScaling={false}>
           {displayType === 0
             ? item.SUM_COUNTSURVEY
-            : item.SUM_COUNTSURVEY_PERCENT + '%'}
+            : countSurveyPercent}
         </Text>
       </View>
     );

@@ -57,7 +57,7 @@ class IDurationDateSearchForm extends Component {
                 onPress={onPress}>
                 <IconComponent
                     name={icon}
-                    size={18}
+                    size={16}
                     color={isPrimary ? MainTheme.colorSecondary : MainTheme.colorPrimary}
                     style={[styles.actionIcon, compact ? styles.actionIconCompact : null]}
                 />
@@ -237,8 +237,8 @@ const styles = StyleSheet.create({
     formCard: {
         backgroundColor: '#FFFFFF',
         borderRadius: 18,
-        paddingVertical: 16,
-        paddingHorizontal: 14,
+        paddingVertical: 12,
+        paddingHorizontal: 10,
         borderWidth: 1,
         borderColor: '#E1EAE4',
         shadowColor: '#000000',
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.08,
         shadowRadius: 8,
         elevation: 3,
-        marginBottom: 8,
+        marginBottom: 6,
     },
     sectionTitle: {
         fontSize: hp('1.75%'),
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     cardHeaderRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: 8,
         width: '100%',
     },
     titleWrap: {
@@ -279,12 +279,13 @@ const styles = StyleSheet.create({
     },
     fieldCard: {
         flex: 1,
-        minHeight: 58,
+        minHeight: 42,
         backgroundColor: '#F7FAF8',
         borderWidth: 1,
         borderColor: '#DEE9E3',
         borderRadius: 14,
-        paddingHorizontal: 10,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
         justifyContent: 'center',
         marginHorizontal: 4,
     },
@@ -300,7 +301,7 @@ const styles = StyleSheet.create({
         paddingTop: 2,
     },
     actionRowInline: {
-        marginLeft: 8,
+        marginLeft: 6,
         paddingTop: 0,
     },
     actionButton: {
@@ -314,14 +315,14 @@ const styles = StyleSheet.create({
     },
     actionButtonCompact: {
         flex: 0,
-        width: 46,
-        minHeight: 46,
-        borderRadius: 23,
+        width: 38,
+        minHeight: 38,
+        borderRadius: 19,
         paddingHorizontal: 0,
     },
     actionButtonPrimary: {
         backgroundColor: MainTheme.colorPrimary,
-        marginRight: 8,
+        marginRight: 6,
         shadowColor: '#000000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.12,

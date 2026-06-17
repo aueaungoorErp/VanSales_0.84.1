@@ -20,7 +20,8 @@ export const customerReportPerformance = async (
 
     const url =
       VanSalesBaseUrl(normalizedBaseUrl) +
-      '/erp/reports/customer-line-performance';
+      'erp/reports/customer-line-performance';
+    console.log('urlAAA', url);
 
     const response = await axios.post(url, critial, {
       timeout: appConfig.REQUEST_TIMEOUT_MS,
@@ -29,6 +30,9 @@ export const customerReportPerformance = async (
         'x-erp-login-guid': loginGuid ?? '',
       },
     });
+    console.log('response.data', response.data);
+
+    return response.data;
   } catch (error: any) {
     console.log('[VanSalesServices] customerReportPerformance failed', {
       message: error?.message,
