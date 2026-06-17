@@ -393,7 +393,7 @@ class CTSearchForm extends Component {
   _pdfAlertDialog = (path) =>
     Alert.alert(
       'ประกาศ',
-      path,
+      'สร้างไฟล์ PDF สำเร็จ',
       [
         {
           text: 'แสดง',

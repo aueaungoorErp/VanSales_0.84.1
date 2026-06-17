@@ -9,7 +9,6 @@ import {
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  RefreshControl,
   StyleSheet,
   Text,
   View,
@@ -464,11 +463,9 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
             <View style={styles.topRow}>
               <View style={styles.topRowSpacer} />
               <View style={styles.topLeftWrap}>
-                {userToken.VANCONFIG.VANCNF_AR_LIMIT === 2 ? (
-                  <Text style={styles.indexText} allowFontScaling={false}>
-                    {index + 1}
-                  </Text>
-                ) : null}
+                <Text style={styles.indexText} allowFontScaling={false}>
+                  {index + 1}
+                </Text>
                 <Text style={styles.codeText} allowFontScaling={false}>
                   {item.AR_CODE || '-'}
                 </Text>
@@ -555,19 +552,16 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
 
   return (
     <View style={styles.container}>
-      {!isNotFound && !isError && !isRouteListLoading ? (
+      {!isNotFound && !isError ? (
         <FlatList
           data={sortedCustomers}
           renderItem={renderItem}
-          keyExtractor={(_, index) => index.toString()}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRouteListLoading}
-              onRefresh={() => {
-                void onRefresh();
-              }}
-            />
+          keyExtractor={(item, index) =>
+            item.AR_KEY !== undefined && item.AR_KEY !== null
+              ? `${item.AR_KEY}`
+              : index.toString()
           }
+          maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
           onScroll={event => {
             onScroll(event);
           }}

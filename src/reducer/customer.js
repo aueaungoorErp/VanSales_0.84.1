@@ -4,7 +4,7 @@ const initialState = {
   criteria: {
     KEYWORD: null,
     OFFSET: 1,
-    LIMIT: 10,
+    LIMIT: 20,
   },
   item: {
     INFO: {},

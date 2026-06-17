@@ -2324,6 +2324,18 @@ const printPerformanceByArlineItem = (
     '<div style="font-size: 7px;text-align: center;width: 180px;white-space: nowrap;overflow: hidden;" >---------------------------------------------------------------------------------</div>';
 
   const deepRowLevel1 = data.RPT_DATA.RESULT;
+  const summarySection = data.SUMMARY_SECTION || {};
+  const summarySectionPercent =
+    data.SUMMARY_SECTION_PERCENT || data.SUMMARY_SECTION || {};
+  const summaryItems = Array.isArray(summarySection)
+    ? summarySection
+    : summarySection.ITEMS || [];
+  const summaryTotals = Array.isArray(summarySection)
+    ? summarySection
+    : summarySection;
+  const summaryPercentTotals = Array.isArray(summarySectionPercent)
+    ? summarySectionPercent
+    : summarySectionPercent;
 
   deepRowLevel1.map((rowLevel1, index) => {
     html += `<div style="font-size: 7px;" >วันที่: ${rowLevel1.GROUP_NAME}</div>`;
@@ -2396,9 +2408,7 @@ const printPerformanceByArlineItem = (
   if (deepRowLevel1.length > 1) {
     html += `<div style="font-size: 7px;" >รวมทั้งสิ้น</div>`;
 
-    const sumItems = data.SUMMARY_SECTION;
-
-    sumItems.map((sumItem, index) => {
+    summaryItems.map((sumItem, index) => {
       html += `<div style="font-size: 7px;display: flex;">
                 <div style="font-size: 7px;width: 35%;" >${sumItem.ITEM_NAME
         }</div>
@@ -2423,17 +2433,17 @@ const printPerformanceByArlineItem = (
     html += `<div style="font-size: 7px;display: flex;">
                 <div style="font-size: 7px;width: 35%;" >รวม</div>
                 <div style="font-size: 7px;width: 20%;text-align: right;" >${parseInt(
-      data.SUMMARY_SECTION.SUM_COUNTAR,
+      summaryTotals.SUM_COUNTAR,
     )
         .toFixed(2)
         .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
                 <div style="font-size: 7px;width: 22%;text-align: right;" >${parseInt(
-          data.SUMMARY_SECTION.SUM_COUNTSELLBOOK,
+          summaryTotals.SUM_COUNTSELLBOOK,
         )
         .toFixed(2)
         .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
                 <div style="font-size: 7px;width: 23%;text-align: right;" >${parseInt(
-          data.SUMMARY_SECTION.SUM_COUNTVISIT,
+          summaryTotals.SUM_COUNTVISIT,
         )
         .toFixed(2)
         .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
@@ -2441,7 +2451,7 @@ const printPerformanceByArlineItem = (
 
     html += `<div style="font-size: 7px;" >แสดงในรูปแบบ: % **</div>`;
 
-    sumItems.map((sumItem, index) => {
+    summaryItems.map((sumItem, index) => {
       html += `<div style="font-size: 7px;display: flex;">
                 <div style="font-size: 7px;width: 55%;" >${sumItem.ITEM_NAME}</div>
                 <div style="font-size: 7px;width: 22%;text-align: right;" >${sumItem.ITEM_COUNTSELLBOOK_PERCENT}%</div>
@@ -2451,8 +2461,8 @@ const printPerformanceByArlineItem = (
 
     html += `<div style="font-size: 7px;display: flex;">
                 <div style="font-size: 7px;width: 55%;" >รวม</div>
-                <div style="font-size: 7px;width: 22%;text-align: right;" >${data.SUMMARY_SECTION.SUM_COUNTSELLBOOK_PERCENT}%</div>
-                <div style="font-size: 7px;width: 23%;text-align: right;" >${data.SUMMARY_SECTION.SUM_COUNTVISIT_PERCENT}%</div>
+                <div style="font-size: 7px;width: 22%;text-align: right;" >${summaryPercentTotals.SUM_COUNTSELLBOOK_PERCENT}%</div>
+                <div style="font-size: 7px;width: 23%;text-align: right;" >${summaryPercentTotals.SUM_COUNTVISIT_PERCENT}%</div>
             </div>`;
   }
 

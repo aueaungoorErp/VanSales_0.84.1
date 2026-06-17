@@ -109,7 +109,7 @@ export const customerSearchArLineListV3Api = async (criteria) => {
     'BPAPUS-FILTER': KEYWORD, //+ ARCAT_KEY,
     'BPAPUS-ORDERBY': ' ORDER BY ARL_KEY,AR_CODE  ',
     'BPAPUS-OFFSET': OFFSET,
-    'BPAPUS-FETCH': 10,
+    'BPAPUS-FETCH': LIMIT,
   };
   console.log('bodyRequest bbbb', bodyRequest);
   return new Promise((resolve, reject) => {
