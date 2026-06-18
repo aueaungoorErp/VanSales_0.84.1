@@ -7,6 +7,7 @@ import {
   customerReportPerformanceParam,
   productCategoryReportPerformanceParam,
 } from './param-request';
+import { clearMasterBankFileList } from '../../action/masterData';
 
 export const customerReportPerformance = async (
   critial: customerReportPerformanceParam,
@@ -52,7 +53,7 @@ export const productCategoryReportPerformance = async (
   try {
     const storedBaseUrl = await getVanSalesWebServiceUrl();
     const loginGuid = await getLoginGuID();
-
+    console.log('loginGuid', loginGuid);
     const normalizedBaseUrl = normalizePaymentBaseUrl(storedBaseUrl);
 
     if (!normalizedBaseUrl) {
@@ -63,6 +64,8 @@ export const productCategoryReportPerformance = async (
       VanSalesBaseUrl(normalizedBaseUrl) +
       'erp/reports/product-category-performance';
 
+    console.log('urlaaa', url);
+
     const response = await axios.post(url, critial, {
       timeout: appConfig.REQUEST_TIMEOUT_MS,
       headers: {
@@ -71,6 +74,7 @@ export const productCategoryReportPerformance = async (
       },
     });
 
+    console.log('responseaaa', response);
     return response.data;
   } catch (error: any) {
     console.log('[VanSalesServices] productCategoryReportPerformance failed', {

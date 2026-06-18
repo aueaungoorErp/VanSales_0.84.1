@@ -17,6 +17,7 @@ import Navigator from '../../../services/Navigator';
 import { toBuddhistYear } from '../../../utils/Date';
 import { getSettingConfig, getUserToken } from '../../../utils/Token';
 import { getCustomerReportPerformance } from '../customer-line-performance/action';
+import { getProductCategoryReportPerformance } from '../product-category-performance/action';
 
 class CTSearchForm extends Component {
   _isMounted = false;
@@ -83,9 +84,16 @@ class CTSearchForm extends Component {
         console.log("ถึง 3 :" , dateTo);
       await this._setState('dateFrom', dateFrom);
       await this._setState('dateTo', dateTo);
-
       if (this.state.reportParams.type === 'PerformanceByArlineItem') {
         await this.props.getCustomerReportPerformance({
+          FROM: dateFrom,
+          TO: dateTo,
+        });
+        return;
+      }
+
+      if (this.state.reportParams.type === 'PeformanceByProductCategory') {
+        await this.props.getProductCategoryReportPerformance({
           FROM: dateFrom,
           TO: dateTo,
         });
@@ -124,8 +132,12 @@ class CTSearchForm extends Component {
 
     } catch (error) {
       console.log('_onSearch error:', error);
-      if(error !== 'ไม่พบการส่งรหัสหน่วยรถ'){
-        await this._setState('errorMessage', 'เกิดข้อผิดพลาด: ' + error);
+      const errorMessage = error?.message || error;
+      if (errorMessage !== 'ไม่พบการส่งรหัสหน่วยรถ') {
+        await this._setState(
+          'errorMessage',
+          'เกิดข้อผิดพลาด: ' + errorMessage,
+        );
       }
     } finally {
       // ใช้ finally เพื่อให้แน่ใจว่า loading จะถูกปิดเสมอ
@@ -689,6 +701,8 @@ const mapDispatchToProps = (dispatch) => {
       dispatch(getReportDataNoGroup(uri, pattern, data)),
     getCustomerReportPerformance: (criteria) =>
       dispatch(getCustomerReportPerformance(criteria)),
+    getProductCategoryReportPerformance: (criteria) =>
+      dispatch(getProductCategoryReportPerformance(criteria)),
     getReportV3: (uri, pattern, data) =>
       dispatch(getReportV3(uri, pattern, data)),
     systemCheck: (data) => dispatch(systemCheck(data)),

@@ -2483,6 +2483,10 @@ const printPeformanceByProductCategoryItem = (
 ) => {
   let html = `<br><div style="width: 100%;"><div style="width: 180px;margin: auto;">`;
   console.log('vanConfig', vanConfig);
+  const summarySection = data?.SUMMARY_SECTION || {};
+  const summaryItems = Array.isArray(summarySection)
+    ? summarySection
+    : summarySection.ITEMS || [];
 
   html += printHeaderReport(
     title,
@@ -2543,7 +2547,9 @@ const printPeformanceByProductCategoryItem = (
     rowLevel1.ITEMS_PERCENT.map((deepRowLevel2, index) => {
       html += `<div style="font-size: 7px;display: flex;">
                     <div style="font-size: 7px;width: 70%;">${deepRowLevel2.ICDEPT_THAIDESC}</div>
-                    <div style="font-size: 7px;width: 30%;text-align: right;">${deepRowLevel2.COUNTSKM_PERCENT}%</div>
+                    <div style="font-size: 7px;width: 30%;text-align: right;">${
+                      deepRowLevel2.COUNTSKM_PERCENT ?? deepRowLevel2.COUNTSKM
+                    }%</div>
                 </div>`;
     });
 
@@ -2559,9 +2565,7 @@ const printPeformanceByProductCategoryItem = (
   if (deepRowLevel1.length > 1) {
     html += `<div style="font-size: 7px;" >รวมทั้งสิ้น</div>`;
 
-    const sumItems = data.SUMMARY_SECTION;
-
-    sumItems.map((sumItem, index) => {
+    summaryItems.map((sumItem, index) => {
       html += `<div style="font-size: 7px;display: flex;">
                 <div style="font-size: 7px;width: 70%;" >${sumItem.ITEM_NAME
         }</div>
@@ -2594,10 +2598,12 @@ const printPeformanceByProductCategoryItem = (
 
     html += `<div style="font-size: 7px;" >แสดงในรูปแบบ: % **</div>`;
 
-    sumItems.map((sumItem, index) => {
+    summaryItems.map((sumItem, index) => {
       html += `<div style="font-size: 7px;display: flex;">
                 <div style="font-size: 7px;width: 70%;" >${sumItem.ITEM_NAME}</div>
-                <div style="font-size: 7px;width: 30%;text-align: right;" >${sumItem.ITEM_COUNTSKM_PERCENT}%</div>
+                <div style="font-size: 7px;width: 30%;text-align: right;" >${
+                  sumItem.ITEM_COUNTSKM_PERCENT ?? sumItem.ITEM_COUNTSKM
+                }%</div>
             </div>`;
     });
 
