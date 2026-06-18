@@ -68,10 +68,7 @@ export const homeMenuList: MenuItem[] = [
   {
     title: 'จัดสายลูกค้า',
     buttonStyle: { backgroundColor: '#FFA500' },
-    iconType: 'MaterialCommunityIcons',
-    iconName: 'selection-marker',
-    iconColor: '#47BA8F',
-    iconSize: 88,
+    imgSrc: require('../../../images/two-point-location.png'),
     screen: 'CustomerRoute',
     methodType: 'new-page',
     methodName: null,
