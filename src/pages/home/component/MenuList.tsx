@@ -125,6 +125,10 @@ const MenuList: React.FC = () => {
                 color={item.iconColor || '#444444'}
               />
             </View>
+          ) : item.IconComponent ? (
+            <View style={styles.iconWrap}>
+              <item.IconComponent width={96} height={96} />
+            </View>
           ) : item.imgSrc ? (
             <Image
               style={styles.image}

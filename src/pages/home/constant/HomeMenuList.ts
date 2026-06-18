@@ -1,9 +1,12 @@
+import React from 'react';
 import { ImageSourcePropType } from 'react-native';
 import { strings } from '../../../locales/i18n';
+import TwoPointLocation from '../../../images/svg/twoPointLocation';
 
 export interface MenuItem {
   title: string;
   imgSrc?: ImageSourcePropType;
+  IconComponent?: React.ComponentType<{ width?: number; height?: number }>;
   iconType?: 'MaterialCommunityIcons';
   iconName?: string;
   iconColor?: string;
@@ -68,7 +71,7 @@ export const homeMenuList: MenuItem[] = [
   {
     title: 'จัดสายลูกค้า',
     buttonStyle: { backgroundColor: '#FFA500' },
-    imgSrc: require('../../../images/two-point-location.png'),
+    IconComponent: TwoPointLocation,
     screen: 'CustomerRoute',
     methodType: 'new-page',
     methodName: null,
