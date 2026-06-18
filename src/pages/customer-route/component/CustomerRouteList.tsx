@@ -58,6 +58,8 @@ type GeolocationState = {
     latitude: string | null;
     longitude: string | null;
   };
+  isLoading?: boolean;
+  isError?: boolean;
 };
 
 type CustomerRouteListStateProps = CustomerListStateProps & {
@@ -293,6 +295,17 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
         longitude: geolocation.position.longitude,
       };
       const canCompareDistance = hasCompleteCoordinate(currentLocation);
+
+      if (!canCompareDistance) {
+        if (mountedRef.current) {
+          setIsPreparingList(!geolocation.isError);
+        }
+
+        if (!geolocation.isError) {
+          return;
+        }
+      }
+
       const currentNumericPosition = {
         latitude: parseCoordinate(currentLocation.latitude),
         longitude: parseCoordinate(currentLocation.longitude),
@@ -506,6 +519,8 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
   }, [
     customer.listItems,
     currentListSignature,
+    geolocation.isError,
+    geolocation.isLoading,
     geolocation.position.latitude,
     geolocation.position.longitude,
     isUserTokenLoaded,
@@ -690,6 +705,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
   const isRouteListLoading =
     customer.isLoading ||
     customerType.isLoading ||
+    geolocation.isLoading ||
     isPreparingList ||
     !hasLatestSortedList;
 
