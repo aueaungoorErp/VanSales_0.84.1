@@ -235,7 +235,7 @@ class CTListItems extends Component {
               >
                 <IList
                   header={reportPattern.header}
-                  data={listData.ITEMS}
+                  data={Array.isArray(listData) ? listData : listData.ITEMS}
                   footer={
                     reportPattern.footerItem && this.props.report.data
                       ? reportPattern.footerRenderItem(this.props.report.data)

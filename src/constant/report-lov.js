@@ -3972,6 +3972,9 @@ export const peformanceByProductCategory = {
 // report #9
 export const salesOrderBySaleman = {
   renderItem: (salesMan, item) => {
+    const displayValue = (value) =>
+      value === null || value === undefined ? null : value;
+
     return (
       <View style={{flex: 1}}>
         <View
@@ -4047,9 +4050,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.BOOK && item.BOOK.SUM_AMT
-                ? item.BOOK.SUM_AMT
-                : null}
+              {displayValue(item?.BOOK?.SUM_AMT)}
             </Text>
           </View>
 
@@ -4068,9 +4069,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.BOOK && item.BOOK.SUM_ITEM_DSC
-                ? item.BOOK.SUM_ITEM_DSC
-                : null}
+              {displayValue(item?.BOOK?.SUM_ITEM_DSC)}
             </Text>
           </View>
 
@@ -4089,9 +4088,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.BOOK && item.BOOK.SUM_BILL_DSC
-                ? item.BOOK.SUM_BILL_DSC
-                : null}
+              {displayValue(item?.BOOK?.SUM_BILL_DSC)}
             </Text>
           </View>
 
@@ -4110,9 +4107,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.BOOK && item.BOOK.COUNT_DOC
-                ? item.BOOK.COUNT_DOC
-                : null}
+              {displayValue(item?.BOOK?.COUNT_DOC)}
             </Text>
           </View>
 
@@ -4131,9 +4126,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.BOOK && item.BOOK.SUM_PCS
-                ? item.BOOK.SUM_PCS
-                : null}
+              {displayValue(item?.BOOK?.SUM_PCS)}
             </Text>
           </View>
 
@@ -4152,9 +4145,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.BOOK && item.BOOK.SUM_QTY
-                ? item.BOOK.SUM_QTY
-                : null}
+              {displayValue(item?.BOOK?.SUM_QTY)}
             </Text>
           </View>
 
@@ -4173,9 +4164,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.BOOK && item.BOOK.SUM_FREE_ITEM_QTY
-                ? item.BOOK.SUM_FREE_ITEM_QTY
-                : null}
+              {displayValue(item?.BOOK?.SUM_FREE_ITEM_QTY)}
             </Text>
           </View>
 
@@ -4196,9 +4185,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.SELL && item.SELL.SUM_AMT
-                ? item.SELL.SUM_AMT
-                : null}
+              {displayValue(item?.SELL?.SUM_AMT)}
             </Text>
           </View>
 
@@ -4217,9 +4204,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.SELL && item.SELL.SUM_ITEM_DSC
-                ? item.SELL.SUM_ITEM_DSC
-                : null}
+              {displayValue(item?.SELL?.SUM_ITEM_DSC)}
             </Text>
           </View>
 
@@ -4238,9 +4223,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.SELL && item.SELL.SUM_BILL_DSC
-                ? item.SELL.SUM_BILL_DSC
-                : null}
+              {displayValue(item?.SELL?.SUM_BILL_DSC)}
             </Text>
           </View>
 
@@ -4259,9 +4242,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.SELL && item.SELL.COUNT_DOC
-                ? item.SELL.COUNT_DOC
-                : null}
+              {displayValue(item?.SELL?.COUNT_DOC)}
             </Text>
           </View>
 
@@ -4280,9 +4261,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.SELL && item.SELL.SUM_PCS
-                ? item.SELL.SUM_PCS
-                : null}
+              {displayValue(item?.SELL?.SUM_PCS)}
             </Text>
           </View>
 
@@ -4301,9 +4280,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.SELL && item.SELL.SUM_QTY
-                ? item.SELL.SUM_QTY
-                : null}
+              {displayValue(item?.SELL?.SUM_QTY)}
             </Text>
           </View>
 
@@ -4322,9 +4299,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.SELL && item.SELL.SUM_FREE_ITEM_QTY
-                ? item.SELL.SUM_FREE_ITEM_QTY
-                : null}
+              {displayValue(item?.SELL?.SUM_FREE_ITEM_QTY)}
             </Text>
           </View>
 
@@ -4345,9 +4320,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.RETURN && item.RETURN.SUM_AMT
-                ? item.RETURN.SUM_AMT
-                : null}
+              {displayValue(item?.RETURN?.SUM_AMT)}
             </Text>
           </View>
 
@@ -4366,9 +4339,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.RETURN && item.RETURN.SUM_ITEM_DSC
-                ? item.RETURN.SUM_ITEM_DSC
-                : null}
+              {displayValue(item?.RETURN?.SUM_ITEM_DSC)}
             </Text>
           </View>
 
@@ -4387,9 +4358,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.RETURN && item.RETURN.SUM_BILL_DSC
-                ? item.RETURN.SUM_BILL_DSC
-                : null}
+              {displayValue(item?.RETURN?.SUM_BILL_DSC)}
             </Text>
           </View>
 
@@ -4408,9 +4377,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.RETURN && item.RETURN.COUNT_DOC
-                ? item.RETURN.COUNT_DOC
-                : null}
+              {displayValue(item?.RETURN?.COUNT_DOC)}
             </Text>
           </View>
 
@@ -4429,9 +4396,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.RETURN && item.RETURN.SUM_PCS
-                ? item.RETURN.SUM_PCS
-                : null}
+              {displayValue(item?.RETURN?.SUM_PCS)}
             </Text>
           </View>
 
@@ -4450,9 +4415,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.RETURN && item.RETURN.SUM_QTY
-                ? item.RETURN.SUM_QTY
-                : null}
+              {displayValue(item?.RETURN?.SUM_QTY)}
             </Text>
           </View>
 
@@ -4471,9 +4434,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.RETURN && item.RETURN.SUM_FREE_ITEM_QTY
-                ? item.RETURN.SUM_FREE_ITEM_QTY
-                : null}
+              {displayValue(item?.RETURN?.SUM_FREE_ITEM_QTY)}
             </Text>
           </View>
 
@@ -4516,7 +4477,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.TRANSFER_TO_AR ? item.TRANSFER_TO_AR : null}
+              {displayValue(item?.TRANSFER_TO_AR)}
             </Text>
           </View>
 
@@ -4544,7 +4505,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.PAID_BY_CHEQUE ? item.PAID_BY_CHEQUE : null}
+              {displayValue(item?.PAID_BY_CHEQUE)}
             </Text>
           </View>
 
@@ -4563,7 +4524,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.PAID_BY_CASH ? item.PAID_BY_CASH : null}
+              {displayValue(item?.PAID_BY_CASH)}
             </Text>
           </View>
 
@@ -4582,7 +4543,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.SUM_CASH_RTN ? item.SUM_CASH_RTN : null}
+              {displayValue(item?.SUM_CASH_RTN)}
             </Text>
           </View>
 
@@ -4601,7 +4562,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.CASH_FROM_SELL ? item.CASH_FROM_SELL : null}
+              {displayValue(item?.CASH_FROM_SELL)}
             </Text>
           </View>
 
@@ -4620,7 +4581,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.PGL ? item.PGL : null}
+              {displayValue(item?.PGL)}
             </Text>
           </View>
 
@@ -4641,7 +4602,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.MILE_START ? item.MILE_START : null}
+              --
             </Text>
           </View>
 
@@ -4660,7 +4621,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.MILE_END ? item.MILE_END : null}
+              --
             </Text>
           </View>
 
@@ -4680,7 +4641,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              {item && item.DISTANCE ? item.DISTANCE : null}
+              --
             </Text>
           </View>
         </ScrollView>

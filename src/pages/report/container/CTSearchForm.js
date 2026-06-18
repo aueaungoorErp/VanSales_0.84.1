@@ -18,6 +18,8 @@ import { toBuddhistYear } from '../../../utils/Date';
 import { getSettingConfig, getUserToken } from '../../../utils/Token';
 import { getCustomerReportPerformance } from '../customer-line-performance/action';
 import { getProductCategoryReportPerformance } from '../product-category-performance/action';
+import { getSalespersonSalesPerformance } from '../salesperson-sales-performance/action';
+import { getStockBalanceByLocation } from '../stock-balance-by-location/action';
 
 class CTSearchForm extends Component {
   _isMounted = false;
@@ -107,6 +109,27 @@ class CTSearchForm extends Component {
         await this.props.getSalesSummaryByDocumentViaHook({
           FROM: dateFrom,
           TO: dateTo,
+        });
+        return;
+      }
+
+      if (
+        this.state.reportParams.type === 'SalesOrderBySaleman'
+      ) {
+        console.log('[ReportSearch] SalesOrderBySaleman criteria', {
+          FROM: dateFrom,
+          TO: dateTo,
+        });
+        await this.props.getSalespersonSalesPerformance({
+          FROM: dateFrom,
+          TO: dateTo,
+        });
+        return;
+      }
+
+      if (this.state.reportParams.type === 'StockBalanceByWL') {
+        await this.props.getStockBalanceByLocation({
+          FROM: dateFrom,
         });
         return;
       }
@@ -714,6 +737,10 @@ const mapDispatchToProps = (dispatch) => {
       dispatch(getCustomerReportPerformance(criteria)),
     getProductCategoryReportPerformance: (criteria) =>
       dispatch(getProductCategoryReportPerformance(criteria)),
+    getSalespersonSalesPerformance: (criteria) =>
+      dispatch(getSalespersonSalesPerformance(criteria)),
+    getStockBalanceByLocation: (criteria) =>
+      dispatch(getStockBalanceByLocation(criteria)),
     getReportV3: (uri, pattern, data) =>
       dispatch(getReportV3(uri, pattern, data)),
     systemCheck: (data) => dispatch(systemCheck(data)),

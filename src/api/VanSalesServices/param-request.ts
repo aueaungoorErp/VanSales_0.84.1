@@ -24,3 +24,15 @@ export type salesSummaryByDocumentParam = {
   toDate: string;
   vanCode: string;
 };
+
+export type salespersonSalesPerformanceParam = {
+  fromDate: string;
+  toDate: string;
+  vanCode: string;
+};
+
+export type stockBalanceByLocationParam = {
+  vanCode: string;
+  fromDate: string;
+  warehouseLocationKey: number;
+};

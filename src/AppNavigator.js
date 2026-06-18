@@ -312,6 +312,14 @@ function HomeNavigator() {
         initialParams={{ title: 'รายงานต่างๆ' }}
       />
       <HomeStack.Screen
+        name="SalespersonSalesPerformanceReport"
+        component={
+          require('./pages/report/salesperson-sales-performance/screen/SalespersonSalesPerformanceScreen')
+            .default
+        }
+        initialParams={{ title: 'รายงานต่างๆ' }}
+      />
+      <HomeStack.Screen
         name="ReportSales"
         component={require('./pages/report-sales/screen/Index').default}
         initialParams={{ title: 'แสดงยอดขาย' }}
