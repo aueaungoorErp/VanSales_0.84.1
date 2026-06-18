@@ -100,6 +100,17 @@ class CTSearchForm extends Component {
         return;
       }
 
+      if (
+        this.state.reportParams.type === 'DocumentItems' &&
+        this.props.getSalesSummaryByDocumentViaHook
+      ) {
+        await this.props.getSalesSummaryByDocumentViaHook({
+          FROM: dateFrom,
+          TO: dateTo,
+        });
+        return;
+      }
+
       const reportParams = {
         FROM: moment(dateFrom, 'DD/MM/YYYY').add(1, 'days').toJSON(),
         TO: moment(dateTo, 'DD/MM/YYYY').add(1, 'days').toJSON(),

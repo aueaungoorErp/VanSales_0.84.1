@@ -6,8 +6,8 @@ import * as appConfig from '../../../appConfig';
 import {
   customerReportPerformanceParam,
   productCategoryReportPerformanceParam,
+  salesSummaryByDocumentParam,
 } from './param-request';
-import { clearMasterBankFileList } from '../../action/masterData';
 
 export const customerReportPerformance = async (
   critial: customerReportPerformanceParam,
@@ -79,6 +79,42 @@ export const productCategoryReportPerformance = async (
   } catch (error: any) {
     console.log('[VanSalesServices] productCategoryReportPerformance failed', {
       message: error?.message,
+    });
+    throw error;
+  }
+};
+
+export const salesSummaryByDocument = async (
+  critial: salesSummaryByDocumentParam,
+) => {
+  try {
+    const storedBaseUrl = await getVanSalesWebServiceUrl();
+    const loginGuid = await getLoginGuID();
+
+    const normalizedBaseUrl = normalizePaymentBaseUrl(storedBaseUrl);
+
+    if (!normalizedBaseUrl) {
+      throw new Error('ไม่พบ VanSalesServicesBaseUrl');
+    }
+
+    const url =
+      VanSalesBaseUrl(normalizedBaseUrl) +
+      'erp/reports/sales-summary-by-document';
+
+    const response = await axios.post(url, critial, {
+      timeout: appConfig.REQUEST_TIMEOUT_MS,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-erp-login-guid': loginGuid ?? '',
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.log('[VanSalesServices] salesSummaryByDocument failed', {
+      message: error?.message,
+      status: error?.response?.status,
+      data: error?.response?.data,
     });
     throw error;
   }

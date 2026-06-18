@@ -1492,7 +1492,7 @@ export const reportMenu = [
   },
   {
     title: strings('report.sales_summary_report_by_document'),
-    screen: 'ReportSummary',
+    screen: 'SalesSummaryByDocumentReport',
     type: 'DocumentItems',
     pattern: 'A',
     seachForm: 'A',

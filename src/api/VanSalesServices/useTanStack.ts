@@ -3,6 +3,7 @@ import { updateVanPosition } from './vansales-services';
 import {
   customerReportPerformance,
   productCategoryReportPerformance,
+  salesSummaryByDocument,
 } from './report-services';
 
 export const useUpdateVanPosition = () =>
@@ -21,4 +22,10 @@ export const useProductCategoryReportPerformance = () =>
   useMutation({
     mutationKey: ['vansales-services', 'product-category-report-performance'],
     mutationFn: productCategoryReportPerformance,
+  });
+
+export const useSalesSummaryByDocument = () =>
+  useMutation({
+    mutationKey: ['vansales-services', 'sales-summary-by-document'],
+    mutationFn: salesSummaryByDocument,
   });
