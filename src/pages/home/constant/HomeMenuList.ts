@@ -42,7 +42,7 @@ export const homeMenuList: MenuItem[] = [
     methodName: null,
   },
   {
-    title: 'รายงานการขาย',
+    title: 'แสดงยอดขาย',
     buttonStyle: { backgroundColor: '#3BB9FF' },
     imgSrc: require('../../../images/Chart.png'),
     screen: 'ReportSales',
