@@ -22,6 +22,8 @@ const initialState = {
   nearByListItems: [],
   arLineListItems: [],
   arPriceTab: [],
+  hasMore: true,
+  lastFetchCount: 0,
   isNotFound: false,
   isError: false,
   isLoading: false,
@@ -32,7 +34,14 @@ export const customer = (state = initialState, action) => {
     case types.CUSTOMER_SET_INITIAL_STATE:
       return { ...initialState, arPriceTab: state.arPriceTab };
     case types.CUSTOMER_CLEAR_LIST:
-      return { ...state, listItems: [], isNotFound: false, isError: false };
+      return {
+        ...state,
+        listItems: [],
+        hasMore: true,
+        lastFetchCount: 0,
+        isNotFound: false,
+        isError: false,
+      };
     case types.CUSTOMER_SET_CRITERIA:
       return { ...state, criteria: action.payload };
     case types.CUSTOMER_SET_KEYWORD:
@@ -52,6 +61,8 @@ export const customer = (state = initialState, action) => {
           incomingItems.length > 0
             ? state.listItems.concat(incomingItems)
             : state.listItems,
+        hasMore: incomingItems.length >= state.criteria.LIMIT,
+        lastFetchCount: incomingItems.length,
         isLoading: false,
         isNotFound: incomingItems.length === 0 && !hasExistingItems,
         isError: false,

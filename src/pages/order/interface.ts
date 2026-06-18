@@ -33,6 +33,8 @@ export interface CustomerTypeItem {
 
 export interface CustomerState {
   listItems: CustomerItem[];
+  hasMore?: boolean;
+  lastFetchCount?: number;
   isLoading: boolean;
   isNotFound: boolean;
   isError: boolean;

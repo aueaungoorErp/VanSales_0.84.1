@@ -125,6 +125,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
       VANCNF_FORCE_GPS: null,
     },
   });
+  const [isUserTokenLoaded, setIsUserTokenLoaded] = useState(false);
   const [sortedCustomers, setSortedCustomers] = useState<CustomerRouteItem[]>(
     [],
   );
@@ -150,9 +151,15 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     mountedRef.current = true;
 
     const fetchToken = async () => {
-      const token = await getUserToken();
-      if (mountedRef.current && token) {
-        setUserToken(token as UserToken);
+      try {
+        const token = await getUserToken();
+        if (mountedRef.current && token) {
+          setUserToken(token as UserToken);
+        }
+      } finally {
+        if (mountedRef.current) {
+          setIsUserTokenLoaded(true);
+        }
       }
     };
 
@@ -179,6 +186,10 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
 
   useFocusEffect(
     useCallback(() => {
+      if (!isUserTokenLoaded) {
+        return undefined;
+      }
+
       let mounted = true;
 
       const checkLongdoApiKeys = async () => {
@@ -210,7 +221,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
       return () => {
         mounted = false;
       };
-    }, [userToken]),
+    }, [isUserTokenLoaded, userToken]),
   );
 
   useEffect(() => {
@@ -231,6 +242,10 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     const buildCustomerDistances = async () => {
       const jobId = distanceJobRef.current + 1;
       distanceJobRef.current = jobId;
+
+      if (!isUserTokenLoaded) {
+        return;
+      }
 
       if (!customer.listItems?.length) {
         if (mountedRef.current) {
@@ -310,11 +325,17 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
       const customersToCompute: Array<{
         index: number;
         arKey: string | null;
-        location: { latitude: string | number | null; longitude: string | number | null };
+        location: {
+          latitude: string | number | null;
+          longitude: string | number | null;
+        };
       }> = [];
 
       customer.listItems.forEach((item, index) => {
-        if (!canCompareDistance || !hasCompleteCoordinate(customerLocations[index])) {
+        if (
+          !canCompareDistance ||
+          !hasCompleteCoordinate(customerLocations[index])
+        ) {
           return;
         }
 
@@ -325,10 +346,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
         const cachedEntry =
           arKey && shouldReuseCachedDistances ? cachedDistances[arKey] : null;
 
-        if (
-          cachedEntry &&
-          typeof cachedEntry.distanceText === 'string'
-        ) {
+        if (cachedEntry && typeof cachedEntry.distanceText === 'string') {
           distanceEntriesByIndex[index] = cachedEntry;
           return;
         }
@@ -490,6 +508,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     currentListSignature,
     geolocation.position.latitude,
     geolocation.position.longitude,
+    isUserTokenLoaded,
     longdomap.lastPosition,
     setLastPosition,
     (userToken?.VANCONFIG as any)?.VANCNF_MACHINE,
@@ -520,6 +539,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
   ]);
 
   const hasLatestSortedList = sortedListSignature === currentListSignature;
+  const canLoadMoreCustomers = customer.hasMore !== false;
 
   const onScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -541,6 +561,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
         if (
           currentOffset > 0 &&
           currentOffset >= maxOffset &&
+          canLoadMoreCustomers &&
           !customer.isLoading &&
           !isPreparingList &&
           hasLatestSortedList
@@ -551,6 +572,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     },
     [
       customer.isLoading,
+      canLoadMoreCustomers,
       hasLatestSortedList,
       isPreparingList,
       searchCustomerList,

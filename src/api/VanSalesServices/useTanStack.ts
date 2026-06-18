@@ -1,6 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
 import { updateVanPosition } from './vansales-services';
-import { customerReportPerformance } from './report-services';
+import {
+  customerReportPerformance,
+  productCategoryReportPerformance,
+} from './report-services';
 
 export const useUpdateVanPosition = () =>
   useMutation({
@@ -12,4 +15,10 @@ export const useCustomerReportPerformance = () =>
   useMutation({
     mutationKey: ['vansales-services', 'customer-report-performance'],
     mutationFn: customerReportPerformance,
+  });
+
+export const useProductCategoryReportPerformance = () =>
+  useMutation({
+    mutationKey: ['vansales-services', 'product-category-report-performance'],
+    mutationFn: productCategoryReportPerformance,
   });

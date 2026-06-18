@@ -12,3 +12,9 @@ export type customerReportPerformanceParam = {
   toDate: string;
   vanCode: string;
 };
+
+export type productCategoryReportPerformanceParam = {
+  fromDate: string;
+  toDate: string;
+  vanCode: string;
+};
