@@ -5,29 +5,73 @@ import moment from 'moment';
 
 import getVanArprbCodeApi from '../api/product';
 
-export const customerSearchListApi = (criteria) => {
+const formatResponseForLog = payload => {
+  if (!payload?.ResponseData || typeof payload.ResponseData !== 'string') {
+    return payload;
+  }
+
+  try {
+    return {
+      ...payload,
+      ResponseData: JSON.parse(payload.ResponseData),
+    };
+  } catch (error) {
+    return payload;
+  }
+};
+
+const formatArrayResponseForLog = payload => {
+  const formattedPayload = formatResponseForLog(payload);
+  const responseData = formattedPayload?.ResponseData;
+
+  if (!responseData || typeof responseData !== 'object') {
+    return formattedPayload;
+  }
+
+  const arrayKey = Object.keys(responseData).find(key =>
+    Array.isArray(responseData[key]),
+  );
+
+  if (!arrayKey) {
+    return formattedPayload;
+  }
+
+  return {
+    ...formattedPayload,
+    ResponseData: {
+      ...responseData,
+      totalCount: Number(responseData.RECORD_COUNT || 0),
+      currentRowCount: responseData[arrayKey].length,
+      arrayKey,
+      rows: responseData[arrayKey],
+    },
+  };
+};
+
+export const customerSearchListApi = criteria => {
   return new Promise((resolve, reject) => {
     Request.instance
       .get(`/Customer?${criteria}`)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });
 };
 
 export const customerSearchListV3Api = async (arCode, arKey) => {
-
   // console.log('arKey ==>', arKey.ARCAT_NAME);
   const LoginGUID = await getLoginGuID();
 
   // const KEYWORD = "and AR_CODE like '%" + arCode + "%'";
   const KEYWORD = "and AR_CODE = '" + arCode + "'"; // Joker แก้ไขเรื่องค้นหาในสายลูกค้าไม่เจอ
 
-  const arCat = (arKey === undefined) ? '' :
-    arKey?.ARCAT_NAME == 'ทั้งหมด' || arKey?.ARCAT_NAME == null
+  const arCat =
+    arKey === undefined
+      ? ''
+      : arKey?.ARCAT_NAME == 'ทั้งหมด' || arKey?.ARCAT_NAME == null
       ? ''
       : arKey?.ARCAT_NAME;
 
@@ -51,55 +95,59 @@ export const customerSearchListV3Api = async (arCode, arKey) => {
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post('/LookupErp', bodyRequest)
-      .then((v) => {
-        //console.log("v.data" , v);
-        resolve((v.data));
+      .then(v => {
+        console.log(
+          '[customerSearchListV3Api] response json',
+          JSON.stringify(formatArrayResponseForLog(v.data), null, 2),
+        );
+        resolve(v.data);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });
 };
 
-export const customerSearchArLineListV3Api = async (criteria) => {
-
+export const customerSearchArLineListV3Api = async criteria => {
   const LoginGUID = await getLoginGuID();
   const { VANCONFIG } = await getUserToken();
- 
+
   console.log('bodyRequest keywords', criteria.KEYWORD);
 
-  const keywordRaw = criteria.KEYWORD || '';  // ถ้า null/undefined ให้เป็น string ว่างแทน
+  const keywordRaw = criteria.KEYWORD || ''; // ถ้า null/undefined ให้เป็น string ว่างแทน
 
-  const keywords = keywordRaw.trim() === '' ? [] : keywordRaw.trim().split(/\s+/);
+  const keywords =
+    keywordRaw.trim() === '' ? [] : keywordRaw.trim().split(/\s+/);
 
   console.log('bodyRequest keywords', keywords);
 
   let pattern = '';
   if (keywords.length === 1) {
-
     pattern = `%${keywords[0]}%`;
   } else if (keywords.length >= 2) {
-
     pattern = `${keywords[0]}%${keywords[keywords.length - 1]}`;
   } else {
     pattern = '%'; // กรณีไม่มี keyword
   }
 
-  const KEYWORD = keywords.length > 0
-    ? `AND (AR_CODE LIKE '%${pattern}%' OR AR_NAME LIKE '%${pattern}%') AND VANCNF_MACHINE = '${VANCONFIG.VANCNF_MACHINE}'`
-    : `AND VANCNF_MACHINE = '${VANCONFIG.VANCNF_MACHINE}'`;
+  const KEYWORD =
+    keywords.length > 0
+      ? `AND (AR_CODE LIKE '%${pattern}%' OR AR_NAME LIKE '%${pattern}%') AND VANCNF_MACHINE = '${VANCONFIG.VANCNF_MACHINE}'`
+      : `AND VANCNF_MACHINE = '${VANCONFIG.VANCNF_MACHINE}'`;
 
   console.log(KEYWORD);
   console.log('bbbbb', KEYWORD);
-
 
   const ARCAT_KEY =
     typeof criteria.ARCAT_KEY == 'object'
       ? ''
       : criteria.ARCAT_KEY
-        ? "and AR_ARCAT = '" + criteria.ARCAT_KEY + "'"
-        : '';
-  const LIMIT = (criteria.ARCAT_KEY.ARCAT_NAME == 'เหนือ') ? '80' : JSON.stringify(criteria.LIMIT);
+      ? "and AR_ARCAT = '" + criteria.ARCAT_KEY + "'"
+      : '';
+  const LIMIT =
+    criteria.ARCAT_KEY.ARCAT_NAME == 'เหนือ'
+      ? '80'
+      : JSON.stringify(criteria.LIMIT);
   const OFFSET = JSON.stringify(criteria.OFFSET);
   const bodyRequest = {
     'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
@@ -115,174 +163,176 @@ export const customerSearchArLineListV3Api = async (criteria) => {
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post('/LookupErp', bodyRequest)
-      .then((v) => {
-        console.log("v.data" , v.data);
+      .then(v => {
+        console.log(
+          '[customerSearchArLineListV3Api] response json',
+          JSON.stringify(formatArrayResponseForLog(v.data), null, 2),
+        );
         resolve(v.data);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });
 };
 
-export const findCustomerByIdApi = (id) => {
+export const findCustomerByIdApi = id => {
   return new Promise((resolve, reject) => {
     Request.instance
       .get(`/Customer/${id}`)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });
 };
 
-export const createTempCusApi = (data) => {
+export const createTempCusApi = data => {
   return new Promise((resolve, reject) => {
     Request.instance
       .post(`/Customer/Create/TempCustomer`, data)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((error) => {
+      .catch(error => {
         reject(error);
       });
   });
 };
 
-export const executiveV3Api = (data) => {
+export const executiveV3Api = data => {
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post(`/Executive`, data)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((error) => {
+      .catch(error => {
         reject(error);
       });
   });
 };
 
-export const readErpV3Api = (data) => {
+export const readErpV3Api = data => {
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post(`/ReadErp`, data)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((error) => {
+      .catch(error => {
         reject(error);
       });
   });
 };
 
-export const updateErpV3Api = (data) => {
+export const updateErpV3Api = data => {
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post(`/UpdateErp`, data)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((error) => {
+      .catch(error => {
         reject(error);
       });
   });
 };
 
-export const searchCustomerNearByApi = (criteria) => {
+export const searchCustomerNearByApi = criteria => {
   return new Promise((resolve, reject) => {
     Request.instance
       .get(
         `/Customer/nearby/${criteria.C_LAT}/${criteria.C_LNT}/${criteria.radius}`,
       )
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });
 };
 
-export const closeCustomerAccountApi = (data) => {
+export const closeCustomerAccountApi = data => {
   return new Promise((resolve, reject) => {
     Request.instance
       .post(`/Customer/State/Close`, data)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });
 };
 
-export const customerSkipApi = (id) => {
+export const customerSkipApi = id => {
   return new Promise((resolve, reject) => {
     Request.instance
       .get(`/Customer/Skip/${id}`)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });
 };
 
-export const getArPricetabApi = (bodyRequest) => {
+export const getArPricetabApi = bodyRequest => {
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post('/LookupErp', bodyRequest)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });
 };
 
-export const NewArFileV3Api = (bodyRequest) => {
+export const NewArFileV3Api = bodyRequest => {
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post('/CreateUpdateMaster', bodyRequest)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });
 };
 
-export const getARL_KEY99 = (bodyRequest) => {
+export const getARL_KEY99 = bodyRequest => {
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post('/LookupErp', bodyRequest)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });
 };
 
-export const getARLV3Api = (bodyRequest) => {
+export const getARLV3Api = bodyRequest => {
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post('/LookupErp', bodyRequest)
-      .then((v) => {
+      .then(v => {
         resolve(v.data);
       })
-      .catch((err) => {
+      .catch(err => {
         reject(err);
       });
   });
 };
-
 
 // export const customerSkipApi = (id) => {
 //   return new Promise((resolve, reject) => {
@@ -297,14 +347,12 @@ export const getARLV3Api = (bodyRequest) => {
 //   });
 // };
 
-
 export const getCustArprbKEYApi = async (AR_KEY, VANCONFIG) => {
   console.log('getCustArprbKEYApi ');
   const LoginGUID = await getLoginGuID();
   let ARPRB_KEY = 0;
 
   //console.log("VANCONFIG.VANCNF_ARPRB_MODE >>> " , VANCONFIG.VANCNF_ARPRB_MODE);
-
 
   {
     //VANCONFIG.ANCNF_ARPRB_MODE == 1 ตามตารางราคาขายในข้อตกลงหลักของลูกค้า
@@ -327,7 +375,7 @@ export const getCustArprbKEYApi = async (AR_KEY, VANCONFIG) => {
       'BPAPUS-FETCH': '0',
     };
     //  console.log('productSearchListV3Api bodyRequest2 ', bodyRequest2);
-    await readErpV3Api(bodyRequest2).then(async (y) => {
+    await readErpV3Api(bodyRequest2).then(async y => {
       let responseData2 = JSON.parse(y.ResponseData);
       if (y.ResponseCode == 200 && parseInt(responseData2.RECORD_COUNT) > 0) {
         // console.log(
@@ -350,7 +398,7 @@ export const getCustArprbKEYApi = async (AR_KEY, VANCONFIG) => {
           'BPAPUS-OFFSET': '0',
           'BPAPUS-FETCH': '0',
         };
-        await updateErpV3Api(bodyRequest3).then((z) => {
+        await updateErpV3Api(bodyRequest3).then(z => {
           let responseData3 = JSON.parse(z.ResponseData);
           if (
             z.ResponseCode == 200 &&

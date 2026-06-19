@@ -54,6 +54,10 @@ export const customer = (state = initialState, action) => {
     case types.CUSTOMER_SEARCH_LIST_SUCCESS:
       const incomingItems = Array.isArray(action.payload) ? action.payload : [];
       const hasExistingItems = state.listItems.length > 0;
+      const nextHasMore =
+        typeof action.hasMore === 'boolean'
+          ? action.hasMore
+          : incomingItems.length >= state.criteria.LIMIT;
 
       return {
         ...state,
@@ -61,7 +65,7 @@ export const customer = (state = initialState, action) => {
           incomingItems.length > 0
             ? state.listItems.concat(incomingItems)
             : state.listItems,
-        hasMore: incomingItems.length >= state.criteria.LIMIT,
+        hasMore: nextHasMore,
         lastFetchCount: incomingItems.length,
         isLoading: false,
         isNotFound: incomingItems.length === 0 && !hasExistingItems,

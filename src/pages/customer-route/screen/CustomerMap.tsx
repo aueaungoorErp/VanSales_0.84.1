@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import { MainTheme, mainContainer } from '../../../constant/lov';
@@ -11,10 +11,23 @@ type CustomerMapProps = {
 };
 
 const CustomerMap: React.FC<CustomerMapProps> = props => {
+  const [requestLoadMore, setRequestLoadMore] = useState<
+    ((reset: boolean) => Promise<void>) | null
+  >(null);
+  const handleRegisterTimedLoadHandler = useCallback(
+    (handler: (reset: boolean) => Promise<void>) => {
+      setRequestLoadMore(() => handler);
+    },
+    [],
+  );
+
   return (
     <View style={[styles.container, { paddingTop: 5 }]}>
-      <SearchForm {...props} />
-      <CustomerRouteList />
+      <SearchForm
+        {...props}
+        onRegisterTimedLoadHandler={handleRegisterTimedLoadHandler}
+      />
+      <CustomerRouteList onRequestTimedLoad={requestLoadMore} />
     </View>
   );
 };

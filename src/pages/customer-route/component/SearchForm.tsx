@@ -11,6 +11,8 @@ import type { ComponentType } from 'react';
 import RNPickerSelect from 'react-native-picker-select';
 import {
   clearCustomerList,
+  getCurrentPosition,
+  restoreCustomerRouteCache,
   setCustomerType,
   searchCustomerList,
   searchCustomerNextDestination,
@@ -21,9 +23,16 @@ import ISearchBar from '../../../component/input/ISearchBar';
 import { MainTheme } from '../../../constant/lov';
 import {
   clearCustomerRouteLoadSession,
+  getCustomerRouteLoadSession,
+  mergeCustomerRouteLoadSession,
   setCustomerRouteLoadSession,
 } from '../../../services/customerRouteLoadSession';
 import { clearCustomerRouteDistanceCache } from '../../../services/longdomap';
+import {
+  hasCompleteCoordinate,
+  parseCoordinate,
+  isWithinDistanceThreshold,
+} from '../../../services/longdomap';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
 
@@ -45,6 +54,18 @@ type CustomerState = {
   isLoading?: boolean;
   listItems: any[];
   hasMore?: boolean;
+  criteria: {
+    KEYWORD?: string | null;
+    OFFSET: number;
+    LIMIT: number;
+  };
+};
+
+type GeolocationState = {
+  position: {
+    latitude: string | null;
+    longitude: string | null;
+  };
 };
 
 type CustomerTypeState = {
@@ -55,17 +76,38 @@ type CustomerTypeState = {
 type SearchFormOwnProps = {
   navigation?: unknown;
   screen?: string;
+  onRegisterTimedLoadHandler?: (handler: (reset: boolean) => Promise<void>) => void;
 };
 
 type SearchFormProps = SearchFormOwnProps & {
   customer: CustomerState;
   customerType: CustomerTypeState;
+  geolocation: GeolocationState;
   setInitialState: () => void | Promise<void>;
   setKeyword: (criteria: string | null) => void | Promise<void>;
   searchCustomerList: (
     nextPage?: boolean,
-  ) => Promise<{ items?: any[]; hasMore?: boolean; error?: string } | void>;
+  ) => Promise<
+    | {
+        items?: any[];
+        hasMore?: boolean;
+        error?: string;
+        totalAvailable?: number;
+        rawItemCount?: number;
+        nextCriteriaOffset?: number;
+      }
+    | void
+  >;
   clearCustomerList: () => void | Promise<void>;
+  getCurrentPosition: () => Promise<any>;
+  restoreCustomerRouteCache: (payload: {
+    items: any[];
+    hasMore: boolean;
+    offset: number;
+    limit: number;
+    keyword: string | null;
+    arcatKey?: string | null;
+  }) => Promise<any> | any;
   setCustomerType: (value: CustomerTypeItem) => void | Promise<void>;
   searchCustomerNextDestination: () => void | Promise<void>;
 };
@@ -80,8 +122,12 @@ const SearchForm: React.FC<SearchFormProps> = props => {
   const {
     customer,
     customerType,
+    geolocation,
+    getCurrentPosition,
+    onRegisterTimedLoadHandler,
     setInitialState,
     setKeyword,
+    restoreCustomerRouteCache,
     searchCustomerList,
     clearCustomerList,
     setCustomerType,
@@ -97,7 +143,10 @@ const SearchForm: React.FC<SearchFormProps> = props => {
   const [isTimedLoading, setIsTimedLoading] = useState(false);
   const [loadSummaryModal, setLoadSummaryModal] = useState<{
     totalLoaded: number;
+    totalAvailable: number;
+    remainingCount: number;
     hasMore: boolean;
+    stoppedByTimeLimit: boolean;
   } | null>(null);
 
   useEffect(() => {
@@ -131,6 +180,67 @@ const SearchForm: React.FC<SearchFormProps> = props => {
     await setKeyword(textSearch ? textSearch.trim() : null);
   }, [setKeyword, setSafeUserToken, textSearch]);
 
+  const getCurrentSearchKeyword = useCallback(
+    () => (textSearch ? textSearch.trim() : null),
+    [textSearch],
+  );
+
+  const getCurrentPositionSnapshot = useCallback(
+    () => ({
+      latitude: parseCoordinate(geolocation.position.latitude),
+      longitude: parseCoordinate(geolocation.position.longitude),
+    }),
+    [geolocation.position.latitude, geolocation.position.longitude],
+  );
+
+  const canReuseCachedCustomerList = useCallback(async () => {
+    const cachedSession = await getCustomerRouteLoadSession();
+    const currentKeyword = getCurrentSearchKeyword();
+    const currentArcatKey = arcatKey ?? null;
+
+    if (
+      !cachedSession ||
+      !Array.isArray(cachedSession.cachedItems) ||
+      cachedSession.cachedItems.length === 0 ||
+      !hasCompleteCoordinate(cachedSession.lastPosition) ||
+      cachedSession.keyword !== currentKeyword ||
+      (cachedSession.arcatKey ?? null) !== currentArcatKey
+    ) {
+      return null;
+    }
+
+    const positionResult = await getCurrentPosition().catch(error => {
+      console.log('[CustomerRoute] getCurrentPosition for cache reuse error', error);
+      return null;
+    });
+
+    const currentPosition =
+      positionResult?.coords?.latitude !== undefined &&
+      positionResult?.coords?.longitude !== undefined
+        ? {
+            latitude: positionResult.coords.latitude,
+            longitude: positionResult.coords.longitude,
+          }
+        : getCurrentPositionSnapshot();
+
+    if (!hasCompleteCoordinate(currentPosition)) {
+      return null;
+    }
+
+    if (
+      !isWithinDistanceThreshold(currentPosition, cachedSession.lastPosition, 15)
+    ) {
+      return null;
+    }
+
+    return cachedSession;
+  }, [
+    arcatKey,
+    getCurrentPosition,
+    getCurrentPositionSnapshot,
+    getCurrentSearchKeyword,
+  ]);
+
   const runTimedCustomerLoad = useCallback(
     async (reset: boolean) => {
       const nextUserToken = await getUserToken();
@@ -151,14 +261,28 @@ const SearchForm: React.FC<SearchFormProps> = props => {
         await clearCustomerRouteLoadSession();
         await clearCustomerRouteDistanceCache();
         await clearCustomerList();
+        await mergeCustomerRouteLoadSession({
+          cachedItems: [],
+          totalLoaded: 0,
+          totalAvailable: 0,
+          hasMore: false,
+          keyword: getCurrentSearchKeyword(),
+          arcatKey,
+          updatedAt: new Date().toISOString(),
+        });
       }
 
       const startedAt = Date.now();
       const startedCount = reset ? 0 : customerRef.current.listItems.length;
+      const currentKeyword = getCurrentSearchKeyword();
       let totalLoaded = startedCount;
       let nextPage = !reset && customerRef.current.listItems.length > 0;
       let hasMore = true;
       let lastResultError = null;
+      let totalAvailable = startedCount;
+      let stoppedByTimeLimit = false;
+      let cachedItems = reset ? [] : customerRef.current.listItems.slice();
+      let nextOffset = customerRef.current.criteria?.OFFSET ?? 1;
 
       while (mountedRef.current && activeTimedLoadIdRef.current === loadId) {
         const result = await searchCustomerList(nextPage);
@@ -169,16 +293,38 @@ const SearchForm: React.FC<SearchFormProps> = props => {
 
         const fetchedItems = Array.isArray(result?.items) ? result.items : [];
         totalLoaded += fetchedItems.length;
+        cachedItems = cachedItems.concat(fetchedItems);
         hasMore = result?.hasMore === true;
         lastResultError = result?.error ?? null;
+        nextOffset = Number(result?.nextCriteriaOffset) || nextOffset;
+        totalAvailable = Math.max(
+          totalAvailable,
+          Number(result?.totalAvailable) || totalAvailable,
+        );
+        const currentPositionSnapshot = getCurrentPositionSnapshot();
 
         await setCustomerRouteLoadSession({
           totalLoaded,
+          totalAvailable,
           hasMore,
           updatedAt: new Date().toISOString(),
+          cachedItems,
+          lastPosition: {
+            latitude: currentPositionSnapshot.latitude,
+            longitude: currentPositionSnapshot.longitude,
+          },
+          keyword: currentKeyword,
+          arcatKey: arcatKey ?? null,
+          nextOffset,
+          limit: customerRef.current.criteria?.LIMIT ?? 20,
         });
 
-        if (lastResultError || !hasMore || Date.now() - startedAt >= 60000) {
+        if (Date.now() - startedAt >= 60000) {
+          stoppedByTimeLimit = true;
+          break;
+        }
+
+        if (lastResultError || !hasMore) {
           break;
         }
 
@@ -197,15 +343,27 @@ const SearchForm: React.FC<SearchFormProps> = props => {
 
       setLoadSummaryModal({
         totalLoaded,
+        totalAvailable,
+        remainingCount: Math.max(totalAvailable - totalLoaded, 0),
         hasMore,
+        stoppedByTimeLimit,
       });
     },
     [
       clearCustomerList,
+      arcatKey,
+      getCurrentPositionSnapshot,
+      getCurrentSearchKeyword,
       searchCustomerList,
       searchCustomerNextDestination,
     ],
   );
+
+  useEffect(() => {
+    if (onRegisterTimedLoadHandler) {
+      onRegisterTimedLoadHandler((reset: boolean) => runTimedCustomerLoad(reset));
+    }
+  }, [onRegisterTimedLoadHandler, runTimedCustomerLoad]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -214,6 +372,30 @@ const SearchForm: React.FC<SearchFormProps> = props => {
       await loadUserToken();
       await setInitialState();
       await loadInitialCustomers();
+
+      const nextUserToken = await getUserToken();
+      if (nextUserToken?.VANCONFIG?.VANCNF_AR_LIMIT == 2) {
+        await runTimedCustomerLoad(true);
+        return;
+      }
+
+      const cachedSession = await canReuseCachedCustomerList();
+      if (cachedSession) {
+        await clearCustomerList();
+        if (mountedRef.current) {
+          setArcatKey(cachedSession.arcatKey ?? null);
+        }
+        await restoreCustomerRouteCache({
+          items: cachedSession.cachedItems,
+          hasMore: cachedSession.hasMore,
+          offset: cachedSession.nextOffset,
+          limit: cachedSession.limit,
+          keyword: cachedSession.keyword,
+          arcatKey: cachedSession.arcatKey,
+        });
+        return;
+      }
+
       await runTimedCustomerLoad(true);
     };
 
@@ -432,12 +614,20 @@ const SearchForm: React.FC<SearchFormProps> = props => {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>โหลดข้อมูลสำเร็จ</Text>
             <Text style={styles.modalMessage}>
-              {`โหลดข้อมูลสำเร็จ ${loadSummaryModal?.totalLoaded ?? 0} รายการ`}
+              {`โหลดแล้ว ${loadSummaryModal?.totalLoaded ?? 0} / ${
+                loadSummaryModal?.totalAvailable ?? 0
+              } รายการ`}
             </Text>
             <Text style={styles.modalMessage}>
               {loadSummaryModal?.hasMore
-                ? 'ต้องการโหลดข้อมูลต่อหรือไม่'
-                : 'ไม่มีข้อมูลเพิ่มเติมแล้ว'}
+                ? loadSummaryModal?.stoppedByTimeLimit
+                  ? `ครบ 1 นาทีแล้ว เหลืออีก ${
+                      loadSummaryModal?.remainingCount ?? 0
+                    } รายการ ต้องการโหลดข้อมูลต่อหรือไม่`
+                  : `ยังเหลืออีก ${
+                      loadSummaryModal?.remainingCount ?? 0
+                    } รายการ ต้องการโหลดข้อมูลต่อหรือไม่`
+                : 'โหลดข้อมูลครบแล้ว'}
             </Text>
 
             <View style={styles.modalButtonRow}>
@@ -476,6 +666,7 @@ const SearchForm: React.FC<SearchFormProps> = props => {
 const mapStateToProps = (state: any) => ({
   customer: state.customer,
   customerType: state.customerType,
+  geolocation: state.geolocation,
 });
 
 const mapDispatchToProps = (dispatch: any) => {
@@ -486,11 +677,24 @@ const mapDispatchToProps = (dispatch: any) => {
     setKeyword: (criteria: string | null) => {
       return dispatch(setKeyword(criteria));
     },
+    getCurrentPosition: () => {
+      return dispatch(getCurrentPosition());
+    },
     searchCustomerList: (nextPage?: boolean) => {
       return dispatch(searchCustomerList(nextPage));
     },
     clearCustomerList: () => {
       return dispatch(clearCustomerList());
+    },
+    restoreCustomerRouteCache: (payload: {
+      items: any[];
+      hasMore: boolean;
+      offset: number;
+      limit: number;
+      keyword: string | null;
+      arcatKey?: string | null;
+    }) => {
+      return dispatch(restoreCustomerRouteCache(payload));
     },
     setCustomerType: (value: CustomerTypeItem) => {
       return dispatch(setCustomerType(value));

@@ -161,7 +161,7 @@ export const searchCustomerList = nextPage => async (dispatch, getState) => {
     LIMIT: customer.criteria.LIMIT,
   };
   console.log('aaaa');
-  await customerSearchArLineListV3Api(criteria)
+  return await customerSearchArLineListV3Api(criteria)
     .then(async v => {
       const { ReasonString, ResponseCode, ResponseData } = v;
       let responseData = JSON.parse(ResponseData);
@@ -279,47 +279,66 @@ export const searchCustomerList = nextPage => async (dispatch, getState) => {
                 });
               });
           }
+          const rawItemCount = Array.isArray(additionalData)
+            ? additionalData.length
+            : 0;
+          const totalCount = parseInt(RECORD_COUNT, 10) || 0;
+          const currentOffset = parseInt(OFFSET, 10) || 0;
+          const nextOffset = currentOffset + rawItemCount;
+          const hasMore = nextOffset < totalCount;
+          const nextCriteriaOffset = nextPage ? customer.criteria.OFFSET + 1 : 2;
+
+          dispatch(
+            setCriteria({
+              ...customer.criteria,
+              OFFSET: nextCriteriaOffset,
+            }),
+          );
+
           if (Response && Response.length > 0) {
             console.log(
               'searchCustomerList merged customer data',
               Response.filter(hasKongInName),
             );
             console.log('[searchCustomerList] customer response payload', Response);
-            const hasMore = Response.length >= customer.criteria.LIMIT;
-            // console.log('Response 2222if  ', JSON.stringify(Response));
-            dispatch(
-              setCriteria({
-                ...customer.criteria,
-                OFFSET: nextPage ? customer.criteria.OFFSET + 1 : 2,
-              }),
-            );
             dispatch({
               type: types.CUSTOMER_SEARCH_LIST_SUCCESS,
               payload: Response,
+              hasMore,
             });
             return {
               items: Response,
               hasMore,
+              totalAvailable: totalCount,
+              rawItemCount,
+              nextCriteriaOffset,
             };
           } else {
             // console.log('Response 2222else  ', JSON.stringify(Response));
             dispatch({
               type: types.CUSTOMER_SEARCH_LIST_SUCCESS,
               payload: [],
+              hasMore,
             });
             return {
               items: [],
-              hasMore: false,
+              hasMore,
+              totalAvailable: totalCount,
+              rawItemCount,
+              nextCriteriaOffset,
             };
           }
         } else {
           dispatch({
             type: types.CUSTOMER_SEARCH_LIST_SUCCESS,
             payload: [],
+            hasMore: false,
           });
           return {
             items: [],
             hasMore: false,
+            totalAvailable: parseInt(RECORD_COUNT, 10) || 0,
+            rawItemCount: 0,
           };
         }
       }
@@ -332,6 +351,8 @@ export const searchCustomerList = nextPage => async (dispatch, getState) => {
         items: [],
         hasMore: false,
         error: ReasonString,
+        totalAvailable: 0,
+        rawItemCount: 0,
       };
     })
     .catch(error => {
@@ -343,6 +364,8 @@ export const searchCustomerList = nextPage => async (dispatch, getState) => {
         items: [],
         hasMore: false,
         error: error.message,
+        totalAvailable: 0,
+        rawItemCount: 0,
       };
     });
   // customerSearchListApi(criteria)

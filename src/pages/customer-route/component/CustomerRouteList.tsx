@@ -39,6 +39,7 @@ import {
   mergeCustomerRouteDistanceCache,
   parseCoordinate,
 } from '../../../services/longdomap';
+import { mergeCustomerRouteLoadSession } from '../../../services/customerRouteLoadSession';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
 import type {
@@ -95,6 +96,7 @@ type CustomerRouteListDispatchProps = {
 type CustomerRouteListProps = CustomerRouteListStateProps &
   CustomerRouteListDispatchProps & {
     geolocation: GeolocationState;
+    onRequestTimedLoad?: ((reset: boolean) => Promise<void>) | null;
   };
 
 const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
@@ -103,6 +105,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
   geolocation,
   getCurrentPosition,
   longdomap,
+  onRequestTimedLoad,
   setLastPosition,
   setError,
 }) => {
@@ -121,6 +124,8 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
   const [sortedListSignature, setSortedListSignature] = useState('');
   const mountedRef = useRef(true);
   const distanceJobRef = useRef(0);
+  const hasUserScrolledRef = useRef(false);
+  const timedLoadRequestedRef = useRef(false);
   const longdoAlertReasonRef = useRef<string | null>(null);
   const currentListSignature = useMemo(
     () =>
@@ -157,6 +162,12 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
       mountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!customer.isLoading) {
+      timedLoadRequestedRef.current = false;
+    }
+  }, [customer.isLoading]);
 
   useEffect(() => {
     if (geolocation.position.latitude && geolocation.position.longitude) {
@@ -426,6 +437,16 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
       }
 
       if (
+        currentNumericPosition.latitude !== null &&
+        currentNumericPosition.longitude !== null
+      ) {
+        await mergeCustomerRouteLoadSession({
+          lastPosition: currentNumericPosition,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+
+      if (
         canCompareDistance &&
         !shouldReuseCachedDistances &&
         currentNumericPosition.latitude !== null &&
@@ -526,6 +547,27 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
       customer: item,
     });
   }, []);
+
+  const handleEndReached = useCallback(() => {
+    if (
+      !onRequestTimedLoad ||
+      !hasUserScrolledRef.current ||
+      timedLoadRequestedRef.current ||
+      customer.isLoading ||
+      customer.hasMore !== true ||
+      customer.listItems.length === 0
+    ) {
+      return;
+    }
+
+    timedLoadRequestedRef.current = true;
+    void onRequestTimedLoad(false);
+  }, [
+    customer.hasMore,
+    customer.isLoading,
+    customer.listItems.length,
+    onRequestTimedLoad,
+  ]);
 
   const renderItem = useCallback(
     ({ item, index }: { item: CustomerRouteItem; index: number }) => (
@@ -638,6 +680,11 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
           renderItem={renderItem}
           keyExtractor={(item, index) => getCustomerRouteItemKey(item, index)}
           maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+          onScrollBeginDrag={() => {
+            hasUserScrolledRef.current = true;
+          }}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.2}
         />
       ) : null}
 
