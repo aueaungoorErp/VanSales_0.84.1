@@ -9,8 +9,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import {
   Alert,
   FlatList,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   StyleSheet,
   Text,
   View,
@@ -20,15 +18,11 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import { connect } from 'react-redux';
 import { ProgressDialog } from 'react-native-simple-dialogs';
 import SnackBar from 'react-native-snackbar-component';
-import { getCurrentPosition } from '../../../action/geolocation';
-import { setLastPosition } from '../../../action/longdomap';
 import {
-  clearCustomerList,
-  searchCustomerList,
-  searchCustomerNextDestination,
+  getCurrentPosition,
+  setLastPosition,
   setError,
-} from '../../../action/customer';
-import { setCustomerType } from '../../../action/customer-type';
+} from '../customer-route-action';
 import ErrorMessage from '../../../component/announce/ErrorMessage';
 import { ListItem } from '../../../component/elements';
 import { mainDivider, MainTheme } from '../../../constant/lov';
@@ -90,11 +84,7 @@ const getCustomerRouteItemKey = (
   ].join('|');
 
 type CustomerRouteListDispatchProps = {
-  clearCustomerList: () => void;
-  searchCustomerList: (nextPage: boolean) => void;
   setError: (bool: boolean) => void;
-  setCustomerType: (value: CustomerItem) => void;
-  searchCustomerNextDestination: () => void;
   getCurrentPosition: () => Promise<any>;
   setLastPosition: (position: {
     latitude: number | null;
@@ -110,14 +100,10 @@ type CustomerRouteListProps = CustomerRouteListStateProps &
 const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
   customer,
   customerType,
-  clearCustomerList,
   geolocation,
   getCurrentPosition,
   longdomap,
-  searchCustomerList,
-  searchCustomerNextDestination,
   setLastPosition,
-  setCustomerType,
   setError,
 }) => {
   const [userToken, setUserToken] = useState<UserToken>({
@@ -529,72 +515,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     (userToken?.VANCONFIG as any)?.VANCNF_MACHINE,
   ]);
 
-  const onRefresh = useCallback(async () => {
-    clearCustomerList();
-
-    const selectedCustomerType = customerType.listItems.find(
-      item => item.ARCAT_KEY === customerType.item?.ARCAT_KEY,
-    ) ??
-      customerType.item ?? { ARCAT_KEY: null, ARCAT_NAME: null };
-
-    setCustomerType(selectedCustomerType);
-
-    if (userToken.VANCONFIG.VANCNF_AR_LIMIT !== 2) {
-      searchCustomerList(false);
-    } else {
-      searchCustomerNextDestination();
-    }
-  }, [
-    clearCustomerList,
-    customerType,
-    searchCustomerList,
-    searchCustomerNextDestination,
-    setCustomerType,
-    userToken.VANCONFIG.VANCNF_AR_LIMIT,
-  ]);
-
   const hasLatestSortedList = sortedListSignature === currentListSignature;
-  const canLoadMoreCustomers = customer.hasMore !== false;
-
-  const onScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (userToken.VANCONFIG.VANCNF_AR_LIMIT !== 2) {
-        const frameHeight = event.nativeEvent.layoutMeasurement.height;
-        const contentHeight = event.nativeEvent.contentSize.height;
-        const maxScrollableHeight = contentHeight - frameHeight;
-
-        if (maxScrollableHeight <= 0) {
-          return;
-        }
-
-        const maxOffset = 0.95 * parseInt(`${maxScrollableHeight}`, 10);
-        const currentOffset = parseInt(
-          `${event.nativeEvent.contentOffset.y}`,
-          10,
-        );
-
-        if (
-          currentOffset > 0 &&
-          currentOffset >= maxOffset &&
-          canLoadMoreCustomers &&
-          !customer.isLoading &&
-          !isPreparingList &&
-          hasLatestSortedList
-        ) {
-          searchCustomerList(true);
-        }
-      }
-    },
-    [
-      customer.isLoading,
-      canLoadMoreCustomers,
-      hasLatestSortedList,
-      isPreparingList,
-      searchCustomerList,
-      userToken.VANCONFIG.VANCNF_AR_LIMIT,
-    ],
-  );
-
   const actionHandler = useCallback(() => {
     setError(false);
   }, [setError]);
@@ -717,9 +638,6 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
           renderItem={renderItem}
           keyExtractor={(item, index) => getCustomerRouteItemKey(item, index)}
           maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-          onScroll={event => {
-            onScroll(event);
-          }}
         />
       ) : null}
 
@@ -760,17 +678,11 @@ const mapStateToProps = (state: any): CustomerRouteListStateProps => ({
 
 const mapDispatchToProps = (dispatch: any): CustomerRouteListDispatchProps => {
   return {
-    clearCustomerList: () => dispatch(clearCustomerList()),
     getCurrentPosition: () => dispatch(getCurrentPosition()),
-    searchCustomerList: nextPage => dispatch(searchCustomerList(nextPage)),
     setError: bool => {
       dispatch(setError(bool));
     },
-    setCustomerType: value => dispatch(setCustomerType(value)),
     setLastPosition: position => dispatch(setLastPosition(position)),
-    searchCustomerNextDestination: () => {
-      dispatch(searchCustomerNextDestination());
-    },
   };
 };
 

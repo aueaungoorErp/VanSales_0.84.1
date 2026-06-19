@@ -1,18 +1,29 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { connect } from 'react-redux';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import type { ComponentType } from 'react';
 import RNPickerSelect from 'react-native-picker-select';
 import {
   clearCustomerList,
+  setCustomerType,
   searchCustomerList,
   searchCustomerNextDestination,
   setInitialState,
   setKeyword,
-} from '../../../action/customer';
-import { setCustomerType } from '../../../action/customer-type';
+} from '../customer-route-action';
 import ISearchBar from '../../../component/input/ISearchBar';
 import { MainTheme } from '../../../constant/lov';
+import {
+  clearCustomerRouteLoadSession,
+  setCustomerRouteLoadSession,
+} from '../../../services/customerRouteLoadSession';
+import { clearCustomerRouteDistanceCache } from '../../../services/longdomap';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
 
@@ -32,6 +43,8 @@ type UserTokenState = {
 
 type CustomerState = {
   isLoading?: boolean;
+  listItems: any[];
+  hasMore?: boolean;
 };
 
 type CustomerTypeState = {
@@ -49,7 +62,9 @@ type SearchFormProps = SearchFormOwnProps & {
   customerType: CustomerTypeState;
   setInitialState: () => void | Promise<void>;
   setKeyword: (criteria: string | null) => void | Promise<void>;
-  searchCustomerList: (nextPage?: boolean) => void | Promise<void>;
+  searchCustomerList: (
+    nextPage?: boolean,
+  ) => Promise<{ items?: any[]; hasMore?: boolean; error?: string } | void>;
   clearCustomerList: () => void | Promise<void>;
   setCustomerType: (value: CustomerTypeItem) => void | Promise<void>;
   searchCustomerNextDestination: () => void | Promise<void>;
@@ -73,10 +88,21 @@ const SearchForm: React.FC<SearchFormProps> = props => {
     searchCustomerNextDestination,
   } = props;
   const mountedRef = useRef(false);
+  const activeTimedLoadIdRef = useRef(0);
+  const customerRef = useRef(customer);
   const [textSearch, setTextSearch] = useState<string | null>(null);
   const [arcatKey, setArcatKey] = useState<string | null>(null);
   const [userToken, setUserTokenState] =
     useState<UserTokenState>(initialUserToken);
+  const [isTimedLoading, setIsTimedLoading] = useState(false);
+  const [loadSummaryModal, setLoadSummaryModal] = useState<{
+    totalLoaded: number;
+    hasMore: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    customerRef.current = customer;
+  }, [customer]);
 
   const setSafeUserToken = useCallback((value: UserTokenState) => {
     if (mountedRef.current) {
@@ -102,20 +128,84 @@ const SearchForm: React.FC<SearchFormProps> = props => {
       setSafeUserToken(nextUserToken);
     }
 
-    if (nextUserToken?.VANCONFIG?.VANCNF_AR_LIMIT != 2) {
-      await setKeyword(textSearch ? textSearch.trim() : null);
-      await searchCustomerList(false);
-      return;
-    }
+    await setKeyword(textSearch ? textSearch.trim() : null);
+  }, [setKeyword, setSafeUserToken, textSearch]);
 
-    await searchCustomerNextDestination();
-  }, [
-    searchCustomerList,
-    searchCustomerNextDestination,
-    setKeyword,
-    setSafeUserToken,
-    textSearch,
-  ]);
+  const runTimedCustomerLoad = useCallback(
+    async (reset: boolean) => {
+      const nextUserToken = await getUserToken();
+      const limit = nextUserToken?.VANCONFIG?.VANCNF_AR_LIMIT;
+
+      if (limit == 2) {
+        await clearCustomerList();
+        await searchCustomerNextDestination();
+        return;
+      }
+
+      const loadId = activeTimedLoadIdRef.current + 1;
+      activeTimedLoadIdRef.current = loadId;
+      setLoadSummaryModal(null);
+      setIsTimedLoading(true);
+
+      if (reset) {
+        await clearCustomerRouteLoadSession();
+        await clearCustomerRouteDistanceCache();
+        await clearCustomerList();
+      }
+
+      const startedAt = Date.now();
+      const startedCount = reset ? 0 : customerRef.current.listItems.length;
+      let totalLoaded = startedCount;
+      let nextPage = !reset && customerRef.current.listItems.length > 0;
+      let hasMore = true;
+      let lastResultError = null;
+
+      while (mountedRef.current && activeTimedLoadIdRef.current === loadId) {
+        const result = await searchCustomerList(nextPage);
+
+        if (!mountedRef.current || activeTimedLoadIdRef.current !== loadId) {
+          return;
+        }
+
+        const fetchedItems = Array.isArray(result?.items) ? result.items : [];
+        totalLoaded += fetchedItems.length;
+        hasMore = result?.hasMore === true;
+        lastResultError = result?.error ?? null;
+
+        await setCustomerRouteLoadSession({
+          totalLoaded,
+          hasMore,
+          updatedAt: new Date().toISOString(),
+        });
+
+        if (lastResultError || !hasMore || Date.now() - startedAt >= 60000) {
+          break;
+        }
+
+        nextPage = true;
+      }
+
+      if (!mountedRef.current || activeTimedLoadIdRef.current !== loadId) {
+        return;
+      }
+
+      setIsTimedLoading(false);
+
+      if (lastResultError) {
+        return;
+      }
+
+      setLoadSummaryModal({
+        totalLoaded,
+        hasMore,
+      });
+    },
+    [
+      clearCustomerList,
+      searchCustomerList,
+      searchCustomerNextDestination,
+    ],
+  );
 
   useEffect(() => {
     mountedRef.current = true;
@@ -123,14 +213,15 @@ const SearchForm: React.FC<SearchFormProps> = props => {
     const init = async () => {
       await loadUserToken();
       await setInitialState();
-      await clearCustomerList();
       await loadInitialCustomers();
+      await runTimedCustomerLoad(true);
     };
 
     void init();
 
     return () => {
       mountedRef.current = false;
+      activeTimedLoadIdRef.current += 1;
     };
   }, []);
 
@@ -146,13 +237,12 @@ const SearchForm: React.FC<SearchFormProps> = props => {
       setSafeUserToken(nextUserToken);
     }
 
-    if (!customer.isLoading) {
+    if (!customer.isLoading && !isTimedLoading) {
       const limit = nextUserToken?.VANCONFIG?.VANCNF_AR_LIMIT;
 
       if (limit != 2) {
-        await clearCustomerList();
         await setKeyword(textSearch ? textSearch.trim() : null);
-        await searchCustomerList(false);
+        await runTimedCustomerLoad(true);
       } else {
         await clearCustomerList();
         await searchCustomerNextDestination();
@@ -163,7 +253,7 @@ const SearchForm: React.FC<SearchFormProps> = props => {
   const onSearch = async () => {
     const nextUserToken = await loadUserToken();
 
-    if (!customer.isLoading) {
+    if (!customer.isLoading && !isTimedLoading) {
       if (nextUserToken?.VANCONFIG?.VANCNF_AR_LIMIT != 2) {
         if (customerType.listItems && customerType.listItems.length > 0) {
           let type =
@@ -174,13 +264,11 @@ const SearchForm: React.FC<SearchFormProps> = props => {
           }
 
           await setCustomerType(type);
-          await clearCustomerList();
           await setKeyword(textSearch ? textSearch.trim() : null);
-          await searchCustomerList();
+          await runTimedCustomerLoad(true);
         } else {
-          await clearCustomerList();
           await setKeyword(textSearch ? textSearch.trim() : null);
-          await searchCustomerList(false);
+          await runTimedCustomerLoad(true);
         }
       } else {
         await clearCustomerList();
@@ -194,7 +282,25 @@ const SearchForm: React.FC<SearchFormProps> = props => {
       setArcatKey(value);
     }
 
-    await onSearch();
+    const nextUserToken = await loadUserToken();
+
+    if (!customer.isLoading && !isTimedLoading) {
+      const type =
+        customerType.listItems.find(item => item.ARCAT_KEY == value) ?? {
+          ARCAT_KEY: null,
+          ARCAT_NAME: null,
+        };
+
+      await setCustomerType(type);
+
+      if (nextUserToken?.VANCONFIG?.VANCNF_AR_LIMIT != 2) {
+        await setKeyword(textSearch ? textSearch.trim() : null);
+        await runTimedCustomerLoad(true);
+      } else {
+        await clearCustomerList();
+        await searchCustomerNextDestination();
+      }
+    }
   };
 
   const navigateTo = (routeName: string) => {
@@ -315,6 +421,54 @@ const SearchForm: React.FC<SearchFormProps> = props => {
       </View>
 
       <View style={styles.bottomDivider} />
+
+      <Modal
+        transparent
+        visible={loadSummaryModal !== null}
+        animationType="fade"
+        onRequestClose={() => setLoadSummaryModal(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>โหลดข้อมูลสำเร็จ</Text>
+            <Text style={styles.modalMessage}>
+              {`โหลดข้อมูลสำเร็จ ${loadSummaryModal?.totalLoaded ?? 0} รายการ`}
+            </Text>
+            <Text style={styles.modalMessage}>
+              {loadSummaryModal?.hasMore
+                ? 'ต้องการโหลดข้อมูลต่อหรือไม่'
+                : 'ไม่มีข้อมูลเพิ่มเติมแล้ว'}
+            </Text>
+
+            <View style={styles.modalButtonRow}>
+              {loadSummaryModal?.hasMore ? (
+                <TouchableOpacity
+                  style={styles.modalSecondaryButton}
+                  onPress={() => setLoadSummaryModal(null)}
+                >
+                  <Text style={styles.modalSecondaryButtonText}>ไม่โหลดต่อ</Text>
+                </TouchableOpacity>
+              ) : null}
+
+              <TouchableOpacity
+                style={styles.modalPrimaryButton}
+                onPress={() => {
+                  const shouldContinue = loadSummaryModal?.hasMore === true;
+                  setLoadSummaryModal(null);
+
+                  if (shouldContinue) {
+                    void runTimedCustomerLoad(false);
+                  }
+                }}
+              >
+                <Text style={styles.modalPrimaryButtonText}>
+                  {loadSummaryModal?.hasMore ? 'โหลดข้อมูลต่อ' : 'ปิด'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -416,5 +570,64 @@ const styles = StyleSheet.create({
     width: '100%',
     borderColor: MainTheme.colorButtonBorder,
     marginTop: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    width: '100%',
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 18,
+    paddingVertical: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: '#374151',
+    marginBottom: 8,
+  },
+  modalButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 12,
+  },
+  modalPrimaryButton: {
+    minWidth: 96,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: MainTheme.colorPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalPrimaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  modalSecondaryButton: {
+    minWidth: 96,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  modalSecondaryButtonText: {
+    color: '#374151',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

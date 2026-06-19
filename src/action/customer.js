@@ -285,6 +285,7 @@ export const searchCustomerList = nextPage => async (dispatch, getState) => {
               Response.filter(hasKongInName),
             );
             console.log('[searchCustomerList] customer response payload', Response);
+            const hasMore = Response.length >= customer.criteria.LIMIT;
             // console.log('Response 2222if  ', JSON.stringify(Response));
             dispatch(
               setCriteria({
@@ -296,26 +297,53 @@ export const searchCustomerList = nextPage => async (dispatch, getState) => {
               type: types.CUSTOMER_SEARCH_LIST_SUCCESS,
               payload: Response,
             });
+            return {
+              items: Response,
+              hasMore,
+            };
           } else {
             // console.log('Response 2222else  ', JSON.stringify(Response));
             dispatch({
               type: types.CUSTOMER_SEARCH_LIST_SUCCESS,
               payload: [],
             });
+            return {
+              items: [],
+              hasMore: false,
+            };
           }
         } else {
           dispatch({
             type: types.CUSTOMER_SEARCH_LIST_SUCCESS,
             payload: [],
           });
+          return {
+            items: [],
+            hasMore: false,
+          };
         }
       }
+
+      dispatch({
+        type: types.CUSTOMER_SEARCH_LIST_FAIL,
+        payload: ReasonString,
+      });
+      return {
+        items: [],
+        hasMore: false,
+        error: ReasonString,
+      };
     })
     .catch(error => {
       dispatch({
         type: types.CUSTOMER_SEARCH_LIST_FAIL,
         payload: error.message,
       });
+      return {
+        items: [],
+        hasMore: false,
+        error: error.message,
+      };
     });
   // customerSearchListApi(criteria)
   //   .then((v) => {

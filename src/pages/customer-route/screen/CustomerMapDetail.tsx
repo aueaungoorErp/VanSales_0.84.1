@@ -12,7 +12,7 @@ import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
 import { WebView } from 'react-native-webview';
-import { getCurrentPosition } from '../../../action/geolocation';
+import { getCurrentPosition } from '../customer-route-action';
 import { MainTheme, mainContainer } from '../../../constant/lov';
 import BackHandlerHOC from '../../../hoc/BackHandlerHOC';
 import {
