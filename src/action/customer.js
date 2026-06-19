@@ -26,6 +26,49 @@ const hasKongInName = item =>
     .toLowerCase()
     .includes('kong');
 
+const formatElapsedMs = startedAt => `${Date.now() - startedAt} ms`;
+
+const normalizeCustomerDetail = async (detailItem, VANCONFIG) => {
+  const temp = { ...detailItem };
+  const ARPRB_KEY = await getCustArprbKEYApi(
+    parseFloat(detailItem.AR_KEY),
+    VANCONFIG,
+  );
+
+  temp.AR_KEY = parseFloat(detailItem.AR_KEY);
+  temp.AR_ARCAT = detailItem.AR_ARCAT;
+  temp.ADDB_KEY = parseFloat(detailItem.ADDB_KEY);
+  temp.ADDB_GPS_LAT_S =
+    detailItem.ADDB_GPS_LAT_S && !isNaN(detailItem.ADDB_GPS_LAT_S)
+      ? parseFloat(detailItem.ADDB_GPS_LAT_S)
+      : null;
+  temp.ADDB_GPS_LONG_S =
+    detailItem.ADDB_GPS_LONG_S && !isNaN(detailItem.ADDB_GPS_LONG_S)
+      ? parseFloat(detailItem.ADDB_GPS_LONG_S)
+      : null;
+  temp.ARPRB_KEY = ARPRB_KEY;
+
+  return temp;
+};
+
+const getCustomerRouteResponseItems = (responseData, arLimit) => {
+  if (arLimit === 2) {
+    return {
+      RECORD_COUNT: responseData?.RECORD_COUNT,
+      OFFSET: responseData?.OFFSET,
+      FETCH: responseData?.FETCH,
+      additionalData: responseData?.Vans0107,
+    };
+  }
+
+  return {
+    RECORD_COUNT: responseData?.RECORD_COUNT,
+    OFFSET: responseData?.OFFSET,
+    FETCH: responseData?.FETCH,
+    additionalData: responseData?.Vans0104,
+  };
+};
+
 export const setInitialState = () => dispatch => {
   dispatch({ type: types.CUSTOMER_SET_INITIAL_STATE });
 };
@@ -143,8 +186,9 @@ export const findCustomerById = id => dispatch => {
   });
 };
 
-export const searchCustomerList = nextPage => async (dispatch, getState) => {
-  console.log('aaaaa');
+export const searchCustomerList =
+  (nextPage, fetchCustomerDetailsBatch) => async (dispatch, getState) => {
+  const startedAt = Date.now();
   dispatch({ type: types.CUSTOMER_SEARCH_LIST });
   let customer = await getState().customer;
   const customerType = await getState().customerType;
@@ -160,7 +204,7 @@ export const searchCustomerList = nextPage => async (dispatch, getState) => {
       : (1 - 1) * customer.criteria.LIMIT,
     LIMIT: customer.criteria.LIMIT,
   };
-  console.log('aaaa');
+  const routeFetchStartedAt = Date.now();
   return await customerSearchArLineListV3Api(criteria)
     .then(async v => {
       const { ReasonString, ResponseCode, ResponseData } = v;
@@ -193,91 +237,131 @@ export const searchCustomerList = nextPage => async (dispatch, getState) => {
           recordCount: RECORD_COUNT,
           offset: OFFSET,
           fetch: FETCH,
+          hasBatchDetailHook: typeof fetchCustomerDetailsBatch === 'function',
+          routeFetchTime: formatElapsedMs(routeFetchStartedAt),
           additionalData: Array.isArray(additionalData)
             ? additionalData.filter(hasKongInName)
             : [],
         });
 
         if (responseData && additionalData && parseInt(RECORD_COUNT) > 0) {
+          const detailFetchStartedAt = Date.now();
           let Response = [];
-          let found = false;
-          for (let i in additionalData) {
-            await customerSearchListV3Api(
-              additionalData[i].AR_CODE,
-              criteria.ARCAT_KEY,
-            )
-              .then(async v => {
-                found = false;
-                const { ReasonString, ResponseCode, ResponseData } = v;
-                let responseData = JSON.parse(ResponseData);
-                // console.log("customerSearchListV3Api ", responseData);
-                if (ResponseCode == 200) {
-                  const { RECORD_COUNT, OFFSET, FETCH, Ar000131 } =
-                    responseData;
-                  // console.log(parseInt(RECORD_COUNT));
+          const normalizeCustomerDetail = async detailItem => {
+            const temp = { ...detailItem };
+            const ARPRB_KEY = await getCustArprbKEYApi(
+              parseFloat(detailItem.AR_KEY),
+              VANCONFIG,
+            );
 
-                  if (responseData && Ar000131 && parseInt(RECORD_COUNT) > 0) {
-                    let temp = Ar000131[0];
-                    const ARPRB_KEY = await getCustArprbKEYApi(
-                      parseFloat(Ar000131[0].AR_KEY),
-                      VANCONFIG,
-                    );
-                    temp.AR_KEY = parseFloat(Ar000131[0].AR_KEY);
-                    temp.AR_ARCAT = Ar000131[0].AR_ARCAT;
-                    temp.ADDB_KEY = parseFloat(Ar000131[0].ADDB_KEY);
+            temp.AR_KEY = parseFloat(detailItem.AR_KEY);
+            temp.AR_ARCAT = detailItem.AR_ARCAT;
+            temp.ADDB_KEY = parseFloat(detailItem.ADDB_KEY);
+            temp.ADDB_GPS_LAT_S =
+              detailItem.ADDB_GPS_LAT_S && !isNaN(detailItem.ADDB_GPS_LAT_S)
+                ? parseFloat(detailItem.ADDB_GPS_LAT_S)
+                : null;
+            temp.ADDB_GPS_LONG_S =
+              detailItem.ADDB_GPS_LONG_S && !isNaN(detailItem.ADDB_GPS_LONG_S)
+                ? parseFloat(detailItem.ADDB_GPS_LONG_S)
+                : null;
+            temp.ARPRB_KEY = ARPRB_KEY;
 
-                    if (
-                      Ar000131[0].ADDB_GPS_LAT_S &&
-                      !isNaN(Ar000131[0].ADDB_GPS_LAT_S)
-                    ) {
-                      temp.ADDB_GPS_LAT_S = parseFloat(
-                        Ar000131[0].ADDB_GPS_LAT_S,
+            return temp;
+          };
+
+          if (typeof fetchCustomerDetailsBatch === 'function') {
+            const batchArCodes = additionalData
+              .map(item => item?.AR_CODE)
+              .filter(item => item !== undefined && item !== null && item !== '');
+
+            try {
+              console.log('[searchCustomerList] using batch detail hook', {
+                batchArCodeCount: batchArCodes.length,
+                batchArCodes: batchArCodes.slice(0, 10),
+              });
+              const batchResponse = await fetchCustomerDetailsBatch({
+                arCodes: batchArCodes,
+              });
+              const batchResponseData = JSON.parse(batchResponse?.ResponseData || '{}');
+              const detailItems = Array.isArray(batchResponseData?.Ar000131)
+                ? batchResponseData.Ar000131
+                : [];
+              const detailMap = new Map(
+                detailItems.map(item => [String(item.AR_CODE), item]),
+              );
+
+              for (const routeItem of additionalData) {
+                const matchedDetail = detailMap.get(String(routeItem.AR_CODE));
+
+                if (!matchedDetail) {
+                  continue;
+                }
+
+                const normalizedDetail = await normalizeCustomerDetail(
+                  matchedDetail,
+                );
+                const hasExisting = Response.some(
+                  item => item.AR_KEY == normalizedDetail.AR_KEY,
+                );
+
+                if (!hasExisting) {
+                  Response.push({ ...routeItem, ...normalizedDetail });
+                }
+              }
+            } catch (error) {
+              dispatch({
+                type: types.CUSTOMER_SEARCH_LIST_FAIL,
+                payload: error?.message,
+              });
+            }
+          } else {
+            console.log('[searchCustomerList] fallback to customerSearchListV3Api');
+            let found = false;
+            for (let i in additionalData) {
+              await customerSearchListV3Api(
+                additionalData[i].AR_CODE,
+                criteria.ARCAT_KEY,
+              )
+                .then(async v => {
+                  found = false;
+                  const { ReasonString, ResponseCode, ResponseData } = v;
+                  let responseData = JSON.parse(ResponseData);
+                  if (ResponseCode == 200) {
+                    const { RECORD_COUNT, Ar000131 } = responseData;
+
+                    if (responseData && Ar000131 && parseInt(RECORD_COUNT) > 0) {
+                      const normalizedDetail = await normalizeCustomerDetail(
+                        Ar000131[0],
                       );
-                    } else {
-                      temp.ADDB_GPS_LAT_S = null;
-                    }
-                    if (
-                      Ar000131[0].ADDB_GPS_LONG_S &&
-                      !isNaN(Ar000131[0].ADDB_GPS_LONG_S)
-                    ) {
-                      temp.ADDB_GPS_LONG_S = parseFloat(
-                        Ar000131[0].ADDB_GPS_LONG_S,
-                      );
-                    } else {
-                      temp.ADDB_GPS_LONG_S = null;
-                    }
 
-                    // temp.ADDB_GPS_LAT_S = parseFloat(
-                    //   Ar000131[0].ADDB_GPS_LAT_S,
-                    // );
-                    // temp.ADDB_GPS_LONG_S = parseFloat(
-                    //   Ar000131[0].ADDB_GPS_LONG_S,
-                    // );
-                    temp.ARPRB_KEY = ARPRB_KEY;
+                      for (let j in Response) {
+                        if (Response[j].AR_KEY == normalizedDetail.AR_KEY) {
+                          found = true;
+                        }
+                      }
 
-                    for (let j in Response) {
-                      if (Response[j].AR_KEY == temp.AR_KEY) {
-                        found = true;
+                      if (!found) {
+                        Response.push({
+                          ...additionalData[i],
+                          ...normalizedDetail,
+                        });
                       }
                     }
-
-                    if (!found) {
-                      Response.push({ ...additionalData[i], ...temp });
-                    }
+                  } else {
+                    dispatch({
+                      type: types.CUSTOMER_SEARCH_LIST_FAIL,
+                      payload: ReasonString,
+                    });
                   }
-                } else {
+                })
+                .catch(error => {
                   dispatch({
                     type: types.CUSTOMER_SEARCH_LIST_FAIL,
-                    payload: ReasonString,
+                    payload: error.message,
                   });
-                }
-              })
-              .catch(error => {
-                dispatch({
-                  type: types.CUSTOMER_SEARCH_LIST_FAIL,
-                  payload: error.message,
                 });
-              });
+            }
           }
           const rawItemCount = Array.isArray(additionalData)
             ? additionalData.length
@@ -301,6 +385,16 @@ export const searchCustomerList = nextPage => async (dispatch, getState) => {
               Response.filter(hasKongInName),
             );
             console.log('[searchCustomerList] customer response payload', Response);
+            console.log('[searchCustomerList] timing summary', {
+              pageOffset: criteria.OFFSET,
+              pageLimit: criteria.LIMIT,
+              rawItemCount,
+              mergedItemCount: Response.length,
+              totalCount,
+              routeFetchTime: formatElapsedMs(routeFetchStartedAt),
+              detailFetchTime: formatElapsedMs(detailFetchStartedAt),
+              totalTime: formatElapsedMs(startedAt),
+            });
             dispatch({
               type: types.CUSTOMER_SEARCH_LIST_SUCCESS,
               payload: Response,
@@ -315,6 +409,16 @@ export const searchCustomerList = nextPage => async (dispatch, getState) => {
             };
           } else {
             // console.log('Response 2222else  ', JSON.stringify(Response));
+            console.log('[searchCustomerList] timing summary', {
+              pageOffset: criteria.OFFSET,
+              pageLimit: criteria.LIMIT,
+              rawItemCount,
+              mergedItemCount: 0,
+              totalCount,
+              routeFetchTime: formatElapsedMs(routeFetchStartedAt),
+              detailFetchTime: formatElapsedMs(detailFetchStartedAt),
+              totalTime: formatElapsedMs(startedAt),
+            });
             dispatch({
               type: types.CUSTOMER_SEARCH_LIST_SUCCESS,
               payload: [],
@@ -397,6 +501,215 @@ export const searchCustomerList = nextPage => async (dispatch, getState) => {
   //     dispatch({type: types.CUSTOMER_SEARCH_LIST_FAIL, payload: error.message});
   //   });
 };
+
+export const searchCustomerRoutePageOnly =
+  nextPage => async (dispatch, getState) => {
+    const startedAt = Date.now();
+    let customer = await getState().customer;
+    const customerType = await getState().customerType;
+    const userToken = await getUserToken();
+    const VANCONFIG = userToken?.VANCONFIG ?? {};
+    const arLimit = Number(VANCONFIG?.VANCNF_AR_LIMIT);
+
+    const criteria = {
+      ARCAT_KEY: customerType.item,
+      KEYWORD: customer.criteria.KEYWORD,
+      OFFSET: nextPage
+        ? (customer.criteria.OFFSET - 1) * customer.criteria.LIMIT
+        : (1 - 1) * customer.criteria.LIMIT,
+      LIMIT: customer.criteria.LIMIT,
+    };
+    const routeFetchStartedAt = Date.now();
+
+    return await customerSearchArLineListV3Api(criteria)
+      .then(async v => {
+        const { ReasonString, ResponseCode, ResponseData } = v;
+        const responseData = JSON.parse(ResponseData);
+
+        if (ResponseCode == 200) {
+          const { RECORD_COUNT, OFFSET, FETCH, additionalData } =
+            getCustomerRouteResponseItems(responseData, arLimit);
+          const routeItems = Array.isArray(additionalData) ? additionalData : [];
+          const rawItemCount = routeItems.length;
+          const totalCount = parseInt(RECORD_COUNT, 10) || 0;
+          const currentOffset = parseInt(OFFSET, 10) || 0;
+          const nextOffset = currentOffset + rawItemCount;
+          const hasMore = nextOffset < totalCount;
+          const nextCriteriaOffset = nextPage ? customer.criteria.OFFSET + 1 : 2;
+
+          dispatch(
+            setCriteria({
+              ...customer.criteria,
+              OFFSET: nextCriteriaOffset,
+            }),
+          );
+
+          console.log('[searchCustomerRoutePageOnly] timing summary', {
+            pageOffset: criteria.OFFSET,
+            pageLimit: criteria.LIMIT,
+            rawItemCount,
+            totalCount,
+            hasMore,
+            nextCriteriaOffset,
+            routeFetchTime: formatElapsedMs(routeFetchStartedAt),
+            totalTime: formatElapsedMs(startedAt),
+            recordOffset: OFFSET,
+            recordFetch: FETCH,
+          });
+
+          return {
+            items: routeItems,
+            hasMore,
+            totalAvailable: totalCount,
+            rawItemCount,
+            nextCriteriaOffset,
+          };
+        }
+
+        dispatch({
+          type: types.CUSTOMER_SEARCH_LIST_FAIL,
+          payload: ReasonString,
+        });
+        return {
+          items: [],
+          hasMore: false,
+          error: ReasonString,
+          totalAvailable: 0,
+          rawItemCount: 0,
+        };
+      })
+      .catch(error => {
+        dispatch({
+          type: types.CUSTOMER_SEARCH_LIST_FAIL,
+          payload: error.message,
+        });
+        return {
+          items: [],
+          hasMore: false,
+          error: error.message,
+          totalAvailable: 0,
+          rawItemCount: 0,
+        };
+      });
+  };
+
+export const appendCustomerRouteBatchDetails =
+  (routeItems, fetchCustomerDetailsBatch, hasMore = false) =>
+  async dispatch => {
+    const startedAt = Date.now();
+    const userToken = await getUserToken();
+    const VANCONFIG = userToken?.VANCONFIG ?? {};
+    const additionalData = Array.isArray(routeItems) ? routeItems : [];
+    const batchArCodes = additionalData
+      .map(item => item?.AR_CODE)
+      .filter(item => item !== undefined && item !== null && item !== '');
+
+    if (additionalData.length === 0 || batchArCodes.length === 0) {
+      dispatch({
+        type: types.CUSTOMER_SEARCH_LIST_SUCCESS,
+        payload: [],
+        hasMore,
+      });
+
+      console.log('[appendCustomerRouteBatchDetails] timing summary', {
+        rawItemCount: additionalData.length,
+        batchArCodeCount: batchArCodes.length,
+        mergedItemCount: 0,
+        totalTime: formatElapsedMs(startedAt),
+        skipped: true,
+      });
+
+      return {
+        items: [],
+        hasMore,
+      };
+    }
+
+    if (typeof fetchCustomerDetailsBatch !== 'function') {
+      const errorMessage = 'ไม่พบฟังก์ชันสำหรับดึงรายละเอียดลูกค้า';
+      dispatch({
+        type: types.CUSTOMER_SEARCH_LIST_FAIL,
+        payload: errorMessage,
+      });
+      return {
+        items: [],
+        hasMore,
+        error: errorMessage,
+      };
+    }
+
+    try {
+      console.log('[appendCustomerRouteBatchDetails] using batch detail hook', {
+        rawItemCount: additionalData.length,
+        batchArCodeCount: batchArCodes.length,
+        batchArCodes: batchArCodes.slice(0, 10),
+      });
+
+      const detailFetchStartedAt = Date.now();
+      const batchResponse = await fetchCustomerDetailsBatch({
+        arCodes: batchArCodes,
+      });
+      const batchResponseData = JSON.parse(batchResponse?.ResponseData || '{}');
+      const detailItems = Array.isArray(batchResponseData?.Ar000131)
+        ? batchResponseData.Ar000131
+        : [];
+      const detailMap = new Map(
+        detailItems.map(item => [String(item.AR_CODE), item]),
+      );
+      const Response = [];
+
+      for (const routeItem of additionalData) {
+        const matchedDetail = detailMap.get(String(routeItem.AR_CODE));
+
+        if (!matchedDetail) {
+          continue;
+        }
+
+        const normalizedDetail = await normalizeCustomerDetail(
+          matchedDetail,
+          VANCONFIG,
+        );
+        const hasExisting = Response.some(
+          item => item.AR_KEY == normalizedDetail.AR_KEY,
+        );
+
+        if (!hasExisting) {
+          Response.push({ ...routeItem, ...normalizedDetail });
+        }
+      }
+
+      dispatch({
+        type: types.CUSTOMER_SEARCH_LIST_SUCCESS,
+        payload: Response,
+        hasMore,
+      });
+
+      console.log('[appendCustomerRouteBatchDetails] timing summary', {
+        rawItemCount: additionalData.length,
+        batchArCodeCount: batchArCodes.length,
+        detailItemCount: detailItems.length,
+        mergedItemCount: Response.length,
+        hasMore,
+        detailFetchTime: formatElapsedMs(detailFetchStartedAt),
+        totalTime: formatElapsedMs(startedAt),
+      });
+
+      return {
+        items: Response,
+        hasMore,
+      };
+    } catch (error) {
+      dispatch({
+        type: types.CUSTOMER_SEARCH_LIST_FAIL,
+        payload: error?.message,
+      });
+      return {
+        items: [],
+        hasMore,
+        error: error?.message,
+      };
+    }
+  };
 
 export const searchCustomerNextDestination = () => (dispatch, getState) => {
   dispatch({ type: types.CUSTOMER_SEARCH_LIST });

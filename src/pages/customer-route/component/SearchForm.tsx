@@ -10,15 +10,17 @@ import {
 import type { ComponentType } from 'react';
 import RNPickerSelect from 'react-native-picker-select';
 import {
+  appendCustomerRouteBatchDetails,
   clearCustomerList,
   getCurrentPosition,
   restoreCustomerRouteCache,
+  searchCustomerRoutePageOnly,
   setCustomerType,
-  searchCustomerList,
   searchCustomerNextDestination,
   setInitialState,
   setKeyword,
 } from '../customer-route-action';
+import { useCustomerRouteBatchDetails } from '../api/useTanStack';
 import ISearchBar from '../../../component/input/ISearchBar';
 import { MainTheme } from '../../../constant/lov';
 import {
@@ -76,7 +78,9 @@ type CustomerTypeState = {
 type SearchFormOwnProps = {
   navigation?: unknown;
   screen?: string;
+  onLoadingMessageChange?: (value: string) => void;
   onRegisterTimedLoadHandler?: (handler: (reset: boolean) => Promise<void>) => void;
+  onTimedLoadingChange?: (value: boolean) => void;
 };
 
 type SearchFormProps = SearchFormOwnProps & {
@@ -85,7 +89,7 @@ type SearchFormProps = SearchFormOwnProps & {
   geolocation: GeolocationState;
   setInitialState: () => void | Promise<void>;
   setKeyword: (criteria: string | null) => void | Promise<void>;
-  searchCustomerList: (
+  searchCustomerRoutePageOnly: (
     nextPage?: boolean,
   ) => Promise<
     | {
@@ -95,6 +99,20 @@ type SearchFormProps = SearchFormOwnProps & {
         totalAvailable?: number;
         rawItemCount?: number;
         nextCriteriaOffset?: number;
+      }
+    | void
+  >;
+  appendCustomerRouteBatchDetails: (
+    routeItems: any[],
+    fetchCustomerDetailsBatch: (payload: {
+      arCodes: Array<string | number>;
+    }) => Promise<any>,
+    hasMore?: boolean,
+  ) => Promise<
+    | {
+        items?: any[];
+        hasMore?: boolean;
+        error?: string;
       }
     | void
   >;
@@ -124,11 +142,14 @@ const SearchForm: React.FC<SearchFormProps> = props => {
     customerType,
     geolocation,
     getCurrentPosition,
+    onLoadingMessageChange,
     onRegisterTimedLoadHandler,
+    onTimedLoadingChange,
     setInitialState,
     setKeyword,
     restoreCustomerRouteCache,
-    searchCustomerList,
+    searchCustomerRoutePageOnly,
+    appendCustomerRouteBatchDetails,
     clearCustomerList,
     setCustomerType,
     searchCustomerNextDestination,
@@ -141,6 +162,8 @@ const SearchForm: React.FC<SearchFormProps> = props => {
   const [userToken, setUserTokenState] =
     useState<UserTokenState>(initialUserToken);
   const [isTimedLoading, setIsTimedLoading] = useState(false);
+  const { mutateAsync: requestCustomerRouteBatchDetails } =
+    useCustomerRouteBatchDetails();
   const [loadSummaryModal, setLoadSummaryModal] = useState<{
     totalLoaded: number;
     totalAvailable: number;
@@ -152,6 +175,10 @@ const SearchForm: React.FC<SearchFormProps> = props => {
   useEffect(() => {
     customerRef.current = customer;
   }, [customer]);
+
+  useEffect(() => {
+    onTimedLoadingChange?.(isTimedLoading);
+  }, [isTimedLoading, onTimedLoadingChange]);
 
   const setSafeUserToken = useCallback((value: UserTokenState) => {
     if (mountedRef.current) {
@@ -243,6 +270,7 @@ const SearchForm: React.FC<SearchFormProps> = props => {
 
   const runTimedCustomerLoad = useCallback(
     async (reset: boolean) => {
+      const timedLoadStartedAt = Date.now();
       const nextUserToken = await getUserToken();
       const limit = nextUserToken?.VANCONFIG?.VANCNF_AR_LIMIT;
 
@@ -255,6 +283,7 @@ const SearchForm: React.FC<SearchFormProps> = props => {
       const loadId = activeTimedLoadIdRef.current + 1;
       activeTimedLoadIdRef.current = loadId;
       setLoadSummaryModal(null);
+      onLoadingMessageChange?.('กำลังโหลดและคำนวณเส้นทาง');
       setIsTimedLoading(true);
 
       if (reset) {
@@ -281,19 +310,38 @@ const SearchForm: React.FC<SearchFormProps> = props => {
       let lastResultError = null;
       let totalAvailable = startedCount;
       let stoppedByTimeLimit = false;
-      let cachedItems = reset ? [] : customerRef.current.listItems.slice();
       let nextOffset = customerRef.current.criteria?.OFFSET ?? 1;
+      let pageNumber = 0;
+      const routeItemsToAppend: any[] = [];
+
+      console.log('[CustomerRoute] timed fetch started', {
+        reset,
+        startedCount,
+        initialOffset: nextOffset,
+        limitPerPage: customerRef.current.criteria?.LIMIT ?? 20,
+        keyword: currentKeyword,
+        arcatKey,
+      });
 
       while (mountedRef.current && activeTimedLoadIdRef.current === loadId) {
-        const result = await searchCustomerList(nextPage);
+        pageNumber += 1;
+        const pageStartedAt = Date.now();
+        console.log('[CustomerRoute] customer fetch page started', {
+          pageNumber,
+          nextPage,
+          criteriaOffset: customerRef.current.criteria?.OFFSET ?? nextOffset,
+          loadedBeforePage: totalLoaded,
+        });
+
+        const result = await searchCustomerRoutePageOnly(nextPage);
 
         if (!mountedRef.current || activeTimedLoadIdRef.current !== loadId) {
           return;
         }
 
-        const fetchedItems = Array.isArray(result?.items) ? result.items : [];
-        totalLoaded += fetchedItems.length;
-        cachedItems = cachedItems.concat(fetchedItems);
+        const fetchedRouteItems = Array.isArray(result?.items) ? result.items : [];
+        totalLoaded += fetchedRouteItems.length;
+        routeItemsToAppend.push(...fetchedRouteItems);
         hasMore = result?.hasMore === true;
         lastResultError = result?.error ?? null;
         nextOffset = Number(result?.nextCriteriaOffset) || nextOffset;
@@ -303,12 +351,24 @@ const SearchForm: React.FC<SearchFormProps> = props => {
         );
         const currentPositionSnapshot = getCurrentPositionSnapshot();
 
+        console.log('[CustomerRoute] customer fetch page finished', {
+          pageNumber,
+          fetchedItems: fetchedRouteItems.length,
+          rawItemCount: Number(result?.rawItemCount) || 0,
+          totalLoaded,
+          totalAvailable,
+          hasMore,
+          nextOffset,
+          pageTimeMs: Date.now() - pageStartedAt,
+          totalElapsedMs: Date.now() - timedLoadStartedAt,
+        });
+
         await setCustomerRouteLoadSession({
           totalLoaded,
           totalAvailable,
           hasMore,
           updatedAt: new Date().toISOString(),
-          cachedItems,
+          cachedItems: [],
           lastPosition: {
             latitude: currentPositionSnapshot.latitude,
             longitude: currentPositionSnapshot.longitude,
@@ -321,10 +381,23 @@ const SearchForm: React.FC<SearchFormProps> = props => {
 
         if (Date.now() - startedAt >= 60000) {
           stoppedByTimeLimit = true;
+          console.log('[CustomerRoute] timed fetch stopped by 1 minute limit', {
+            pageNumber,
+            totalLoaded,
+            totalAvailable,
+            elapsedMs: Date.now() - timedLoadStartedAt,
+          });
           break;
         }
 
         if (lastResultError || !hasMore) {
+          console.log('[CustomerRoute] timed fetch loop ended', {
+            reason: lastResultError ? 'error' : 'no-more-data',
+            pageNumber,
+            totalLoaded,
+            totalAvailable,
+            elapsedMs: Date.now() - timedLoadStartedAt,
+          });
           break;
         }
 
@@ -335,11 +408,51 @@ const SearchForm: React.FC<SearchFormProps> = props => {
         return;
       }
 
-      setIsTimedLoading(false);
-
       if (lastResultError) {
+        setIsTimedLoading(false);
         return;
       }
+
+      onLoadingMessageChange?.('กำลังโหลดและคำนวณเส้นทาง');
+      console.log('[CustomerRoute] batch detail request prepared', {
+        routeItemCount: routeItemsToAppend.length,
+        arCodes: routeItemsToAppend.map(item => item?.AR_CODE).filter(Boolean),
+        hasMore,
+      });
+      const batchMergeStartedAt = Date.now();
+      const batchMergeResult = await appendCustomerRouteBatchDetails(
+        routeItemsToAppend,
+        requestCustomerRouteBatchDetails,
+        hasMore,
+      );
+
+      if (!mountedRef.current || activeTimedLoadIdRef.current !== loadId) {
+        return;
+      }
+
+      console.log('[CustomerRoute] batch detail completed', {
+        routeItemCount: routeItemsToAppend.length,
+        mergedItemCount: Array.isArray(batchMergeResult?.items)
+          ? batchMergeResult.items.length
+          : 0,
+        hasMore,
+        batchMergeTimeMs: Date.now() - batchMergeStartedAt,
+        totalElapsedMs: Date.now() - timedLoadStartedAt,
+      });
+
+      setIsTimedLoading(false);
+
+      if (batchMergeResult?.error) {
+        return;
+      }
+
+      console.log('[CustomerRoute] timed fetch completed', {
+        totalLoaded,
+        totalAvailable,
+        hasMore,
+        stoppedByTimeLimit,
+        totalElapsedMs: Date.now() - timedLoadStartedAt,
+      });
 
       setLoadSummaryModal({
         totalLoaded,
@@ -354,8 +467,10 @@ const SearchForm: React.FC<SearchFormProps> = props => {
       arcatKey,
       getCurrentPositionSnapshot,
       getCurrentSearchKeyword,
-      searchCustomerList,
+      searchCustomerRoutePageOnly,
+      appendCustomerRouteBatchDetails,
       searchCustomerNextDestination,
+      requestCustomerRouteBatchDetails,
     ],
   );
 
@@ -627,6 +742,11 @@ const SearchForm: React.FC<SearchFormProps> = props => {
                   : `ยังเหลืออีก ${
                       loadSummaryModal?.remainingCount ?? 0
                     } รายการ ต้องการโหลดข้อมูลต่อหรือไม่`
+                : (loadSummaryModal?.totalLoaded ?? 0) <
+                  (loadSummaryModal?.totalAvailable ?? 0)
+                ? `โหลดครบตามข้อมูลที่ใช้งานได้แล้ว ${
+                    loadSummaryModal?.totalLoaded ?? 0
+                  } จากทั้งหมด ${loadSummaryModal?.totalAvailable ?? 0} รายการ`
                 : 'โหลดข้อมูลครบแล้ว'}
             </Text>
 
@@ -680,8 +800,23 @@ const mapDispatchToProps = (dispatch: any) => {
     getCurrentPosition: () => {
       return dispatch(getCurrentPosition());
     },
-    searchCustomerList: (nextPage?: boolean) => {
-      return dispatch(searchCustomerList(nextPage));
+    searchCustomerRoutePageOnly: (nextPage?: boolean) => {
+      return dispatch(searchCustomerRoutePageOnly(nextPage));
+    },
+    appendCustomerRouteBatchDetails: (
+      routeItems: any[],
+      fetchCustomerDetailsBatch: (payload: {
+        arCodes: Array<string | number>;
+      }) => Promise<any>,
+      hasMore?: boolean,
+    ) => {
+      return dispatch(
+        appendCustomerRouteBatchDetails(
+          routeItems,
+          fetchCustomerDetailsBatch,
+          hasMore,
+        ),
+      );
     },
     clearCustomerList: () => {
       return dispatch(clearCustomerList());

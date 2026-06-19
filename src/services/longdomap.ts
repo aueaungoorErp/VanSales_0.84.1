@@ -23,13 +23,28 @@ type DistanceCacheEntry = {
 };
 
 type DistanceCacheMap = Record<string, DistanceCacheEntry>;
+type DistanceItemInput<T> = {
+  item: T;
+  latitude: CoordinateValue;
+  longitude: CoordinateValue;
+  cacheKey?: string | null;
+};
+
+export type DistanceItemResult<T> = {
+  item: T;
+  cacheKey: string | null;
+  distance: number | null;
+  distanceText: string;
+  hasCoordinate: boolean;
+};
 
 const LONGDO_ROUTE_MATRIX_ENDPOINT =
   'https://api.longdo.com/RouteService/json/route/matrix';
 const LONGDO_ROUTE_GUIDE_ENDPOINT =
   'https://api.longdo.com/RouteService/json/route/guide';
-const LONGDO_ROUTE_BATCH_SIZE = 25;
-const LONGDO_ROUTE_MODE = 'd';
+const LONGDO_ROUTE_BATCH_SIZE = 10;
+const LONGDO_ROUTE_GUIDE_CONCURRENCY = 20;
+const LONGDO_ROUTE_MODE = 't';
 const LONGDO_ROUTE_TYPE = '1';
 const CUSTOMER_ROUTE_DISTANCE_CACHE_KEY = '@CustomerRouteDistanceCache';
 
@@ -102,11 +117,7 @@ const getStraightLineDistance = (
     return null;
   }
 
-  return getDistance(
-    currentCoordinate,
-    customerCoordinate,
-    0.01,
-  );
+  return getDistance(currentCoordinate, customerCoordinate, 0.01);
 };
 
 export const getDistanceBetweenCoordinates = (
@@ -139,7 +150,9 @@ const isLongdoInvalidKeyStatus = (status?: number | null) =>
   status === 401 || status === 403;
 
 const isLongdoInvalidKeyMessage = (message?: string | null) => {
-  const normalizedMessage = String(message ?? '').trim().toLowerCase();
+  const normalizedMessage = String(message ?? '')
+    .trim()
+    .toLowerCase();
 
   if (!normalizedMessage) {
     return false;
@@ -153,6 +166,33 @@ const isLongdoInvalidKeyMessage = (message?: string | null) => {
     normalizedMessage.includes('unauthorized') ||
     normalizedMessage.includes('forbidden')
   );
+};
+
+const isLongdoBadRequestMessage = (message?: string | null) =>
+  String(message ?? '')
+    .trim()
+    .toLowerCase()
+    .includes('bad request');
+
+const isLongdoBadRequestError = (error?: any) =>
+  error?.status === 400 ||
+  isLongdoBadRequestMessage(error?.apiMessage) ||
+  isLongdoBadRequestMessage(error?.message);
+
+const summarizeLongdoResponse = (payload: any) => {
+  if (!payload || typeof payload !== 'object') {
+    return payload;
+  }
+
+  return {
+    meta: payload?.meta,
+    dataCount: Array.isArray(payload?.data) ? payload.data.length : null,
+    firstRowCount:
+      Array.isArray(payload?.data) && Array.isArray(payload.data[0])
+        ? payload.data[0].length
+        : null,
+    data: payload?.data,
+  };
 };
 
 const buildLongdoRouteMatrixUrl = (
@@ -202,10 +242,12 @@ const getConfiguredLongdoMapApiKeys = async (vanCode?: string | null) => {
   );
 
   return storedConfigs
-    .map((item: any): LongdoApiKeyConfig => ({
-      key: String(item?.key ?? '').trim(),
-      outoflimit: Boolean(item?.outoflimit),
-    }))
+    .map(
+      (item: any): LongdoApiKeyConfig => ({
+        key: String(item?.key ?? '').trim(),
+        outoflimit: Boolean(item?.outoflimit),
+      }),
+    )
     .filter((item: LongdoApiKeyConfig) => item.key !== '');
 };
 
@@ -214,15 +256,34 @@ const fetchRouteMatrixDistancesWithKey = async (
   customerLocations: NumericCoordinate[],
   apiKey: string,
 ): Promise<Array<number | null>> => {
-  const response = await fetch(buildLongdoRouteMatrixUrl(
+  const startedAt = Date.now();
+  const requestUrl = buildLongdoRouteMatrixUrl(
     currentLocation,
     customerLocations,
     apiKey,
-  ));
+  );
+  console.log('[customer-route longdomap] route matrix request body', {
+    endpoint: LONGDO_ROUTE_MATRIX_ENDPOINT,
+    requestUrl,
+    currentLocation,
+    customerLocations,
+    destinationCount: customerLocations.length,
+  });
+  const response = await fetch(requestUrl);
   const payload = await response.json().catch(() => null);
 
+  console.log('[customer-route longdomap] route matrix response', {
+    status: response.status,
+    ok: response.ok,
+    elapsedMs: Date.now() - startedAt,
+    elapsedText: `${Date.now() - startedAt} ms`,
+    payload: summarizeLongdoResponse(payload),
+  });
+
   if (!response.ok) {
-    const error = new Error(`Longdo route matrix HTTP ${response.status}`) as Error & {
+    const error = new Error(
+      `Longdo route matrix HTTP ${response.status}`,
+    ) as Error & {
       status?: number;
       apiMessage?: string | null;
     };
@@ -231,8 +292,8 @@ const fetchRouteMatrixDistancesWithKey = async (
       typeof payload?.meta?.message === 'string'
         ? payload.meta.message
         : typeof payload?.message === 'string'
-          ? payload.message
-          : null;
+        ? payload.message
+        : null;
     throw error;
   }
 
@@ -265,13 +326,33 @@ const fetchRouteGuideDistanceWithKey = async (
   endLocation: NumericCoordinate,
   apiKey: string,
 ): Promise<number> => {
-  const response = await fetch(
-    buildLongdoRouteGuideUrl(startLocation, endLocation, apiKey),
+  const startedAt = Date.now();
+  const requestUrl = buildLongdoRouteGuideUrl(
+    startLocation,
+    endLocation,
+    apiKey,
   );
+  console.log('[customer-route longdomap] route guide request body', {
+    endpoint: LONGDO_ROUTE_GUIDE_ENDPOINT,
+    requestUrl,
+    startLocation,
+    endLocation,
+  });
+  const response = await fetch(requestUrl);
   const payload = await response.json().catch(() => null);
 
+  console.log('[customer-route longdomap] route guide response', {
+    status: response.status,
+    ok: response.ok,
+    elapsedMs: Date.now() - startedAt,
+    elapsedText: `${Date.now() - startedAt} ms`,
+    payload: summarizeLongdoResponse(payload),
+  });
+
   if (!response.ok) {
-    const error = new Error(`Longdo route guide HTTP ${response.status}`) as Error & {
+    const error = new Error(
+      `Longdo route guide HTTP ${response.status}`,
+    ) as Error & {
       status?: number;
       apiMessage?: string | null;
     };
@@ -280,8 +361,8 @@ const fetchRouteGuideDistanceWithKey = async (
       typeof payload?.meta?.message === 'string'
         ? payload.meta.message
         : typeof payload?.message === 'string'
-          ? payload.message
-          : null;
+        ? payload.message
+        : null;
     throw error;
   }
 
@@ -312,11 +393,10 @@ const fetchRouteGuideDistanceWithKey = async (
   return distance;
 };
 
-const fetchRouteMatrixDistances = async (
-  currentLocation: NumericCoordinate,
-  customerLocations: NumericCoordinate[],
-  vanCode?: string | null,
-): Promise<Array<number | null>> => {
+const runWithLongdoApiKey = async <T>(
+  vanCode: string | null | undefined,
+  runner: (apiKey: string) => Promise<T>,
+): Promise<T> => {
   const apiKeyConfigs = await getConfiguredLongdoMapApiKeys(vanCode);
   let lastError: any = null;
   let hasLimitError = false;
@@ -328,23 +408,20 @@ const fetchRouteMatrixDistances = async (
     }
 
     try {
-      return await fetchRouteMatrixDistancesWithKey(
-        currentLocation,
-        customerLocations,
-        apiKeyConfig.key,
-      );
+      return await runner(apiKeyConfig.key);
     } catch (error: any) {
       lastError = error;
 
       if (isLongdoLimitStatus(error?.status)) {
         hasLimitError = true;
-        const nextConfigs = apiKeyConfigs.map((item: LongdoApiKeyConfig, itemIndex: number) =>
-          itemIndex === index
-            ? {
-                ...item,
-                outoflimit: true,
-              }
-            : item,
+        const nextConfigs = apiKeyConfigs.map(
+          (item: LongdoApiKeyConfig, itemIndex: number) =>
+            itemIndex === index
+              ? {
+                  ...item,
+                  outoflimit: true,
+                }
+              : item,
         );
         await (setLongdoMapApiKeyConfigs as any)(nextConfigs, vanCode ?? null);
         continue;
@@ -370,7 +447,88 @@ const fetchRouteMatrixDistances = async (
     throw error;
   }
 
-  throw lastError || new Error('Longdo route matrix failed');
+  throw lastError || new Error('Longdo request failed');
+};
+
+const fetchRouteMatrixDistances = async (
+  currentLocation: NumericCoordinate,
+  customerLocations: NumericCoordinate[],
+  vanCode?: string | null,
+): Promise<Array<number | null>> => {
+  return runWithLongdoApiKey(vanCode, apiKey =>
+    fetchRouteMatrixDistancesWithKey(
+      currentLocation,
+      customerLocations,
+      apiKey,
+    ),
+  );
+};
+
+const fetchRouteGuideDistances = async (
+  currentLocation: NumericCoordinate,
+  customerLocations: NumericCoordinate[],
+  vanCode?: string | null,
+): Promise<Array<number | null>> => {
+  return runWithLongdoApiKey(vanCode, async apiKey => {
+    const results: Array<number | null> = new Array(
+      customerLocations.length,
+    ).fill(null);
+
+    for (
+      let startIndex = 0;
+      startIndex < customerLocations.length;
+      startIndex += LONGDO_ROUTE_GUIDE_CONCURRENCY
+    ) {
+      const locationSlice = customerLocations.slice(
+        startIndex,
+        startIndex + LONGDO_ROUTE_GUIDE_CONCURRENCY,
+      );
+
+      const distanceSlice = await Promise.all(
+        locationSlice.map(async (location, index) => {
+          const absoluteIndex = startIndex + index;
+
+          try {
+            const distance = await fetchRouteGuideDistanceWithKey(
+              currentLocation,
+              location,
+              apiKey,
+            );
+
+            return {
+              index: absoluteIndex,
+              distance,
+            };
+          } catch (error: any) {
+            if (isLongdoLimitStatus(error?.status)) {
+              throw error;
+            }
+
+            console.log(
+              '[customer-route longdomap] route guide error, fallback to straight line',
+              {
+                index: absoluteIndex,
+                message: error?.message,
+                status: error?.status,
+                apiMessage: error?.apiMessage,
+              },
+            );
+
+            return {
+              index: absoluteIndex,
+              distance: getStraightLineDistance(currentLocation, location),
+            };
+          }
+        }),
+      );
+
+      distanceSlice.forEach(item => {
+        results[item.index] = item.distance;
+      });
+    }
+
+    return results;
+  });
 };
 
 export const assessLongdoApiKeyAvailability = async (
@@ -410,8 +568,14 @@ export const testLongdoMapApiKey = async (
   apiKey: string,
 ): Promise<LongdoApiKeyTestResult> => {
   const key = apiKey.trim();
-  const startLocation = { latitude: 13.743080902938331, longitude: 100.54898053407669 };
-  const endLocation = { latitude: 13.724314618267575, longitude: 100.55885508656502 };
+  const startLocation = {
+    latitude: 13.743080902938331,
+    longitude: 100.54898053407669,
+  };
+  const endLocation = {
+    latitude: 13.724314618267575,
+    longitude: 100.55885508656502,
+  };
 
   if (!key) {
     return {
@@ -433,9 +597,7 @@ export const testLongdoMapApiKey = async (
     };
   } catch (error: any) {
     const status = error?.status ?? null;
-    const apiMessage = String(
-      error?.apiMessage ?? error?.message ?? '',
-    ).trim();
+    const apiMessage = String(error?.apiMessage ?? error?.message ?? '').trim();
 
     if (isLongdoLimitStatus(status)) {
       return {
@@ -446,7 +608,10 @@ export const testLongdoMapApiKey = async (
       };
     }
 
-    if (isLongdoInvalidKeyStatus(status) || isLongdoInvalidKeyMessage(apiMessage)) {
+    if (
+      isLongdoInvalidKeyStatus(status) ||
+      isLongdoInvalidKeyMessage(apiMessage)
+    ) {
       return {
         key,
         status: 'invalid',
@@ -469,6 +634,7 @@ export const getDistancesFromCurrentLocation = async (
   customerLocations: Array<Coordinate | null | undefined> = [],
   vanCode?: string | null,
 ): Promise<Array<number | null>> => {
+  const startedAt = Date.now();
   const currentCoordinate = toNumericCoordinate(currentLocation);
 
   if (!currentCoordinate) {
@@ -496,10 +662,12 @@ export const getDistancesFromCurrentLocation = async (
 
   for (const locationChunk of locationChunks) {
     try {
-      console.log('[longdomap] route matrix request', {
+      console.log('[customer-route longdomap] distance chunk started', {
         destinations: locationChunk.length,
         mode: LONGDO_ROUTE_MODE,
         type: LONGDO_ROUTE_TYPE,
+        currentCoordinate,
+        destinationCoordinates: locationChunk.map(item => item.coordinate),
       });
 
       const distances = await fetchRouteMatrixDistances(
@@ -513,6 +681,11 @@ export const getDistancesFromCurrentLocation = async (
           distances[index] ??
           getStraightLineDistance(currentCoordinate, item.coordinate);
       });
+
+      console.log('[customer-route longdomap] distance chunk completed', {
+        destinations: locationChunk.length,
+        distances,
+      });
     } catch (error: any) {
       if (
         error?.code === 'LONGDO_API_KEY_MISSING' ||
@@ -521,10 +694,67 @@ export const getDistancesFromCurrentLocation = async (
         throw error;
       }
 
-      console.log('[longdomap] route matrix error, fallback to straight line', {
-        message: error?.message || error,
-        destinations: locationChunk.length,
-      });
+      if (isLongdoBadRequestError(error)) {
+        console.log(
+          '[customer-route longdomap] route matrix bad request, fallback to route guide',
+          {
+            message: error?.message || error,
+            destinations: locationChunk.length,
+            status: error?.status,
+            apiMessage: error?.apiMessage,
+          },
+        );
+
+        try {
+          const guideDistances = await fetchRouteGuideDistances(
+            currentCoordinate,
+            locationChunk.map(item => item.coordinate),
+            vanCode,
+          );
+
+          locationChunk.forEach((item, index) => {
+            results[item.index] =
+              guideDistances[index] ??
+              getStraightLineDistance(currentCoordinate, item.coordinate);
+          });
+
+          console.log(
+            '[customer-route longdomap] route guide fallback completed',
+            {
+              destinations: locationChunk.length,
+              distances: guideDistances,
+            },
+          );
+          continue;
+        } catch (guideError: any) {
+          if (
+            guideError?.code === 'LONGDO_API_KEY_MISSING' ||
+            guideError?.code === 'LONGDO_API_KEY_LIMIT_EXHAUSTED'
+          ) {
+            throw guideError;
+          }
+
+          console.log(
+            '[customer-route longdomap] route guide fallback failed, fallback to straight line',
+            {
+              message: guideError?.message || guideError,
+              destinations: locationChunk.length,
+              status: guideError?.status,
+              apiMessage: guideError?.apiMessage,
+            },
+          );
+        }
+      }
+
+      console.log(
+        '[customer-route longdomap] route matrix error, fallback to straight line',
+        {
+          message: error?.message || error,
+          destinations: locationChunk.length,
+          status: error?.status,
+          apiMessage: error?.apiMessage,
+        },
+      );
 
       locationChunk.forEach(item => {
         results[item.index] = getStraightLineDistance(
@@ -535,7 +765,69 @@ export const getDistancesFromCurrentLocation = async (
     }
   }
 
+  console.log('[customer-route longdomap] distance batch completed', {
+    totalCustomers: customerLocations.length,
+    validLocationCount: validLocations.length,
+    chunkCount: locationChunks.length,
+    elapsedMs: Date.now() - startedAt,
+    elapsedText: `${Date.now() - startedAt} ms`,
+    results,
+  });
+
   return results;
+};
+
+export const getDistanceItemsFromCurrentLocation = async <T>(
+  currentLocation: Coordinate | null | undefined,
+  items: DistanceItemInput<T>[] = [],
+  vanCode?: string | null,
+): Promise<Array<DistanceItemResult<T>>> => {
+  const startedAt = Date.now();
+  const distances = await getDistancesFromCurrentLocation(
+    currentLocation,
+    items.map(item => ({
+      latitude: item.latitude,
+      longitude: item.longitude,
+    })),
+    vanCode,
+  );
+
+  const response = items.map((entry, index) => {
+    const hasCoordinate = hasCompleteCoordinate({
+      latitude: entry.latitude,
+      longitude: entry.longitude,
+    });
+    const distance = distances[index] ?? null;
+
+    return {
+      item: entry.item,
+      cacheKey:
+        entry.cacheKey !== undefined && entry.cacheKey !== null
+          ? String(entry.cacheKey)
+          : null,
+      distance,
+      distanceText: hasCoordinate
+        ? formatDistanceLabel(distance)
+        : 'ไม่มีข้อมูลพิกัด',
+      hasCoordinate,
+    };
+  });
+
+  console.log('[customer-route longdomap] distance items response', {
+    itemCount: items.length,
+    elapsedMs: Date.now() - startedAt,
+    elapsedText: `${Date.now() - startedAt} ms`,
+    items: items.map((entry, index) => ({
+      cacheKey: entry.cacheKey ?? null,
+      latitude: entry.latitude,
+      longitude: entry.longitude,
+      distance: response[index]?.distance ?? null,
+      distanceText: response[index]?.distanceText ?? null,
+      hasCoordinate: response[index]?.hasCoordinate ?? false,
+    })),
+  });
+
+  return response;
 };
 
 export const getCustomerRouteDistanceCache =
@@ -593,9 +885,11 @@ export const getDistanceFromCurrentLocation = async (
   customerLocation?: Coordinate | null,
   vanCode?: string | null,
 ): Promise<number | null> => {
-  const distances = await getDistancesFromCurrentLocation(currentLocation, [
-    customerLocation,
-  ], vanCode);
+  const distances = await getDistancesFromCurrentLocation(
+    currentLocation,
+    [customerLocation],
+    vanCode,
+  );
 
   return distances[0] ?? null;
 };

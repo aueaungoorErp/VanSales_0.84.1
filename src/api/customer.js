@@ -20,6 +20,8 @@ const formatResponseForLog = payload => {
   }
 };
 
+const formatElapsedMs = startedAt => `${Date.now() - startedAt} ms`;
+
 const formatArrayResponseForLog = payload => {
   const formattedPayload = formatResponseForLog(payload);
   const responseData = formattedPayload?.ResponseData;
@@ -48,6 +50,12 @@ const formatArrayResponseForLog = payload => {
   };
 };
 
+const formatErrorForLog = error => ({
+  message: error?.message,
+  status: error?.response?.status,
+  data: error?.response?.data,
+});
+
 export const customerSearchListApi = criteria => {
   return new Promise((resolve, reject) => {
     Request.instance
@@ -62,6 +70,7 @@ export const customerSearchListApi = criteria => {
 };
 
 export const customerSearchListV3Api = async (arCode, arKey) => {
+  const apiStartedAt = Date.now();
   // console.log('arKey ==>', arKey.ARCAT_NAME);
   const LoginGUID = await getLoginGuID();
 
@@ -91,36 +100,46 @@ export const customerSearchListV3Api = async (arCode, arKey) => {
     'BPAPUS-OFFSET': '',
     'BPAPUS-FETCH': '',
   };
-  //  console.log(bodyRequest);
+        console.log('[customer-route detail] request body', bodyRequest);
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post('/LookupErp', bodyRequest)
       .then(v => {
+        console.log('[customer-route detail] api timing', {
+          arCode,
+          function: bodyRequest['BPAPUS-FUNCTION'],
+          elapsedMs: Date.now() - apiStartedAt,
+          elapsedText: formatElapsedMs(apiStartedAt),
+          responseCode: v?.data?.ResponseCode,
+        });
         console.log(
-          '[customerSearchListV3Api] response json',
-          JSON.stringify(formatArrayResponseForLog(v.data), null, 2),
+          '[customer-route detail] response json',
+          formatArrayResponseForLog(v?.data),
         );
         resolve(v.data);
       })
       .catch(err => {
+        console.log('[customer-route detail] api timing error', {
+          arCode,
+          function: bodyRequest['BPAPUS-FUNCTION'],
+          elapsedMs: Date.now() - apiStartedAt,
+          elapsedText: formatElapsedMs(apiStartedAt),
+          error: formatErrorForLog(err),
+        });
         reject(err);
       });
   });
 };
 
 export const customerSearchArLineListV3Api = async criteria => {
+  const apiStartedAt = Date.now();
   const LoginGUID = await getLoginGuID();
   const { VANCONFIG } = await getUserToken();
-
-  console.log('bodyRequest keywords', criteria.KEYWORD);
 
   const keywordRaw = criteria.KEYWORD || ''; // ถ้า null/undefined ให้เป็น string ว่างแทน
 
   const keywords =
     keywordRaw.trim() === '' ? [] : keywordRaw.trim().split(/\s+/);
-
-  console.log('bodyRequest keywords', keywords);
-
   let pattern = '';
   if (keywords.length === 1) {
     pattern = `%${keywords[0]}%`;
@@ -134,9 +153,6 @@ export const customerSearchArLineListV3Api = async criteria => {
     keywords.length > 0
       ? `AND (AR_CODE LIKE '%${pattern}%' OR AR_NAME LIKE '%${pattern}%') AND VANCNF_MACHINE = '${VANCONFIG.VANCNF_MACHINE}'`
       : `AND VANCNF_MACHINE = '${VANCONFIG.VANCNF_MACHINE}'`;
-
-  console.log(KEYWORD);
-  console.log('bbbbb', KEYWORD);
 
   const ARCAT_KEY =
     typeof criteria.ARCAT_KEY == 'object'
@@ -159,18 +175,41 @@ export const customerSearchArLineListV3Api = async criteria => {
     'BPAPUS-OFFSET': OFFSET,
     'BPAPUS-FETCH': LIMIT,
   };
-  console.log('bodyRequest bbbb', bodyRequest);
+  console.log('[customer-route fetch] request body', {
+    criteria,
+    keywords,
+    keywordPattern: pattern,
+    arcatKeyFilter: ARCAT_KEY,
+    bodyRequest,
+  });
   return new Promise((resolve, reject) => {
     Request.instanceV3
       .post('/LookupErp', bodyRequest)
       .then(v => {
+        console.log('[customer-route fetch] api timing', {
+          function: bodyRequest['BPAPUS-FUNCTION'],
+          offset: bodyRequest['BPAPUS-OFFSET'],
+          fetch: bodyRequest['BPAPUS-FETCH'],
+          elapsedMs: Date.now() - apiStartedAt,
+          elapsedText: formatElapsedMs(apiStartedAt),
+          responseCode: v?.data?.ResponseCode,
+        });
         console.log(
-          '[customerSearchArLineListV3Api] response json',
-          JSON.stringify(formatArrayResponseForLog(v.data), null, 2),
+          '[customer-route fetch] response json',
+          formatArrayResponseForLog(v?.data),
         );
+
         resolve(v.data);
       })
       .catch(err => {
+        console.log('[customer-route fetch] api timing error', {
+          function: bodyRequest['BPAPUS-FUNCTION'],
+          offset: bodyRequest['BPAPUS-OFFSET'],
+          fetch: bodyRequest['BPAPUS-FETCH'],
+          elapsedMs: Date.now() - apiStartedAt,
+          elapsedText: formatElapsedMs(apiStartedAt),
+          error: formatErrorForLog(err),
+        });
         reject(err);
       });
   });

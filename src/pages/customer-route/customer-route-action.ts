@@ -1,5 +1,7 @@
 import {
+  appendCustomerRouteBatchDetails as appendCustomerRouteBatchDetailsBase,
   clearCustomerList as clearCustomerListBase,
+  searchCustomerRoutePageOnly as searchCustomerRoutePageOnlyBase,
   searchCustomerList as searchCustomerListBase,
   searchCustomerNextDestination as searchCustomerNextDestinationBase,
   setError as setErrorBase,
@@ -24,8 +26,27 @@ type SearchCustomerListResult = {
   nextCriteriaOffset?: number;
 };
 
-export const setInitialState = () => (dispatch: Dispatch) =>
-  dispatch(setInitialStateBase());
+type SearchCustomerRoutePageResult = {
+  items: any[];
+  hasMore: boolean;
+  error?: string;
+  totalAvailable?: number;
+  rawItemCount?: number;
+  nextCriteriaOffset?: number;
+};
+
+const CUSTOMER_ROUTE_PAGE_LIMIT = 1000;
+
+export const setInitialState = () => async (dispatch: Dispatch) => {
+  await dispatch(setInitialStateBase());
+  return dispatch(
+    setCriteriaBase({
+      KEYWORD: null,
+      OFFSET: 1,
+      LIMIT: CUSTOMER_ROUTE_PAGE_LIMIT,
+    }),
+  );
+};
 
 export const clearCustomerList = () => (dispatch: Dispatch) =>
   dispatch(clearCustomerListBase());
@@ -51,7 +72,12 @@ export const setLastPosition = (position: {
 }) => (dispatch: Dispatch) => dispatch(setLastPositionBase(position));
 
 export const searchCustomerList =
-  (nextPage?: boolean) =>
+  (
+    nextPage?: boolean,
+    fetchCustomerDetailsBatch?: (payload: {
+      arCodes: Array<string | number>;
+    }) => Promise<any>,
+  ) =>
   async (
     dispatch: Dispatch,
     getState: GetState,
@@ -62,7 +88,9 @@ export const searchCustomerList =
       : [];
     const beforeCount = beforeItems.length;
 
-    const result = await dispatch(searchCustomerListBase(nextPage));
+    const result = await dispatch(
+      searchCustomerListBase(nextPage, fetchCustomerDetailsBatch),
+    );
 
     const afterCustomer = getState().customer;
     const afterItems = Array.isArray(afterCustomer?.listItems)
@@ -81,6 +109,32 @@ export const searchCustomerList =
       rawItemCount: result?.rawItemCount,
       nextCriteriaOffset: result?.nextCriteriaOffset,
     };
+  };
+
+export const searchCustomerRoutePageOnly =
+  (nextPage?: boolean) =>
+  async (
+    dispatch: Dispatch,
+  ): Promise<SearchCustomerRoutePageResult> => {
+    return dispatch(searchCustomerRoutePageOnlyBase(nextPage));
+  };
+
+export const appendCustomerRouteBatchDetails =
+  (
+    routeItems: any[],
+    fetchCustomerDetailsBatch: (payload: {
+      arCodes: Array<string | number>;
+    }) => Promise<any>,
+    hasMore?: boolean,
+  ) =>
+  async (dispatch: Dispatch) => {
+    return dispatch(
+      appendCustomerRouteBatchDetailsBase(
+        routeItems,
+        fetchCustomerDetailsBatch,
+        hasMore,
+      ),
+    );
   };
 
 export const searchCustomerNextDestination = () => (dispatch: Dispatch) =>
