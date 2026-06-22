@@ -120,6 +120,7 @@ class CTListItems extends Component {
 
     Navigator.navigate('ProductEditTo', {
       actionType: 'edit',
+      editIndex: index,
       confirmMethod: async item => {
         await this.props.editProduct(
           convertProductItemToOrderItem(item),

@@ -304,7 +304,11 @@ export const processOrderSale =
         // ไม่สามารถขายสินค้าจำนวนติดลบได้
         const requestedQtyByGoodsCode = data.ITEMS.reduce((result, item) => {
           const goodsCode = item?.VTRD_CODE;
-          const requestedQty = parseFloat(item?.VTRD_QTY);
+          const saleQty = parseFloat(item?.VTRD_QTY);
+          const freeQty = parseFloat(item?.VTRD_Q_FREE);
+          const requestedQty =
+            (Number.isFinite(saleQty) ? saleQty : 0) +
+            (Number.isFinite(freeQty) ? freeQty : 0);
 
           if (
             !goodsCode ||

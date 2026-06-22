@@ -84,6 +84,49 @@ class CTDetailForm extends Component {
     return null;
   };
 
+  _getCurrentRouteParams = () => {
+    const { routes, index } = Navigator.getCurrentRoute();
+    return routes?.[index]?.params || {};
+  };
+
+  _toNumber = value => {
+    const parsed = parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  _getNormalizedItemQty = item => {
+    const qty = this._toNumber(item?.VTRD_QTY ?? item?.GOODS_QTY);
+    const freeQty = this._toNumber(item?.VTRD_Q_FREE ?? item?.GOODS_FREE);
+    const utqQty = this._toNumber(item?.VTRD_UTQ_QTY ?? item?.UTQ_QTY) || 1;
+    const totalPrice = item?.GOODS_TOTAL_PRC;
+    const shouldConvertByPack =
+      totalPrice === null || totalPrice === '' || parseInt(totalPrice) <= 0;
+
+    if (shouldConvertByPack) {
+      return Math.floor(qty * utqQty) + Math.floor(freeQty * utqQty);
+    }
+
+    return Math.floor(qty) + Math.floor(freeQty);
+  };
+
+  _getReservedQtyForCurrentGoods = () => {
+    const goodsCode = this.props.product.item?.GOODS_CODE;
+    const orderItems = this.props.order?.productListItems || [];
+    const { actionType, editIndex } = this._getCurrentRouteParams();
+
+    return orderItems.reduce((sum, orderItem, index) => {
+      if (orderItem?.VTRD_CODE !== goodsCode) {
+        return sum;
+      }
+
+      if (actionType === 'edit' && index === editIndex) {
+        return sum;
+      }
+
+      return sum + this._getNormalizedItemQty(orderItem);
+    }, 0);
+  };
+
   _renderItem = (item, key) => {
     const isTransferOrder = this._isTransferOrder();
 
@@ -349,6 +392,7 @@ class CTDetailForm extends Component {
     var itemremain = 0;
     var itemdigit = 0;
     var convert_GOODS_QTY_remain = 0;
+    var convert_GOODS_FREE_remain = 0;
     itemremain = Math.floor(good_inVan_qty / UTQ_QTY);
     //itemremain = Math.floor(good_inVan_qty - (this.props.product.item.GOODS_QTY * UTQ_QTY));
 
@@ -374,9 +418,13 @@ class CTDetailForm extends Component {
       parseInt(GOODS_TOTAL_PRC) <= 0
     ) {
       //this.props.product.item.GOODS_QTY = GOODS_QTY * UTQ_QTY;
-      convert_GOODS_QTY_remain = Math.floor(GOODS_QTY * UTQ_QTY);
+      convert_GOODS_QTY_remain = Math.floor((parseFloat(GOODS_QTY) || 0) * UTQ_QTY);
+      convert_GOODS_FREE_remain = Math.floor(
+        (parseFloat(GOODS_FREE) || 0) * UTQ_QTY,
+      );
     } else {
-      convert_GOODS_QTY_remain = Math.floor(GOODS_QTY);
+      convert_GOODS_QTY_remain = Math.floor(parseFloat(GOODS_QTY) || 0);
+      convert_GOODS_FREE_remain = Math.floor(parseFloat(GOODS_FREE) || 0);
     }
 
     console.log(
@@ -384,11 +432,16 @@ class CTDetailForm extends Component {
       this.props.product.item.GOODS_QTY,
     );
 
+    const reservedQtyForCurrentGoods = this._getReservedQtyForCurrentGoods();
+    const availableQtyAfterReserved =
+      parseInt(good_inVan_qty) - parseInt(reservedQtyForCurrentGoods);
+
     if (this.state.userToken.VANCONFIG.VANCNF_NOV_SKU_BAL === 1)
       if (this.props.order.header.AR_ORDER_TYPE === 'ขายสินค้า') {
         {
           if (
-            parseInt(good_inVan_qty) - parseInt(convert_GOODS_QTY_remain) <
+            availableQtyAfterReserved -
+              parseInt(convert_GOODS_QTY_remain + convert_GOODS_FREE_remain) <
             0
           ) {
             this._setErrorMessage(

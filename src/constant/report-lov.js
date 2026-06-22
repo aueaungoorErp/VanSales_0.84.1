@@ -2853,6 +2853,7 @@ export const performanceByArlineItem = {
               allowFontScaling={false}>
               ขาย
             </Text>
+            {/*
             <Text
               style={{
                 width: 150,
@@ -2863,6 +2864,7 @@ export const performanceByArlineItem = {
               allowFontScaling={false}>
               เยี่ยม
             </Text>
+            */}
             <Text
               style={{
                 width: 150,
@@ -2933,6 +2935,7 @@ export const performanceByArlineItem = {
                     allowFontScaling={false}>
                     {row.COUNTSELLBOOK}
                   </Text>
+                  {/*
                   <Text
                     style={{
                       width: 150,
@@ -2942,6 +2945,7 @@ export const performanceByArlineItem = {
                     allowFontScaling={false}>
                     {row.COUNTVISIT}
                   </Text>
+                  */}
                   <Text
                     style={{
                       width: 150,
@@ -2984,6 +2988,7 @@ export const performanceByArlineItem = {
                 allowFontScaling={false}>
                 {item.SUM_COUNTSELLBOOK}
               </Text>
+              {/*
               <Text
                 style={{
                   width: 150,
@@ -2993,6 +2998,7 @@ export const performanceByArlineItem = {
                 allowFontScaling={false}>
                 {item.SUM_COUNTVISIT}
               </Text>
+              */}
               <Text
                 style={{
                   width: 150,
@@ -3064,6 +3070,7 @@ export const performanceByArlineItem = {
                     allowFontScaling={false}>
                     {row.COUNTSELLBOOK_PERCENT}%
                   </Text>
+                  {/*
                   <Text
                     style={{
                       width: 150,
@@ -3073,6 +3080,7 @@ export const performanceByArlineItem = {
                     allowFontScaling={false}>
                     {row.COUNTVISIT_PERCENT}%
                   </Text>
+                  */}
                   <Text
                     style={{
                       width: 150,
@@ -3115,6 +3123,7 @@ export const performanceByArlineItem = {
                 allowFontScaling={false}>
                 {item.SUM_COUNTSELLBOOK_PERCENT}%
               </Text>
+              {/*
               <Text
                 style={{
                   width: 150,
@@ -3124,6 +3133,7 @@ export const performanceByArlineItem = {
                 allowFontScaling={false}>
                 {item.SUM_COUNTVISIT_PERCENT}%
               </Text>
+              */}
               <Text
                 style={{
                   width: 150,
@@ -3209,6 +3219,7 @@ export const performanceByArlineItem = {
               allowFontScaling={false}>
               {item.ITEM_COUNTSELLBOOK}
             </Text>
+            {/*
             <Text
               style={{
                 width: 150,
@@ -3219,6 +3230,7 @@ export const performanceByArlineItem = {
               allowFontScaling={false}>
               {item.ITEM_COUNTVISIT}
             </Text>
+            */}
             <Text
               style={{
                 width: 150,
@@ -3267,6 +3279,7 @@ export const performanceByArlineItem = {
             allowFontScaling={false}>
             {summarySection.SUM_COUNTSELLBOOK}
           </Text>
+          {/*
           <Text
             style={{
               width: 150,
@@ -3277,6 +3290,7 @@ export const performanceByArlineItem = {
             allowFontScaling={false}>
             {summarySection.SUM_COUNTVISIT}
           </Text>
+          */}
           <Text
             style={{
               width: 150,
@@ -3350,6 +3364,7 @@ export const performanceByArlineItem = {
               allowFontScaling={false}>
               {item.ITEM_COUNTSELLBOOK_PERCENT}%
             </Text>
+            {/*
             <Text
               style={{
                 width: 150,
@@ -3360,6 +3375,7 @@ export const performanceByArlineItem = {
               allowFontScaling={false}>
               {item.ITEM_COUNTVISIT_PERCENT}%
             </Text>
+            */}
             <Text
               style={{
                 width: 150,
@@ -3412,6 +3428,7 @@ export const performanceByArlineItem = {
               ? summarySectionPercent.SUM_COUNTSELLBOOK_PERCENT + '%'
               : ''}
           </Text>
+          {/*
           <Text
             style={{
               width: 150,
@@ -3424,6 +3441,7 @@ export const performanceByArlineItem = {
               ? summarySectionPercent.SUM_COUNTVISIT_PERCENT + '%'
               : ''}
           </Text>
+          */}
           <Text
             style={{
               width: 150,
@@ -3485,6 +3503,7 @@ export const performanceByArlineItem = {
             ? item.SUM_COUNTSELLBOOK
             : countSellBookPercent}
         </Text>
+        {/*
         <Text
           style={{
             width: 150,
@@ -3497,6 +3516,7 @@ export const performanceByArlineItem = {
             ? item.SUM_COUNTVISIT
             : countVisitPercent}
         </Text>
+        */}
         <Text
           style={{
             width: 150,

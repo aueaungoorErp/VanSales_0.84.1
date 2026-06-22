@@ -195,26 +195,27 @@ const summarizeLongdoResponse = (payload: any) => {
   };
 };
 
-const buildLongdoRouteMatrixUrl = (
+const buildLongdoRouteMatrixParams = (
   currentLocation: NumericCoordinate,
   customerLocations: NumericCoordinate[],
   apiKey: string,
 ) => {
-  const queryPairs: Array<[string, string]> = [
-    ['flat', `${currentLocation.latitude}`],
-    ['flon', `${currentLocation.longitude}`],
-    ['mode', LONGDO_ROUTE_MODE],
-    ['type', LONGDO_ROUTE_TYPE],
-    ['locale', 'th'],
-    ['key', apiKey],
-  ];
+  const params = new URLSearchParams();
 
-  customerLocations.forEach(location => {
-    queryPairs.push(['tlat', `${location.latitude}`]);
-    queryPairs.push(['tlon', `${location.longitude}`]);
+  params.append('flon[0]', `${currentLocation.longitude}`);
+  params.append('flat[0]', `${currentLocation.latitude}`);
+
+  customerLocations.forEach((location, index) => {
+    params.append(`tlon[${index}]`, `${location.longitude}`);
+    params.append(`tlat[${index}]`, `${location.latitude}`);
   });
 
-  return `${LONGDO_ROUTE_MATRIX_ENDPOINT}?${buildQueryString(queryPairs)}`;
+  params.append('mode', LONGDO_ROUTE_MODE);
+  params.append('type', LONGDO_ROUTE_TYPE);
+  params.append('locale', 'th');
+  params.append('key', apiKey);
+
+  return params;
 };
 
 const buildLongdoRouteGuideUrl = (
@@ -257,19 +258,28 @@ const fetchRouteMatrixDistancesWithKey = async (
   apiKey: string,
 ): Promise<Array<number | null>> => {
   const startedAt = Date.now();
-  const requestUrl = buildLongdoRouteMatrixUrl(
+  const params = buildLongdoRouteMatrixParams(
     currentLocation,
     customerLocations,
     apiKey,
   );
+  const requestBody = params.toString();
+  const requestUrl = `${LONGDO_ROUTE_MATRIX_ENDPOINT}?${requestBody}`;
   console.log('[customer-route longdomap] route matrix request body', {
     endpoint: LONGDO_ROUTE_MATRIX_ENDPOINT,
     requestUrl,
+    requestBody,
     currentLocation,
     customerLocations,
     destinationCount: customerLocations.length,
   });
-  const response = await fetch(requestUrl);
+  const response = await fetch(LONGDO_ROUTE_MATRIX_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: requestBody,
+  });
   const payload = await response.json().catch(() => null);
 
   console.log('[customer-route longdomap] route matrix response', {

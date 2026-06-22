@@ -1562,6 +1562,7 @@ export const printReport = (
   dateTo,
   printTime,
 ) => {
+  const normalizedSalesMan = salesMan || {SLMN_NAME: ''};
   if (type == 'SalesOrderByCategory') {
     console.log('items SalesOrderByCategory ', JSON.stringify(items));
     return printSalesOrderByCategory(
@@ -1570,7 +1571,7 @@ export const printReport = (
       items,
       vanConfig,
       companyInfo,
-      salesMan,
+      normalizedSalesMan,
       dateFrom,
       dateTo,
       printTime,
@@ -1583,7 +1584,7 @@ export const printReport = (
       items,
       vanConfig,
       companyInfo,
-      salesMan,
+      normalizedSalesMan,
       dateFrom,
       dateTo,
       printTime,
@@ -1596,7 +1597,7 @@ export const printReport = (
       items,
       vanConfig,
       companyInfo,
-      salesMan,
+      normalizedSalesMan,
       dateFrom,
       dateTo,
       printTime,
@@ -1609,7 +1610,7 @@ export const printReport = (
       items,
       vanConfig,
       companyInfo,
-      salesMan,
+      normalizedSalesMan,
       dateFrom,
       dateTo,
       printTime,
@@ -1622,7 +1623,7 @@ export const printReport = (
       items,
       vanConfig,
       companyInfo,
-      salesMan,
+      normalizedSalesMan,
       dateFrom,
       dateTo,
       printTime,
@@ -1635,7 +1636,7 @@ export const printReport = (
       items,
       vanConfig,
       companyInfo,
-      salesMan,
+      normalizedSalesMan,
       dateFrom,
       dateTo,
       printTime,
@@ -1647,7 +1648,7 @@ export const printReport = (
       items,
       vanConfig,
       companyInfo,
-      salesMan,
+      normalizedSalesMan,
       dateFrom,
       dateTo,
       printTime,
@@ -1659,7 +1660,7 @@ export const printReport = (
       items,
       vanConfig,
       companyInfo,
-      salesMan,
+      normalizedSalesMan,
       dateFrom,
       dateTo,
       printTime,
@@ -1670,7 +1671,7 @@ export const printReport = (
       data,
       vanConfig,
       companyInfo,
-      salesMan,
+      normalizedSalesMan,
       dateFrom,
       dateTo,
       printTime,
@@ -1681,7 +1682,7 @@ export const printReport = (
       data,
       vanConfig,
       companyInfo,
-      salesMan,
+      normalizedSalesMan,
       dateFrom,
       printTime,
     );
@@ -2308,16 +2309,14 @@ const printPerformanceByArlineItem = (
 
   html += `<div style="font-size: 7px;display: flex;">
                 <div style="font-size: 7px;width: 44%;text-align: center;">สายลูกค้า</div>
-                <div style="font-size: 7px;width: 22%;text-align: center;" >จำนวน</div>
-                <div style="font-size: 7px;width: 22%;text-align: center;">จำนวน</div>
-                <div style="font-size: 7px;width: 12%;text-align: center;">จำนวน</div>
+                <div style="font-size: 7px;width: 28%;text-align: center;" >จำนวน</div>
+                <div style="font-size: 7px;width: 28%;text-align: center;">จำนวน</div>
             </div>`;
 
   html += `<div style="font-size: 7px;display: flex;">
         <div style="font-size: 7px;width: 44%;"></div>
-        <div style="font-size: 7px;width: 22%;text-align: center;" >ลูกค้า</div>
-        <div style="font-size: 7px;width: 22%;text-align: center;">ขาย</div>
-        <div style="font-size: 7px;width: 12%;text-align: center;">เยี่ยม</div>
+        <div style="font-size: 7px;width: 28%;text-align: center;" >ลูกค้า</div>
+        <div style="font-size: 7px;width: 28%;text-align: center;">ขาย</div>
     </div>`;
 
   html +=
@@ -2345,18 +2344,13 @@ const printPerformanceByArlineItem = (
         html += `<div style="font-size: 7px;display: flex;">
                         <div style="font-size: 7px;width: 35%;">${deepRowLevel3.ARL_NAME
           }</div>
-                        <div style="font-size: 7px;width: 20%;text-align: right;" >${parseInt(
+                        <div style="font-size: 7px;width: 28%;text-align: right;" >${parseInt(
             deepRowLevel3.COUNTAR,
           )
             .toFixed(2)
             .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
-                        <div style="font-size: 7px;width: 22%;text-align: right;">${parseInt(
+                        <div style="font-size: 7px;width: 28%;text-align: right;">${parseInt(
               deepRowLevel3.COUNTSELLBOOK,
-            )
-            .toFixed(2)
-            .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
-                        <div style="font-size: 7px;width: 23%;text-align: right;">${parseInt(
-              deepRowLevel3.COUNTVISIT,
             )
             .toFixed(2)
             .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
@@ -2366,18 +2360,13 @@ const printPerformanceByArlineItem = (
 
     html += `<div style="font-size: 7px;display: flex;">
                 <div style="font-size: 7px;width: 35%;">รวม</div>
-                <div style="font-size: 7px;width: 20%;text-align: right;" >${parseInt(
+                <div style="font-size: 7px;width: 28%;text-align: right;" >${parseInt(
       rowLevel1.SUM_COUNTAR,
     )
         .toFixed(2)
         .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
-                <div style="font-size: 7px;width: 22%;text-align: right;">${parseInt(
+                <div style="font-size: 7px;width: 28%;text-align: right;">${parseInt(
           rowLevel1.SUM_COUNTSELLBOOK,
-        )
-        .toFixed(2)
-        .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
-                <div style="font-size: 7px;width: 23%;text-align: right;">${parseInt(
-          rowLevel1.SUM_COUNTVISIT,
         )
         .toFixed(2)
         .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
@@ -2389,16 +2378,14 @@ const printPerformanceByArlineItem = (
       deepRowLevel2.ITEMS_PERCENT.map((deepRowLevel3, index) => {
         html += `<div style="font-size: 7px;display: flex;">
                         <div style="font-size: 7px;width: 35%;">${deepRowLevel3.ARL_NAME}</div>
-                        <div style="font-size: 7px;width: 42%;text-align: right;">${deepRowLevel3.COUNTSELLBOOK_PERCENT}%</div>
-                        <div style="font-size: 7px;width: 23%;text-align: right;">${deepRowLevel3.COUNTVISIT_PERCENT}%</div>
+                        <div style="font-size: 7px;width: 65%;text-align: right;">${deepRowLevel3.COUNTSELLBOOK_PERCENT}%</div>
                     </div>`;
       });
     });
 
     html += `<div style="font-size: 7px;display: flex;">
                 <div style="font-size: 7px;width: 35%;">รวม</div>
-                <div style="font-size: 7px;width: 42%;text-align: right;">${rowLevel1.SUM_COUNTSELLBOOK_PERCENT}%</div>
-                <div style="font-size: 7px;width: 23%;text-align: right;">${rowLevel1.SUM_COUNTVISIT_PERCENT}%</div>
+                <div style="font-size: 7px;width: 65%;text-align: right;">${rowLevel1.SUM_COUNTSELLBOOK_PERCENT}%</div>
             </div>`;
 
     html +=
@@ -2412,18 +2399,13 @@ const printPerformanceByArlineItem = (
       html += `<div style="font-size: 7px;display: flex;">
                 <div style="font-size: 7px;width: 35%;" >${sumItem.ITEM_NAME
         }</div>
-                <div style="font-size: 7px;width: 20%;text-align: right;" >${parseInt(
+                <div style="font-size: 7px;width: 28%;text-align: right;" >${parseInt(
           sumItem.ITEM_COUNTAR,
         )
           .toFixed(2)
           .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
-                <div style="font-size: 7px;width: 22%;text-align: right;" >${parseInt(
+                <div style="font-size: 7px;width: 28%;text-align: right;" >${parseInt(
             sumItem.ITEM_COUNTSELLBOOK,
-          )
-          .toFixed(2)
-          .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
-                <div style="font-size: 7px;width: 23%;text-align: right;" >${parseInt(
-            sumItem.ITEM_COUNTVISIT,
           )
           .toFixed(2)
           .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
@@ -2432,18 +2414,13 @@ const printPerformanceByArlineItem = (
 
     html += `<div style="font-size: 7px;display: flex;">
                 <div style="font-size: 7px;width: 35%;" >รวม</div>
-                <div style="font-size: 7px;width: 20%;text-align: right;" >${parseInt(
+                <div style="font-size: 7px;width: 28%;text-align: right;" >${parseInt(
       summaryTotals.SUM_COUNTAR,
     )
         .toFixed(2)
         .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
-                <div style="font-size: 7px;width: 22%;text-align: right;" >${parseInt(
+                <div style="font-size: 7px;width: 28%;text-align: right;" >${parseInt(
           summaryTotals.SUM_COUNTSELLBOOK,
-        )
-        .toFixed(2)
-        .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
-                <div style="font-size: 7px;width: 23%;text-align: right;" >${parseInt(
-          summaryTotals.SUM_COUNTVISIT,
         )
         .toFixed(2)
         .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
@@ -2454,15 +2431,13 @@ const printPerformanceByArlineItem = (
     summaryItems.map((sumItem, index) => {
       html += `<div style="font-size: 7px;display: flex;">
                 <div style="font-size: 7px;width: 55%;" >${sumItem.ITEM_NAME}</div>
-                <div style="font-size: 7px;width: 22%;text-align: right;" >${sumItem.ITEM_COUNTSELLBOOK_PERCENT}%</div>
-                <div style="font-size: 7px;width: 23%;text-align: right;" >${sumItem.ITEM_COUNTVISIT_PERCENT}%</div>
+                <div style="font-size: 7px;width: 45%;text-align: right;" >${sumItem.ITEM_COUNTSELLBOOK_PERCENT}%</div>
             </div>`;
     });
 
     html += `<div style="font-size: 7px;display: flex;">
                 <div style="font-size: 7px;width: 55%;" >รวม</div>
-                <div style="font-size: 7px;width: 22%;text-align: right;" >${summaryPercentTotals.SUM_COUNTSELLBOOK_PERCENT}%</div>
-                <div style="font-size: 7px;width: 23%;text-align: right;" >${summaryPercentTotals.SUM_COUNTVISIT_PERCENT}%</div>
+                <div style="font-size: 7px;width: 45%;text-align: right;" >${summaryPercentTotals.SUM_COUNTSELLBOOK_PERCENT}%</div>
             </div>`;
   }
 

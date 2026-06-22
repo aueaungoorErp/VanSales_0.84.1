@@ -192,6 +192,8 @@ class CTSearchForm extends Component {
       const userToken = await getUserToken();
       const {baseUrl, vanCNFMachine, SALESMAN} = await getSettingConfig();
       const {VANCONFIG} = await getUserToken();
+      const resolvedSalesman =
+        userToken?.SALESMAN || SALESMAN || {SLMN_NAME: ''};
       const response = await this.props.systemCheck({
         baseUrl: baseUrl,
         vanCNFMachine: VANCONFIG,
@@ -263,7 +265,7 @@ class CTSearchForm extends Component {
 
               console.log("ณ.วันที่ dateFrom 1", dateFrom);
   console.log("ถึงวันที่ dateTo", dateTo);
-            console.log("SALESMAN >> ", SALESMAN);
+            console.log("SALESMAN >> ", resolvedSalesman);
             const html = printReport(
               this.state.reportParams.title,
               this.state.reportParams.type,
@@ -271,7 +273,7 @@ class CTSearchForm extends Component {
               this.props.report.data.ITEMS,
               vanConfig,
               userToken.COMPANYINFO,
-              SALESMAN,
+              resolvedSalesman,
               dateFrom,
               dateTo,
               reportPrintTime,
@@ -314,7 +316,7 @@ class CTSearchForm extends Component {
               [],
               VANCONFIG,
               userToken.COMPANYINFO,
-              SALESMAN,
+              resolvedSalesman,
               dateFrom,
               dateTo,
               reportPrintTime,
@@ -537,7 +539,7 @@ class CTSearchForm extends Component {
                 userToken.VANCONFIG,
                 userToken.COMPANYINFO,
                 //userToken.SALESMAN,
-                SALESMAN,
+                resolvedSalesman,
                 dateFrom,
                 dateTo,
                 printTime
@@ -566,7 +568,7 @@ class CTSearchForm extends Component {
                 [],
                 userToken.VANCONFIG,
                 userToken.COMPANYINFO,
-                userToken.SALESMAN,
+                resolvedSalesman,
                 dateFrom,
                 dateTo,
                 printTime,
@@ -589,7 +591,7 @@ class CTSearchForm extends Component {
                 [],
                 userToken.VANCONFIG,
                 userToken.COMPANYINFO,
-                userToken.SALESMAN,
+                resolvedSalesman,
                 dateFrom,
                 dateTo,
                 reportPrintTime,
@@ -616,7 +618,7 @@ class CTSearchForm extends Component {
                 this.props.report.data.RESULT,
                 userToken.VANCONFIG,
                 userToken.COMPANYINFO,
-                userToken.SALESMAN,
+                resolvedSalesman,
                 dateFrom,
                 dateTo,
                 reportPrintTime,

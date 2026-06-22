@@ -672,7 +672,6 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     geolocation.position.longitude,
     isTimedLoading,
     isUserTokenLoaded,
-    longdomap.lastPosition,
     onLoadingMessageChange,
     setLastPosition,
     (userToken?.VANCONFIG as any)?.VANCNF_MACHINE,
@@ -804,11 +803,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     [handleContinuePress, userToken.VANCONFIG.VANCNF_AR_LIMIT],
   );
 
-  const isNotFound = customer.isNotFound && customer.listItems.length === 0;
-  const isError =
-    (customer.isError && customer.listItems.length === 0) ||
-    customerType.isError;
-  const isSnackBarVisible = customer.isError && customer.listItems.length > 0;
+  const hasVisibleItems = sortedCustomers.length > 0;
   const isRouteListLoading =
     isTimedLoading === true ||
     customer.isLoading ||
@@ -816,10 +811,22 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     geolocation.isLoading ||
     isPreparingList ||
     !hasLatestSortedList;
+  const isNotFound =
+    !isRouteListLoading &&
+    !hasVisibleItems &&
+    customer.isNotFound &&
+    customer.listItems.length === 0;
+  const isError =
+    !isRouteListLoading &&
+    !hasVisibleItems &&
+    ((customer.isError && customer.listItems.length === 0) ||
+      customerType.isError);
+  const isSnackBarVisible = customer.isError && customer.listItems.length > 0;
+  const shouldBlockWithProgress = isRouteListLoading && !hasVisibleItems;
 
   return (
     <View style={styles.container}>
-      {!isNotFound && !isError && !isRouteListLoading ? (
+      {!isNotFound && !isError && hasVisibleItems ? (
         <FlatList
           data={sortedCustomers}
           renderItem={renderItem}
@@ -835,7 +842,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
 
       <ProgressDialog
         key={loadingMessage || 'กำลังโหลดและคำนวณเส้นทาง'}
-        visible={isRouteListLoading}
+        visible={shouldBlockWithProgress}
         message={loadingMessage || 'กำลังโหลดและคำนวณเส้นทาง'}
         animationType="fade"
         dialogStyle={{ borderRadius: 5 }}

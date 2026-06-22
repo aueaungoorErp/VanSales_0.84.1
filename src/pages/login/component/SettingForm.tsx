@@ -859,8 +859,10 @@ const SettingForm: React.FC<SettingFormProps> = props => {
               value={service}
               style={{
                 iconContainer: {
-                  top: 14,
+                  top: 0,
+                  bottom: 0,
                   right: 12,
+                  justifyContent: 'center',
                 },
                 inputAndroid: styles.pickerInput,
                 inputIOS: styles.pickerInput,
@@ -1127,7 +1129,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   pickerIcon: {
-    marginTop: 2,
+    marginTop: 0,
   },
   inputContainer: {
     borderWidth: 1,
