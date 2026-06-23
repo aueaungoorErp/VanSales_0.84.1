@@ -21,8 +21,9 @@ export const systemCheck = data => async dispatch => {
   const { baseUrl, vanCNFMachine, USER_CODE, USER_PASSWORD } = data;
 
   const finalUserCode =
-    USER_CODE ?? savedUsername ?? credentials?.username ?? '';
-  const finalPassword = USER_PASSWORD ?? credentials?.password ?? '';
+    USER_CODE ?? savedSetting?.USER_CODE ?? savedUsername ?? credentials?.username ?? '';
+  const finalPassword =
+    USER_PASSWORD ?? savedSetting?.USER_PASSWORD ?? credentials?.password ?? '';
 
   return await systemCheckApi2(
     baseUrl,

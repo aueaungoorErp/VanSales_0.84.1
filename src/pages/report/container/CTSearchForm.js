@@ -196,7 +196,7 @@ class CTSearchForm extends Component {
         userToken?.SALESMAN || SALESMAN || {SLMN_NAME: ''};
       const response = await this.props.systemCheck({
         baseUrl: baseUrl,
-        vanCNFMachine: VANCONFIG,
+        vanCNFMachine: vanCNFMachine || VANCONFIG?.VANCNF_MACHINE,
       });
 
       if (response.ResponseCode == '200') {
