@@ -25,6 +25,14 @@ export type CustomerRouteLoadSession = {
   limit: number;
 };
 
+export type CustomerRouteLoadSummary = {
+  totalLoaded: number;
+  totalAvailable: number;
+  remainingCount: number;
+  hasMore: boolean;
+  stoppedByTimeLimit: boolean;
+};
+
 export const getCustomerRouteLoadSession =
   async (): Promise<CustomerRouteLoadSession | null> => {
     try {

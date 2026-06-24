@@ -53,6 +53,10 @@ import {
   getSettingConfig,
   getUserToken,
 } from '../../../../utils/Token';
+import {
+  fetchDefaultDocDates,
+  shouldFetchDefaultDocDates,
+} from '../../../../utils/docSwitchDates';
 import ButtonGroup from '../presenter/ButtonGroup';
 
 class CTButtonGroup extends Component {
@@ -272,6 +276,21 @@ class CTButtonGroup extends Component {
 
     if (item.methodType === 'function') {
       if (item.methodName === 'confirm') {
+        if (item.screen === 'OrderCheckStockFinalize') {
+          const arOrderType = this.props.order.header.AR_ORDER_TYPE;
+          const navigateParams = {
+            orderType: arOrderType,
+          };
+
+          if (shouldFetchDefaultDocDates(arOrderType)) {
+            console.log('[getDocSwitch] check-stock ตกลง → fetch before Finalize');
+            navigateParams.defaultDocDates = await fetchDefaultDocDates();
+          }
+
+          Navigator.navigate(item.screen, navigateParams);
+          return;
+        }
+
         // this._setSubmitDisabled(true);
         // await this._customerUpdateStockBalance();
 

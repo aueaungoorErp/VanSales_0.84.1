@@ -1,6 +1,7 @@
 import moment from 'moment';
 import React, { Component } from 'react';
 import { Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNHTMLtoPDF, { generatePDF } from 'react-native-html-to-pdf';
 import { connect } from 'react-redux';
 import {
@@ -20,6 +21,10 @@ import { getCustomerReportPerformance } from '../customer-line-performance/actio
 import { getProductCategoryReportPerformance } from '../product-category-performance/action';
 import { getSalespersonSalesPerformance } from '../salesperson-sales-performance/action';
 import { getStockBalanceByLocation } from '../stock-balance-by-location/action';
+
+const REPORT_ERROR_LATEST_KEY = '@ReportErrorLatest';
+const REPORT_ERROR_HISTORY_KEY = '@ReportErrorHistory';
+const REPORT_ERROR_HISTORY_LIMIT = 20;
 
 class CTSearchForm extends Component {
   _isMounted = false;
@@ -73,6 +78,80 @@ class CTSearchForm extends Component {
             userToken: userToken,
           };
         }));
+    }
+  };
+
+  _normalizeErrorForStorage = error => {
+    if (error instanceof Error) {
+      return {
+        message: error.message,
+        name: error.name,
+        stack: error.stack || null,
+      };
+    }
+
+    if (error && typeof error === 'object') {
+      return {
+        message: error.message || JSON.stringify(error),
+        name: error.name || null,
+        stack: error.stack || null,
+        raw: JSON.stringify(error),
+      };
+    }
+
+    return {
+      message: String(error),
+      name: null,
+      stack: null,
+    };
+  };
+
+  _buildReportErrorPayload = (source, error, extra = {}) => {
+    const normalizedError = this._normalizeErrorForStorage(error);
+
+    return {
+      timestamp: new Date().toISOString(),
+      source,
+      error: normalizedError,
+      reportType: this.state.reportParams?.type || null,
+      reportPattern: this.state.reportParams?.pattern || null,
+      reportTitle: this.state.reportParams?.title || null,
+      dateFrom: this.state.dateFrom || null,
+      dateTo: this.state.dateTo || null,
+      selected: this.state.selected || null,
+      extra,
+    };
+  };
+
+  _persistReportError = async (source, error, extra = {}) => {
+    try {
+      const payload = this._buildReportErrorPayload(source, error, extra);
+      await AsyncStorage.setItem(
+        REPORT_ERROR_LATEST_KEY,
+        JSON.stringify(payload),
+      );
+
+      const existingHistory =
+        (await AsyncStorage.getItem(REPORT_ERROR_HISTORY_KEY)) || '[]';
+      let parsedHistory = [];
+
+      try {
+        parsedHistory = JSON.parse(existingHistory);
+      } catch (historyError) {
+        parsedHistory = [];
+      }
+
+      const nextHistory = [payload, ...parsedHistory].slice(
+        0,
+        REPORT_ERROR_HISTORY_LIMIT,
+      );
+
+      await AsyncStorage.setItem(
+        REPORT_ERROR_HISTORY_KEY,
+        JSON.stringify(nextHistory),
+      );
+    } catch (storageError) {
+      console.log('persist report error failed:', storageError);
     }
   };
 
@@ -161,11 +240,18 @@ class CTSearchForm extends Component {
         reportParams,
       ).catch(err => {
         console.log('getReportDataNoGroup background error (ignored):', err);
+        this._persistReportError('getReportDataNoGroup(background)', err, {
+          reportParams,
+        });
         // ไม่ต้องทำอะไร เพราะข้อมูลหลักมาจาก getReportV3 แล้ว
       });
 
     } catch (error) {
       console.log('_onSearch error:', error);
+      await this._persistReportError('_onSearch', error, {
+        requestDateFrom: dateFrom,
+        requestDateTo: dateTo,
+      });
       const errorMessage = error?.message || error;
       if (errorMessage !== 'ไม่พบการส่งรหัสหน่วยรถ') {
         await this._setState(
@@ -392,9 +478,9 @@ class CTSearchForm extends Component {
               this.state.reportParams.type,
               this.props.report.data,
               this.props.report.data.RESULT,
-              VANCONFIG,
+              userToken.VANCONFIG || VANCONFIG,
               userToken.COMPANYINFO,
-              SALESMAN,
+              resolvedSalesman,
               dateFrom,
               dateTo,
               reportPrintTime,
@@ -432,6 +518,9 @@ class CTSearchForm extends Component {
         );
       }
     } catch (error) {
+      await this._persistReportError('_printPDF', error, {
+        baseUrl: (await getSettingConfig())?.baseUrl || null,
+      });
       await this._setState('loadingMessage', '');
       await this._setState('isLoading', false);
       await this._setState('errorMessage', 'เกิดข้อผิดพลาด: ' + error);
@@ -482,8 +571,10 @@ class CTSearchForm extends Component {
       if (this.props.bluetooth.state == 'connected') {
         const userToken = await getUserToken();
 
-        const {baseUrl, vanCNFMachine,SALESMAN} = await getSettingConfig();
+        const {baseUrl, vanCNFMachine, SALESMAN} = await getSettingConfig();
         const {VANCONFIG} = await getUserToken();
+        const resolvedSalesman =
+          userToken?.SALESMAN || SALESMAN || {SLMN_NAME: ''};
         const response = await this.props.systemCheck({
           baseUrl: baseUrl,
           vanCNFMachine: VANCONFIG,
@@ -641,6 +732,7 @@ class CTSearchForm extends Component {
         }
       }
     } catch (error) {
+      await this._persistReportError('_printerReport', error);
       await this._setState('errorMessage', 'เกิดข้อผิดพลาด: ' + error);
     }
   };

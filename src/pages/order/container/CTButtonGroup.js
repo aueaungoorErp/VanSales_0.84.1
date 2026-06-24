@@ -41,6 +41,10 @@ import {
   getSettingConfig,
   getUserToken,
 } from '../../../utils/Token';
+import {
+  fetchDefaultDocDates,
+  shouldFetchDefaultDocDates,
+} from '../../../utils/docSwitchDates';
 import ButtonGroup from '../component/ButtonGroup';
 class CTButtonGroup extends Component {
   _isMounted = false;
@@ -209,9 +213,20 @@ class CTButtonGroup extends Component {
           actionType: 'orderProductSummary',
         });
       } else {
-        Navigator.navigate(item.screen, {
-          orderType: this.props.order.header.AR_ORDER_TYPE,
-        });
+        const arOrderType = this.props.order.header.AR_ORDER_TYPE;
+        const navigateParams = {
+          orderType: arOrderType,
+        };
+
+        if (
+          item.screen === 'OrderSalesFinalize' &&
+          shouldFetchDefaultDocDates(arOrderType)
+        ) {
+          console.log('[getDocSwitch] sales ตกลง → fetch before Finalize');
+          navigateParams.defaultDocDates = await fetchDefaultDocDates();
+        }
+
+        Navigator.navigate(item.screen, navigateParams);
       }
     } else if (item.methodType === 'function') {
       if (item.methodName === 'last-bill') {

@@ -28,20 +28,17 @@ import { ListItem } from '../../../component/elements';
 import { mainDivider, MainTheme } from '../../../constant/lov';
 import {
   assessLongdoApiKeyAvailability,
-  clearCustomerRouteDistanceCache,
   formatDistanceLabel,
-  getCustomerRouteDistanceCache,
   getDistanceBetweenCoordinates,
-  getDistanceItemsFromCurrentLocation,
   getLongdoApiKeyAlertMessage,
   hasCompleteCoordinate,
-  isWithinDistanceThreshold,
-  mergeCustomerRouteDistanceCache,
-  parseCoordinate,
 } from '../../../services/longdomap';
 import {
+  processCustomerRouteDistances,
+  type CustomerRouteDistanceItem,
+} from '../../../services/customerRouteDistancePipeline';
+import {
   getCustomerRouteLoadSession,
-  mergeCustomerRouteLoadSession,
 } from '../../../services/customerRouteLoadSession';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
@@ -70,10 +67,7 @@ type CustomerRouteListStateProps = CustomerListStateProps & {
   };
 };
 
-type CustomerRouteItem = CustomerItem & {
-  distance: number | null;
-  distanceText: string;
-};
+type CustomerRouteItem = CustomerRouteDistanceItem;
 
 const getCustomerRouteItemKey = (
   item: CustomerRouteItem | CustomerItem,
@@ -87,7 +81,6 @@ const getCustomerRouteItemKey = (
     index,
   ].join('|');
 
-const formatElapsedMs = (startedAt: number) => `${Date.now() - startedAt} ms`;
 const setLoadingStage = (
   updateStage: ((value: string) => void) | undefined,
   message: string,
@@ -111,7 +104,8 @@ type CustomerRouteListProps = CustomerRouteListStateProps &
     geolocation: GeolocationState;
     loadingMessage?: string;
     onLoadingMessageChange?: (value: string) => void;
-    onRequestTimedLoad?: ((reset: boolean) => Promise<void>) | null;
+    managedSortedCustomers?: CustomerRouteDistanceItem[] | null;
+    isLoadSummaryVisible?: boolean;
   };
 
 const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
@@ -122,8 +116,9 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
   isTimedLoading,
   loadingMessage,
   longdomap,
+  managedSortedCustomers = null,
+  isLoadSummaryVisible = false,
   onLoadingMessageChange,
-  onRequestTimedLoad,
   setLastPosition,
   setError,
 }) => {
@@ -139,14 +134,10 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     [],
   );
   const [isPreparingList, setIsPreparingList] = useState(false);
+  const [isBlockingLoadSticky, setIsBlockingLoadSticky] = useState(false);
   const [sortedListSignature, setSortedListSignature] = useState('');
   const mountedRef = useRef(true);
   const distanceJobRef = useRef(0);
-  const hasUserScrolledRef = useRef(false);
-  const pendingDistanceCacheUpdatesRef = useRef<
-    Record<string, { distance: number | null; distanceText: string }>
-  >({});
-  const timedLoadRequestedRef = useRef(false);
   const longdoAlertReasonRef = useRef<string | null>(null);
   const currentListSignature = useMemo(
     () =>
@@ -183,12 +174,6 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
       mountedRef.current = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (!customer.isLoading) {
-      timedLoadRequestedRef.current = false;
-    }
-  }, [customer.isLoading]);
 
   useEffect(() => {
     if (geolocation.position.latitude && geolocation.position.longitude) {
@@ -260,7 +245,6 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
 
   useEffect(() => {
     const buildCustomerDistances = async () => {
-      const buildStartedAt = Date.now();
       const jobId = distanceJobRef.current + 1;
       distanceJobRef.current = jobId;
 
@@ -278,348 +262,66 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
           return;
         }
 
-        if (isTimedLoading) {
+        if (isTimedLoading || managedSortedCustomers !== null) {
           if (mountedRef.current && distanceJobRef.current === jobId) {
-            setIsPreparingList(true);
+            setIsPreparingList(isTimedLoading === true);
           }
           return;
         }
 
-      if (mountedRef.current) {
-        setLoadingStage(
-          onLoadingMessageChange,
-          'กำลังโหลดและคำนวณเส้นทาง',
-        );
-        setIsPreparingList(true);
-      }
+        if (mountedRef.current) {
+          setLoadingStage(
+            onLoadingMessageChange,
+            'กำลังโหลดและคำนวณเส้นทาง',
+          );
+          setIsPreparingList(true);
+        }
 
         const vanCode = String(
           (userToken?.VANCONFIG as any)?.VANCNF_MACHINE ?? '',
         ).trim();
-        const longdoAvailability = await assessLongdoApiKeyAvailability(vanCode);
-
-        if (!longdoAvailability.ok) {
-          const alertReason = longdoAvailability.reason;
-          longdoAlertReasonRef.current = alertReason;
-
-          const nextCustomers = customer.listItems.map(item => ({
-            ...item,
-            distance: null,
-            distanceText:
-              alertReason === 'missing'
-                ? 'ยังไม่ได้ตั้งค่า API Key'
-                : 'API Key limit หมด',
-          }));
-
-          if (mountedRef.current && distanceJobRef.current === jobId) {
-            setSortedCustomers(nextCustomers);
-            setSortedListSignature(currentListSignature);
-            setIsPreparingList(false);
-          }
-          return;
-        }
-
-        longdoAlertReasonRef.current = null;
-
         const currentLocation = {
           latitude: geolocation.position.latitude,
           longitude: geolocation.position.longitude,
         };
         const canCompareDistance = hasCompleteCoordinate(currentLocation);
 
-        if (!canCompareDistance) {
-          if (mountedRef.current) {
-            setIsPreparingList(!geolocation.isError);
+        if (!canCompareDistance && !geolocation.isError) {
+          if (mountedRef.current && distanceJobRef.current === jobId) {
+            setIsPreparingList(true);
           }
-
-          if (!geolocation.isError) {
-            return;
-          }
-        }
-
-        const currentNumericPosition = {
-          latitude: parseCoordinate(currentLocation.latitude),
-          longitude: parseCoordinate(currentLocation.longitude),
-        };
-        const customerLocations = customer.listItems.map(item => ({
-          latitude: (item as any).ADDB_GPS_LAT_S ?? null,
-          longitude: (item as any).ADDB_GPS_LONG_S ?? null,
-        }));
-        const hasLastPosition = hasCompleteCoordinate(longdomap.lastPosition);
-        const distanceFromLastPosition = hasLastPosition
-          ? getDistanceBetweenCoordinates(currentLocation, longdomap.lastPosition)
-          : null;
-        const shouldReuseCachedDistances =
-          canCompareDistance &&
-          hasLastPosition &&
-          isWithinDistanceThreshold(currentLocation, longdomap.lastPosition, 15);
-        const shouldClearDistanceCache =
-          canCompareDistance && !shouldReuseCachedDistances;
-        const cachePreparationStartedAt = Date.now();
-        if (shouldClearDistanceCache) {
-          await clearCustomerRouteDistanceCache();
-        }
-
-        const cachedDistances = shouldReuseCachedDistances
-          ? await getCustomerRouteDistanceCache()
-          : {};
-        const distanceEntriesByIndex: Record<
-          number,
-          { distance: number | null; distanceText: string }
-        > = {};
-        const customersToCompute: Array<{
-          index: number;
-          arKey: string | null;
-          location: {
-            latitude: string | number | null;
-            longitude: string | number | null;
-          };
-        }> = [];
-
-        customer.listItems.forEach((item, index) => {
-          if (
-            !canCompareDistance ||
-            !hasCompleteCoordinate(customerLocations[index])
-          ) {
-            return;
-          }
-
-          const arKey =
-            item.AR_KEY !== undefined && item.AR_KEY !== null
-              ? String(item.AR_KEY)
-              : null;
-          const cachedEntry =
-            arKey && shouldReuseCachedDistances ? cachedDistances[arKey] : null;
-
-          if (cachedEntry && typeof cachedEntry.distanceText === 'string') {
-            distanceEntriesByIndex[index] = cachedEntry;
-            return;
-          }
-
-          customersToCompute.push({
-            index,
-            arKey,
-            location: customerLocations[index],
-          });
-        });
-
-        if (customersToCompute.length > 0) {
-          const distanceApiStartedAt = Date.now();
-          let computedDistanceItems: Array<{
-            item: {
-              index: number;
-              arKey: string | null;
-              location: {
-                latitude: string | number | null;
-                longitude: string | number | null;
-              };
-            };
-            cacheKey: string | null;
-            distance: number | null;
-            distanceText: string;
-            hasCoordinate: boolean;
-          }> = [];
-
-          try {
-            computedDistanceItems = await getDistanceItemsFromCurrentLocation(
-              currentLocation,
-              customersToCompute.map(item => ({
-                item,
-                cacheKey: item.arKey,
-                latitude: item.location.latitude,
-                longitude: item.location.longitude,
-              })),
-              vanCode,
-            );
-          } catch (error: any) {
-            if (
-              error?.code === 'LONGDO_API_KEY_MISSING' ||
-              error?.code === 'LONGDO_API_KEY_LIMIT_EXHAUSTED'
-            ) {
-              const alertReason =
-                error?.code === 'LONGDO_API_KEY_MISSING' ? 'missing' : 'limit';
-
-              if (longdoAlertReasonRef.current !== alertReason) {
-                longdoAlertReasonRef.current = alertReason;
-                Alert.alert(
-                  'แจ้งเตือน',
-                  getLongdoApiKeyAlertMessage(alertReason),
-                );
-              }
-
-              const nextCustomers = customer.listItems.map(item => ({
-                ...item,
-                distance: null,
-                distanceText:
-                  alertReason === 'missing'
-                    ? 'ยังไม่ได้ตั้งค่า API Key'
-                    : 'API Key limit หมด',
-              }));
-
-              if (mountedRef.current && distanceJobRef.current === jobId) {
-                setSortedCustomers(nextCustomers);
-                setSortedListSignature(currentListSignature);
-                setIsPreparingList(false);
-              }
-              return;
-            }
-
-            console.log('[CustomerRoute] longdo unexpected error, fallback to straight line', {
-              message: error?.message,
-              status: error?.status,
-              apiMessage: error?.apiMessage,
-              customerCount: customersToCompute.length,
-            });
-
-            computedDistanceItems = customersToCompute.map(item => {
-              const distance = getDistanceBetweenCoordinates(currentLocation, {
-                latitude: item.location.latitude,
-                longitude: item.location.longitude,
-              });
-
-              return {
-                item,
-                cacheKey: item.arKey,
-                distance,
-                distanceText: formatDistanceLabel(distance),
-                hasCoordinate: true,
-              };
-            });
-          }
-        console.log('[CustomerRoute] distance api timing', {
-          customerCount: customer.listItems.length,
-          requestedDistanceCount: customersToCompute.length,
-          distanceApiTime: formatElapsedMs(distanceApiStartedAt),
-        });
-        const cacheUpdates: Record<
-          string,
-          { distance: number | null; distanceText: string }
-        > = {};
-
-        computedDistanceItems.forEach(result => {
-          const entry = {
-            distance: result.distance,
-            distanceText: result.distanceText,
-          };
-
-          distanceEntriesByIndex[result.item.index] = entry;
-
-          if (result.cacheKey) {
-            cacheUpdates[result.cacheKey] = entry;
-          }
-        });
-
-        Object.assign(pendingDistanceCacheUpdatesRef.current, cacheUpdates);
-      }
-
-        if (
-          currentNumericPosition.latitude !== null &&
-          currentNumericPosition.longitude !== null
-        ) {
-          await mergeCustomerRouteLoadSession({
-            lastPosition: currentNumericPosition,
-            updatedAt: new Date().toISOString(),
-          });
-        }
-
-        if (
-          canCompareDistance &&
-          !shouldReuseCachedDistances &&
-          currentNumericPosition.latitude !== null &&
-          currentNumericPosition.longitude !== null
-        ) {
-          setLastPosition(currentNumericPosition);
-        }
-
-        console.log('[CustomerRoute] distance cache decision', {
-          customerCount: customer.listItems.length,
-          hasLastPosition,
-          distanceFromLastPosition,
-          shouldReuseCachedDistances,
-          shouldClearDistanceCache,
-          cachePreparationTime: formatElapsedMs(cachePreparationStartedAt),
-          cachedCount: Object.keys(cachedDistances).length,
-          recomputedCount: customersToCompute.length,
-          totalBuildTime: formatElapsedMs(buildStartedAt),
-        });
-
-        const nextCustomers = customer.listItems.map((item, index) => {
-          const customerLocation = customerLocations[index];
-
-          if (!hasCompleteCoordinate(customerLocation)) {
-            return {
-              ...item,
-              distance: null,
-              distanceText: 'ไม่มีข้อมูลพิกัด',
-            };
-          }
-
-          if (!canCompareDistance) {
-            return {
-              ...item,
-              distance: null,
-              distanceText: 'ไม่พบตำแหน่งปัจจุบัน',
-            };
-          }
-
-          const cachedOrComputedEntry = distanceEntriesByIndex[index];
-          const distance = cachedOrComputedEntry?.distance ?? null;
-          const distanceText =
-            cachedOrComputedEntry?.distanceText ?? formatDistanceLabel(distance);
-
-          return {
-            ...item,
-            distance,
-            distanceText,
-          };
-        });
-
-        setLoadingStage(
-          onLoadingMessageChange,
-          'กำลังโหลดและคำนวณเส้นทาง',
-        );
-
-        nextCustomers.sort((left, right) => {
-          const leftHasDistance = typeof left.distance === 'number';
-          const rightHasDistance = typeof right.distance === 'number';
-
-          if (leftHasDistance && rightHasDistance) {
-            return (left.distance ?? 0) - (right.distance ?? 0);
-          }
-
-          if (leftHasDistance) {
-            return -1;
-          }
-
-          if (rightHasDistance) {
-            return 1;
-          }
-
-          return 0;
-        });
-
-        setLoadingStage(
-          onLoadingMessageChange,
-          'กำลังโหลดและคำนวณเส้นทาง',
-        );
-
-        if (Object.keys(pendingDistanceCacheUpdatesRef.current).length > 0) {
-          await mergeCustomerRouteDistanceCache(pendingDistanceCacheUpdatesRef.current);
-          pendingDistanceCacheUpdatesRef.current = {};
+          return;
         }
 
         const currentSession = await getCustomerRouteLoadSession();
-        await mergeCustomerRouteLoadSession({
-          cachedItems: nextCustomers,
-          totalLoaded: customer.listItems.length,
+        const pipelineResult = await processCustomerRouteDistances({
+          listItems: customer.listItems,
+          currentLocation,
+          lastPosition: longdomap.lastPosition,
+          vanCode,
+          hasMore: customer.hasMore === true,
           totalAvailable:
             currentSession?.totalAvailable ?? customer.listItems.length,
-          hasMore: customer.hasMore === true,
-          updatedAt: new Date().toISOString(),
+          onSetLastPosition: setLastPosition,
+          signal: {
+            loadId: jobId,
+            getCurrentLoadId: () => distanceJobRef.current,
+          },
         });
 
+        if (
+          pipelineResult.alertReason &&
+          longdoAlertReasonRef.current !== pipelineResult.alertReason
+        ) {
+          longdoAlertReasonRef.current = pipelineResult.alertReason;
+          Alert.alert(
+            'แจ้งเตือน',
+            getLongdoApiKeyAlertMessage(pipelineResult.alertReason),
+          );
+        }
+
         if (mountedRef.current && distanceJobRef.current === jobId) {
-          setSortedCustomers(nextCustomers);
+          setSortedCustomers(pipelineResult.sortedItems as CustomerRouteItem[]);
           setSortedListSignature(currentListSignature);
           setIsPreparingList(false);
         }
@@ -664,6 +366,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
 
     void buildCustomerDistances();
   }, [
+    customer.hasMore,
     customer.listItems,
     currentListSignature,
     geolocation.isError,
@@ -672,12 +375,19 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     geolocation.position.longitude,
     isTimedLoading,
     isUserTokenLoaded,
+    longdomap.lastPosition,
+    managedSortedCustomers,
     onLoadingMessageChange,
     setLastPosition,
     (userToken?.VANCONFIG as any)?.VANCNF_MACHINE,
   ]);
 
-  const hasLatestSortedList = sortedListSignature === currentListSignature;
+  const displayCustomers =
+    managedSortedCustomers !== null ? managedSortedCustomers : sortedCustomers;
+  const hasLatestSortedList =
+    managedSortedCustomers !== null
+      ? true
+      : sortedListSignature === currentListSignature;
   const actionHandler = useCallback(() => {
     setError(false);
   }, [setError]);
@@ -688,29 +398,6 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
       customer: item,
     });
   }, []);
-
-  const handleEndReached = useCallback(() => {
-    if (
-      !onRequestTimedLoad ||
-      !hasUserScrolledRef.current ||
-      timedLoadRequestedRef.current ||
-      isTimedLoading === true ||
-      customer.isLoading ||
-      customer.hasMore !== true ||
-      customer.listItems.length === 0
-    ) {
-      return;
-    }
-
-    timedLoadRequestedRef.current = true;
-    void onRequestTimedLoad(false);
-  }, [
-    customer.hasMore,
-    customer.isLoading,
-    customer.listItems.length,
-    isTimedLoading,
-    onRequestTimedLoad,
-  ]);
 
   const renderItem = useCallback(
     ({ item, index }: { item: CustomerRouteItem; index: number }) => (
@@ -803,7 +490,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     [handleContinuePress, userToken.VANCONFIG.VANCNF_AR_LIMIT],
   );
 
-  const hasVisibleItems = sortedCustomers.length > 0;
+  const hasVisibleItems = displayCustomers.length > 0;
   const isRouteListLoading =
     isTimedLoading === true ||
     customer.isLoading ||
@@ -811,6 +498,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     geolocation.isLoading ||
     isPreparingList ||
     !hasLatestSortedList;
+  const nextShouldBlockWithProgress = isRouteListLoading && !hasVisibleItems;
   const isNotFound =
     !isRouteListLoading &&
     !hasVisibleItems &&
@@ -822,21 +510,36 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
     ((customer.isError && customer.listItems.length === 0) ||
       customerType.isError);
   const isSnackBarVisible = customer.isError && customer.listItems.length > 0;
-  const shouldBlockWithProgress = isRouteListLoading && !hasVisibleItems;
+
+  useEffect(() => {
+    if (nextShouldBlockWithProgress) {
+      setIsBlockingLoadSticky(true);
+      return;
+    }
+
+    if (hasVisibleItems || isNotFound || isError || !isRouteListLoading) {
+      setIsBlockingLoadSticky(false);
+    }
+  }, [
+    hasVisibleItems,
+    isError,
+    isNotFound,
+    isRouteListLoading,
+    nextShouldBlockWithProgress,
+  ]);
+
+  const shouldBlockWithProgress =
+    !isLoadSummaryVisible &&
+    (nextShouldBlockWithProgress || isBlockingLoadSticky);
 
   return (
     <View style={styles.container}>
       {!isNotFound && !isError && hasVisibleItems ? (
         <FlatList
-          data={sortedCustomers}
+          data={displayCustomers}
           renderItem={renderItem}
           keyExtractor={(item, index) => getCustomerRouteItemKey(item, index)}
           maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-          onScrollBeginDrag={() => {
-            hasUserScrolledRef.current = true;
-          }}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.2}
         />
       ) : null}
 

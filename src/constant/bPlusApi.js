@@ -34,6 +34,7 @@ export const GET_PRINT_STATUS = 'GETPRINTSTATUS';
 export const GET_UPDATE_MEMBER = 'UPDMEMBER';  //12 แก้ไขต้ังค่าสมาชิก(UpdMember)   >> CreateUpdateMaster
 export const CREATE_NEWMEMBER = 'NEWMEMBER';  //07 เพิ่มเติมต้้งค่าสมาชิก(NEWMEMBER) >> CreateUpdateMaster
 export const FIND_MEMBER_NAME = 'Mb000130';  //50.หาชื่อสมาชิก (Mb000130) >> LookupErp
+export const BPAPUS_FUNCTION_DOCSWITCH = 'Sy000500';
 
 
 export const BPAPUS_DT_PROPERTIES = [

@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { connect } from 'react-redux';
 import {
-  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
 import type { ComponentType } from 'react';
 import RNPickerSelect from 'react-native-picker-select';
@@ -19,6 +19,7 @@ import {
   searchCustomerNextDestination,
   setInitialState,
   setKeyword,
+  setLastPosition,
 } from '../customer-route-action';
 import { useCustomerRouteBatchDetails } from '../api/useTanStack';
 import ISearchBar from '../../../component/input/ISearchBar';
@@ -28,18 +29,27 @@ import {
   getCustomerRouteLoadSession,
   mergeCustomerRouteLoadSession,
   setCustomerRouteLoadSession,
+  type CustomerRouteLoadSummary,
 } from '../../../services/customerRouteLoadSession';
 import { clearCustomerRouteDistanceCache } from '../../../services/longdomap';
 import {
   hasCompleteCoordinate,
   parseCoordinate,
   isWithinDistanceThreshold,
+  getLongdoApiKeyAlertMessage,
 } from '../../../services/longdomap';
+import {
+  CustomerRoutePipelineAbortedError,
+  processCustomerRouteDistances,
+  type CustomerRouteDistanceItem,
+} from '../../../services/customerRouteDistancePipeline';
 import Navigator from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
 
 const AntDesign = require('react-native-vector-icons/AntDesign')
   .default as ComponentType<any>;
+
+const TIME_LIMIT_MS = 60000;
 
 type CustomerTypeItem = {
   ARCAT_KEY: string | null;
@@ -79,14 +89,23 @@ type SearchFormOwnProps = {
   navigation?: unknown;
   screen?: string;
   onLoadingMessageChange?: (value: string) => void;
-  onRegisterTimedLoadHandler?: (handler: (reset: boolean) => Promise<void>) => void;
   onTimedLoadingChange?: (value: boolean) => void;
+  onTimedLoadStart?: () => void;
+  onRoundComplete?: (sortedItems: CustomerRouteDistanceItem[]) => void;
+  onLoadSummary?: (summary: CustomerRouteLoadSummary | null) => void;
+  continueTimedLoadRef?: React.MutableRefObject<(() => void) | null>;
 };
 
 type SearchFormProps = SearchFormOwnProps & {
   customer: CustomerState;
   customerType: CustomerTypeState;
   geolocation: GeolocationState;
+  longdomap: {
+    lastPosition: {
+      latitude: number | null;
+      longitude: number | null;
+    };
+  };
   setInitialState: () => void | Promise<void>;
   setKeyword: (criteria: string | null) => void | Promise<void>;
   searchCustomerRoutePageOnly: (
@@ -113,11 +132,16 @@ type SearchFormProps = SearchFormOwnProps & {
         items?: any[];
         hasMore?: boolean;
         error?: string;
+        listItems?: any[];
       }
     | void
   >;
   clearCustomerList: () => void | Promise<void>;
   getCurrentPosition: () => Promise<any>;
+  setLastPosition: (position: {
+    latitude: number | null;
+    longitude: number | null;
+  }) => void;
   restoreCustomerRouteCache: (payload: {
     items: any[];
     hasMore: boolean;
@@ -141,10 +165,14 @@ const SearchForm: React.FC<SearchFormProps> = props => {
     customer,
     customerType,
     geolocation,
+    longdomap,
     getCurrentPosition,
     onLoadingMessageChange,
-    onRegisterTimedLoadHandler,
     onTimedLoadingChange,
+    onTimedLoadStart,
+    onRoundComplete,
+    onLoadSummary,
+    continueTimedLoadRef,
     setInitialState,
     setKeyword,
     restoreCustomerRouteCache,
@@ -153,10 +181,19 @@ const SearchForm: React.FC<SearchFormProps> = props => {
     clearCustomerList,
     setCustomerType,
     searchCustomerNextDestination,
+    setLastPosition,
   } = props;
   const mountedRef = useRef(false);
   const activeTimedLoadIdRef = useRef(0);
   const customerRef = useRef(customer);
+  const longdoAlertReasonRef = useRef<string | null>(null);
+  const pipelineLastPositionRef = useRef<{
+    latitude: number | null;
+    longitude: number | null;
+  }>({
+    latitude: null,
+    longitude: null,
+  });
   const [textSearch, setTextSearch] = useState<string | null>(null);
   const [arcatKey, setArcatKey] = useState<string | null>(null);
   const [userToken, setUserTokenState] =
@@ -164,13 +201,6 @@ const SearchForm: React.FC<SearchFormProps> = props => {
   const [isTimedLoading, setIsTimedLoading] = useState(false);
   const { mutateAsync: requestCustomerRouteBatchDetails } =
     useCustomerRouteBatchDetails();
-  const [loadSummaryModal, setLoadSummaryModal] = useState<{
-    totalLoaded: number;
-    totalAvailable: number;
-    remainingCount: number;
-    hasMore: boolean;
-    stoppedByTimeLimit: boolean;
-  } | null>(null);
 
   useEffect(() => {
     customerRef.current = customer;
@@ -282,11 +312,13 @@ const SearchForm: React.FC<SearchFormProps> = props => {
 
       const loadId = activeTimedLoadIdRef.current + 1;
       activeTimedLoadIdRef.current = loadId;
-      setLoadSummaryModal(null);
+      onLoadSummary?.(null);
       onLoadingMessageChange?.('กำลังโหลดและคำนวณเส้นทาง');
       setIsTimedLoading(true);
 
       if (reset) {
+        onTimedLoadStart?.();
+        longdoAlertReasonRef.current = null;
         await clearCustomerRouteLoadSession();
         await clearCustomerRouteDistanceCache();
         await clearCustomerList();
@@ -304,6 +336,9 @@ const SearchForm: React.FC<SearchFormProps> = props => {
       const startedAt = Date.now();
       const startedCount = reset ? 0 : customerRef.current.listItems.length;
       const currentKeyword = getCurrentSearchKeyword();
+      pipelineLastPositionRef.current = hasCompleteCoordinate(longdomap.lastPosition)
+        ? longdomap.lastPosition
+        : getCurrentPositionSnapshot();
       let totalLoaded = startedCount;
       let nextPage = !reset && customerRef.current.listItems.length > 0;
       let hasMore = true;
@@ -312,7 +347,37 @@ const SearchForm: React.FC<SearchFormProps> = props => {
       let stoppedByTimeLimit = false;
       let nextOffset = customerRef.current.criteria?.OFFSET ?? 1;
       let pageNumber = 0;
-      const routeItemsToAppend: any[] = [];
+
+      let lastApiHasMore = true;
+
+      const syncHasMore = (apiHasMore?: boolean) => {
+        if (typeof apiHasMore === 'boolean') {
+          lastApiHasMore = apiHasMore;
+        }
+        if (totalAvailable > 0 && totalLoaded < totalAvailable) {
+          hasMore = true;
+          return;
+        }
+        hasMore = lastApiHasMore;
+      };
+
+      if (!reset) {
+        const existingSession = await getCustomerRouteLoadSession();
+        if (existingSession) {
+          totalAvailable = Math.max(
+            totalAvailable,
+            existingSession.totalAvailable,
+            existingSession.totalLoaded,
+          );
+          totalLoaded = Math.max(totalLoaded, existingSession.totalLoaded);
+          nextOffset = existingSession.nextOffset ?? nextOffset;
+          syncHasMore(existingSession.hasMore);
+        } else {
+          syncHasMore(true);
+        }
+      } else {
+        syncHasMore(true);
+      }
 
       console.log('[CustomerRoute] timed fetch started', {
         reset,
@@ -324,6 +389,20 @@ const SearchForm: React.FC<SearchFormProps> = props => {
       });
 
       while (mountedRef.current && activeTimedLoadIdRef.current === loadId) {
+        if (pageNumber > 0 && Date.now() - startedAt >= TIME_LIMIT_MS) {
+          syncHasMore();
+          stoppedByTimeLimit = hasMore;
+          console.log('[CustomerRoute] timed fetch stopped by 1 minute limit (pre-round)', {
+            pageNumber,
+            totalLoaded,
+            totalAvailable,
+            hasMore,
+            elapsedMs: Date.now() - startedAt,
+            remainingMs: 0,
+          });
+          break;
+        }
+
         pageNumber += 1;
         const pageStartedAt = Date.now();
         console.log('[CustomerRoute] customer fetch page started', {
@@ -341,14 +420,14 @@ const SearchForm: React.FC<SearchFormProps> = props => {
 
         const fetchedRouteItems = Array.isArray(result?.items) ? result.items : [];
         totalLoaded += fetchedRouteItems.length;
-        routeItemsToAppend.push(...fetchedRouteItems);
-        hasMore = result?.hasMore === true;
         lastResultError = result?.error ?? null;
         nextOffset = Number(result?.nextCriteriaOffset) || nextOffset;
         totalAvailable = Math.max(
           totalAvailable,
-          Number(result?.totalAvailable) || totalAvailable,
+          Number(result?.totalAvailable) || 0,
+          totalLoaded,
         );
+        syncHasMore(result?.hasMore === true);
         const currentPositionSnapshot = getCurrentPositionSnapshot();
 
         console.log('[CustomerRoute] customer fetch page finished', {
@@ -379,24 +458,162 @@ const SearchForm: React.FC<SearchFormProps> = props => {
           limit: customerRef.current.criteria?.LIMIT ?? 20,
         });
 
-        if (Date.now() - startedAt >= 60000) {
-          stoppedByTimeLimit = true;
+        onLoadingMessageChange?.('กำลังโหลดและคำนวณเส้นทาง');
+        console.log('[CustomerRoute] batch detail request prepared', {
+          pageNumber,
+          routeItemCount: fetchedRouteItems.length,
+          arCodes: fetchedRouteItems.map(item => item?.AR_CODE).filter(Boolean),
+          hasMore,
+        });
+        const batchMergeStartedAt = Date.now();
+        const batchMergeResult = await appendCustomerRouteBatchDetails(
+          fetchedRouteItems,
+          requestCustomerRouteBatchDetails,
+          hasMore,
+        );
+
+        if (!mountedRef.current || activeTimedLoadIdRef.current !== loadId) {
+          return;
+        }
+
+        console.log('[CustomerRoute] batch detail completed', {
+          pageNumber,
+          routeItemCount: fetchedRouteItems.length,
+          mergedItemCount: Array.isArray(batchMergeResult?.items)
+            ? batchMergeResult.items.length
+            : 0,
+          hasMore,
+          batchMergeTimeMs: Date.now() - batchMergeStartedAt,
+          totalElapsedMs: Date.now() - timedLoadStartedAt,
+        });
+
+        if (batchMergeResult?.error) {
+          lastResultError = batchMergeResult.error;
+          break;
+        }
+
+        const pipelineListItems = Array.isArray(batchMergeResult?.listItems)
+          ? batchMergeResult.listItems
+          : [];
+
+        if (!mountedRef.current || activeTimedLoadIdRef.current !== loadId) {
+          return;
+        }
+
+        const vanCode = String(
+          (nextUserToken?.VANCONFIG as any)?.VANCNF_MACHINE ?? '',
+        ).trim();
+        const pipelineStartedAt = Date.now();
+
+        try {
+          const pipelineResult = await processCustomerRouteDistances({
+            listItems: pipelineListItems,
+            currentLocation: {
+              latitude: geolocation.position.latitude,
+              longitude: geolocation.position.longitude,
+            },
+            lastPosition: pipelineLastPositionRef.current,
+            vanCode,
+            hasMore,
+            totalAvailable,
+            onSetLastPosition: position => {
+              pipelineLastPositionRef.current = position;
+              setLastPosition(position);
+            },
+            signal: {
+              loadId,
+              getCurrentLoadId: () => activeTimedLoadIdRef.current,
+            },
+          });
+
+          if (!mountedRef.current || activeTimedLoadIdRef.current !== loadId) {
+            return;
+          }
+
+          if (
+            pipelineResult.alertReason &&
+            longdoAlertReasonRef.current !== pipelineResult.alertReason
+          ) {
+            longdoAlertReasonRef.current = pipelineResult.alertReason;
+            Alert.alert(
+              'แจ้งเตือน',
+              getLongdoApiKeyAlertMessage(pipelineResult.alertReason),
+            );
+          }
+
+          onRoundComplete?.(pipelineResult.sortedItems);
+
+          console.log('[CustomerRoute] pipeline round finished', {
+            pageNumber,
+            pipelineTimeMs: Date.now() - pipelineStartedAt,
+            recomputedCount: pipelineResult.recomputedCount,
+            cachedCount: pipelineResult.cachedCount,
+          });
+        } catch (error) {
+          if (error instanceof CustomerRoutePipelineAbortedError) {
+            return;
+          }
+          throw error;
+        }
+
+        await mergeCustomerRouteLoadSession({
+          totalLoaded,
+          totalAvailable,
+          hasMore,
+          nextOffset,
+          limit: customerRef.current.criteria?.LIMIT ?? 20,
+          keyword: currentKeyword,
+          arcatKey: arcatKey ?? null,
+          updatedAt: new Date().toISOString(),
+        });
+
+        const elapsedMs = Date.now() - startedAt;
+        const remainingMs = Math.max(TIME_LIMIT_MS - elapsedMs, 0);
+        const roundTimeMs = Date.now() - pageStartedAt;
+
+        console.log('[CustomerRoute] timed fetch round completed', {
+          pageNumber,
+          roundTimeMs,
+          elapsedMs,
+          remainingMs,
+          totalLoaded,
+          totalAvailable,
+          hasMore,
+          apiHasMore: lastApiHasMore,
+        });
+
+        if (Date.now() - startedAt >= TIME_LIMIT_MS) {
+          syncHasMore();
+          stoppedByTimeLimit = hasMore;
           console.log('[CustomerRoute] timed fetch stopped by 1 minute limit', {
             pageNumber,
             totalLoaded,
             totalAvailable,
-            elapsedMs: Date.now() - timedLoadStartedAt,
+            hasMore,
+            elapsedMs: Date.now() - startedAt,
+            remainingMs: 0,
           });
           break;
         }
 
-        if (lastResultError || !hasMore) {
+        if (lastResultError) {
           console.log('[CustomerRoute] timed fetch loop ended', {
-            reason: lastResultError ? 'error' : 'no-more-data',
+            reason: 'error',
             pageNumber,
             totalLoaded,
             totalAvailable,
-            elapsedMs: Date.now() - timedLoadStartedAt,
+            elapsedMs: Date.now() - startedAt,
+          });
+          break;
+        }
+
+        if (!hasMore) {
+          console.log('[CustomerRoute] timed fetch loop ended', {
+            reason: 'no-more-data',
+            pageNumber,
+            totalLoaded,
+            totalAvailable,
+            elapsedMs: Date.now() - startedAt,
           });
           break;
         }
@@ -408,41 +625,9 @@ const SearchForm: React.FC<SearchFormProps> = props => {
         return;
       }
 
-      if (lastResultError) {
-        setIsTimedLoading(false);
-        return;
-      }
-
-      onLoadingMessageChange?.('กำลังโหลดและคำนวณเส้นทาง');
-      console.log('[CustomerRoute] batch detail request prepared', {
-        routeItemCount: routeItemsToAppend.length,
-        arCodes: routeItemsToAppend.map(item => item?.AR_CODE).filter(Boolean),
-        hasMore,
-      });
-      const batchMergeStartedAt = Date.now();
-      const batchMergeResult = await appendCustomerRouteBatchDetails(
-        routeItemsToAppend,
-        requestCustomerRouteBatchDetails,
-        hasMore,
-      );
-
-      if (!mountedRef.current || activeTimedLoadIdRef.current !== loadId) {
-        return;
-      }
-
-      console.log('[CustomerRoute] batch detail completed', {
-        routeItemCount: routeItemsToAppend.length,
-        mergedItemCount: Array.isArray(batchMergeResult?.items)
-          ? batchMergeResult.items.length
-          : 0,
-        hasMore,
-        batchMergeTimeMs: Date.now() - batchMergeStartedAt,
-        totalElapsedMs: Date.now() - timedLoadStartedAt,
-      });
-
       setIsTimedLoading(false);
 
-      if (batchMergeResult?.error) {
+      if (lastResultError) {
         return;
       }
 
@@ -454,31 +639,43 @@ const SearchForm: React.FC<SearchFormProps> = props => {
         totalElapsedMs: Date.now() - timedLoadStartedAt,
       });
 
-      setLoadSummaryModal({
-        totalLoaded,
-        totalAvailable,
-        remainingCount: Math.max(totalAvailable - totalLoaded, 0),
-        hasMore,
-        stoppedByTimeLimit,
-      });
+      if (!lastResultError) {
+        onLoadSummary?.({
+          totalLoaded,
+          totalAvailable,
+          remainingCount: Math.max(totalAvailable - totalLoaded, 0),
+          hasMore,
+          stoppedByTimeLimit,
+        });
+      }
     },
     [
       clearCustomerList,
       arcatKey,
+      geolocation.position.latitude,
+      geolocation.position.longitude,
       getCurrentPositionSnapshot,
       getCurrentSearchKeyword,
+      longdomap.lastPosition,
+      onLoadSummary,
+      onRoundComplete,
+      onTimedLoadStart,
+      onLoadingMessageChange,
       searchCustomerRoutePageOnly,
       appendCustomerRouteBatchDetails,
       searchCustomerNextDestination,
       requestCustomerRouteBatchDetails,
+      setLastPosition,
     ],
   );
 
   useEffect(() => {
-    if (onRegisterTimedLoadHandler) {
-      onRegisterTimedLoadHandler((reset: boolean) => runTimedCustomerLoad(reset));
+    if (continueTimedLoadRef) {
+      continueTimedLoadRef.current = () => {
+        void runTimedCustomerLoad(false);
+      };
     }
-  }, [onRegisterTimedLoadHandler, runTimedCustomerLoad]);
+  }, [continueTimedLoadRef, runTimedCustomerLoad]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -508,6 +705,22 @@ const SearchForm: React.FC<SearchFormProps> = props => {
           keyword: cachedSession.keyword,
           arcatKey: cachedSession.arcatKey,
         });
+        if (
+          Array.isArray(cachedSession.cachedItems) &&
+          cachedSession.cachedItems.length > 0
+        ) {
+          onRoundComplete?.(cachedSession.cachedItems);
+        }
+        onLoadSummary?.({
+          totalLoaded: cachedSession.totalLoaded,
+          totalAvailable: cachedSession.totalAvailable,
+          remainingCount: Math.max(
+            cachedSession.totalAvailable - cachedSession.totalLoaded,
+            0,
+          ),
+          hasMore: cachedSession.hasMore,
+          stoppedByTimeLimit: false,
+        });
         return;
       }
 
@@ -518,7 +731,6 @@ const SearchForm: React.FC<SearchFormProps> = props => {
 
     return () => {
       mountedRef.current = false;
-      activeTimedLoadIdRef.current += 1;
     };
   }, []);
 
@@ -718,67 +930,6 @@ const SearchForm: React.FC<SearchFormProps> = props => {
       </View>
 
       <View style={styles.bottomDivider} />
-
-      <Modal
-        transparent
-        visible={loadSummaryModal !== null}
-        animationType="fade"
-        onRequestClose={() => setLoadSummaryModal(null)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>โหลดข้อมูลสำเร็จ</Text>
-            <Text style={styles.modalMessage}>
-              {`โหลดแล้ว ${loadSummaryModal?.totalLoaded ?? 0} / ${
-                loadSummaryModal?.totalAvailable ?? 0
-              } รายการ`}
-            </Text>
-            <Text style={styles.modalMessage}>
-              {loadSummaryModal?.hasMore
-                ? loadSummaryModal?.stoppedByTimeLimit
-                  ? `ครบ 1 นาทีแล้ว เหลืออีก ${
-                      loadSummaryModal?.remainingCount ?? 0
-                    } รายการ ต้องการโหลดข้อมูลต่อหรือไม่`
-                  : `ยังเหลืออีก ${
-                      loadSummaryModal?.remainingCount ?? 0
-                    } รายการ ต้องการโหลดข้อมูลต่อหรือไม่`
-                : (loadSummaryModal?.totalLoaded ?? 0) <
-                  (loadSummaryModal?.totalAvailable ?? 0)
-                ? `โหลดครบตามข้อมูลที่ใช้งานได้แล้ว ${
-                    loadSummaryModal?.totalLoaded ?? 0
-                  } จากทั้งหมด ${loadSummaryModal?.totalAvailable ?? 0} รายการ`
-                : 'โหลดข้อมูลครบแล้ว'}
-            </Text>
-
-            <View style={styles.modalButtonRow}>
-              {loadSummaryModal?.hasMore ? (
-                <TouchableOpacity
-                  style={styles.modalSecondaryButton}
-                  onPress={() => setLoadSummaryModal(null)}
-                >
-                  <Text style={styles.modalSecondaryButtonText}>ไม่โหลดต่อ</Text>
-                </TouchableOpacity>
-              ) : null}
-
-              <TouchableOpacity
-                style={styles.modalPrimaryButton}
-                onPress={() => {
-                  const shouldContinue = loadSummaryModal?.hasMore === true;
-                  setLoadSummaryModal(null);
-
-                  if (shouldContinue) {
-                    void runTimedCustomerLoad(false);
-                  }
-                }}
-              >
-                <Text style={styles.modalPrimaryButtonText}>
-                  {loadSummaryModal?.hasMore ? 'โหลดข้อมูลต่อ' : 'ปิด'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
@@ -787,6 +938,7 @@ const mapStateToProps = (state: any) => ({
   customer: state.customer,
   customerType: state.customerType,
   geolocation: state.geolocation,
+  longdomap: state.longdomap,
 });
 
 const mapDispatchToProps = (dispatch: any) => {
@@ -836,6 +988,12 @@ const mapDispatchToProps = (dispatch: any) => {
     },
     searchCustomerNextDestination: () => {
       return dispatch(searchCustomerNextDestination());
+    },
+    setLastPosition: (position: {
+      latitude: number | null;
+      longitude: number | null;
+    }) => {
+      return dispatch(setLastPosition(position));
     },
   };
 };
@@ -909,64 +1067,5 @@ const styles = StyleSheet.create({
     width: '100%',
     borderColor: MainTheme.colorButtonBorder,
     marginTop: 10,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  modalCard: {
-    width: '100%',
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 18,
-    paddingVertical: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 10,
-  },
-  modalMessage: {
-    fontSize: 14,
-    color: '#374151',
-    marginBottom: 8,
-  },
-  modalButtonRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 12,
-  },
-  modalPrimaryButton: {
-    minWidth: 96,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: MainTheme.colorPrimary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalPrimaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  modalSecondaryButton: {
-    minWidth: 96,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  modalSecondaryButtonText: {
-    color: '#374151',
-    fontSize: 14,
-    fontWeight: '600',
   },
 });

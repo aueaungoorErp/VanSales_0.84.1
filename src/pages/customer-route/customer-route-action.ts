@@ -35,7 +35,7 @@ type SearchCustomerRoutePageResult = {
   nextCriteriaOffset?: number;
 };
 
-const CUSTOMER_ROUTE_PAGE_LIMIT = 1000;
+const CUSTOMER_ROUTE_PAGE_LIMIT = 20;
 
 export const setInitialState = () => async (dispatch: Dispatch) => {
   await dispatch(setInitialStateBase());

@@ -48,12 +48,18 @@ import {
   getSettingConfig,
   getUserToken,
 } from '../../../../utils/Token';
+import {
+  applyDefaultDocDatesToHeader,
+  shouldFetchDefaultDocDates,
+} from '../../../../utils/docSwitchDates';
 
 import { setIsSubmit as setCheckInIsSubmit } from '../../../../action/check-in';
 import { setIsSubmit as setMileIsSubmit } from '../../../../action/mile';
 import FinalizeDetail from '../presenter/FinalizeDetail';
 
 class CTFinalizeDetail extends Component {
+  _isMounted = false;
+
   constructor(props) {
     super(props);
 
@@ -77,6 +83,10 @@ class CTFinalizeDetail extends Component {
   }
 
   componentDidMount = async props => {
+    this._isMounted = true;
+
+    this._applyDefaultDocDatesFromRoute();
+
     if (this.props.order.header.VDI_USER_REF !== null) {
       if (this.props.order.header.AR_ORDER_TYPE === 'ขายสินค้า') {
         this._setStateUpdateOrderSale();
@@ -98,6 +108,42 @@ class CTFinalizeDetail extends Component {
     this._processOrderSale();
     this._setDisType1(true);
     this._setDisType2(false);
+  };
+
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
+  _getRouteDefaultDocDates = () => {
+    const routeState = Navigator.getCurrentRoute();
+    const { routes, index } = routeState || {};
+
+    return routes?.[index]?.params?.defaultDocDates || null;
+  };
+
+  _applyDefaultDocDatesFromRoute = () => {
+    const arOrderType = this.props.order.header.AR_ORDER_TYPE;
+
+    if (!shouldFetchDefaultDocDates(arOrderType)) {
+      return;
+    }
+
+    const defaultDocDates = this._getRouteDefaultDocDates();
+
+    if (!defaultDocDates?.shipDate || !defaultDocDates?.expiryDate) {
+      console.log('[getDocSwitch] check-stock Finalize missing route dates', {
+        arOrderType,
+      });
+      return;
+    }
+
+    console.log('[getDocSwitch] check-stock Finalize apply route dates', defaultDocDates);
+
+    this.setState({
+      shipDate: defaultDocDates.shipDate,
+      expiryDate: defaultDocDates.expiryDate,
+    });
+    applyDefaultDocDatesToHeader(this.props.order.header, defaultDocDates);
   };
 
   _getUserToken = async () => {

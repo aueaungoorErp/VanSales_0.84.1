@@ -2809,6 +2809,7 @@ const printSalesOrderBySaleman = (
 
 const printStockBalanceByWL = (
   title,
+  data,
   items,
   vanConfig,
   companyInfo,
@@ -2819,16 +2820,21 @@ const printStockBalanceByWL = (
 ) => {
   let html = `<br><div style="width: 100%;"><div style="width: 180px;margin: auto;">`;
 
-  console.log('items ', JSON.stringify(items.RESULT));
+  const resultItems = Array.isArray(items)
+    ? items
+    : Array.isArray(data?.RESULT)
+      ? data.RESULT
+      : Array.isArray(items?.RESULT)
+        ? items.RESULT
+        : [];
 
-  console.log('items ', JSON.stringify(items.RESULT));
+  const normalizedSalesMan = salesMan || {SLMN_NAME: ''};
 
   html += printHeaderReportPatternC(
     title,
-    vanConfig.VANCNF_REG_NAME,
-    salesMan.SLMN_NAME,
+    vanConfig?.VANCNF_REG_NAME ?? '',
+    normalizedSalesMan.SLMN_NAME ?? '',
     dateFrom,
-    dateTo,
     printTime,
   );
 
@@ -2849,7 +2855,7 @@ const printStockBalanceByWL = (
   html +=
     '<div style="font-size: 7px;text-align: center;width: 180px;white-space: nowrap;overflow: hidden;" >---------------------------------------------------------------------------------</div>';
 
-  items.RESULT.map((item, index) => {
+  resultItems.map((item, index) => {
     html += `<div style="font-size: 7px;" >ตน.เก็บ ${item.WL_CODE} : ${item.WL_NAME}</div>`;
 
     item.ITEMS.map((objChildren, index) => {

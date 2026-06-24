@@ -595,7 +595,7 @@ export const searchCustomerRoutePageOnly =
 
 export const appendCustomerRouteBatchDetails =
   (routeItems, fetchCustomerDetailsBatch, hasMore = false) =>
-  async dispatch => {
+  async (dispatch, getState) => {
     const startedAt = Date.now();
     const userToken = await getUserToken();
     const VANCONFIG = userToken?.VANCONFIG ?? {};
@@ -622,6 +622,7 @@ export const appendCustomerRouteBatchDetails =
       return {
         items: [],
         hasMore,
+        listItems: getState().customer.listItems,
       };
     }
 
@@ -635,6 +636,7 @@ export const appendCustomerRouteBatchDetails =
         items: [],
         hasMore,
         error: errorMessage,
+        listItems: getState().customer.listItems,
       };
     }
 
@@ -697,6 +699,7 @@ export const appendCustomerRouteBatchDetails =
       return {
         items: Response,
         hasMore,
+        listItems: getState().customer.listItems,
       };
     } catch (error) {
       dispatch({
@@ -707,6 +710,7 @@ export const appendCustomerRouteBatchDetails =
         items: [],
         hasMore,
         error: error?.message,
+        listItems: getState().customer.listItems,
       };
     }
   };
