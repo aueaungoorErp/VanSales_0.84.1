@@ -9,6 +9,7 @@ import {bluetooth} from './bluetooth';
 import {screen} from './screen';
 import {user} from './user';
 import {customer} from './customer';
+import {customerSelect} from './customerSelect';
 import {customerType} from './customer-type';
 import {product} from './product';
 import {productCategory} from './product-category';
@@ -35,6 +36,7 @@ export default combineReducers({
   dropPoint: dropPoint,
   user: user,
   customer: customer,
+  customerSelect: customerSelect,
   customerType: customerType,
   product: product,
   productCategory: productCategory,

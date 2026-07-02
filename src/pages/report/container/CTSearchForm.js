@@ -20,7 +20,7 @@ import { getSettingConfig, getUserToken } from '../../../utils/Token';
 import { getCustomerReportPerformance } from '../customer-line-performance/action';
 import { getProductCategoryReportPerformance } from '../product-category-performance/action';
 import { getSalespersonSalesPerformance } from '../salesperson-sales-performance/action';
-import { getStockBalanceByLocation } from '../stock-balance-by-location/action';
+import { getStockBalanceByLocation, getStockBalanceByLocationReportRows } from '../stock-balance-by-location/action';
 
 const REPORT_ERROR_LATEST_KEY = '@ReportErrorLatest';
 const REPORT_ERROR_HISTORY_KEY = '@ReportErrorHistory';
@@ -468,16 +468,16 @@ class CTSearchForm extends Component {
             await this._setState('isLoading', false);
           }
         } else if (this.state.reportParams.pattern === 'D') {
-          if (
-            this.props.report.data &&
-            this.props.report.data.RESULT &&
-            this.props.report.data.RESULT
-          ) {
+          const stockBalanceRows = getStockBalanceByLocationReportRows(
+            this.props.report.data,
+          );
+
+          if (stockBalanceRows.length > 0) {
             const html = printReport(
               this.state.reportParams.title,
               this.state.reportParams.type,
               this.props.report.data,
-              this.props.report.data.RESULT,
+              stockBalanceRows,
               userToken.VANCONFIG || VANCONFIG,
               userToken.COMPANYINFO,
               resolvedSalesman,
@@ -697,16 +697,16 @@ class CTSearchForm extends Component {
               );
             }
           } else if (this.state.reportParams.pattern === 'D') {
-            if (
-              this.props.report.data &&
-              this.props.report.data.RESULT &&
-              this.props.report.data.RESULT
-            ) {
+            const stockBalanceRows = getStockBalanceByLocationReportRows(
+              this.props.report.data,
+            );
+
+            if (stockBalanceRows.length > 0) {
               BplusPrinting.printReport(
                 this.state.reportParams.title,
                 this.state.reportParams.type,
                 this.props.report.data,
-                this.props.report.data.RESULT,
+                stockBalanceRows,
                 userToken.VANCONFIG,
                 userToken.COMPANYINFO,
                 resolvedSalesman,

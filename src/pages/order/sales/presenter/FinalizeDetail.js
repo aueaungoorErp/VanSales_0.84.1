@@ -52,6 +52,8 @@ const FinalizeDetail = (props) => {
     shipDate,
     setExpiryDate,
     expiryDate,
+    setDueDate,
+    dueDate,
     setReturnType,
     returnType,
     returnItems,
@@ -553,6 +555,19 @@ const FinalizeDetail = (props) => {
                 />
               </Form>
             </View>
+
+            {arOrderType === 'ขายสินค้า' ? (
+              <View style={styles.lineSection}>
+                <Text
+                  style={{flex: 0.2, fontSize: hp('1.7%')}}
+                  allowFontScaling={false}>
+                  วันครบกำหนด
+                </Text>
+                <View style={{flex: 0.8}}>
+                  <IDatePicker value={dueDate} onDateChange={setDueDate} />
+                </View>
+              </View>
+            ) : null}
 
             {arOrderType === 'ขายสินค้า' ? (
               <View style={styles.lineSection}>

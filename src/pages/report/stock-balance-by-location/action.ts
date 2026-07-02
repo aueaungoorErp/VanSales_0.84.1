@@ -91,6 +91,10 @@ export const normalizeStockBalanceByLocationPayload = (
   };
 };
 
+export const getStockBalanceByLocationReportRows = (
+  reportData: AnyRecord | null | undefined,
+) => (Array.isArray(reportData?.RESULT) ? reportData.RESULT : []);
+
 export const getStockBalanceByLocation =
   (criteria: {FROM: string; TO?: string}) => (dispatch: Dispatch) => {
     return new Promise(async (resolve, reject) => {

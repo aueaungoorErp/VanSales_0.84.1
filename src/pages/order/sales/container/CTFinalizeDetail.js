@@ -22,6 +22,7 @@ import {
   setDisCountType1,
   setDisCountType2,
   setHeaderProcessedShipDate,
+  setDueDate,
   setVDIRemark,
   updateOrderSale,
 } from '../../../../action/order';
@@ -49,8 +50,13 @@ import {
 } from '../../../../utils/Token';
 import {
   applyDefaultDocDatesToHeader,
-  shouldFetchDefaultDocDates,
+  shouldLoadDefaultBookingExpiryDates,
 } from '../../../../utils/docSwitchDates';
+import {
+  loadCustomerDueDateFromErp,
+  updateSelectedCustomerDueDate,
+} from '../../../../action/customerSelect';
+import { formatDisplayDateToErpYyyymmdd } from '../../../../utils/customerDueDate';
 
 import { setIsSubmit as setCheckInIsSubmit } from '../../../../action/check-in';
 import { setIsSubmit as setMileIsSubmit } from '../../../../action/mile';
@@ -73,6 +79,7 @@ class CTFinalizeDetail extends Component {
       returnType: null,
       shipDate: moment().format('DD/MM/YYYY'),
       expiryDate: moment().format('DD/MM/YYYY'),
+      dueDate: moment().format('DD/MM/YYYY'),
       saleDisable: false,
       returnDisable: false,
       userToken: null,
@@ -87,6 +94,9 @@ class CTFinalizeDetail extends Component {
     this._isMounted = true;
 
     this._applyDefaultDocDatesFromRoute();
+
+    await this._fetchDueDateIfNeeded();
+    this._syncDueDateFromStore();
 
     await this._getUserToken();
 
@@ -129,26 +139,50 @@ class CTFinalizeDetail extends Component {
   _applyDefaultDocDatesFromRoute = () => {
     const arOrderType = this.props.order.header.AR_ORDER_TYPE;
 
-    if (!shouldFetchDefaultDocDates(arOrderType)) {
+    if (!shouldLoadDefaultBookingExpiryDates(arOrderType)) {
       return;
     }
 
     const defaultDocDates = this._getRouteDefaultDocDates();
 
     if (!defaultDocDates?.shipDate || !defaultDocDates?.expiryDate) {
-      console.log('[getDocSwitch] sales Finalize missing route dates', {
+      console.log('[loadDefaultBookingExpiryDates] sales Finalize missing route dates', {
         arOrderType,
       });
       return;
     }
 
-    console.log('[getDocSwitch] sales Finalize apply route dates', defaultDocDates);
+    console.log('[loadDefaultBookingExpiryDates] sales Finalize apply route dates', defaultDocDates);
 
     this.setState({
       shipDate: defaultDocDates.shipDate,
       expiryDate: defaultDocDates.expiryDate,
     });
     applyDefaultDocDatesToHeader(this.props.order.header, defaultDocDates);
+  };
+
+  _syncDueDateFromStore = () => {
+    const storedDueDate = this.props.customerSelect?.dueDate;
+
+    if (!storedDueDate?.display || !storedDueDate?.yyyymmdd) {
+      return;
+    }
+
+    this.setState({ dueDate: storedDueDate.display });
+    this.props.setDueDate(storedDueDate.yyyymmdd);
+    this.props.order.header.VDI_DUE_DATE = storedDueDate.yyyymmdd;
+  };
+
+  _fetchDueDateIfNeeded = async () => {
+    if (this.props.order.header.AR_ORDER_TYPE !== 'ขายสินค้า') {
+      return;
+    }
+
+    if (this.props.customerSelect?.dueDate?.display) {
+      return;
+    }
+
+    await this.props.loadCustomerDueDateFromErp();
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -164,6 +198,13 @@ class CTFinalizeDetail extends Component {
 
     if (nextProcessFail !== prevProcessFail && shouldShowProcessFail) {
       this._setErrorMessage(nextProcessFail);
+    }
+
+    if (
+      prevProps.customerSelect?.dueDate?.yyyymmdd !==
+      this.props.customerSelect?.dueDate?.yyyymmdd
+    ) {
+      this._syncDueDateFromStore();
     }
 
     const processResultChanged =
@@ -1516,6 +1557,23 @@ class CTFinalizeDetail extends Component {
       }));
   };
 
+  _setDueDate = async value => {
+    const yyyymmdd = formatDisplayDateToErpYyyymmdd(value);
+
+    if (!yyyymmdd) {
+      return;
+    }
+
+    this._isMounted &&
+      (await this.setState({
+        dueDate: value,
+      }));
+
+    this.props.updateSelectedCustomerDueDate(value);
+    this.props.setDueDate(yyyymmdd);
+    this.props.order.header.VDI_DUE_DATE = yyyymmdd;
+  };
+
   _setSaleDisable = async value => {
     this._isMounted &&
       (await this.setState(oldState => {
@@ -1674,6 +1732,7 @@ class CTFinalizeDetail extends Component {
         setDisType2={this._setDisType2}
         setShipDate={this._setShipDate}
         setExpiryDate={this._setExpiryDate}
+        setDueDate={this._setDueDate}
         setVDIRemark={this._setVDIRemark} //หมายเหตุ
         buttonListItems={productFinalizeFormButtonGroup}
         renderItem={this._renderItem}
@@ -1685,6 +1744,7 @@ class CTFinalizeDetail extends Component {
         setPaymentType={this._setPaymentType}
         shipDate={this.state.shipDate}
         expiryDate={this.state.expiryDate}
+        dueDate={this.state.dueDate}
         setReturnType={this._setReturnType}
         returnType={this.state.returnType}
         returnItems={returnLOVItems}
@@ -1701,6 +1761,7 @@ const mapStateToProps = state => ({
   bluetooth: state.bluetooth,
   order: state.order,
   customer: state.customer,
+  customerSelect: state.customerSelect,
   mile: state.mile,
   geolocation: state.geolocation,
   checkin: state.checkin,
@@ -1709,6 +1770,10 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => {
   return {
     setVDIRemark: value => dispatch(setVDIRemark(value)),
+    setDueDate: value => dispatch(setDueDate(value)),
+    loadCustomerDueDateFromErp: () => dispatch(loadCustomerDueDateFromErp()),
+    updateSelectedCustomerDueDate: value =>
+      dispatch(updateSelectedCustomerDueDate(value)),
     setDisBill1: value => dispatch(setDisBill1(value)),
     setDisBill2: value => dispatch(setDisBill2(value)),
     setDisCountType1: value => dispatch(setDisCountType1(value)),

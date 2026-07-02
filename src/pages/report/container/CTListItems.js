@@ -23,6 +23,7 @@ import {
   salesOrderBySaleman,
   stockBalanceByWL,
 } from '../../../constant/report-lov';
+import { getStockBalanceByLocationReportRows } from '../stock-balance-by-location/action';
 
 class CTListItems extends Component {
   _isMounted = false;
@@ -181,9 +182,7 @@ class CTListItems extends Component {
           : [];
       }
     } else if (this.state.reportParams.pattern === 'D') {
-      this.props.report.data && this.props.report.data.RESULT
-        ? (listData = this.props.report.data.RESULT)
-        : [];
+      listData = getStockBalanceByLocationReportRows(this.props.report.data);
     }
     console.log('listData ', JSON.stringify(listData));
     console.log(

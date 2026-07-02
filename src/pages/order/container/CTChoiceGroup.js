@@ -12,6 +12,7 @@ import {
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { serverReady } from '../../../api/setting';
+import { loadCustomerDueDateFromErp } from '../../../action/customerSelect';
 import { setHeader, setInitialState } from '../../../action/order';
 import { MainTheme, orderChoiceButtonGroup } from '../../../constant/lov';
 import Navigator from '../../../services/Navigator';
@@ -160,6 +161,10 @@ class CTChoiceGroup extends Component {
     await this.props.setInitialState();
     await this.props.setHeader(data);
 
+    if (item.title === 'ขายสินค้า') {
+      await this.props.loadCustomerDueDateFromErp();
+    }
+
     if (item.screen == 'OrderSurvey') {
       const supported = await Linking.canOpenURL(
         userToken.VANCONFIG.VANCNF_URL_SURVEY,
@@ -292,6 +297,7 @@ const mapDispatchToProps = dispatch => {
     setInitialState: data => dispatch(setInitialState(data)),
     setHeader: data => dispatch(setHeader(data)),
     serverReady: data => dispatch(serverReady(data)),
+    loadCustomerDueDateFromErp: () => dispatch(loadCustomerDueDateFromErp()),
   };
 };
 

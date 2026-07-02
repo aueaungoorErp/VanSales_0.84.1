@@ -27,6 +27,7 @@ import {
   setOrderItems,
   setVDIRemark,
 } from '../../../../action/order';
+import { loadCustomerDueDateFromErp } from '../../../../action/customerSelect';
 import { setInitialState as setProductInitialState } from '../../../../action/product';
 import { systemCheck } from '../../../../action/setting';
 import { serverReady } from '../../../../api/setting';
@@ -54,8 +55,8 @@ import {
   getUserToken,
 } from '../../../../utils/Token';
 import {
-  fetchDefaultDocDates,
-  shouldFetchDefaultDocDates,
+  loadDefaultBookingExpiryDates,
+  shouldLoadDefaultBookingExpiryDates,
 } from '../../../../utils/docSwitchDates';
 import ButtonGroup from '../presenter/ButtonGroup';
 
@@ -282,9 +283,9 @@ class CTButtonGroup extends Component {
             orderType: arOrderType,
           };
 
-          if (shouldFetchDefaultDocDates(arOrderType)) {
-            console.log('[getDocSwitch] check-stock ตกลง → fetch before Finalize');
-            navigateParams.defaultDocDates = await fetchDefaultDocDates(arOrderType);
+          if (shouldLoadDefaultBookingExpiryDates(arOrderType)) {
+            console.log('[loadDefaultBookingExpiryDates] check-stock ตกลง → fetch before Finalize');
+            navigateParams.defaultDocDates = await loadDefaultBookingExpiryDates(arOrderType);
           }
 
           Navigator.navigate(item.screen, navigateParams);
@@ -342,6 +343,7 @@ class CTButtonGroup extends Component {
         const data = generateHeader(this.props.customer.item.INFO, 'ขายสินค้า');
         // await this.props.setInitialState()
         await this.props.setHeader(data);
+        await this.props.loadCustomerDueDateFromErp();
 
         Navigator.pop(2, true);
 
@@ -961,6 +963,7 @@ const mapDispatchToProps = dispatch => {
     createQuotation: (data, V3GUID, vanConfig) =>
       dispatch(createQuotation(data, V3GUID, vanConfig)),
     setHeader: data => dispatch(setHeader(data)),
+    loadCustomerDueDateFromErp: () => dispatch(loadCustomerDueDateFromErp()),
     systemCheck: data => dispatch(systemCheck(data)),
     calculateOrderProductSummary: () =>
       dispatch(calculateOrderProductSummary()),

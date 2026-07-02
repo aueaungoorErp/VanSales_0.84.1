@@ -47,6 +47,7 @@ import {
   getListServiceSetting,
   getLoginInfo,
 } from '../utils/Token';
+import { resolveOrderDueDateForSave } from '../utils/customerDueDate';
 import Request from '../utils/Request';
 import { getWareLocationStockBalance } from '../api/drop-point';
 
@@ -2341,9 +2342,10 @@ export const processOrderItem = vanConfig => (dispatch, getState) => {
               AR_CODE: order.header.AR_CODE,
               ARPRB_CODE: customer.item.ARPRB.ARPRB_CODE,
               ARD_TDSC_KEYIN: '0',
-              ARD_DUE_DA: moment(
-                moment(order.header.VDI_DATE).add(1, 'months'),
-              ).format('YYYYMMDDhhmm'),
+              ARD_DUE_DA: resolveOrderDueDateForSave(
+                order.header,
+                getState().customerSelect,
+              ),
             },
             ImpTrhDetail: ImpTrhDetail,
             ImpTranPayd: [
@@ -2456,9 +2458,10 @@ export const processOrderItem = vanConfig => (dispatch, getState) => {
               AR_CODE: order.header.AR_CODE,
               ARPRB_CODE: customer.item.ARPRB.ARPRB_CODE,
               ARD_TDSC_KEYIN: '0',
-              ARD_DUE_DA: moment(
-                moment(order.header.VDI_DATE).add(1, 'months'),
-              ).format('YYYYMMDDhhmm'),
+              ARD_DUE_DA: resolveOrderDueDateForSave(
+                order.header,
+                getState().customerSelect,
+              ),
             },
             ImpTrhDetail: ImpTrhDetail,
           },
@@ -2530,9 +2533,10 @@ export const processOrderItem = vanConfig => (dispatch, getState) => {
               AR_CODE: order.header.AR_CODE,
               ARPRB_CODE: customer.item.ARPRB.ARPRB_CODE,
               ARD_TDSC_KEYIN: '0',
-              ARD_DUE_DA: moment(
-                moment(order.header.VDI_DATE).add(1, 'months'),
-              ).format('YYYYMMDDhhmm'),
+              ARD_DUE_DA: resolveOrderDueDateForSave(
+                order.header,
+                getState().customerSelect,
+              ),
             },
             ImpTrhDetail: ImpTrhDetail,
           },
@@ -2603,9 +2607,10 @@ export const processOrderItem = vanConfig => (dispatch, getState) => {
               AR_CODE: order.header.AR_CODE,
               ARPRB_CODE: customer.item.ARPRB.ARPRB_CODE,
               ARD_TDSC_KEYIN: '0',
-              ARD_DUE_DA: moment(
-                moment(order.header.VDI_DATE).add(1, 'months'),
-              ).format('YYYYMMDDhhmm'),
+              ARD_DUE_DA: resolveOrderDueDateForSave(
+                order.header,
+                getState().customerSelect,
+              ),
             },
             ImpTrhDetail: ImpTrhDetail,
             ImpTranPayd: [

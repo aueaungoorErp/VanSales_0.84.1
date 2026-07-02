@@ -5,8 +5,8 @@ import {
   ORDER_TYPE_QUOTATION,
 } from '../constant/orderTypes';
 import {
-  getDocSwitch,
-  parseDocSwitchResponseData,
+  fetchDocumentSwitchSettings,
+  parseDocumentSwitchResponse,
 } from '../api/LookupErpServices/lookup-erp-services';
 
 export const FALLBACK_DOC_EXPIRY_DAYS = 30;
@@ -14,17 +14,20 @@ export const FALLBACK_DOC_EXPIRY_DAYS = 30;
 export const DOC_SWITCH_FIELD_OE = 'DSW_OE_AGE';
 export const DOC_SWITCH_FIELD_PO = 'DSW_PO_AGE';
 
-export const shouldFetchDefaultDocDates = arOrderType =>
+export const shouldLoadDefaultBookingExpiryDates = arOrderType =>
   arOrderType === ORDER_TYPE_BOOKING ||
   arOrderType === ORDER_TYPE_QUOTATION ||
   arOrderType === 'เสนอราคา';
+
+/** @deprecated use shouldLoadDefaultBookingExpiryDates */
+export const shouldFetchDefaultDocDates = shouldLoadDefaultBookingExpiryDates;
 
 const toDays = value => {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 };
 
-const getDocSwitchRows = responseData => {
+const extractDocumentSwitchRowsFromParsedData = responseData => {
   if (!responseData || typeof responseData !== 'object') {
     return [];
   }
@@ -45,7 +48,7 @@ const getDocSwitchRows = responseData => {
   return Array.isArray(firstArray) ? firstArray : [];
 };
 
-const readDocSwitchField = (source, fieldName) => {
+const readDocumentSwitchField = (source, fieldName) => {
   if (!source || typeof source !== 'object') {
     return null;
   }
@@ -53,25 +56,31 @@ const readDocSwitchField = (source, fieldName) => {
   return toDays(source[fieldName]);
 };
 
-export const parseDocSwitchExpiryDays = responseData => {
-  const rows = getDocSwitchRows(responseData);
+export const extractDocumentExpiryDaysFromSettings = responseData => {
+  const rows = extractDocumentSwitchRowsFromParsedData(responseData);
   const firstRow = rows[0] ?? responseData;
 
-  console.log('[getDocSwitch] ResponseData parsed', JSON.stringify(responseData));
-  console.log('[getDocSwitch] rows', JSON.stringify(rows));
-  console.log('[getDocSwitch] firstRow keys', Object.keys(firstRow ?? {}));
+  console.log(
+    '[loadDefaultBookingExpiryDates] ResponseData parsed',
+    JSON.stringify(responseData),
+  );
+  console.log('[loadDefaultBookingExpiryDates] rows', JSON.stringify(rows));
+  console.log(
+    '[loadDefaultBookingExpiryDates] firstRow keys',
+    Object.keys(firstRow ?? {}),
+  );
 
   const oeDays =
-    readDocSwitchField(firstRow, DOC_SWITCH_FIELD_OE) ??
-    readDocSwitchField(responseData, DOC_SWITCH_FIELD_OE);
+    readDocumentSwitchField(firstRow, DOC_SWITCH_FIELD_OE) ??
+    readDocumentSwitchField(responseData, DOC_SWITCH_FIELD_OE);
   const poDays =
-    readDocSwitchField(firstRow, DOC_SWITCH_FIELD_PO) ??
-    readDocSwitchField(responseData, DOC_SWITCH_FIELD_PO);
+    readDocumentSwitchField(firstRow, DOC_SWITCH_FIELD_PO) ??
+    readDocumentSwitchField(responseData, DOC_SWITCH_FIELD_PO);
 
   const resolvedOeDays = oeDays ?? FALLBACK_DOC_EXPIRY_DAYS;
   const resolvedPoDays = poDays ?? FALLBACK_DOC_EXPIRY_DAYS;
 
-  console.log('[getDocSwitch] extracted days', {
+  console.log('[loadDefaultBookingExpiryDates] extracted days', {
     [DOC_SWITCH_FIELD_OE]: resolvedOeDays,
     [DOC_SWITCH_FIELD_PO]: resolvedPoDays,
   });
@@ -81,6 +90,9 @@ export const parseDocSwitchExpiryDays = responseData => {
     poDays: resolvedPoDays,
   };
 };
+
+/** @deprecated use extractDocumentExpiryDaysFromSettings */
+export const parseDocSwitchExpiryDays = extractDocumentExpiryDaysFromSettings;
 
 export const getExpiryDaysForOrderType = (arOrderType, parsedDays) => {
   const usesOeAge =
@@ -101,7 +113,7 @@ export const getExpiryDaysForOrderType = (arOrderType, parsedDays) => {
   };
 };
 
-export const buildDocDatesFromToday = days => {
+export const buildBookingExpiryDatesFromToday = days => {
   const safeDays =
     Number.isFinite(Number(days)) && Number(days) >= 0
       ? Number(days)
@@ -115,20 +127,23 @@ export const buildDocDatesFromToday = days => {
   };
 };
 
-export const fetchDefaultDocDates = async arOrderType => {
-  console.log('[getDocSwitch] fetchDefaultDocDates start', { arOrderType });
+/** @deprecated use buildBookingExpiryDatesFromToday */
+export const buildDocDatesFromToday = buildBookingExpiryDatesFromToday;
+
+export const loadDefaultBookingExpiryDates = async arOrderType => {
+  console.log('[loadDefaultBookingExpiryDates] start', { arOrderType });
 
   try {
-    const response = await getDocSwitch();
-    const responseData = parseDocSwitchResponseData(response);
-    const parsedDays = parseDocSwitchExpiryDays(responseData);
+    const response = await fetchDocumentSwitchSettings();
+    const responseData = parseDocumentSwitchResponse(response);
+    const parsedDays = extractDocumentExpiryDaysFromSettings(responseData);
     const { usedField, usedDays } = getExpiryDaysForOrderType(
       arOrderType,
       parsedDays,
     );
-    const dates = buildDocDatesFromToday(usedDays);
+    const dates = buildBookingExpiryDatesFromToday(usedDays);
 
-    console.log('[getDocSwitch] final dates', {
+    console.log('[loadDefaultBookingExpiryDates] final dates', {
       arOrderType,
       usedField,
       usedDays: dates.usedDays,
@@ -141,15 +156,18 @@ export const fetchDefaultDocDates = async arOrderType => {
       usedField,
     };
   } catch (error) {
-    console.log('[getDocSwitch] error, using fallback', {
+    console.log('[loadDefaultBookingExpiryDates] error, using fallback', {
       arOrderType,
       message: error?.message,
       fallbackDays: FALLBACK_DOC_EXPIRY_DAYS,
     });
 
-    return buildDocDatesFromToday(FALLBACK_DOC_EXPIRY_DAYS);
+    return buildBookingExpiryDatesFromToday(FALLBACK_DOC_EXPIRY_DAYS);
   }
 };
+
+/** @deprecated use loadDefaultBookingExpiryDates */
+export const fetchDefaultDocDates = loadDefaultBookingExpiryDates;
 
 export const applyDefaultDocDatesToHeader = (header, dates) => {
   if (!header || !dates?.shipDate || !dates?.expiryDate) {

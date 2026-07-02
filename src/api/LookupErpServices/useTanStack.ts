@@ -1,9 +1,23 @@
 import { useMutation } from '@tanstack/react-query';
-import { getDocSwitch } from './lookup-erp-services';
-import type { getDocSwitchParam } from './param';
+import {
+  fetchCustomerDueDateFromErp,
+  fetchDocumentSwitchSettings,
+} from './lookup-erp-services';
+import type {
+  FetchCustomerDueDateParam,
+  FetchDocumentSwitchSettingsParam,
+} from './param';
 
-export const useGetDocSwitch = () =>
+export const useFetchDocumentSwitchSettings = () =>
   useMutation({
-    mutationKey: ['lookup-erp-services', 'doc-switch'],
-    mutationFn: (params?: getDocSwitchParam) => getDocSwitch(params),
+    mutationKey: ['lookup-erp-services', 'document-switch-settings'],
+    mutationFn: (params?: FetchDocumentSwitchSettingsParam) =>
+      fetchDocumentSwitchSettings(params),
+  });
+
+export const useFetchCustomerDueDateFromErp = () =>
+  useMutation({
+    mutationKey: ['lookup-erp-services', 'customer-due-date'],
+    mutationFn: (params: FetchCustomerDueDateParam) =>
+      fetchCustomerDueDateFromErp(params),
   });

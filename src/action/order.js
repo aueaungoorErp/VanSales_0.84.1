@@ -29,6 +29,10 @@ import {
   generateItemsProcessedFromServer,
 } from '../utils/Order';
 import { getLoginGuID, getUserToken } from '../utils/Token';
+import {
+  resolveDocumentDateForCreditTerms,
+  resolveOrderDueDateForSave,
+} from '../utils/customerDueDate';
 
 const getQuotationExpiryMoment = header => {
   const expiryMoment = header?.VDI_EXP_DATE
@@ -64,6 +68,10 @@ export const setErrorMessage = value => dispatch => {
 
 export const setHeader = data => dispatch => {
   dispatch({ type: types.ORDER_SET_HEADER, payload: data });
+};
+
+export const setDueDate = value => dispatch => {
+  dispatch({ type: types.ORDER_SET_DUE_DATE, payload: value });
 };
 
 export const addProduct = item => dispatch => {
@@ -577,9 +585,10 @@ export const processOrderSale =
                   AR_CODE: order.header.AR_CODE,
                   ARPRB_CODE: customer.item.ARPRB.ARPRB_CODE,
                   ARD_TDSC_KEYIN: ARD_TDSC_KEYIN,
-                  ARD_DUE_DA: moment(
-                    moment(order.header.VDI_DATE).add(1, 'months'),
-                  ).format('YYYYMMDD'),
+                  ARD_DUE_DA: resolveOrderDueDateForSave(
+                    order.header,
+                    getState().customerSelect,
+                  ),
                 },
                 ImpTrhDetail: ImpTrhDetail,
                 ImpTranPayd: [data.ImpTranPayd],
@@ -951,9 +960,7 @@ export const createOrderSaleV3 =
           '{"AR_KEY":"' +
           order.header.VDI_KEY +
           '","ARCD_DATE":"' +
-          moment(moment(order.header.VDI_DATE).add(1, 'months')).format(
-            'YYYYMMDD',
-          ) +
+          resolveDocumentDateForCreditTerms(order.header) +
           '","ARCD_DEFAULT":"Y"}',
         'BPAPUS-FILTER': '',
         'BPAPUS-ORDERBY': '',
@@ -1035,9 +1042,10 @@ export const createOrderSaleV3 =
               ARPRB_CODE: customer.item.ARPRB.ARPRB_CODE,
               AROE_ARCD: ARCD_KEY, //ข้อตกลงเจ้าหนี้
               ARD_TDSC_KEYIN: ARD_TDSC_KEYIN,
-              ARD_DUE_DA: moment(
-                moment(order.header.VDI_DATE).add(1, 'months'),
-              ).format('YYYYMMDD'),
+              ARD_DUE_DA: resolveOrderDueDateForSave(
+                order.header,
+                getState().customerSelect,
+              ),
               DI_REMARK: order.header.VDI_REMARK,
             },
             ImpTrhDetail: ImpTrhDetail,
@@ -1395,9 +1403,7 @@ export const orderReservV3 =
           '{"AR_KEY":"' +
           order.header.VDI_KEY +
           '","ARCD_DATE":"' +
-          moment(moment(order.header.VDI_DATE).add(1, 'months')).format(
-            'YYYYMMDD',
-          ) +
+          resolveDocumentDateForCreditTerms(order.header) +
           '","ARCD_DEFAULT":"Y"}',
         'BPAPUS-FILTER': '',
         'BPAPUS-ORDERBY': '',
@@ -2061,9 +2067,7 @@ export const orderReturn =
           '{"AR_KEY":"' +
           order.header.VDI_KEY +
           '","ARCD_DATE":"' +
-          moment(moment(order.header.VDI_DATE).add(1, 'months')).format(
-            'YYYYMMDD',
-          ) +
+          resolveDocumentDateForCreditTerms(order.header) +
           '","ARCD_DEFAULT":""}',
         'BPAPUS-FILTER': '',
         'BPAPUS-ORDERBY': '',
@@ -2144,9 +2148,10 @@ export const orderReturn =
               ARPRB_CODE: customer.item.ARPRB.ARPRB_CODE,
               AROE_ARCD: ARCD_KEY, //ข้อตกลงเจ้าหนี้
               ARD_TDSC_KEYIN: ARD_TDSC_KEYIN,
-              ARD_DUE_DA: moment(
-                moment(order.header.VDI_DATE).add(1, 'months'),
-              ).format('YYYYMMDD'),
+              ARD_DUE_DA: resolveOrderDueDateForSave(
+                order.header,
+                getState().customerSelect,
+              ),
               DI_REMARK: order.header.VDI_REMARK,
             },
             ImpTrhDetail: ImpTrhDetail,
@@ -2954,9 +2959,7 @@ export const createQuotation =
           '{"AR_KEY":"' +
           order.header.VDI_KEY +
           '","ARCD_DATE":"' +
-          moment(moment(order.header.VDI_DATE).add(1, 'months')).format(
-            'YYYYMMDD',
-          ) +
+          resolveDocumentDateForCreditTerms(order.header) +
           '","ARCD_DEFAULT":""}',
         'BPAPUS-FILTER': '',
         'BPAPUS-ORDERBY': '',

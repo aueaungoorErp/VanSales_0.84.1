@@ -50,7 +50,7 @@ import {
 } from '../../../../utils/Token';
 import {
   applyDefaultDocDatesToHeader,
-  shouldFetchDefaultDocDates,
+  shouldLoadDefaultBookingExpiryDates,
 } from '../../../../utils/docSwitchDates';
 
 import { setIsSubmit as setCheckInIsSubmit } from '../../../../action/check-in';
@@ -124,20 +124,20 @@ class CTFinalizeDetail extends Component {
   _applyDefaultDocDatesFromRoute = () => {
     const arOrderType = this.props.order.header.AR_ORDER_TYPE;
 
-    if (!shouldFetchDefaultDocDates(arOrderType)) {
+    if (!shouldLoadDefaultBookingExpiryDates(arOrderType)) {
       return;
     }
 
     const defaultDocDates = this._getRouteDefaultDocDates();
 
     if (!defaultDocDates?.shipDate || !defaultDocDates?.expiryDate) {
-      console.log('[getDocSwitch] check-stock Finalize missing route dates', {
+      console.log('[loadDefaultBookingExpiryDates] check-stock Finalize missing route dates', {
         arOrderType,
       });
       return;
     }
 
-    console.log('[getDocSwitch] check-stock Finalize apply route dates', defaultDocDates);
+    console.log('[loadDefaultBookingExpiryDates] check-stock Finalize apply route dates', defaultDocDates);
 
     this.setState({
       shipDate: defaultDocDates.shipDate,

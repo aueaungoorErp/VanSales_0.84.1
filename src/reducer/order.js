@@ -32,6 +32,7 @@ const initialState = {
     VDI_MILE: null,
     VDI_SHIP_DATE: null,
     VDI_EXP_DATE: null,
+    VDI_DUE_DATE: null,
     VDI_MACHINE: null,
     VDI_DISC_1: null,
     VDI_DISC_2: null,
@@ -152,6 +153,14 @@ export const order = (state = initialState, action) => {
       return {...state, errorMessage: action.payload};
     case types.ORDER_SET_HEADER:
       return {...state, header: action.payload};
+    case types.ORDER_SET_DUE_DATE:
+      return {
+        ...state,
+        header: {
+          ...state.header,
+          VDI_DUE_DATE: action.payload,
+        },
+      };
     case types.ORDER_ADD_PRODUCT_ITEM:
       return {
         ...state,

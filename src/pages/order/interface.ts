@@ -61,6 +61,7 @@ export interface CustomerListDispatchProps {
   setError: (bool: boolean) => void;
   findCustomerById: (id?: string) => void;
   setCustomerInfo: (data: CustomerItem) => void;
+  setSelectedCustomer: (data: CustomerItem) => void;
   setCustomerType: (value: CustomerItem) => void;
   searchCustomerNextDestination: () => void;
 }

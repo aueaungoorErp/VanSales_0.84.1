@@ -2859,7 +2859,7 @@ const printStockBalanceByWL = (
     html += `<div style="font-size: 7px;" >ตน.เก็บ ${item.WL_CODE} : ${item.WL_NAME}</div>`;
 
     item.ITEMS.map((objChildren, index) => {
-      html += `<div style="font-size: 7px;" >ตน.เก็บ ${objChildren.SKU_CODE} : ${objChildren.SKU_NAME}</div>`;
+      html += `<div style="font-size: 7px;" >${objChildren.SKU_CODE} : ${objChildren.SKU_NAME}</div>`;
 
       let col1 =
         objChildren.WL_QTY_S != 0 &&

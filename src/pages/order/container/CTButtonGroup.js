@@ -42,8 +42,8 @@ import {
   getUserToken,
 } from '../../../utils/Token';
 import {
-  fetchDefaultDocDates,
-  shouldFetchDefaultDocDates,
+  loadDefaultBookingExpiryDates,
+  shouldLoadDefaultBookingExpiryDates,
 } from '../../../utils/docSwitchDates';
 import ButtonGroup from '../component/ButtonGroup';
 class CTButtonGroup extends Component {
@@ -220,10 +220,10 @@ class CTButtonGroup extends Component {
 
         if (
           item.screen === 'OrderSalesFinalize' &&
-          shouldFetchDefaultDocDates(arOrderType)
+          shouldLoadDefaultBookingExpiryDates(arOrderType)
         ) {
-          console.log('[getDocSwitch] sales ตกลง → fetch before Finalize');
-          navigateParams.defaultDocDates = await fetchDefaultDocDates(arOrderType);
+          console.log('[loadDefaultBookingExpiryDates] sales ตกลง → fetch before Finalize');
+          navigateParams.defaultDocDates = await loadDefaultBookingExpiryDates(arOrderType);
         }
 
         Navigator.navigate(item.screen, navigateParams);

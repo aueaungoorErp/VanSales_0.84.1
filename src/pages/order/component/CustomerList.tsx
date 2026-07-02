@@ -23,6 +23,7 @@ import {
   setError,
   setInitialState,
 } from '../../../action/customer';
+import { setSelectedCustomer } from '../../../action/customerSelect';
 import { setCustomerType } from '../../../action/customer-type';
 import { setInitialState as setMileInitialState } from '../../../action/mile';
 import ErrorMessage from '../../../component/announce/ErrorMessage';
@@ -51,6 +52,7 @@ const CustomerListBase: React.FC<CustomerListProps> = ({
   searchCustomerList,
   searchCustomerNextDestination,
   setCustomerInfo,
+  setSelectedCustomer,
   setCustomerType,
   setCheckInInitialState,
   setMileInitialState,
@@ -91,6 +93,7 @@ const CustomerListBase: React.FC<CustomerListProps> = ({
 
         await findCustomerById(item.AR_KEY);
         setCustomerInfo(item);
+        setSelectedCustomer(item);
 
         setIsLoading(false);
 
@@ -129,6 +132,7 @@ const CustomerListBase: React.FC<CustomerListProps> = ({
     [
       findCustomerById,
       setCustomerInfo,
+      setSelectedCustomer,
       setCheckInInitialState,
       setMileInitialState,
       screen,
@@ -359,6 +363,9 @@ const mapDispatchToProps = (dispatch: any): CustomerListDispatchProps => {
     findCustomerById: id => dispatch(findCustomerById(id)),
     setCustomerInfo: data => {
       dispatch(setCustomerInfo(data));
+    },
+    setSelectedCustomer: data => {
+      dispatch(setSelectedCustomer(data));
     },
     setCustomerType: value => dispatch(setCustomerType(value)),
     searchCustomerNextDestination: () => {
