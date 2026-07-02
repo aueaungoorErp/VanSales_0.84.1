@@ -1,6 +1,6 @@
 //import React from 'react';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -194,6 +194,18 @@ const PaymentForm = props => {
     }));
   // console.log("bankAccount4 >>", bankFiles)
 
+  useEffect(() => {
+    console.log('[PaymentForm][Cheque] source bankFileListItems', {
+      rawCount: safeBankFileListItems.length,
+      selectedBankFileItem: bankFileItem,
+      rawSample: safeBankFileListItems.slice(0, 5),
+    });
+    console.log('[PaymentForm][Cheque] mapped bankFiles for picker', {
+      pickerCount: bankFiles.length,
+      pickerItems: bankFiles,
+    });
+  }, [bankFileListItems, bankFileItem]);
+
   const bankAccount = Object.values(
     safeListBankAccountItem
       .sort((a, b) => {
@@ -278,6 +290,8 @@ const PaymentForm = props => {
   const showQrCodeOption = true;
   const showChequeCard = safeUserToken.VANCONFIG.VANCNF_CHEQUE === 2;
   const showOtherCard = safeUserToken.VANCONFIG.VANCNF_BANK_TRANSFER_USE !== 2;
+  const isChequeBankListReady = safeBankFileListItems.length > 0;
+  const chequeBankPickerKey = `cheque-bank-${safeBankFileListItems.length}-${checkedItems.item4 ? 'enabled' : 'disabled'}`;
 
   const getBorderlessPickerStyle = enabled => ({
     iconContainer: {
@@ -1325,14 +1339,20 @@ const PaymentForm = props => {
                     ]}
                   >
                     <RNPickerSelect
+                      key={chequeBankPickerKey}
                       items={bankFiles}
-                      disabled={!checkedItems.item4}
+                      disabled={!checkedItems.item4 || !isChequeBankListReady}
                       onValueChange={value => {
                         setBankFileItem ? setBankFileItem(value) : null;
                       }}
                       value={checkedItems.item4 == true ? bankFileItem : null}
                       style={getBorderlessPickerStyle(checkedItems.item4)}
-                      placeholder={{ label: 'เลือก', value: null }}
+                      placeholder={{
+                        label: isChequeBankListReady
+                          ? 'เลือก'
+                          : 'กำลังโหลดข้อมูลธนาคาร...',
+                        value: null,
+                      }}
                       placeholderTextColor={
                         checkedItems.item4
                           ? '#808080'
@@ -1356,6 +1376,14 @@ const PaymentForm = props => {
                     />
                   </Form>
                 </Item>
+                {checkedItems.item4 && !isChequeBankListReady ? (
+                  <Text
+                    allowFontScaling={false}
+                    style={styles.chequeLoadingText}
+                  >
+                    กำลังโหลดข้อมูลธนาคารเช็ค...
+                  </Text>
+                ) : null}
 
                 <Item
                   style={[
@@ -2136,6 +2164,14 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: 'center',
     backgroundColor: 'transparent',
+  },
+  chequeLoadingText: {
+    marginHorizontal: 14,
+    marginTop: -4,
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    color: '#808080',
+    fontSize: 12,
   },
   checkBoxSection: {
     minHeight: 56,

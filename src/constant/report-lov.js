@@ -4676,49 +4676,15 @@ export const stockBalanceByWL = {
     return (
       <ListItem
         title={
-          <View style={{flexDirection: 'row'}}>
+          <View style={{paddingVertical: 4}}>
             <Text
               style={{
-                flex: 1,
                 color: MainTheme.colorSecondary,
                 fontSize: hp(fontDefault),
-                textAlign: 'right',
               }}
               allowFontScaling={false}>
-              จำนวน หน่วย
+              รายชื่อสินค้า / คงเหลือ / ค้างรับ / ค้างส่ง
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-                textAlign: 'right',
-              }}
-              allowFontScaling={false}>
-              จำนวน หน่วย
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-                textAlign: 'right',
-              }}
-              allowFontScaling={false}>
-              จำนวน หน่วย
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-                textAlign: 'right',
-              }}
-              allowFontScaling={false}>
-              จำนวนค้างส่ง
-            </Text>
-            {/* <Text style={{ width: 120, textAlign: 'right', color: MainTheme.colorSecondary, fontSize: hp(fontDefault) }} allowFontScaling={false} >จำนวนคงเหลือ</Text>
-                        <Text style={{ width: 120, textAlign: 'right', color: MainTheme.colorSecondary, fontSize: hp(fontDefault) }} allowFontScaling={false} >จำนวนค้างส่ง</Text> */}
           </View>
         }
         containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
@@ -4727,6 +4693,16 @@ export const stockBalanceByWL = {
     );
   },
   renderItem: ({item}) => {
+    const formatQty = (qty, unitName) => {
+      const numericQty = parseFloat(String(qty ?? 0));
+      const safeQty = Number.isFinite(numericQty) ? numericQty : 0;
+      const formattedQty = safeQty
+        .toFixed(0)
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+      return unitName ? `${formattedQty} ${unitName}` : formattedQty;
+    };
+
     return (
       <ListItem
         title={
@@ -4749,105 +4725,79 @@ export const stockBalanceByWL = {
             </View>
 
             {item.ITEMS.map((row, i) => {
-              let col1 =
-                row.WL_QTY_S !== 0 && row.SKU_S_UTQ_NAME !== row.SKU_T_UTQ_NAME
-                  ? row.WL_QTY_S.toFixed(0).replace(
-                      /\B(?=(\d{3})+(?!\d))/g,
-                      ',',
-                    ) +
-                    ' ' +
-                    row.SKU_S_UTQ_NAME
-                  : null;
-              let col2 =
-                row.WL_QTY_T !== 0 && row.SKU_T_UTQ_NAME !== row.SKU_K_UTQ_NAME
-                  ? row.WL_QTY_T.toFixed(0).replace(
-                      /\B(?=(\d{3})+(?!\d))/g,
-                      ',',
-                    ) +
-                    ' ' +
-                    row.SKU_T_UTQ_NAME
-                  : null;
-              let col3 =
-                row.WL_QTY_K !== 0
-                  ? row.WL_QTY_K.toFixed(0).replace(
-                      /\B(?=(\d{3})+(?!\d))/g,
-                      ',',
-                    ) +
-                    ' ' +
-                    row.SKU_K_UTQ_NAME
-                  : null;
-
-              if (col2 !== null && col3 === null) {
-                col3 = col2;
-                col2 = null;
-              }
-
-              if (col1 !== null && col2 === null && col3 === null) {
-                col3 = col1;
-                col1 = null;
-              } else if (col1 !== null && col2 === null && col3 !== null) {
-                col2 = col1;
-                col1 = null;
-              }
-
-              if (col3 === null) {
-                col3 =
-                  row.WL_QTY_K.toFixed(0).replace(
-                    /\B(?=(\d{3})+(?!\d))/g,
-                    ',',
-                  ) +
-                  ' ' +
-                  row.SKU_K_UTQ_NAME;
-              }
+              const pendingQty = parseFloat(String(row.TRD_NX_QTY ?? 0));
+              const safePendingQty = Number.isFinite(pendingQty) ? pendingQty : 0;
+              const pendingReceiveQty = safePendingQty > 0 ? safePendingQty : 0;
+              const pendingDeliverQty = safePendingQty < 0 ? Math.abs(safePendingQty) : 0;
+              const remainQty = formatQty(row.WL_QTY_K, row.SKU_K_UTQ_NAME);
+              const pendingReceive = formatQty(
+                pendingReceiveQty,
+                row.SKU_K_UTQ_NAME,
+              );
+              const pendingDeliver = formatQty(
+                pendingDeliverQty,
+                row.SKU_K_UTQ_NAME,
+              );
 
               return (
-                <View key={i}>
-                  <View style={{flexDirection: 'row', padding: 15}}>
+                <View
+                  key={i}
+                  style={{
+                    marginHorizontal: 12,
+                    marginVertical: 8,
+                    padding: 14,
+                    borderWidth: 1,
+                    borderColor: '#E1E8EC',
+                    borderRadius: 12,
+                    backgroundColor: '#FFFFFF',
+                  }}>
+                  <View style={{paddingBottom: 10}}>
                     <Text
-                      style={{flex: 1, fontSize: hp(fontDefault)}}
+                      style={{
+                        fontSize: hp(fontDefault),
+                        color: MainTheme.colorPrimary,
+                      }}
                       allowFontScaling={false}>
                       {row.SKU_CODE} : {row.SKU_NAME}
                     </Text>
                   </View>
-                  <View style={{flexDirection: 'row', padding: 15}}>
-                    <Text
-                      style={{
-                        flex: 1,
-                        fontSize: hp(fontDefault),
-                        textAlign: 'right',
-                      }}
-                      allowFontScaling={false}>
-                      {col1}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      paddingVertical: 4,
+                    }}>
+                    <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                      คงเหลือ
                     </Text>
-                    <Text
-                      style={{
-                        flex: 1,
-                        fontSize: hp(fontDefault),
-                        textAlign: 'right',
-                      }}
-                      allowFontScaling={false}>
-                      {col2}
+                    <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                      {remainQty}
                     </Text>
-                    <Text
-                      style={{
-                        flex: 1,
-                        fontSize: hp(fontDefault),
-                        textAlign: 'right',
-                      }}
-                      allowFontScaling={false}>
-                      {col3}
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      paddingVertical: 4,
+                    }}>
+                    <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                      ค้างรับ
                     </Text>
-
-                    <Text
-                      style={{
-                        flex: 1,
-                        fontSize: hp(fontDefault),
-                        textAlign: 'right',
-                      }}
-                      allowFontScaling={false}>
-                      {row.TRD_NX_QTY !== 0
-                        ? row.TRD_NX_QTY + ' ' + row.SKU_K_UTQ_NAME
-                        : null}
+                    <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                      {pendingReceive}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      paddingTop: 4,
+                    }}>
+                    <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                      ค้างส่ง
+                    </Text>
+                    <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                      {pendingDeliver}
                     </Text>
                   </View>
                 </View>
@@ -4856,30 +4806,57 @@ export const stockBalanceByWL = {
 
             <View
               style={{
-                flexDirection: 'row',
                 backgroundColor: '#E5E4E2',
                 padding: 15,
               }}>
               <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp(fontDefault)}}
+                style={{
+                  fontSize: hp(fontDefault),
+                  color: MainTheme.colorPrimary,
+                  marginBottom: 8,
+                }}
                 allowFontScaling={false}>
-                {item.SUM_WL_QTY_S}
+                รวมตำแหน่งเก็บ
               </Text>
-              <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
-                {item.SUM_WL_QTY_T}
-              </Text>
-              <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
-                {item.SUM_WL_QTY_K}
-              </Text>
-              <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
-                {item.SUM_TRD_NX_QTY !== 0 ? item.SUM_TRD_NX_QTY : null}
-              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  paddingVertical: 4,
+                }}>
+                <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                  คงเหลือ
+                </Text>
+                <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                  {item.SUM_WL_QTY_K}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  paddingVertical: 4,
+                }}>
+                <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                  ค้างรับ
+                </Text>
+                <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                  {item.SUM_TRD_NX_QTY > 0 ? item.SUM_TRD_NX_QTY : 0}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  paddingTop: 4,
+                }}>
+                <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                  ค้างส่ง
+                </Text>
+                <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                  {item.SUM_TRD_NX_QTY < 0 ? Math.abs(item.SUM_TRD_NX_QTY) : 0}
+                </Text>
+              </View>
             </View>
           </View>
         }

@@ -115,8 +115,53 @@ export const getStockBalanceByLocation =
           warehouseLocationKey: -1,
         });
 
+        console.log(
+          '[Report][StockBalanceByWL] raw response',
+          JSON.stringify(response, null, 2),
+        );
+
         const normalizedPayload = normalizeStockBalanceByLocationPayload(
           response || {},
+        );
+
+        console.log(
+          '[Report][StockBalanceByWL] normalized payload',
+          JSON.stringify(normalizedPayload, null, 2),
+        );
+        console.log(
+          '[Report][StockBalanceByWL] normalized first warehouse items',
+          JSON.stringify(normalizedPayload?.RESULT?.[0]?.ITEMS || [], null, 2),
+        );
+        console.log(
+          '[Report][StockBalanceByWL] field guide',
+          JSON.stringify(
+            {
+              warehouse: {
+                WL_KEY: 'รหัสตำแหน่งเก็บ',
+                WL_CODE: 'โค้ดตำแหน่งเก็บ',
+                WL_NAME: 'ชื่อตำแหน่งเก็บ',
+              },
+              row: {
+                SKU_CODE: 'รหัสสินค้า',
+                SKU_NAME: 'ชื่อสินค้า',
+                WL_QTY_S: 'คงเหลือหน่วยเล็ก',
+                WL_QTY_T: 'คงเหลือหน่วยกลาง',
+                WL_QTY_K: 'คงเหลือหน่วยใหญ่',
+                SKU_S_UTQ_NAME: 'ชื่อหน่วยเล็ก',
+                SKU_T_UTQ_NAME: 'ชื่อหน่วยกลาง',
+                SKU_K_UTQ_NAME: 'ชื่อหน่วยใหญ่',
+                TRD_NX_QTY: 'จำนวนค้างส่ง',
+              },
+              summary: {
+                SUM_WL_QTY_S: 'รวมคงเหลือหน่วยเล็ก',
+                SUM_WL_QTY_T: 'รวมคงเหลือหน่วยกลาง',
+                SUM_WL_QTY_K: 'รวมคงเหลือหน่วยใหญ่',
+                SUM_TRD_NX_QTY: 'รวมค้างส่ง',
+              },
+            },
+            null,
+            2,
+          ),
         );
 
         dispatch({

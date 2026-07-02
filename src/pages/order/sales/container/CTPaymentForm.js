@@ -246,6 +246,39 @@ class CTPaymentForm extends Component {
     ) {
       this._syncPaymentAmountError();
     }
+
+    if (
+      prevProps.masterData?.bankFileListItems !==
+      this.props.masterData?.bankFileListItems
+    ) {
+      const rawBankFileListItems = Array.isArray(
+        this.props.masterData?.bankFileListItems,
+      )
+        ? this.props.masterData.bankFileListItems
+        : [];
+
+      console.log('[Payment][Cheque] masterData.bankFileListItems changed', {
+        count: rawBankFileListItems.length,
+        selectedBankFileItem: this.state.paymentCheque.bankFileItem,
+        sample: rawBankFileListItems.slice(0, 5),
+      });
+    }
+
+    if (
+      prevState.paymentCheque.bankFileItem !==
+        this.state.paymentCheque.bankFileItem ||
+      prevState.paymentCheque.chequeNo !== this.state.paymentCheque.chequeNo ||
+      prevState.paymentCheque.chequeDate !==
+        this.state.paymentCheque.chequeDate ||
+      prevState.paymentCheque.chequein !== this.state.paymentCheque.chequein
+    ) {
+      console.log('[Payment][Cheque] paymentCheque state changed', {
+        bankFileItem: this.state.paymentCheque.bankFileItem,
+        chequeNo: this.state.paymentCheque.chequeNo,
+        chequeDate: this.state.paymentCheque.chequeDate,
+        chequein: this.state.paymentCheque.chequein,
+      });
+    }
   }
 
   //   componentDidMount() {
@@ -329,7 +362,8 @@ class CTPaymentForm extends Component {
       ]);
       const mergedUserToken = {
         ...(userToken ?? {}),
-        COMPANYINFO: userToken?.COMPANYINFO ?? settingConfig?.COMPANYINFO ?? null,
+        COMPANYINFO:
+          userToken?.COMPANYINFO ?? settingConfig?.COMPANYINFO ?? null,
         SALESMAN: userToken?.SALESMAN ?? settingConfig?.SALESMAN ?? null,
         VANCONFIG: userToken?.VANCONFIG ?? settingConfig?.VANCONFIG ?? null,
       };
@@ -2965,6 +2999,9 @@ class CTPaymentForm extends Component {
     //  console.log("headerProcessed header26", this.props.order.header);
 
     const totalPrice = this._getResolvedOrderAmount();
+    const bankFileListItems = Array.isArray(this.props.masterData?.bankFileListItems)
+      ? this.props.masterData.bankFileListItems
+      : [];
 
     //console.log("headerProcessed header25", totalPrice );
 
@@ -2983,7 +3020,7 @@ class CTPaymentForm extends Component {
           successMessage={this.state.successMessage}
           errorMessage={this.state.errorMessage}
           isLoading={this.state.isLoading}
-          bankFileListItems={this.props.masterData.bankFileListItems}
+          bankFileListItems={bankFileListItems}
           bankAccountListItems={this.props.masterData.bankAccountListItems}
           setBankFileItem={this._setBankFileItem}
           setBankAccountItem={this._setBankAccountItem}
