@@ -284,7 +284,7 @@ class CTButtonGroup extends Component {
 
           if (shouldFetchDefaultDocDates(arOrderType)) {
             console.log('[getDocSwitch] check-stock ตกลง → fetch before Finalize');
-            navigateParams.defaultDocDates = await fetchDefaultDocDates();
+            navigateParams.defaultDocDates = await fetchDefaultDocDates(arOrderType);
           }
 
           Navigator.navigate(item.screen, navigateParams);

@@ -4,9 +4,15 @@ import {
   ORDER_TYPE_BOOKING,
   ORDER_TYPE_QUOTATION,
 } from '../constant/orderTypes';
-import { getDocSwitch } from '../api/docSwitch';
+import {
+  getDocSwitch,
+  parseDocSwitchResponseData,
+} from '../api/LookupErpServices/lookup-erp-services';
 
 export const FALLBACK_DOC_EXPIRY_DAYS = 30;
+
+export const DOC_SWITCH_FIELD_OE = 'DSW_OE_AGE';
+export const DOC_SWITCH_FIELD_PO = 'DSW_PO_AGE';
 
 export const shouldFetchDefaultDocDates = arOrderType =>
   arOrderType === ORDER_TYPE_BOOKING ||
@@ -16,26 +22,6 @@ export const shouldFetchDefaultDocDates = arOrderType =>
 const toDays = value => {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
-};
-
-const pickNumericByKeyPattern = (record, patterns) => {
-  if (!record || typeof record !== 'object') {
-    return null;
-  }
-
-  for (const [key, value] of Object.entries(record)) {
-    const normalizedKey = String(key).toUpperCase();
-    const matches = patterns.some(pattern => normalizedKey.includes(pattern));
-
-    if (matches) {
-      const days = toDays(value);
-      if (days !== null) {
-        return days;
-      }
-    }
-  }
-
-  return null;
 };
 
 const getDocSwitchRows = responseData => {
@@ -75,43 +61,43 @@ export const parseDocSwitchExpiryDays = responseData => {
   console.log('[getDocSwitch] rows', JSON.stringify(rows));
   console.log('[getDocSwitch] firstRow keys', Object.keys(firstRow ?? {}));
 
-  let poDays =
-    readDocSwitchField(firstRow, 'DSW_PO_AGE') ??
-    readDocSwitchField(responseData, 'DSW_PO_AGE');
-  let bkDays =
-    readDocSwitchField(firstRow, 'DSW_OE_AGE') ??
-    readDocSwitchField(responseData, 'DSW_OE_AGE');
+  const oeDays =
+    readDocSwitchField(firstRow, DOC_SWITCH_FIELD_OE) ??
+    readDocSwitchField(responseData, DOC_SWITCH_FIELD_OE);
+  const poDays =
+    readDocSwitchField(firstRow, DOC_SWITCH_FIELD_PO) ??
+    readDocSwitchField(responseData, DOC_SWITCH_FIELD_PO);
 
-  if (poDays === null || bkDays === null) {
-    const poPatterns = ['PO_AGE', 'PO', 'PURCHASE'];
-    const bkPatterns = ['OE_AGE', 'BK', 'BOOK', 'RESERV', 'RESERVE'];
-
-    poDays =
-      poDays ??
-      pickNumericByKeyPattern(firstRow, poPatterns) ??
-      pickNumericByKeyPattern(responseData, poPatterns);
-    bkDays =
-      bkDays ??
-      pickNumericByKeyPattern(firstRow, bkPatterns) ??
-      pickNumericByKeyPattern(responseData, bkPatterns);
-  }
-
-  const resolvedBkDays = bkDays ?? poDays ?? FALLBACK_DOC_EXPIRY_DAYS;
-  const resolvedPoDays = poDays ?? bkDays ?? FALLBACK_DOC_EXPIRY_DAYS;
+  const resolvedOeDays = oeDays ?? FALLBACK_DOC_EXPIRY_DAYS;
+  const resolvedPoDays = poDays ?? FALLBACK_DOC_EXPIRY_DAYS;
 
   console.log('[getDocSwitch] extracted days', {
-    poDays: resolvedPoDays,
-    bkDays: resolvedBkDays,
-    usedDays: resolvedBkDays,
-    parseSource: {
-      DSW_PO_AGE: poDays,
-      DSW_OE_AGE: bkDays,
-    },
+    [DOC_SWITCH_FIELD_OE]: resolvedOeDays,
+    [DOC_SWITCH_FIELD_PO]: resolvedPoDays,
   });
 
   return {
+    oeDays: resolvedOeDays,
     poDays: resolvedPoDays,
-    bkDays: resolvedBkDays,
+  };
+};
+
+export const getExpiryDaysForOrderType = (arOrderType, parsedDays) => {
+  const usesOeAge =
+    arOrderType === ORDER_TYPE_BOOKING ||
+    arOrderType === ORDER_TYPE_QUOTATION ||
+    arOrderType === 'เสนอราคา';
+
+  if (usesOeAge) {
+    return {
+      usedField: DOC_SWITCH_FIELD_OE,
+      usedDays: parsedDays?.oeDays ?? FALLBACK_DOC_EXPIRY_DAYS,
+    };
+  }
+
+  return {
+    usedField: DOC_SWITCH_FIELD_PO,
+    usedDays: parsedDays?.poDays ?? FALLBACK_DOC_EXPIRY_DAYS,
   };
 };
 
@@ -129,28 +115,34 @@ export const buildDocDatesFromToday = days => {
   };
 };
 
-export const fetchDefaultDocDates = async () => {
-  console.log('[getDocSwitch] fetchDefaultDocDates start');
+export const fetchDefaultDocDates = async arOrderType => {
+  console.log('[getDocSwitch] fetchDefaultDocDates start', { arOrderType });
 
   try {
     const response = await getDocSwitch();
-    const responseData =
-      typeof response?.ResponseData === 'string'
-        ? JSON.parse(response.ResponseData)
-        : response?.ResponseData;
-
-    const { bkDays } = parseDocSwitchExpiryDays(responseData);
-    const dates = buildDocDatesFromToday(bkDays);
+    const responseData = parseDocSwitchResponseData(response);
+    const parsedDays = parseDocSwitchExpiryDays(responseData);
+    const { usedField, usedDays } = getExpiryDaysForOrderType(
+      arOrderType,
+      parsedDays,
+    );
+    const dates = buildDocDatesFromToday(usedDays);
 
     console.log('[getDocSwitch] final dates', {
+      arOrderType,
+      usedField,
       usedDays: dates.usedDays,
       shipDate: dates.shipDate,
       expiryDate: dates.expiryDate,
     });
 
-    return dates;
+    return {
+      ...dates,
+      usedField,
+    };
   } catch (error) {
     console.log('[getDocSwitch] error, using fallback', {
+      arOrderType,
       message: error?.message,
       fallbackDays: FALLBACK_DOC_EXPIRY_DAYS,
     });
