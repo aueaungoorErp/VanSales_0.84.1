@@ -4725,18 +4725,14 @@ export const stockBalanceByWL = {
             </View>
 
             {item.ITEMS.map((row, i) => {
-              const pendingQty = parseFloat(String(row.TRD_NX_QTY ?? 0));
-              const safePendingQty = Number.isFinite(pendingQty) ? pendingQty : 0;
-              const pendingReceiveQty = safePendingQty > 0 ? safePendingQty : 0;
-              const pendingDeliverQty = safePendingQty < 0 ? Math.abs(safePendingQty) : 0;
               const remainQty = formatQty(row.WL_QTY_K, row.SKU_K_UTQ_NAME);
               const pendingReceive = formatQty(
-                pendingReceiveQty,
-                row.SKU_K_UTQ_NAME,
+                row.PENDING_RECEIVE_QTY,
+                row.PREFERRED_UTQ_NAME || row.SKU_K_UTQ_NAME,
               );
               const pendingDeliver = formatQty(
-                pendingDeliverQty,
-                row.SKU_K_UTQ_NAME,
+                row.PENDING_SEND_QTY,
+                row.PREFERRED_UTQ_NAME || row.SKU_K_UTQ_NAME,
               );
 
               return (
@@ -4841,7 +4837,11 @@ export const stockBalanceByWL = {
                   ค้างรับ
                 </Text>
                 <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                  {item.SUM_TRD_NX_QTY > 0 ? item.SUM_TRD_NX_QTY : 0}
+                  {formatQty(
+                    item.SUM_PENDING_RECEIVE_QTY,
+                    item.ITEMS?.[0]?.PREFERRED_UTQ_NAME ||
+                      item.ITEMS?.[0]?.SKU_K_UTQ_NAME,
+                  )}
                 </Text>
               </View>
               <View
@@ -4854,7 +4854,11 @@ export const stockBalanceByWL = {
                   ค้างส่ง
                 </Text>
                 <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                  {item.SUM_TRD_NX_QTY < 0 ? Math.abs(item.SUM_TRD_NX_QTY) : 0}
+                  {formatQty(
+                    item.SUM_PENDING_SEND_QTY,
+                    item.ITEMS?.[0]?.PREFERRED_UTQ_NAME ||
+                      item.ITEMS?.[0]?.SKU_K_UTQ_NAME,
+                  )}
                 </Text>
               </View>
             </View>

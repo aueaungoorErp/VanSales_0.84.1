@@ -19,6 +19,16 @@ const buildUnitLabel = (qty: number, unitName: string | null | undefined) => {
   return `${qty.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} ${unitName}`;
 };
 
+const getPreferredUnitName = (row: AnyRecord = {}) =>
+  row?.largeUnitName ??
+  row?.SKU_K_UTQ_NAME ??
+  row?.mediumUnitName ??
+  row?.SKU_T_UTQ_NAME ??
+  row?.smallUnitName ??
+  row?.SKU_S_UTQ_NAME ??
+  row?.unitName ??
+  '';
+
 export const normalizeStockBalanceByLocationPayload = (
   payload: AnyRecord = {},
 ) => {
@@ -42,8 +52,23 @@ export const normalizeStockBalanceByLocationPayload = (
       SUM_WL_QTY_S: 0,
       SUM_WL_QTY_T: 0,
       SUM_WL_QTY_K: 0,
+      SUM_PENDING_RECEIVE_QTY: 0,
+      SUM_PENDING_SEND_QTY: 0,
       SUM_TRD_NX_QTY: 0,
     };
+
+    const pendingReceiveQty = toSafeNumber(
+      row?.pendingReceiveQty ?? row?.PENDING_RECEIVE_QTY ?? 0,
+    );
+    const pendingSendQty = toSafeNumber(
+      row?.pendingSendQty ?? row?.PENDING_SEND_QTY ?? 0,
+    );
+    const pendingDocumentQty = toSafeNumber(
+      row?.pendingDocumentQty ??
+        row?.TRD_NX_QTY ??
+        (pendingReceiveQty - pendingSendQty),
+    );
+    const preferredUnitName = getPreferredUnitName(row);
 
     const normalizedRow = {
       SKU_CODE: row?.skuCode ?? row?.SKU_CODE ?? '-',
@@ -57,36 +82,70 @@ export const normalizeStockBalanceByLocationPayload = (
       WL_QTY_K: toSafeNumber(
         row?.largeWarehouseQty ?? row?.WL_QTY_K ?? row?.warehouseQty,
       ),
-      SKU_S_UTQ_NAME: row?.smallUnitName ?? row?.SKU_S_UTQ_NAME ?? row?.unitName ?? '',
-      SKU_T_UTQ_NAME: row?.mediumUnitName ?? row?.SKU_T_UTQ_NAME ?? row?.unitName ?? '',
-      SKU_K_UTQ_NAME: row?.largeUnitName ?? row?.SKU_K_UTQ_NAME ?? row?.unitName ?? '',
-      TRD_NX_QTY: toSafeNumber(
-        row?.pendingDocumentQty ?? row?.TRD_NX_QTY ?? 0,
-      ),
+      SKU_S_UTQ_NAME:
+        row?.smallUnitName ?? row?.SKU_S_UTQ_NAME ?? row?.unitName ?? '',
+      SKU_T_UTQ_NAME:
+        row?.mediumUnitName ?? row?.SKU_T_UTQ_NAME ?? row?.unitName ?? '',
+      SKU_K_UTQ_NAME:
+        row?.largeUnitName ?? row?.SKU_K_UTQ_NAME ?? row?.unitName ?? '',
+      PENDING_RECEIVE_QTY: pendingReceiveQty,
+      PENDING_SEND_QTY: pendingSendQty,
+      PREFERRED_UTQ_NAME: preferredUnitName,
+      TRD_NX_QTY: pendingDocumentQty,
     };
 
     existingWarehouse.ITEMS.push(normalizedRow);
     existingWarehouse.SUM_WL_QTY_S += normalizedRow.WL_QTY_S;
     existingWarehouse.SUM_WL_QTY_T += normalizedRow.WL_QTY_T;
     existingWarehouse.SUM_WL_QTY_K += normalizedRow.WL_QTY_K;
+    existingWarehouse.SUM_PENDING_RECEIVE_QTY += normalizedRow.PENDING_RECEIVE_QTY;
+    existingWarehouse.SUM_PENDING_SEND_QTY += normalizedRow.PENDING_SEND_QTY;
     existingWarehouse.SUM_TRD_NX_QTY += normalizedRow.TRD_NX_QTY;
 
     groupedByWarehouse.set(key, existingWarehouse);
   });
 
   const result = Array.from(groupedByWarehouse.values());
+  const summaryTotal = payload?.summary?.total ?? {};
+  const preferredSummaryUnitName =
+    result[0]?.ITEMS?.[0]?.PREFERRED_UTQ_NAME ||
+    result[0]?.ITEMS?.[0]?.SKU_K_UTQ_NAME ||
+    '';
 
   return {
     ...payload,
     RESULT: result,
     GROUP_COUNT: result.length,
     SUM_ALL_WL_QTY: buildUnitLabel(
-      result.reduce((sum, row) => sum + toSafeNumber(row.SUM_WL_QTY_K), 0),
-      result[0]?.ITEMS?.[0]?.SKU_K_UTQ_NAME || '',
+      toSafeNumber(
+        summaryTotal?.warehouseQty ??
+          result.reduce((sum, row) => sum + toSafeNumber(row.SUM_WL_QTY_K), 0),
+      ),
+      preferredSummaryUnitName,
+    ),
+    SUM_ALL_PENDING_RECEIVE_QTY: buildUnitLabel(
+      toSafeNumber(
+        summaryTotal?.pendingReceiveQty ??
+          result.reduce(
+            (sum, row) => sum + toSafeNumber(row.SUM_PENDING_RECEIVE_QTY),
+            0,
+          ),
+      ),
+      preferredSummaryUnitName,
+    ),
+    SUM_ALL_PENDING_SEND_QTY: buildUnitLabel(
+      toSafeNumber(
+        summaryTotal?.pendingSendQty ??
+          result.reduce(
+            (sum, row) => sum + toSafeNumber(row.SUM_PENDING_SEND_QTY),
+            0,
+          ),
+      ),
+      preferredSummaryUnitName,
     ),
     SUM_ALL_TRD_NX_QTY: buildUnitLabel(
       result.reduce((sum, row) => sum + toSafeNumber(row.SUM_TRD_NX_QTY), 0),
-      result[0]?.ITEMS?.[0]?.SKU_K_UTQ_NAME || '',
+      preferredSummaryUnitName,
     ),
   };
 };
@@ -154,13 +213,17 @@ export const getStockBalanceByLocation =
                 SKU_S_UTQ_NAME: 'ชื่อหน่วยเล็ก',
                 SKU_T_UTQ_NAME: 'ชื่อหน่วยกลาง',
                 SKU_K_UTQ_NAME: 'ชื่อหน่วยใหญ่',
-                TRD_NX_QTY: 'จำนวนค้างส่ง',
+                PENDING_RECEIVE_QTY: 'จำนวนค้างรับ',
+                PENDING_SEND_QTY: 'จำนวนค้างส่ง',
+                TRD_NX_QTY: 'ผลต่างค้างรับ-ค้างส่ง',
               },
               summary: {
                 SUM_WL_QTY_S: 'รวมคงเหลือหน่วยเล็ก',
                 SUM_WL_QTY_T: 'รวมคงเหลือหน่วยกลาง',
                 SUM_WL_QTY_K: 'รวมคงเหลือหน่วยใหญ่',
-                SUM_TRD_NX_QTY: 'รวมค้างส่ง',
+                SUM_PENDING_RECEIVE_QTY: 'รวมค้างรับ',
+                SUM_PENDING_SEND_QTY: 'รวมค้างส่ง',
+                SUM_TRD_NX_QTY: 'รวมผลต่างค้างรับ-ค้างส่ง',
               },
             },
             null,

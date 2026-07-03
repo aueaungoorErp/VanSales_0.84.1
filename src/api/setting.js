@@ -411,7 +411,12 @@ export const getVanConfigV3Api = async (data, requestConfig = undefined) => {
         }
 
         console.log('VANCONFIG all keys:', Object.keys(VANCONFIG));
-        console.log('VANCONFIG raw:', JSON.stringify(VANCONFIG));
+        console.log('[getVanConfigV3Api] VANCNF_ARPRB raw value:', {
+          machine: data,
+          raw: VANCONFIG.VANCNF_ARPRB,
+          rawType: typeof VANCONFIG.VANCNF_ARPRB,
+          parsed: parseInt(VANCONFIG.VANCNF_ARPRB),
+        });
 
         let newVanCNF = {
           ...VANCONFIG,
@@ -462,6 +467,11 @@ export const getVanConfigV3Api = async (data, requestConfig = undefined) => {
           VANCNF_PREPRCPT_ADDB: parseInt(VANCONFIG.VANCNF_PREPRCPT_ADDB),
           VANCNF_REPRT_PREPRCPT: parseInt(VANCONFIG.VANCNF_REPRT_PREPRCPT),
         };
+        console.log('[getVanConfigV3Api] resolved price table config:', {
+          machine: data,
+          VANCNF_ARPRB_MODE: newVanCNF.VANCNF_ARPRB_MODE,
+          VANCNF_ARPRB: newVanCNF.VANCNF_ARPRB,
+        });
         resolve(newVanCNF);
       })
       .catch(err => {

@@ -673,7 +673,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
     return (
       <View key={`service-api-key-${index}`} style={styles.fieldBlock}>
         <View style={styles.keyLabelRow}>
-          <Text style={styles.label}>API Key {index + 1}</Text>
+          <Text style={styles.label}> API Key {index + 1}</Text>
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => onRemoveApiKey(index)}
@@ -687,7 +687,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
             hasError ? styles.inputError : null,
             hasSuccess ? styles.inputSuccess : null,
           ]}
-          placeholder="API Key"
+          placeholder="Longdomap API Key"
           placeholderTextColor={MainTheme.placeholerTextInput}
           value={toInputValue(apiKey)}
           underlineColorAndroid="transparent"
@@ -743,9 +743,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
           </View>
 
           <View style={styles.fieldBlock}>
-            <Text style={styles.label}>
-              {strings('login_setting.web_serviceurl')}
-            </Text>
+            <Text style={styles.label}>ที่อยู่เว็บเซอร์วิส ERP</Text>
             <TextInput
               multiline
               style={[
@@ -850,7 +848,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
           </View>
 
           <View style={styles.keyHeaderRow}>
-            <Text style={styles.sectionSubTitle}>API Key</Text>
+            <Text style={styles.sectionSubTitle}>Longdomap API Key</Text>
             {apiKeys.length < 3 ? (
               <TouchableOpacity
                 style={styles.addKeyButton}
@@ -870,7 +868,7 @@ const ServiceSettingScreen: React.FC<ServiceSettingProps> = props => {
           {apiKeys.map(renderApiKeyField)}
 
           <IActionButton
-            title="ทดสอบ API Key"
+            title="ทดสอบ Longdomap API Key"
             variant="secondary"
             disabled={isLoading || isTestingApiKeys}
             onPress={() => {

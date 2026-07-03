@@ -179,7 +179,7 @@ export const stockBalanceByLocation = async (
   try {
     const storedBaseUrl = await getVanSalesWebServiceUrl();
     const loginGuid = await getLoginGuID();
-    console.log('loginGuid', loginGuid);
+    console.log('[VanSalesServices] stockBalanceByLocation critial', critial);
 
     const normalizedBaseUrl = normalizePaymentBaseUrl(storedBaseUrl);
 

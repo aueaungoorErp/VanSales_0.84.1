@@ -891,7 +891,7 @@ const SettingForm: React.FC<SettingFormProps> = props => {
         </View>
 
         <View style={styles.fieldBlock}>
-          <Text style={styles.label}>URL</Text>
+          <Text style={styles.label}>ที่อยู่เว็บเซอร์วิส ERP</Text>
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
