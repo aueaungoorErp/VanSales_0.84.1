@@ -199,9 +199,11 @@ class CTSearchForm extends Component {
           FROM: dateFrom,
           TO: dateTo,
         });
-        await this.props.getSalespersonSalesPerformance({
+        const fetchSalespersonPerformance =
+          this.props.getSalespersonSalesPerformanceViaHook ||
+          this.props.getSalespersonSalesPerformance;
+        await fetchSalespersonPerformance({
           FROM: dateFrom,
-          TO: dateTo,
         });
         return;
       }
@@ -222,6 +224,16 @@ class CTSearchForm extends Component {
             : null,
       };
 
+      if (this.state.reportParams.type === 'SalesOrderByPmt') {
+        console.log('[ReportSearch][SalesOrderByPmt] onSearch payload', {
+          type: this.state.reportParams.type,
+          pattern: this.state.reportParams.pattern,
+          rawDateFrom: dateFrom,
+          rawDateTo: dateTo,
+          reportParams,
+        });
+      }
+
       // เรียก getReportV3 และรอมันเสร็จ (นี่คือ API หลักที่แสดงข้อมูล)
       await this.props.getReportV3(
         this.state.reportParams.type,
@@ -234,17 +246,24 @@ class CTSearchForm extends Component {
 
       // เรียก getReportDataNoGroup แบบ "fire and forget" (ไม่ต้อง await)
       // ถ้า timeout หรือ error ก็ไม่ส่งผลต่อ modal loading
-      this.props.getReportDataNoGroup(
-        this.state.reportParams.type,
-        this.state.reportParams.pattern,
-        reportParams,
-      ).catch(err => {
-        console.log('getReportDataNoGroup background error (ignored):', err);
-        this._persistReportError('getReportDataNoGroup(background)', err, {
+      if (this.state.reportParams.type === 'SalesOrderByPmt') {
+        console.log(
+          '[ReportSearch][SalesOrderByPmt] skip background getReportDataNoGroup because backend resource is invalid',
           reportParams,
+        );
+      } else {
+        this.props.getReportDataNoGroup(
+          this.state.reportParams.type,
+          this.state.reportParams.pattern,
+          reportParams,
+        ).catch(err => {
+          console.log('getReportDataNoGroup background error (ignored):', err);
+          this._persistReportError('getReportDataNoGroup(background)', err, {
+            reportParams,
+          });
+          // ไม่ต้องทำอะไร เพราะข้อมูลหลักมาจาก getReportV3 แล้ว
         });
-        // ไม่ต้องทำอะไร เพราะข้อมูลหลักมาจาก getReportV3 แล้ว
-      });
+      }
 
     } catch (error) {
       console.log('_onSearch error:', error);

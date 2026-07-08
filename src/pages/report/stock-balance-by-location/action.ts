@@ -20,13 +20,13 @@ const buildUnitLabel = (qty: number, unitName: string | null | undefined) => {
 };
 
 const getPreferredUnitName = (row: AnyRecord = {}) =>
+  row?.unitName ??
   row?.largeUnitName ??
   row?.SKU_K_UTQ_NAME ??
   row?.mediumUnitName ??
   row?.SKU_T_UTQ_NAME ??
   row?.smallUnitName ??
   row?.SKU_S_UTQ_NAME ??
-  row?.unitName ??
   '';
 
 export const normalizeStockBalanceByLocationPayload = (
@@ -52,21 +52,11 @@ export const normalizeStockBalanceByLocationPayload = (
       SUM_WL_QTY_S: 0,
       SUM_WL_QTY_T: 0,
       SUM_WL_QTY_K: 0,
-      SUM_PENDING_RECEIVE_QTY: 0,
       SUM_PENDING_SEND_QTY: 0,
-      SUM_TRD_NX_QTY: 0,
     };
 
-    const pendingReceiveQty = toSafeNumber(
-      row?.pendingReceiveQty ?? row?.PENDING_RECEIVE_QTY ?? 0,
-    );
     const pendingSendQty = toSafeNumber(
       row?.pendingSendQty ?? row?.PENDING_SEND_QTY ?? 0,
-    );
-    const pendingDocumentQty = toSafeNumber(
-      row?.pendingDocumentQty ??
-        row?.TRD_NX_QTY ??
-        (pendingReceiveQty - pendingSendQty),
     );
     const preferredUnitName = getPreferredUnitName(row);
 
@@ -74,13 +64,13 @@ export const normalizeStockBalanceByLocationPayload = (
       SKU_CODE: row?.skuCode ?? row?.SKU_CODE ?? '-',
       SKU_NAME: row?.skuName ?? row?.SKU_NAME ?? '-',
       WL_QTY_S: toSafeNumber(
-        row?.smallWarehouseQty ?? row?.WL_QTY_S ?? row?.warehouseQty,
+        row?.smallWarehouseQty ?? row?.WL_QTY_S ?? 0,
       ),
       WL_QTY_T: toSafeNumber(
         row?.mediumWarehouseQty ?? row?.WL_QTY_T ?? 0,
       ),
       WL_QTY_K: toSafeNumber(
-        row?.largeWarehouseQty ?? row?.WL_QTY_K ?? row?.warehouseQty,
+        row?.largeWarehouseQty ?? row?.WL_QTY_K ?? row?.warehouseQty ?? 0,
       ),
       SKU_S_UTQ_NAME:
         row?.smallUnitName ?? row?.SKU_S_UTQ_NAME ?? row?.unitName ?? '',
@@ -88,19 +78,15 @@ export const normalizeStockBalanceByLocationPayload = (
         row?.mediumUnitName ?? row?.SKU_T_UTQ_NAME ?? row?.unitName ?? '',
       SKU_K_UTQ_NAME:
         row?.largeUnitName ?? row?.SKU_K_UTQ_NAME ?? row?.unitName ?? '',
-      PENDING_RECEIVE_QTY: pendingReceiveQty,
       PENDING_SEND_QTY: pendingSendQty,
       PREFERRED_UTQ_NAME: preferredUnitName,
-      TRD_NX_QTY: pendingDocumentQty,
     };
 
     existingWarehouse.ITEMS.push(normalizedRow);
     existingWarehouse.SUM_WL_QTY_S += normalizedRow.WL_QTY_S;
     existingWarehouse.SUM_WL_QTY_T += normalizedRow.WL_QTY_T;
     existingWarehouse.SUM_WL_QTY_K += normalizedRow.WL_QTY_K;
-    existingWarehouse.SUM_PENDING_RECEIVE_QTY += normalizedRow.PENDING_RECEIVE_QTY;
     existingWarehouse.SUM_PENDING_SEND_QTY += normalizedRow.PENDING_SEND_QTY;
-    existingWarehouse.SUM_TRD_NX_QTY += normalizedRow.TRD_NX_QTY;
 
     groupedByWarehouse.set(key, existingWarehouse);
   });
@@ -123,16 +109,6 @@ export const normalizeStockBalanceByLocationPayload = (
       ),
       preferredSummaryUnitName,
     ),
-    SUM_ALL_PENDING_RECEIVE_QTY: buildUnitLabel(
-      toSafeNumber(
-        summaryTotal?.pendingReceiveQty ??
-          result.reduce(
-            (sum, row) => sum + toSafeNumber(row.SUM_PENDING_RECEIVE_QTY),
-            0,
-          ),
-      ),
-      preferredSummaryUnitName,
-    ),
     SUM_ALL_PENDING_SEND_QTY: buildUnitLabel(
       toSafeNumber(
         summaryTotal?.pendingSendQty ??
@@ -141,10 +117,6 @@ export const normalizeStockBalanceByLocationPayload = (
             0,
           ),
       ),
-      preferredSummaryUnitName,
-    ),
-    SUM_ALL_TRD_NX_QTY: buildUnitLabel(
-      result.reduce((sum, row) => sum + toSafeNumber(row.SUM_TRD_NX_QTY), 0),
       preferredSummaryUnitName,
     ),
   };
@@ -213,17 +185,13 @@ export const getStockBalanceByLocation =
                 SKU_S_UTQ_NAME: 'ชื่อหน่วยเล็ก',
                 SKU_T_UTQ_NAME: 'ชื่อหน่วยกลาง',
                 SKU_K_UTQ_NAME: 'ชื่อหน่วยใหญ่',
-                PENDING_RECEIVE_QTY: 'จำนวนค้างรับ',
                 PENDING_SEND_QTY: 'จำนวนค้างส่ง',
-                TRD_NX_QTY: 'ผลต่างค้างรับ-ค้างส่ง',
               },
               summary: {
                 SUM_WL_QTY_S: 'รวมคงเหลือหน่วยเล็ก',
                 SUM_WL_QTY_T: 'รวมคงเหลือหน่วยกลาง',
                 SUM_WL_QTY_K: 'รวมคงเหลือหน่วยใหญ่',
-                SUM_PENDING_RECEIVE_QTY: 'รวมค้างรับ',
                 SUM_PENDING_SEND_QTY: 'รวมค้างส่ง',
-                SUM_TRD_NX_QTY: 'รวมผลต่างค้างรับ-ค้างส่ง',
               },
             },
             null,

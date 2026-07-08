@@ -163,9 +163,35 @@ export const LookupErpCashSaleAPi = (vanCNF, fromDate, toDate,uri) => {
       'BPAPUS-OFFSET': '0',
       'BPAPUS-FETCH': '0',
     };
+
+    if (uri === 'SalesOrderByPmt') {
+      console.log('[LookupErpCashSaleAPi][SalesOrderByPmt] request', {
+        fromDate,
+        toDate,
+        loginGuid: LoginGUID,
+        requestBody: RequestBody,
+      });
+    }
+
     lookupErpV3Api(RequestBody)
       .then((v) => {
         const {ReasonString, ResponseCode, ResponseData} = v.data;
+        if (uri === 'SalesOrderByPmt') {
+          let parsedResponse = null;
+          try {
+            parsedResponse = parseResDataToJson(v.data);
+          } catch (parseError) {
+            parsedResponse = {
+              parseError: parseError?.message,
+            };
+          }
+
+          console.log('[LookupErpCashSaleAPi][SalesOrderByPmt] raw response', {
+            responseCode: ResponseCode,
+            reasonString: ReasonString,
+            parsedResponse,
+          });
+        }
         if (ResponseCode == 200) {
           const response = parseResDataToJson(v.data);
 

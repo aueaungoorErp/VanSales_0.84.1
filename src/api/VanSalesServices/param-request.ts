@@ -7,6 +7,17 @@ export type updateVanPositionParam = {
   recordedAt?: string;
 };
 
+export type latestVehicleMileageParam = {
+  vanCode: string;
+  licensePlate: string;
+};
+
+export type saveVehicleMileageParam = {
+  vanCode: string;
+  licensePlate: string;
+  mileage: number;
+};
+
 export type customerReportPerformanceParam = {
   fromDate: string;
   toDate: string;
@@ -26,13 +37,19 @@ export type salesSummaryByDocumentParam = {
 };
 
 export type salespersonSalesPerformanceParam = {
+  vanCode: string;
+  licensePlate: string;
   fromDate: string;
   toDate: string;
-  vanCode: string;
 };
 
 export type stockBalanceByLocationParam = {
   vanCode: string;
   fromDate: string;
   warehouseLocationKey: number;
+};
+
+export type paymentTypeSummaryParam = {
+  fromDate: string;
+  toDate: string;
 };

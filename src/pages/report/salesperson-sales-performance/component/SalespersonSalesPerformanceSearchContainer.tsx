@@ -1,4 +1,3 @@
-import moment from 'moment';
 import React, {useCallback} from 'react';
 import {useDispatch} from 'react-redux';
 
@@ -6,7 +5,7 @@ import {useSalespersonSalesPerformance} from '../../../../api/VanSalesServices/u
 import * as types from '../../../../constant/report';
 import {getUserToken} from '../../../../utils/Token';
 import CTSearchForm from '../../container/CTSearchForm';
-import {normalizeSalespersonSalesPerformancePayload} from '../action';
+import {normalizeSalespersonSalesPerformancePayload, formatSalespersonReportCriteriaForApi} from '../action';
 
 const SalespersonSalesPerformanceSearchContainer = () => {
   const dispatch = useDispatch();
@@ -14,12 +13,15 @@ const SalespersonSalesPerformanceSearchContainer = () => {
     useSalespersonSalesPerformance();
 
   const getSalespersonSalesPerformanceViaHook = useCallback(
-    async (criteria: {FROM: string; TO: string}) => {
+    async (criteria: {FROM: string; TO?: string}) => {
       dispatch({type: types.REPORT_GET_DATA});
 
       try {
         const userToken = await getUserToken();
         const vanCode = String(userToken?.VANCONFIG?.VANCNF_MACHINE || '').trim();
+        const licensePlate = String(
+          userToken?.VANCONFIG?.VANCNF_REG_NAME || '',
+        ).trim();
 
         if (!vanCode) {
           const errorMessage = 'ไม่พบการส่งรหัสหน่วยรถ';
@@ -32,8 +34,11 @@ const SalespersonSalesPerformanceSearchContainer = () => {
 
         const response = await requestSalespersonSalesPerformance({
           vanCode,
-          fromDate: moment(criteria.FROM, 'DD/MM/YYYY').format('YYYY-MM-DD'),
-          toDate: moment(criteria.TO, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+          licensePlate,
+          fromDate: formatSalespersonReportCriteriaForApi(criteria.FROM),
+          toDate: criteria.TO
+            ? formatSalespersonReportCriteriaForApi(criteria.TO)
+            : formatSalespersonReportCriteriaForApi(criteria.FROM),
         });
 
         const normalizedPayload = normalizeSalespersonSalesPerformancePayload(

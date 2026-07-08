@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import { Keyboard } from 'react-native'
 import Form from '../presenter/Form'
 import Navigator from '../../../services/Navigator'
-import { setInitialState, addPhoto, setMileage, setIsSubmit } from '../../../action/mile'
+import { addPhoto, setMileage, setIsSubmit, initializeMileScreen, isMileageLessThanLatest, getMileageLessThanLatestMessage } from '../../../action/mile'
 
 class CTForm extends Component {
 
@@ -11,8 +11,8 @@ class CTForm extends Component {
         super(props)
     }
 
-    componentDidMount(props) {
-        // this.props.setInitialState()
+    componentDidMount() {
+        this.props.initializeMileScreen()
     }
 
     _ontakePicturePress = () => {
@@ -52,14 +52,22 @@ class CTForm extends Component {
     }
 
     render() {
+        const latestMileage = this.props.mile.latestMileage;
+        const enteredMileage = this.props.mile.item.mileage;
+        const showMileageWarning = isMileageLessThanLatest(
+            enteredMileage,
+            latestMileage,
+        );
+
         return (
             <Form 
-                value={this.props.mile.item.mileage} 
+                value={enteredMileage} 
                 onChangeText={this._onChangeText}
                 photo={this.props.mile.item.photo}
                 ontakePicturePress={this._ontakePicturePress}
-                setIsLoading={this.props.setIsLoading}
-                isLoading={this.props.mile.isLoading} />
+                isLoading={this.props.mile.isLoading}
+                showMileageWarning={showMileageWarning}
+                mileageWarningMessage={getMileageLessThanLatestMessage(latestMileage)} />
         )
     }
 }
@@ -70,9 +78,6 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        setInitialState: () => {
-            dispatch(setInitialState())
-        },
         addPhoto: (uri) => {
 			dispatch(addPhoto(uri))
         },
@@ -81,7 +86,10 @@ const mapDispatchToProps = (dispatch) => {
         },
         setIsSubmit: (bool) => {
             dispatch(setIsSubmit(bool))
-        }
+        },
+        initializeMileScreen: () => {
+            return dispatch(initializeMileScreen())
+        },
     }
 }
 

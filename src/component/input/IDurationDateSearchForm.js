@@ -8,6 +8,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5'
 import { MainTheme } from '../../constant/lov'
 import IDatePicker from './IDatePicker'
+import IDateTimePicker from './IDateTimePicker'
 
 class IDurationDateSearchForm extends Component {
 
@@ -15,8 +16,8 @@ class IDurationDateSearchForm extends Component {
         super(props)
 
         this.state = {
-            dateFrom: moment().format('DD/MM/YYYY'),
-            dateTo: moment().format('DD/MM/YYYY')
+            dateFrom: moment().format(this.props.useDateTime ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY'),
+            dateTo: moment().format(this.props.useDateTime ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY')
         }
 
         this._onDateFromChange = this._onDateFromChange.bind(this)
@@ -79,6 +80,22 @@ class IDurationDateSearchForm extends Component {
         const reportTitle = this.props.title || 'รายงานสรุปการขายประเภทสินค้า'
         const inlineActionsWithFields = this.props.inlineActionsWithFields === true
         const titleFullWidth = this.props.titleFullWidth === true
+        const useDateTime = this.props.useDateTime === true
+        const DateFieldComponent = useDateTime ? IDateTimePicker : IDatePicker
+        const dateFieldProps = useDateTime
+            ? {
+                onDateTimeChange: this._onDateFromChange,
+            }
+            : {
+                onDateChange: this._onDateFromChange,
+            }
+        const dateToFieldProps = useDateTime
+            ? {
+                onDateTimeChange: this._onDateToChange,
+            }
+            : {
+                onDateChange: this._onDateToChange,
+            }
 
         const actionButtons = (
             <View style={[
@@ -139,11 +156,11 @@ class IDurationDateSearchForm extends Component {
                         inlineActionsWithFields ? styles.sectionInlineWithActions : null,
                     ]}>
                         <View style={styles.fieldCard}>
-                            <IDatePicker
+                            <DateFieldComponent
                                 label='จาก'
                                 value={this.state.dateFrom}
                                 hideBorder
-                                onDateChange={this._onDateFromChange} />
+                                {...dateFieldProps} />
                         </View>
 
                         {
@@ -151,11 +168,11 @@ class IDurationDateSearchForm extends Component {
                                 <View style={[styles.fieldCard, this.props.hideRight ? styles.fieldCardSingle : null]}>
                                     {
                                         !this.props.hideRight ?
-                                            <IDatePicker
+                                            <DateFieldComponent
                                                 label='ถึง'
                                                 value={this.state.dateTo}
                                                 hideBorder
-                                                onDateChange={this._onDateToChange} />
+                                                {...dateToFieldProps} />
                                         : null
                                     }
                                     {

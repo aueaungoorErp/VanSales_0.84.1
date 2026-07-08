@@ -8,7 +8,11 @@ import CTButtonGroup from '../container/CTButtonGroup'
 class Index extends React.Component {
     constructor(props) {
         super(props);
-    
+
+        this.state = {
+            formSessionKey: 0,
+        }
+
         this._headerHeight = new Animated.Value(0.3)
         this._bodyHeight = new Animated.Value(0.7)
     }
@@ -16,11 +20,26 @@ class Index extends React.Component {
     componentDidMount = () => {
         this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this._keyboardDidShow)
         this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this._keyboardDidHide)
+
+        const navigation = this.props.navigation
+        if (navigation && typeof navigation.addListener === 'function') {
+            this._focusUnsubscribe = navigation.addListener('focus', this._onScreenFocus)
+        }
     }
 
     componentWillUnmount = () => {
         this.keyboardDidShowListener.remove()
         this.keyboardDidHideListener.remove()
+
+        if (typeof this._focusUnsubscribe === 'function') {
+            this._focusUnsubscribe()
+        }
+    }
+
+    _onScreenFocus = () => {
+        this.setState(oldState => ({
+            formSessionKey: oldState.formSessionKey + 1,
+        }))
     }
     
     _keyboardDidShow = (event) => { 
@@ -50,21 +69,19 @@ class Index extends React.Component {
     }
       
     render() {
-
         return (
             <View style={styles.container}>
                 <Animated.View style={[ styles.header, { flex: this._headerHeight } ]}>
                     <CTHeader />
                 </Animated.View>
                 <Animated.View style={{ flex: this._bodyHeight }}>
-                    <CTForm />
+                    <CTForm key={this.state.formSessionKey} />
                 </Animated.View>
-                <CTButtonGroup />
+                <CTButtonGroup key={this.state.formSessionKey} />
             </View>
         )
     }
 }
-
 
 export default Index
 

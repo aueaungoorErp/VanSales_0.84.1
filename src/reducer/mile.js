@@ -6,6 +6,7 @@ const initialState = {
         mileage: null,
         isSubmit: false
     },
+    latestMileage: 0,
     isError: false,
     isLoading: false
 }
@@ -18,6 +19,8 @@ export const mile = (state = initialState, action) => {
             return { ...state, item: { ...state.item, photo: action.payload }}
         case types.MILE_SET_MILEAGE: 
             return { ...state, item: { ...state.item, mileage: action.payload}}
+        case types.MILE_SET_LATEST_MILEAGE:
+            return { ...state, latestMileage: action.payload }
         case types.MILE_SET_IS_SUBMIT:
             return { ...state, item: { ...state.item, isSubmit: action.payload }}
         default:

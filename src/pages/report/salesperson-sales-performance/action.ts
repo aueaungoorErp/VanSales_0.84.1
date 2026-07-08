@@ -6,48 +6,89 @@ import {getUserToken} from '../../../utils/Token';
 type AnyRecord = Record<string, any>;
 type Dispatch = (action: {type: string; payload?: any}) => void;
 
+const CRITERIA_INPUT_FORMATS = ['DD/MM/YYYY HH:mm', 'DD/MM/YYYY'];
+const CRITERIA_API_FORMATS = [
+  moment.ISO_8601,
+  'YYYY-MM-DDTHH:mm:ss',
+  'YYYY-MM-DD HH:mm:ss',
+  'YYYY-MM-DD',
+];
+
 const toSafeNumber = (value: unknown): number => {
   const parsed = parseFloat(String(value ?? 0));
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const toPaymentBucket = (payment: AnyRecord) => {
-  const code = String(payment?.paymentCode ?? '').trim();
-  const name = String(payment?.paymentName ?? '').trim();
-  const amount = toSafeNumber(payment?.paymentAmount);
-
-  return {code, name, amount};
-};
-
-const sumAmounts = (items: AnyRecord[]) =>
-  items.reduce((sum, item) => sum + toSafeNumber(item?.paymentAmount), 0);
-
-const buildSection = (sumAmt = 0, countDoc = 0) => ({
-  SUM_AMT: sumAmt,
-  SUM_ITEM_DSC: 0,
-  SUM_BILL_DSC: 0,
-  COUNT_DOC: countDoc,
-  SUM_PCS: 0,
-  SUM_QTY: 0,
-  SUM_FREE_ITEM_QTY: 0,
-});
-
-const classifyDocumentType = (item: AnyRecord) => {
-  const properties = String(item?.documentTypeProperties ?? '').trim();
-
-  if (['207', '208'].includes(properties)) {
-    return 'BOOK';
+const toNullableNumber = (value: unknown) => {
+  if (value === null || value === undefined || value === '') {
+    return null;
   }
 
-  if (['303', '304', '305'].includes(properties)) {
-    return 'RETURN';
-  }
-
-  return 'SELL';
+  const parsed = parseFloat(String(value));
+  return Number.isFinite(parsed) ? parsed : null;
 };
 
-const buildSectionFromSummary = (summary: AnyRecord = {}, sumAmt = 0) => ({
-  SUM_AMT: sumAmt,
+export const parseSalespersonReportCriteriaDateTime = (value: string) =>
+  moment(value, CRITERIA_INPUT_FORMATS, true);
+
+export const formatSalespersonReportCriteriaForApi = (value: string) => {
+  const parsed = parseSalespersonReportCriteriaDateTime(value);
+
+  if (!parsed.isValid()) {
+    return moment(value, 'DD/MM/YYYY').format('YYYY-MM-DD');
+  }
+
+  if (String(value).includes(':')) {
+    return parsed.format('YYYY-MM-DDTHH:mm:ss');
+  }
+
+  return parsed.format('YYYY-MM-DD');
+};
+
+export const formatSalespersonReportCriteriaForDisplay = (
+  value?: string | null,
+) => {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = moment(value, CRITERIA_API_FORMATS, true);
+  if (!parsed.isValid()) {
+    return value;
+  }
+
+  const datePart = `${parsed.format('DD/MM')}/${parsed.year() + 543}`;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(value).trim())) {
+    return datePart;
+  }
+
+  if (!String(value).includes(':') && !String(value).includes('T')) {
+    return datePart;
+  }
+
+  return `${datePart} ${parsed.format('HH:mm')}`;
+};
+
+export const formatSalespersonReportDocumentDateTimeForDisplay = (
+  value?: string | null,
+) => {
+  if (!value) {
+    return null;
+  }
+
+  // API ส่ง ISO UTC (ลงท้าย Z) — แสดงเวลาตามค่าใน response ไม่แปลงเป็น timezone เครื่อง
+  const parsed = moment.utc(value, CRITERIA_API_FORMATS, true);
+  if (!parsed.isValid()) {
+    return value;
+  }
+
+  return `${parsed.format('DD/MM')}/${parsed.year() + 543} ${parsed.format('HH:mm')}`;
+};
+
+const buildSectionFromSummary = (summary: AnyRecord = {}) => ({
+  SUM_AMT:
+    summary?.amountTotal != null ? toSafeNumber(summary.amountTotal) : null,
   SUM_ITEM_DSC: toSafeNumber(summary?.lineDiscountTotal),
   SUM_BILL_DSC: toSafeNumber(summary?.billDiscountTotal),
   COUNT_DOC: toSafeNumber(summary?.billCount),
@@ -66,84 +107,33 @@ export const normalizeSalespersonSalesPerformancePayload = (
   const returnTotal = reportData?.returnTotal || {};
   const arTransfer = reportData?.arTransfer || {};
   const mileage = reportData?.mileage || {};
-  const documentTypePayments = Array.isArray(reportData?.documentTypePayments)
-    ? reportData.documentTypePayments
-    : [];
-  const dailyPayments = Array.isArray(reportData?.dailyPayments)
-    ? reportData.dailyPayments
-    : [];
-
-  const sellItems = documentTypePayments.filter(
-    (item: AnyRecord) => classifyDocumentType(item) === 'SELL',
-  );
-  const bookItems = documentTypePayments.filter(
-    (item: AnyRecord) => classifyDocumentType(item) === 'BOOK',
-  );
-  const returnItems = documentTypePayments.filter(
-    (item: AnyRecord) => classifyDocumentType(item) === 'RETURN',
-  );
-
-  const paymentBuckets = dailyPayments.map(toPaymentBucket);
-  const paidByCash = paymentBuckets
-    .filter(
-      (item: {code: string; name: string; amount: number}) =>
-        item.code === '01' ||
-        item.name.includes('เงินสด') ||
-        item.name.toLowerCase().includes('cash'),
-    )
-    .reduce(
-      (sum: number, item: {code: string; name: string; amount: number}) =>
-        sum + item.amount,
-      0,
-    );
-  const sumCashReturn = paymentBuckets
-    .filter((item: {code: string; name: string; amount: number}) =>
-      item.name.includes('คืน'),
-    )
-    .reduce(
-      (sum: number, item: {code: string; name: string; amount: number}) =>
-        sum + item.amount,
-      0,
-    );
 
   return {
     ...payload,
-    F_TIME: criteria?.fromDate
-      ? moment(criteria.fromDate).format('DD/MM/YYYY')
-      : null,
-    E_TIME: criteria?.toDate ? moment(criteria.toDate).format('DD/MM/YYYY') : null,
-    BOOK: buildSectionFromSummary(
-      bookingTotal,
-      bookingTotal?.amountTotal ?? sumAmounts(bookItems),
+    criteria,
+    F_TIME: formatSalespersonReportDocumentDateTimeForDisplay(
+      reportData?.firstDocumentDateTime,
     ),
-    SELL: buildSectionFromSummary(
-      salesTotal,
-      salesTotal?.amountTotal ?? sumAmounts(sellItems),
+    E_TIME: formatSalespersonReportDocumentDateTimeForDisplay(
+      reportData?.lastDocumentDateTime,
     ),
-    RETURN: buildSectionFromSummary(
-      returnTotal,
-      returnTotal?.amountTotal ?? sumAmounts(returnItems),
-    ),
+    BOOK: buildSectionFromSummary(bookingTotal),
+    SELL: buildSectionFromSummary(salesTotal),
+    RETURN: buildSectionFromSummary(returnTotal),
     TRANSFER_TO_AR: toSafeNumber(arTransfer?.transferToArAmount),
-    PAID_BY_CHEQUE: toSafeNumber(
-      reportData?.chequeAmount ?? arTransfer?.chequePayment,
-    ),
-    PAID_BY_CASH: toSafeNumber(
-      arTransfer?.cashPayment ?? paidByCash,
-    ),
-    SUM_CASH_RTN: toSafeNumber(arTransfer?.cashRefund ?? sumCashReturn),
-    CASH_FROM_SELL: toSafeNumber(
-      arTransfer?.cashFromSales ?? paidByCash - sumCashReturn,
-    ),
+    PAID_BY_CHEQUE: toSafeNumber(arTransfer?.chequePayment),
+    PAID_BY_CASH: toSafeNumber(arTransfer?.cashPayment),
+    SUM_CASH_RTN: toSafeNumber(arTransfer?.cashRefund),
+    CASH_FROM_SELL: toSafeNumber(arTransfer?.cashFromSales),
     PGL: toSafeNumber(arTransfer?.unchangeableChange),
-    MILE_START: toSafeNumber(mileage?.startMile),
-    MILE_END: toSafeNumber(mileage?.endMile),
-    DISTANCE: toSafeNumber(mileage?.totalDistance),
+    MILE_START: toNullableNumber(mileage?.startMile),
+    MILE_END: toNullableNumber(mileage?.endMile),
+    DISTANCE: toNullableNumber(mileage?.totalDistance),
   };
 };
 
 export const getSalespersonSalesPerformance =
-  (criteria: {FROM: string; TO: string}) => (dispatch: Dispatch) => {
+  (criteria: {FROM: string; TO?: string}) => (dispatch: Dispatch) => {
     return new Promise(async (resolve, reject) => {
       try {
         console.log(
@@ -154,6 +144,9 @@ export const getSalespersonSalesPerformance =
 
         const userToken = await getUserToken();
         const vanCode = String(userToken?.VANCONFIG?.VANCNF_MACHINE || '').trim();
+        const licensePlate = String(
+          userToken?.VANCONFIG?.VANCNF_REG_NAME || '',
+        ).trim();
 
         if (!vanCode) {
           dispatch({
@@ -166,8 +159,11 @@ export const getSalespersonSalesPerformance =
 
         const requestPayload = {
           vanCode,
-          fromDate: moment(criteria.FROM, 'DD/MM/YYYY').format('YYYY-MM-DD'),
-          toDate: moment(criteria.TO, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+          licensePlate,
+          fromDate: formatSalespersonReportCriteriaForApi(criteria.FROM),
+          toDate: criteria.TO
+            ? formatSalespersonReportCriteriaForApi(criteria.TO)
+            : formatSalespersonReportCriteriaForApi(criteria.FROM),
         };
 
         console.log(

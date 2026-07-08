@@ -3994,6 +3994,10 @@ export const salesOrderBySaleman = {
   renderItem: (salesMan, item) => {
     const displayValue = (value) =>
       value === null || value === undefined ? null : value;
+    const displayMileageValue = (value) => {
+      const formatted = displayValue(value);
+      return formatted === null ? '--' : formatted;
+    };
 
     return (
       <View style={{flex: 1}}>
@@ -4055,24 +4059,26 @@ export const salesOrderBySaleman = {
 
           <View style={{borderTopWidth: 1, marginHorizontal: 5}}></View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: 18, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
-              ยอดจองรวม
-            </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
-              {displayValue(item?.BOOK?.SUM_AMT)}
-            </Text>
-          </View>
+          {item?.BOOK?.SUM_AMT != null ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                height: 40,
+                paddingHorizontal: 15,
+                alignItems: 'center',
+              }}>
+              <Text
+                style={{flex: 0.5, fontSize: 18, fontSize: hp(fontDefault)}}
+                allowFontScaling={false}>
+                ยอดจองรวม
+              </Text>
+              <Text
+                style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
+                allowFontScaling={false}>
+                {displayValue(item?.BOOK?.SUM_AMT)}
+              </Text>
+            </View>
+          ) : null}
 
           <View
             style={{
@@ -4190,24 +4196,26 @@ export const salesOrderBySaleman = {
 
           <View style={{borderTopWidth: 1, marginHorizontal: 5}}></View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
-              ยอดขายรวม
-            </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
-              {displayValue(item?.SELL?.SUM_AMT)}
-            </Text>
-          </View>
+          {item?.SELL?.SUM_AMT != null ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                height: 40,
+                paddingHorizontal: 15,
+                alignItems: 'center',
+              }}>
+              <Text
+                style={{flex: 0.5, fontSize: hp(fontDefault)}}
+                allowFontScaling={false}>
+                ยอดขายรวม
+              </Text>
+              <Text
+                style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
+                allowFontScaling={false}>
+                {displayValue(item?.SELL?.SUM_AMT)}
+              </Text>
+            </View>
+          ) : null}
 
           <View
             style={{
@@ -4325,24 +4333,26 @@ export const salesOrderBySaleman = {
 
           <View style={{borderTopWidth: 1, marginHorizontal: 5}}></View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
-              ยอดคืนรวม
-            </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
-              {displayValue(item?.RETURN?.SUM_AMT)}
-            </Text>
-          </View>
+          {item?.RETURN?.SUM_AMT != null ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                height: 40,
+                paddingHorizontal: 15,
+                alignItems: 'center',
+              }}>
+              <Text
+                style={{flex: 0.5, fontSize: hp(fontDefault)}}
+                allowFontScaling={false}>
+                ยอดคืนรวม
+              </Text>
+              <Text
+                style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
+                allowFontScaling={false}>
+                {displayValue(item?.RETURN?.SUM_AMT)}
+              </Text>
+            </View>
+          ) : null}
 
           <View
             style={{
@@ -4622,7 +4632,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              --
+              {displayMileageValue(item?.MILE_START)}
             </Text>
           </View>
 
@@ -4641,7 +4651,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              --
+              {displayMileageValue(item?.MILE_END)}
             </Text>
           </View>
 
@@ -4661,7 +4671,7 @@ export const salesOrderBySaleman = {
             <Text
               style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
               allowFontScaling={false}>
-              --
+              {displayMileageValue(item?.DISTANCE)}
             </Text>
           </View>
         </ScrollView>
@@ -4683,7 +4693,7 @@ export const stockBalanceByWL = {
                 fontSize: hp(fontDefault),
               }}
               allowFontScaling={false}>
-              รายชื่อสินค้า / คงเหลือ / ค้างรับ / ค้างส่ง
+              รายชื่อสินค้า / คงเหลือ / ค้างส่ง
             </Text>
           </View>
         }
@@ -4725,29 +4735,22 @@ export const stockBalanceByWL = {
             </View>
 
             {item.ITEMS.map((row, i) => {
+              const unitName =
+                row.PREFERRED_UTQ_NAME || row.SKU_K_UTQ_NAME || row.SKU_S_UTQ_NAME;
               const remainQty = formatQty(row.WL_QTY_K, row.SKU_K_UTQ_NAME);
-              const pendingReceive = formatQty(
-                row.PENDING_RECEIVE_QTY,
-                row.PREFERRED_UTQ_NAME || row.SKU_K_UTQ_NAME,
-              );
-              const pendingDeliver = formatQty(
-                row.PENDING_SEND_QTY,
-                row.PREFERRED_UTQ_NAME || row.SKU_K_UTQ_NAME,
-              );
+              const pendingDeliver = formatQty(row.PENDING_SEND_QTY, unitName);
 
               return (
                 <View
                   key={i}
                   style={{
-                    marginHorizontal: 12,
-                    marginVertical: 8,
-                    padding: 14,
-                    borderWidth: 1,
-                    borderColor: '#E1E8EC',
-                    borderRadius: 12,
-                    backgroundColor: '#FFFFFF',
+                    paddingHorizontal: 15,
+                    paddingVertical: 10,
+                    borderBottomWidth:
+                      i < item.ITEMS.length - 1 ? StyleSheet.hairlineWidth : 0,
+                    borderBottomColor: '#D8E0E5',
                   }}>
-                  <View style={{paddingBottom: 10}}>
+                  <View style={{paddingBottom: 6}}>
                     <Text
                       style={{
                         fontSize: hp(fontDefault),
@@ -4761,40 +4764,35 @@ export const stockBalanceByWL = {
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'space-between',
-                      paddingVertical: 4,
+                      alignItems: 'center',
                     }}>
-                    <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                      คงเหลือ
-                    </Text>
-                    <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                      {remainQty}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      paddingVertical: 4,
-                    }}>
-                    <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                      ค้างรับ
-                    </Text>
-                    <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                      {pendingReceive}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      paddingTop: 4,
-                    }}>
-                    <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                      ค้างส่ง
-                    </Text>
-                    <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                      {pendingDeliver}
-                    </Text>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        flex: 1,
+                        alignItems: 'center',
+                      }}>
+                      <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                        คงเหลือ{' '}
+                      </Text>
+                      <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                        {remainQty}
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        flex: 1,
+                        justifyContent: 'flex-end',
+                        alignItems: 'center',
+                      }}>
+                      <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                        ค้างส่ง{' '}
+                      </Text>
+                      <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                        {pendingDeliver}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               );
@@ -4818,48 +4816,43 @@ export const stockBalanceByWL = {
                 style={{
                   flexDirection: 'row',
                   justifyContent: 'space-between',
+                  alignItems: 'center',
                   paddingVertical: 4,
                 }}>
-                <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                  คงเหลือ
-                </Text>
-                <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                  {item.SUM_WL_QTY_K}
-                </Text>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  paddingVertical: 4,
-                }}>
-                <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                  ค้างรับ
-                </Text>
-                <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                  {formatQty(
-                    item.SUM_PENDING_RECEIVE_QTY,
-                    item.ITEMS?.[0]?.PREFERRED_UTQ_NAME ||
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    flex: 1,
+                    alignItems: 'center',
+                  }}>
+                  <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                    คงเหลือ{' '}
+                  </Text>
+                  <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                    {formatQty(
+                      item.SUM_WL_QTY_K,
                       item.ITEMS?.[0]?.SKU_K_UTQ_NAME,
-                  )}
-                </Text>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  paddingTop: 4,
-                }}>
-                <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                  ค้างส่ง
-                </Text>
-                <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                  {formatQty(
-                    item.SUM_PENDING_SEND_QTY,
-                    item.ITEMS?.[0]?.PREFERRED_UTQ_NAME ||
-                      item.ITEMS?.[0]?.SKU_K_UTQ_NAME,
-                  )}
-                </Text>
+                    )}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    flex: 1,
+                    justifyContent: 'flex-end',
+                    alignItems: 'center',
+                  }}>
+                  <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                    ค้างส่ง{' '}
+                  </Text>
+                  <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                    {formatQty(
+                      item.SUM_PENDING_SEND_QTY,
+                      item.ITEMS?.[0]?.PREFERRED_UTQ_NAME ||
+                        item.ITEMS?.[0]?.SKU_K_UTQ_NAME,
+                    )}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
@@ -4905,7 +4898,7 @@ export const stockBalanceByWL = {
             fontSize: hp(fontDefault),
           }}
           allowFontScaling={false}>
-          {item.SUM_ALL_TRD_NX_QTY}
+          {item.SUM_ALL_PENDING_SEND_QTY}
         </Text>
       </View>
     );

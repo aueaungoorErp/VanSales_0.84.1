@@ -1,11 +1,21 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { Text, View, StyleSheet } from 'react-native'
+import { ConfirmDialog, ProgressDialog } from 'react-native-simple-dialogs'
 import IButtonGroupCustom from '../../../component/button/IButtonGroupCustom'
 import ITextWithErrorMessage from '../../../component/text/ITextWithErrorMessage'
 
 const Form = (props) => {
 
-    const { buttonListItems, renderItem, errorMessage } =  props
+    const {
+        buttonListItems,
+        renderItem,
+        errorMessage,
+        isLoading,
+        loadingMessage,
+        resultDialogTitle,
+        resultDialogMessage,
+        onCloseResultDialog,
+    } = props
 
     return (
         <View style={styles.container} >
@@ -16,6 +26,28 @@ const Form = (props) => {
                 listItems={buttonListItems} 
                 renderItem={renderItem} 
                 style={iButtonGroupCustomStyles} />
+
+            <ProgressDialog
+                visible={isLoading === true}
+                message={loadingMessage || 'กำลังบันทึกเลขไมล์...'}
+                animationType={'fade'}
+                dialogStyle={{ borderRadius: 5 }}
+            />
+
+            <ConfirmDialog
+                title={resultDialogTitle || 'แจ้งเตือน'}
+                visible={resultDialogMessage !== null && resultDialogMessage !== undefined}
+                positiveButton={{
+                    title: 'ตกลง',
+                    titleStyle: { color: '#000000' },
+                    onPress: onCloseResultDialog,
+                }}
+                animationType={'fade'}
+                dialogStyle={{ borderRadius: 5 }}>
+                <View>
+                    <Text allowFontScaling={false}>{resultDialogMessage}</Text>
+                </View>
+            </ConfirmDialog>
         </View>
     )
 }
@@ -28,7 +60,6 @@ const styles = StyleSheet.create({
     },
     messageBox: {
         marginVertical: 15,
-        // height: 30
     }
 })
 

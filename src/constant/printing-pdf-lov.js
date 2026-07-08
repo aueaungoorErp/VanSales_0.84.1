@@ -2064,7 +2064,9 @@ const printSalesOrderByPmt = (
   if (items.length > 1) {
     html += `<div style="font-size: 7px;" >รวมทั้งสิ้น</div>`;
 
-    const sumItems = data.SUMMARY_SECTION;
+    const sumItems = Array.isArray(data.SUMMARY_SECTION)
+      ? data.SUMMARY_SECTION
+      : data.SUMMARY_SECTION?.ITEMS || [];
 
     sumItems.map((sumItem, index) => {
       html += `<div style="font-size: 7px;display: flex;">
@@ -2604,6 +2606,20 @@ const printSalesOrderBySaleman = (
   printTime,
 ) => {
   let html = `<br><div style="width: 100%;"><div style="width: 180px;margin: auto;">`;
+  const formatOptionalAmount = value =>
+    value === null || value === undefined
+      ? ''
+      : decimal2digitWithCommas(value);
+  const appendAmountRow = (label, value) => {
+    if (value === null || value === undefined) {
+      return;
+    }
+
+    html += `<div style="font-size: 7px;display: flex;">
+            <div style="font-size: 7px;width: 50%;" >${label}</div>
+            <div style="font-size: 7px;width: 50%;text-align: right;" >${formatOptionalAmount(value)}</div>
+        </div>`;
+  };
 
   html += printHeaderReportPatternC(
     title,
@@ -2629,14 +2645,16 @@ const printSalesOrderBySaleman = (
 
   const book = data.BOOK;
 
-  html += `<div style="font-size: 7px;display: flex;">
-            <div style="font-size: 7px;width: 50%;" >ยอดจองรวม</div>
-            <div style="font-size: 7px;width: 50%;text-align: right;" >${decimal2digitWithCommas(book.SUM_AMT)}</div>
-        </div>`;
+  appendAmountRow('ยอดจองรวม', book?.SUM_AMT);
 
   html += `<div style="font-size: 7px;display: flex;">
             <div style="font-size: 7px;width: 50%;" >ลดต่อรายการรวม</div>
             <div style="font-size: 7px;width: 50%;text-align: right;" >${decimal2digitWithCommas(book.SUM_ITEM_DSC)}</div>
+        </div>`;
+
+  html += `<div style="font-size: 7px;display: flex;">
+            <div style="font-size: 7px;width: 50%;" >ส่วนลดท้ายบิลรวม</div>
+            <div style="font-size: 7px;width: 50%;text-align: right;" >${decimal2digitWithCommas(book.SUM_BILL_DSC)}</div>
         </div>`;
 
   html += `<div style="font-size: 7px;display: flex;">
@@ -2664,10 +2682,7 @@ const printSalesOrderBySaleman = (
 
   const sell = data.SELL;
 
-  html += `<div style="font-size: 7px;display: flex;">
-            <div style="font-size: 7px;width: 50%;" >ยอดขายรวม</div>
-            <div style="font-size: 7px;width: 50%;text-align: right;" >${decimal2digitWithCommas(sell.SUM_AMT)}</div>
-        </div>`;
+  appendAmountRow('ยอดขายรวม', sell?.SUM_AMT);
 
   html += `<div style="font-size: 7px;display: flex;">
             <div style="font-size: 7px;width: 50%;" >ลดต่อรายการรวม</div>
@@ -2676,7 +2691,7 @@ const printSalesOrderBySaleman = (
 
   html += `<div style="font-size: 7px;display: flex;">
             <div style="font-size: 7px;width: 50%;" >ลดท้ายบิลรวม</div>
-            <div style="font-size: 7px;width: 50%;text-align: right;" >${decimal2digitWithCommas(sell.SUM_BILL_DSC)}%</div>
+            <div style="font-size: 7px;width: 50%;text-align: right;" >${decimal2digitWithCommas(sell.SUM_BILL_DSC)}</div>
         </div>`;
 
   html += `<div style="font-size: 7px;display: flex;">
@@ -2704,10 +2719,7 @@ const printSalesOrderBySaleman = (
 
   const returnObj = data.RETURN;
 
-  html += `<div style="font-size: 7px;display: flex;">
-            <div style="font-size: 7px;width: 50%;" >ยอดคืนรวม</div>
-            <div style="font-size: 7px;width: 50%;text-align: right;" >${decimal2digitWithCommas(returnObj.SUM_AMT)}</div>
-        </div>`;
+  appendAmountRow('ยอดคืนรวม', returnObj?.SUM_AMT);
 
   html += `<div style="font-size: 7px;display: flex;">
             <div style="font-size: 7px;width: 50%;" >ลดต่อรายการรวม</div>
@@ -2807,6 +2819,16 @@ const printSalesOrderBySaleman = (
   return html;
 };
 
+const formatStockBalanceQty = (qty, unitName) => {
+  const numericQty = parseFloat(String(qty ?? 0));
+  const safeQty = Number.isFinite(numericQty) ? numericQty : 0;
+  const formattedQty = safeQty
+    .toFixed(0)
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  return unitName ? `${formattedQty} ${unitName}` : formattedQty;
+};
+
 const printStockBalanceByWL = (
   title,
   data,
@@ -2838,82 +2860,75 @@ const printStockBalanceByWL = (
     printTime,
   );
 
-  html += `<div style="font-size: 7px;" >รหัส : ชื่อสินค้า</div>`;
-
-  html += `<div style="font-size: 7px;display: flex;">
-                <div style="font-size: 7px;width: 30%;text-align: right;" >จำนวน</div>
-                <div style="font-size: 7px;width: 36%;text-align: right;" >จำนวน</div>
-                <div style="font-size: 7px;width: 34%;text-align: right;" >จำนวน</div>
-            </div>`;
-
-  html += `<div style="font-size: 7px;display: flex;">
-            <div style="font-size: 7px;width: 30%;text-align: right;" >หน่วย</div>
-            <div style="font-size: 7px;width: 36%;text-align: right;" >หน่วย</div>
-            <div style="font-size: 7px;width: 34%;text-align: right;" >หน่วย</div>
-        </div>`;
-
+  html += `<div style="font-size: 7px;padding: 4px 0;" >รายชื่อสินค้า / คงเหลือ / ค้างส่ง</div>`;
   html +=
     '<div style="font-size: 7px;text-align: center;width: 180px;white-space: nowrap;overflow: hidden;" >---------------------------------------------------------------------------------</div>';
 
-  resultItems.map((item, index) => {
-    html += `<div style="font-size: 7px;" >ตน.เก็บ ${item.WL_CODE} : ${item.WL_NAME}</div>`;
+  resultItems.map((warehouseItem, warehouseIndex) => {
+    html += `<div style="font-size: 7px;padding: 6px 0 4px;font-weight: bold;" >${warehouseItem.WL_CODE ?? ''} ${warehouseItem.WL_NAME ?? ''}</div>`;
 
-    item.ITEMS.map((objChildren, index) => {
-      html += `<div style="font-size: 7px;" >${objChildren.SKU_CODE} : ${objChildren.SKU_NAME}</div>`;
+    const warehouseRows = Array.isArray(warehouseItem.ITEMS)
+      ? warehouseItem.ITEMS
+      : [];
 
-      let col1 =
-        objChildren.WL_QTY_S != 0 &&
-          objChildren.SKU_S_UTQ_NAME != objChildren.SKU_T_UTQ_NAME ?
-          parseInt(objChildren.WL_QTY_S)
-            .toFixed(0)
-            .replace(/\B(?=(\d{3})+(?!\d))/g, ',') +
-          objChildren.SKU_S_UTQ_NAME :
-          null;
-      let col2 =
-        objChildren.WL_QTY_T != 0 &&
-          objChildren.SKU_T_UTQ_NAME != objChildren.SKU_K_UTQ_NAME ?
-          parseInt(objChildren.WL_QTY_T)
-            .toFixed(0)
-            .replace(/\B(?=(\d{3})+(?!\d))/g, ',') +
-          objChildren.SKU_T_UTQ_NAME :
-          null;
-      let col3 =
-        objChildren.WL_QTY_K != 0 ?
-          parseInt(objChildren.WL_QTY_K)
-            .toFixed(0)
-            .replace(/\B(?=(\d{3})+(?!\d))/g, ',') +
-          objChildren.SKU_K_UTQ_NAME :
-          null;
+    warehouseRows.map((row, rowIndex) => {
+      const unitName =
+        row.PREFERRED_UTQ_NAME || row.SKU_K_UTQ_NAME || row.SKU_S_UTQ_NAME || '';
+      const remainQty = formatStockBalanceQty(row.WL_QTY_K, row.SKU_K_UTQ_NAME);
+      const pendingDeliver = formatStockBalanceQty(
+        row.PENDING_SEND_QTY,
+        unitName,
+      );
 
-      if (col2 != null && col3 == null) {
-        col3 = col2;
-        col2 = null;
-      }
-
-      if (col1 != null && col2 == null && col3 == null) {
-        col3 = col1;
-        col1 = null;
-      } else if (col1 != null && col2 == null && col3 != null) {
-        col2 = col1;
-        col1 = null;
-      }
-
-      let width = '30%';
-
-      html += `<div style="font-size: 7px;display: flex;">
-                <div style="font-size: 7px;width: 30%;text-align: right;" >${col1 != null ? col1 : ''
-        }</div>
-                <div style="font-size: 7px;width: 36%;text-align: right;" >${col2 != null ? col2 : ''
-        }</div>
-                <div style="font-size: 7px;width: 34%;text-align: right;" >${col3 != null ? col3 : ''
-        }</div>
+      html += `<div style="font-size: 7px;padding: 4px 0 2px;" >${row.SKU_CODE ?? '-'} : ${row.SKU_NAME ?? '-'}</div>`;
+      html += `<div style="font-size: 7px;display: flex;padding-bottom: 4px;">
+                <div style="font-size: 7px;width: 50%;" >คงเหลือ ${remainQty}</div>
+                <div style="font-size: 7px;width: 50%;text-align: right;" >ค้างส่ง ${pendingDeliver}</div>
             </div>`;
+
+      if (rowIndex < warehouseRows.length - 1) {
+        html +=
+          '<div style="font-size: 7px;width: 180px;border-bottom: 1px solid #D8E0E5;margin: 2px 0 4px;" ></div>';
+      }
     });
 
-    html += `<br>`;
+    const summaryUnitName =
+      warehouseRows[0]?.PREFERRED_UTQ_NAME ||
+      warehouseRows[0]?.SKU_K_UTQ_NAME ||
+      '';
+    const summaryRemainQty = formatStockBalanceQty(
+      warehouseItem.SUM_WL_QTY_K,
+      warehouseRows[0]?.SKU_K_UTQ_NAME,
+    );
+    const summaryPendingDeliver = formatStockBalanceQty(
+      warehouseItem.SUM_PENDING_SEND_QTY,
+      summaryUnitName,
+    );
+
     html +=
-      '<div style="font-size: 7px;text-align: center;width: 180px;white-space: nowrap;overflow: hidden;" >---------------------------------------------------------------------------------</div>';
+      '<div style="font-size: 7px;width: 180px;border-top: 1px solid #D8E0E5;margin: 6px 0 4px;" ></div>';
+    html += `<div style="font-size: 7px;padding-bottom: 2px;" >รวมตำแหน่งเก็บ</div>`;
+    html += `<div style="font-size: 7px;display: flex;padding-bottom: 4px;">
+                <div style="font-size: 7px;width: 50%;" >คงเหลือ ${summaryRemainQty}</div>
+                <div style="font-size: 7px;width: 50%;text-align: right;" >ค้างส่ง ${summaryPendingDeliver}</div>
+            </div>`;
+
+    if (warehouseIndex < resultItems.length - 1) {
+      html += `<br>`;
+      html +=
+        '<div style="font-size: 7px;text-align: center;width: 180px;white-space: nowrap;overflow: hidden;" >---------------------------------------------------------------------------------</div>';
+    }
   });
+
+  if (data?.GROUP_COUNT != null) {
+    html +=
+      '<div style="font-size: 7px;width: 180px;border-top: 1px solid #D8E0E5;margin: 8px 0 4px;" ></div>';
+    html += `<div style="font-size: 7px;display: flex;">
+                <div style="font-size: 7px;width: 34%;" >${data.GROUP_COUNT} รวมทั้งสิ้น</div>
+                <div style="font-size: 7px;width: 33%;text-align: right;" >${data.SUM_ALL_WL_QTY ?? ''}</div>
+                <div style="font-size: 7px;width: 33%;text-align: right;" >${data.SUM_ALL_PENDING_SEND_QTY ?? ''}</div>
+            </div>`;
+  }
 
   html += `</div></div>`;
 

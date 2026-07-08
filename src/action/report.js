@@ -21,6 +21,77 @@ import { getLoginGuID, getUserToken, getSettingConfig } from '../utils/Token';
 import { decimal2digitWithCommas } from '../utils/FormatUtil';
 import { BPAPUS_DT_PROPERTIES } from '../constant/bPlusApi';
 import RNFetchBlob from 'react-native-blob-util';
+
+const toSafeNumber = value => {
+  const parsed = parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const buildPaymentBucketsFromDetail = (detailResponse, lookupItem) => {
+  const paymentMethod = Array.isArray(detailResponse?.paymentMethod)
+    ? detailResponse.paymentMethod[0] || {}
+    : detailResponse?.paymentMethod || {};
+  const docInfo = detailResponse?.DOCINFO || {};
+  const detail = detailResponse?.ARDETAIL || detailResponse?.AROE || {};
+  const fallbackName = lookupItem?.DT_THAIDESC || docInfo?.DT_THAIDESC || 'ไม่ระบุ';
+  const buckets = [];
+
+  const pushBucket = (name, amount) => {
+    const numericAmount = toSafeNumber(amount);
+    if (!numericAmount) {
+      return;
+    }
+
+    buckets.push({
+      PMT_NAME: name,
+      PMTAMT: numericAmount,
+    });
+  };
+
+  pushBucket('เงินสด', paymentMethod?.CASHAC_AMT);
+  pushBucket(paymentMethod?.BNKAC_NAME || 'โอน/ธนาคาร', paymentMethod?.BNKAC_AMT);
+  pushBucket(paymentMethod?.QRCT_NAME || 'QR Code', paymentMethod?.QRCT_AMT);
+  pushBucket('เช็ค', paymentMethod?.CQIN_1_AMT);
+  pushBucket('เช็ค', paymentMethod?.CQIN_2_AMT);
+  pushBucket('เช็ค', paymentMethod?.CQIN_3_AMT);
+  pushBucket(paymentMethod?.PMT_1_NAME || 'อื่นๆ', paymentMethod?.PMT_1_AMT);
+  pushBucket(paymentMethod?.PMT_2_NAME || 'อื่นๆ', paymentMethod?.PMT_2_AMT);
+
+  if (buckets.length > 0) {
+    return buckets;
+  }
+
+  const fallbackAmount =
+    toSafeNumber(detail?.ARD_A_AMT) ||
+    toSafeNumber(detail?.AROE_A_AMT) ||
+    toSafeNumber(lookupItem?.DI_AMOUNT);
+
+  if (fallbackAmount) {
+    return [
+      {
+        PMT_NAME: fallbackName,
+        PMTAMT: fallbackAmount,
+      },
+    ];
+  }
+
+  return [];
+};
+
+const summarizePaymentBuckets = buckets => {
+  const summaryMap = new Map();
+
+  buckets.forEach(bucket => {
+    const key = bucket.PMT_NAME || 'ไม่ระบุ';
+    const current = summaryMap.get(key) || 0;
+    summaryMap.set(key, current + toSafeNumber(bucket.PMTAMT));
+  });
+
+  return Array.from(summaryMap.entries()).map(([name, amount]) => ({
+    PMT_NAME: name,
+    PMTAMT: amount,
+  }));
+};
 export const setInitialState = () => (dispatch) => {
   dispatch({ type: types.REPORT_SET_INITIAL_STATE });
 };
@@ -193,8 +264,19 @@ export const getReportData = (uri, pattern, data) => (dispatch) => {
   return new Promise((resolve, reject) => {
     dispatch({ type: types.REPORT_GET_DATA });
 
+    if (uri === 'SalesOrderByPmt') {
+      console.log('[Report][SalesOrderByPmt] getReportData start', {
+        uri,
+        pattern,
+        data,
+      });
+    }
+
     getReportDataApi(uri, data)
       .then((v) => {
+        if (uri === 'SalesOrderByPmt') {
+          console.log('[Report][SalesOrderByPmt] getReportData response', v);
+        }
         const { RESULT_DATA, STATUS, ERROR_MESSAGES } = v;
 
         if (STATUS === '00') {
@@ -237,6 +319,14 @@ export const getReportData = (uri, pattern, data) => (dispatch) => {
 export const getReportDataNoGroup = (uri, pattern, data) => (dispatch) => {
   return new Promise(async (resolve, reject) => {
     try {
+      if (uri === 'SalesOrderByPmt') {
+        console.log('[Report][SalesOrderByPmt] getReportDataNoGroup start', {
+          uri,
+          pattern,
+          data,
+        });
+      }
+
       // ตรวจสอบว่ามี token หรือไม่ก่อนเรียก API
       const userToken = await getUserToken();
       if (!userToken || !userToken.VANCONFIG) {
@@ -292,6 +382,9 @@ export const getReportDataNoGroup = (uri, pattern, data) => (dispatch) => {
     // console.log('getReportDataNoGroup >>>>>>>>>');
     api
       .then((v) => {
+        if (uri === 'SalesOrderByPmt') {
+          console.log('[Report][SalesOrderByPmt] getReportDataNoGroup response', v);
+        }
         const { RESULT_DATA, STATUS, ERROR_MESSAGES } = v;
 
         console.log('getReportDataNoGroup >>>>>>>>>', v);
@@ -358,6 +451,14 @@ export const getReportDataNoGroup = (uri, pattern, data) => (dispatch) => {
 export const getReportV3 = (uri, pattern, data) => (dispatch) => {
   return new Promise(async (resolve, reject) => {
     try {
+      if (uri === 'SalesOrderByPmt') {
+        console.log('[Report][SalesOrderByPmt] getReportV3 start', {
+          uri,
+          pattern,
+          data,
+        });
+      }
+
       const fromDate = moment(data.FROM.replace(/T/, ' ').replace(/\..+/, '')).format('YYYY-MM-DD');
       const toDate = moment(data.TO.replace(/T/, ' ').replace(/\..+/, '')).format('YYYY-MM-DD');
       const LoginGUID = await getLoginGuID();
@@ -385,6 +486,14 @@ export const getReportV3 = (uri, pattern, data) => (dispatch) => {
       let FinalRESULT = [];
       let DATA = [];
       console.log('uri ', uri);
+      if (uri === 'SalesOrderByPmt') {
+        console.log('[Report][SalesOrderByPmt] getReportV3 normalized dates', {
+          fromDate,
+          toDate,
+          loginGuid: LoginGUID,
+          vanCnfMachine: VANCONFIG?.VANCNF_MACHINE,
+        });
+      }
       const vanCnf = VANCONFIG.VANCNF_MACHINE;
       if (uri === 'DocumentItems') {
         await LookupErpCashSaleAPi(vanCnf, fromDate, toDate, uri).then(async (v) => {
@@ -1506,6 +1615,135 @@ export const getReportV3 = (uri, pattern, data) => (dispatch) => {
               payload: FinalRESULT,
             });
           } else if (FinalRESULT.ITEMS.length == 0) {
+            dispatch({
+              type: types.REPORT_SET_ERROR_MESSAGE,
+              payload: 'ไม่พบข้อมูลรายงาน',
+            });
+          }
+
+          resolve(FinalRESULT);
+        } else {
+          dispatch({
+            type: types.REPORT_SET_ERROR_MESSAGE,
+            payload: 'ไม่พบข้อมูลรายงาน',
+          });
+          resolve([]);
+        }
+      });
+    } else if (uri === 'SalesOrderByPmt') {
+      await LookupErpCashSaleAPi(vanCnf, fromDate, toDate, uri).then(async v => {
+        if (uri === 'SalesOrderByPmt') {
+          console.log('[Report][SalesOrderByPmt] lookup response items', v);
+        }
+
+        if (v && v.length != 0) {
+          for (let obj of v) {
+            let isNew = true;
+            for (let obj2 of RESULT) {
+              if (obj2.GROUP_NAME == moment(obj.DI_DATE).format('DD/MM/YYYY')) {
+                obj2.ITEMS = [...obj2.ITEMS, obj];
+                isNew = false;
+                continue;
+              }
+            }
+            if (isNew) {
+              RESULT.push({
+                GROUP_NAME: moment(obj.DI_DATE).format('DD/MM/YYYY'),
+                ITEMS: [obj],
+              });
+            }
+          }
+
+          for (const i in RESULT) {
+            let paymentItems = [];
+
+            for (let j of RESULT[i].ITEMS) {
+              let response = null;
+
+              try {
+                if (
+                  j.DT_DOCCODE?.includes('Q') ||
+                  j.DT_DOCCODE?.includes('BK')
+                ) {
+                  response = await UpdateErpGetSellOrderDocInfoAPi(j.DI_KEY);
+                } else if (j.DT_DOCCODE?.includes('DM')) {
+                  response = await UpdateErpGetOtherDocInfoAPi(j.DI_KEY);
+                } else if (j.DI_KEY) {
+                  response = await UpdateErpGetInvoiceOrderDocInfoAPi(j.DI_KEY);
+                }
+              } catch (error) {
+                console.log(
+                  '[Report][SalesOrderByPmt] detail fetch failed, fallback to lookup item',
+                  {
+                    diKey: j?.DI_KEY,
+                    dtDocCode: j?.DT_DOCCODE,
+                    message: error?.message || error,
+                  },
+                );
+              }
+
+              const paymentBuckets = summarizePaymentBuckets(
+                buildPaymentBucketsFromDetail(response, j),
+              );
+
+              paymentItems = [...paymentItems, ...paymentBuckets];
+            }
+
+            const mergedPaymentItems = summarizePaymentBuckets(paymentItems);
+            RESULT[i].ITEMS = mergedPaymentItems;
+            RESULT[i].GROUP_AMT = mergedPaymentItems.reduce(
+              (sum, item) => sum + toSafeNumber(item.PMTAMT),
+              0,
+            );
+          }
+
+          let SUMMARY_SECTION = [];
+          let SUM_COUNT = 0.0;
+          let SUM_AMT = 0.0;
+
+          for (const i in RESULT) {
+            for (let obj of RESULT[i].ITEMS) {
+              let isNew = true;
+              for (let inTemp of SUMMARY_SECTION) {
+                if (inTemp.ITEM_NAME == obj.PMT_NAME) {
+                  inTemp.ITEM_AMT += toSafeNumber(obj.PMTAMT);
+                  isNew = false;
+                  SUM_AMT += toSafeNumber(obj.PMTAMT);
+                  continue;
+                }
+              }
+
+              if (isNew) {
+                SUMMARY_SECTION.push({
+                  ITEM_NAME: obj.PMT_NAME,
+                  ITEM_AMT: toSafeNumber(obj.PMTAMT),
+                });
+                SUM_COUNT += 1;
+                SUM_AMT += toSafeNumber(obj.PMTAMT);
+              }
+            }
+          }
+
+          FinalRESULT = {
+            ITEMS: RESULT,
+            SUMMARY_SECTION: {
+              ITEMS: SUMMARY_SECTION,
+            },
+            SUM_COUNT: SUMMARY_SECTION.length,
+            SUM_AMT: SUM_AMT,
+          };
+
+          console.log(
+            '[Report][SalesOrderByPmt] final result',
+            JSON.stringify(FinalRESULT),
+          );
+
+          if (FinalRESULT.ITEMS.length > 0) {
+            dispatch({
+              type: types.REPORT_GET_DATA_SUCCESS,
+              payload: FinalRESULT,
+            });
+          } else {
             dispatch({
               type: types.REPORT_SET_ERROR_MESSAGE,
               payload: 'ไม่พบข้อมูลรายงาน',
