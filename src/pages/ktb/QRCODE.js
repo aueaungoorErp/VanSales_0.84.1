@@ -1,4 +1,4 @@
-﻿// import React, {useEffect, useState} from 'react';
+// import React, {useEffect, useState} from 'react';
 // import {View, Text, BackHandler, Alert} from 'react-native';
 // import {connect} from 'react-redux';
 // import QRCode from 'react-native-qrcode-svg';
@@ -92,7 +92,6 @@
 //   const postInvoice = async () => {
 //     const postinvoice = await props.postinvoice(data, accessToken);
 //     const {txnStatusCode, message} = postinvoice;
-//     console.log('postinvoice ', JSON.stringify(postinvoice));
 //     if (txnStatusCode === 200) {
 //       const getPaymentStatusData = {
 //         dscfTxnId: data.dscfTxnId,
@@ -209,27 +208,22 @@ import { connect } from 'react-redux';
 import { getPaymentStatus, postinvoice } from '../../action/ktb-payment';
 import { Button, ThemeProvider } from '../../component/elements';
 import Navigator from '../../services/Navigator';
-
 const logoFromFile = require('../../images/krungthai_logo.jpg');
 const initialTime = 10 * 60 * 1000;
 const interval = 1000;
-
 function millisToMinutesAndSeconds(millis) {
   const minutes = Math.floor(millis / 60000);
-  const seconds = Math.floor((millis % 60000) / 1000);
+  const seconds = Math.floor(millis % 60000 / 1000);
   return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 }
-
 const theme = {
   Button: {
     containerStyle: {
-      marginTop: 10,
-    },
-  },
+      marginTop: 10
+    }
+  }
 };
-
 const MOCK_QRCODE_DATA = '00020101021153037645802TH29370016A0000006770101110213110400008173763049875';
-
 const QRCODE = props => {
   const params = props.route?.params || {};
   const accessToken = params.accessToken || null;
@@ -237,79 +231,64 @@ const QRCODE = props => {
   const totalPrice = params.totalPrice || null;
   const qrcodeVaule = params.qrcodeVaule || MOCK_QRCODE_DATA;
   const isMock = !params.qrcodeVaule;
-
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [status, setPaymentStatus] = useState(null);
   const [errorMessage, setMessageError] = useState(null);
-
   const timerRef = useRef(null);
   const hasStartedRef = useRef(false);
   const postinvoiceRef = useRef(props.postinvoice);
   const getPaymentStatusRef = useRef(props.getPaymentStatus);
-
   useEffect(() => {
     postinvoiceRef.current = props.postinvoice;
     getPaymentStatusRef.current = props.getPaymentStatus;
   });
-
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
   }, []);
-
-  const startTimer = useCallback(
-    (duration = initialTime) => {
-      clearTimer();
-      hasStartedRef.current = true;
-      setTimeLeft(duration);
-
-      timerRef.current = setInterval(() => {
-        setTimeLeft(prevTime => {
-          if (prevTime <= interval) {
-            clearTimer();
-            return 0;
-          }
-          return prevTime - interval;
-        });
-      }, interval);
-    },
-    [clearTimer],
-  );
-
+  const startTimer = useCallback((duration = initialTime) => {
+    clearTimer();
+    hasStartedRef.current = true;
+    setTimeLeft(duration);
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prevTime => {
+        if (prevTime <= interval) {
+          clearTimer();
+          return 0;
+        }
+        return prevTime - interval;
+      });
+    }, interval);
+  }, [clearTimer]);
   const resetTimer = useCallback(() => {
     clearTimer();
     hasStartedRef.current = false;
     setTimeLeft(initialTime);
   }, [clearTimer]);
-
   const resetAll = useCallback(() => {
     setPaymentStatus(null);
     setMessageError(null);
     resetTimer();
   }, [resetTimer]);
-
   const postInvoice = useCallback(async () => {
     if (!data || !accessToken) return;
     try {
       const postinvoiceResult = await postinvoiceRef.current(data, accessToken);
-      const {txnStatusCode, message} = postinvoiceResult;
-
-      console.log('postinvoice ', JSON.stringify(postinvoiceResult));
-
+      const {
+        txnStatusCode,
+        message
+      } = postinvoiceResult;
       if (txnStatusCode === 200) {
         const getPaymentStatusData = {
-          dscfTxnId: data.dscfTxnId,
+          dscfTxnId: data.dscfTxnId
         };
-
-        const result = await getPaymentStatusRef.current(
-          getPaymentStatusData,
-          accessToken,
-        );
-
-        const {txnStatusCode: paymentTxnStatusCode, paymentStatus} = result;
-
+        const result = await getPaymentStatusRef.current(getPaymentStatusData, accessToken);
+        const {
+          txnStatusCode: paymentTxnStatusCode,
+          paymentStatus
+        } = result;
         if (paymentTxnStatusCode === 200 && paymentStatus) {
           if (paymentStatus === 'Pending') {
             setPaymentStatus(paymentStatus);
@@ -324,21 +303,17 @@ const QRCODE = props => {
       setMessageError(e.message || 'Network error');
     }
   }, [data, accessToken]);
-
   const payment = useCallback(async () => {
     if (!data || !accessToken) return;
     try {
       const getPaymentStatusData = {
-        dscfTxnId: data.dscfTxnId,
+        dscfTxnId: data.dscfTxnId
       };
-
-      const result = await getPaymentStatusRef.current(
-        getPaymentStatusData,
-        accessToken,
-      );
-
-      const {txnStatusCode, paymentStatus} = result;
-
+      const result = await getPaymentStatusRef.current(getPaymentStatusData, accessToken);
+      const {
+        txnStatusCode,
+        paymentStatus
+      } = result;
       if (txnStatusCode === 200) {
         if (paymentStatus === 'Pending') {
           setPaymentStatus(paymentStatus);
@@ -346,7 +321,7 @@ const QRCODE = props => {
           setPaymentStatus(paymentStatus);
           Navigator.navigate('OrderSalesSummary', {
             actionType: 'orderProductSummaryProcessed',
-            printType: 'cash',
+            printType: 'cash'
           });
           resetAll();
         }
@@ -362,122 +337,104 @@ const QRCODE = props => {
     if (!isMock) {
       postInvoice();
     }
-
     return () => {
       clearTimer();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   useEffect(() => {
     const backAction = () => {
-      Alert.alert(
-        'แจ้งเตือน',
-        'เมื่อคุณย้อนกลับเอกสารจะถูกปรับให้เป็นยกเลิก?',
-        [
-          {
-            text: 'ยกเลิก',
-            onPress: () => null,
-            style: 'cancel',
-          },
-          {
-            text: 'ตกลง',
-            onPress: () => {
-              resetAll();
-            },
-          },
-        ],
-      );
+      Alert.alert('แจ้งเตือน', 'เมื่อคุณย้อนกลับเอกสารจะถูกปรับให้เป็นยกเลิก?', [{
+        text: 'ยกเลิก',
+        onPress: () => null,
+        style: 'cancel'
+      }, {
+        text: 'ตกลง',
+        onPress: () => {
+          resetAll();
+        }
+      }]);
       return true;
     };
-
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction,
-    );
-
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
     return () => backHandler.remove();
   }, [resetAll]);
-
   useEffect(() => {
     if (timeLeft === 0 && hasStartedRef.current) {
       resetAll();
       Navigator.back();
     }
   }, [timeLeft, resetAll]);
-
   useEffect(() => {
     const unsubscribe = props.navigation.addListener('focus', () => {
       resetAll();
     });
-
     return unsubscribe;
   }, [props.navigation, resetAll]);
-
-  return (
-    <ThemeProvider theme={theme}>
-      <View
-        style={{
-          flex: 1,
-          paddingTop: 30,
-          alignItems: 'center',
-        }}>
+  return <ThemeProvider theme={theme}>
+      <View style={{
+      flex: 1,
+      paddingTop: 30,
+      alignItems: 'center'
+    }}>
         <QRCode size={350} value={qrcodeVaule} logo={logoFromFile} />
 
-        {data && data.ref1 && (
-          <Text style={{fontSize: 18, paddingTop: 30}}>Ref1: {data.ref1}</Text>
-        )}
+        {data && data.ref1 && <Text style={{
+        fontSize: 18,
+        paddingTop: 30
+      }}>Ref1: {data.ref1}</Text>}
 
-        {data && data.sponsorTaxId && (
-          <Text style={{fontSize: 18, paddingTop: 10}}>
+        {data && data.sponsorTaxId && <Text style={{
+        fontSize: 18,
+        paddingTop: 10
+      }}>
             sponsorTaxId: {data.sponsorTaxId}
-          </Text>
-        )}
+          </Text>}
 
-        {data && data.invoice && (
-          <Text style={{fontSize: 18, paddingTop: 10}}>
+        {data && data.invoice && <Text style={{
+        fontSize: 18,
+        paddingTop: 10
+      }}>
             invoiceId: {data.invoice.invoiceHdr.invoiceId}
-          </Text>
-        )}
+          </Text>}
 
-        {totalPrice && (
-          <Text style={{fontSize: 18, paddingTop: 10}}>
+        {totalPrice && <Text style={{
+        fontSize: 18,
+        paddingTop: 10
+      }}>
             Amount: {totalPrice}
-          </Text>
-        )}
+          </Text>}
 
-        <Text style={{fontSize: 18, paddingTop: 8}}>
+        <Text style={{
+        fontSize: 18,
+        paddingTop: 8
+      }}>
           Time left: {millisToMinutesAndSeconds(timeLeft)}
         </Text>
 
-        {status && (
-          <Text style={{fontSize: 18, paddingTop: 8}}>{status}</Text>
-        )}
+        {status && <Text style={{
+        fontSize: 18,
+        paddingTop: 8
+      }}>{status}</Text>}
 
-        {errorMessage && (
-          <Text style={{fontSize: 18, padding: 8, color: 'red'}}>
+        {errorMessage && <Text style={{
+        fontSize: 18,
+        padding: 8,
+        color: 'red'
+      }}>
             {errorMessage}
-          </Text>
-        )}
+          </Text>}
 
-        <Button
-          containerStyle={{backgroundColor: '#00a6e6'}}
-          large
-          title={'Get Payment Status'}
-          onPress={payment}
-        />
+        <Button containerStyle={{
+        backgroundColor: '#00a6e6'
+      }} large title={'Get Payment Status'} onPress={payment} />
       </View>
-    </ThemeProvider>
-  );
+    </ThemeProvider>;
 };
-
 const mapDispatchToProps = dispatch => {
   return {
-    postinvoice: (data, accessToken) =>
-      dispatch(postinvoice(data, accessToken)),
-    getPaymentStatus: (data, accessToken) =>
-      dispatch(getPaymentStatus(data, accessToken)),
+    postinvoice: (data, accessToken) => dispatch(postinvoice(data, accessToken)),
+    getPaymentStatus: (data, accessToken) => dispatch(getPaymentStatus(data, accessToken))
   };
 };
-
 export default connect(null, mapDispatchToProps)(QRCODE);

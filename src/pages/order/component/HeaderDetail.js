@@ -11,8 +11,6 @@ const HeaderDetail = props => {
   const { header, customer } = props;
   const INFO = customer?.INFO ?? {};
   const orderHeader = header ?? {};
-  // console.log("header >>>" , header )
-  // console.log("customer >>>" , customer )
 
   return (
     <View style={styles.container}>

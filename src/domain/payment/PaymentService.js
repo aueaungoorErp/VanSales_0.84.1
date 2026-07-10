@@ -17,27 +17,13 @@
  *   const result = await paymentService.ktbCheckStatus(data);
  */
 
-import {
-    requestAuthApi,
-    requestGenQRApi,
-    requestGetPaymentStatus,
-    requestGetStatusApi,
-    requestPostInvoice,
-    requestSubscriptionApi,
-} from '../../api/ktb-payment';
-
-import {
-    authForGetAccessTokenApi,
-    requestQrCodeSCBApi,
-} from '../../api/qrcode-payment';
-
+import { requestAuthApi, requestGenQRApi, requestGetPaymentStatus, requestGetStatusApi, requestPostInvoice, requestSubscriptionApi } from '../../api/ktb-payment';
+import { authForGetAccessTokenApi, requestQrCodeSCBApi } from '../../api/qrcode-payment';
 import DeviceInfo from 'react-native-device-info';
 import { getUserToken } from '../../utils/Token';
-
 class PaymentService {
-  
   // ============= KTB Payment Methods =============
-  
+
   /**
    * Check KTB payment service status
    * @param {string} ktbURL - KTB service URL
@@ -48,19 +34,20 @@ class PaymentService {
       if (!ktbURL) {
         return {
           success: false,
-          error: 'KTB URL is required',
+          error: 'KTB URL is required'
         };
       }
-
       const response = await requestGetStatusApi(ktbURL);
       return {
         success: true,
-        data: response,
+        data: response
       };
     } catch (error) {
       return {
-        success: false,        data: null,        data: null,
-        error: error?.message || String(error),
+        success: false,
+        data: null,
+        data: null,
+        error: error?.message || String(error)
       };
     }
   }
@@ -75,30 +62,27 @@ class PaymentService {
       const userToken = await getUserToken();
       const mac = await DeviceInfo.getMACAddress();
       const uid = await DeviceInfo.getUniqueId();
-
       if (!mac || !uid) {
         return {
           success: false,
-          error: 'Unable to retrieve device information',
+          error: 'Unable to retrieve device information'
         };
       }
-
       const data = {
         deviceName: mac,
         machineId: uid,
-        crn: '9100990000161', // TODO: Use userToken.COMPANYINFO.CMPNY_REG_NO
+        crn: '9100990000161' // TODO: Use userToken.COMPANYINFO.CMPNY_REG_NO
       };
-
       const response = await requestAuthApi(data);
       return {
         success: true,
-        data: response,
+        data: response
       };
     } catch (error) {
       return {
         success: false,
         data: null,
-        error: error?.message || String(error),
+        error: error?.message || String(error)
       };
     }
   }
@@ -114,18 +98,19 @@ class PaymentService {
       if (!data || !accessToken) {
         return {
           success: false,
-          error: 'Subscription data and access token are required',
+          error: 'Subscription data and access token are required'
         };
       }
-
       const response = await requestSubscriptionApi(data, accessToken);
       return {
         success: true,
-        data: response,
+        data: response
       };
     } catch (error) {
       return {
-        success: false,        data: null,        error: error?.message || String(error),
+        success: false,
+        data: null,
+        error: error?.message || String(error)
       };
     }
   }
@@ -141,20 +126,19 @@ class PaymentService {
       if (!data || !accessToken) {
         return {
           success: false,
-          error: 'QR code data and access token are required',
+          error: 'QR code data and access token are required'
         };
       }
-
       const response = await requestGenQRApi(data, accessToken);
       return {
         success: true,
-        data: response,
+        data: response
       };
     } catch (error) {
       return {
         success: false,
         data: null,
-        error: error?.message || String(error),
+        error: error?.message || String(error)
       };
     }
   }
@@ -170,20 +154,19 @@ class PaymentService {
       if (!data || !accessToken) {
         return {
           success: false,
-          error: 'Invoice data and access token are required',
+          error: 'Invoice data and access token are required'
         };
       }
-
       const response = await requestPostInvoice(data, accessToken);
       return {
         success: true,
-        data: response,
+        data: response
       };
     } catch (error) {
       return {
         success: false,
         data: null,
-        error: error?.message || String(error),
+        error: error?.message || String(error)
       };
     }
   }
@@ -199,19 +182,18 @@ class PaymentService {
       if (!data || !accessToken) {
         return {
           success: false,
-          error: 'Status data and access token are required',
+          error: 'Status data and access token are required'
         };
       }
-
       const response = await requestGetPaymentStatus(data, accessToken);
       return {
         success: true,
-        data: response,
+        data: response
       };
     } catch (error) {
       return {
         success: false,
-        error: error?.message || String(error),
+        error: error?.message || String(error)
       };
     }
   }
@@ -228,19 +210,17 @@ class PaymentService {
       if (!auth || !auth.userName || !auth.userPassword) {
         return {
           success: false,
-          error: 'Username and password are required',
+          error: 'Username and password are required'
         };
       }
-
       const response = await authForGetAccessTokenApi(auth);
       return {
         success: true,
-        data: response,
+        data: response
       };
     } catch (error) {
       // Handle error response structure
       let errorMessage = 'QRCode authentication failed';
-      
       if (error?.response?.data) {
         errorMessage = error.response.data.message || JSON.stringify(error.response.data);
       } else if (error?.request) {
@@ -248,10 +228,9 @@ class PaymentService {
       } else if (error?.message) {
         errorMessage = error.message;
       }
-
       return {
         success: false,
-        error: errorMessage,
+        error: errorMessage
       };
     }
   }
@@ -267,34 +246,29 @@ class PaymentService {
       if (!paymentData || !paymentData.paymentChannels || paymentData.paymentChannels.length === 0) {
         return {
           success: false,
-          error: 'Payment channel data is required',
+          error: 'Payment channel data is required'
         };
       }
-
       if (!amount || amount <= 0) {
         return {
           success: false,
-          error: 'Valid amount is required',
+          error: 'Valid amount is required'
         };
       }
-
       const request = {
         billerId: paymentData.paymentChannels[0].billerId,
         amount: amount,
-        terminal: paymentData.paymentChannels[0].terminalId,
+        terminal: paymentData.paymentChannels[0].terminalId
       };
-
-      console.log('qrcodeRequestSCB request:', request);
       const response = await requestQrCodeSCBApi(request);
-      
       return {
         success: true,
-        data: response,
+        data: response
       };
     } catch (error) {
       return {
         success: false,
-        error: error?.message || String(error),
+        error: error?.message || String(error)
       };
     }
   }

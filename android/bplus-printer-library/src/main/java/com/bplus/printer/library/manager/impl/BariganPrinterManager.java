@@ -192,7 +192,6 @@ public class BariganPrinterManager implements IPrinterManager {
     @Override
     public void flushText() throws Exception {
         // graphic mode
-        Log.d("GGGGGGGG", "flushText-----asfdkasfjkasjfkas=-=======");
         // Bitmap line = null;
         //
         // for (HashMap<String, Object> hashMap : textList) {

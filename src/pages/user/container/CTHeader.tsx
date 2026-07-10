@@ -33,7 +33,6 @@ const margin = Dimensions.get('window').width > MOBILE5INCH ? 20 : 10;
 
 const CTHeader: React.FC = () => {
   const [userToken, setUserToken] = useState<UserTokenState | null>(null);
-  // console.log('userToken: ', userToken);
   useEffect(() => {
     const loadUserToken = async () => {
       const nextUserToken = await getUserToken();

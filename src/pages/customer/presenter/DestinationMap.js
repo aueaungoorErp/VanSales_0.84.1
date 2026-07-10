@@ -21,8 +21,6 @@ const Map = (props) => {
         customerSkip ,
         skipConfirmDialog } = props
 
-    // console.log('sdvd', listItems)
-    //console.log("marker.currentLocation >>>" , listItems);
 
         
     const _renderCurrentMarker = (item, index) => {

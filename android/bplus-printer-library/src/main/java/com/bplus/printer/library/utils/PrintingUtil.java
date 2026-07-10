@@ -296,7 +296,6 @@ public class PrintingUtil {
         int width = bm.getWidth();
         int height = bm.getHeight();
 
-        Log.i("Pictures", "Width and height are " + width + "--" + height);
 
         if (width > height) {
             // landscape
@@ -314,7 +313,6 @@ public class PrintingUtil {
             width = maxWidth;
         }
 
-        Log.i("Pictures", "after scaling Width and height are " + width + "--" + height);
 
         bm = Bitmap.createScaledBitmap(bm, width, height, true);
         return bm;

@@ -339,7 +339,6 @@ public class EPSONPrinterManager implements IPrinterManager, ReceiveListener {
 
 //                ShowMsg.showResult(
 // code, makeErrorMessage(status), context);
-//                Log.i("status 1 ", status.toString());
                 dispPrinterWarnings(status);
 //                printerStatus.updateState(true);
                 new Thread(new Runnable() {
@@ -387,7 +386,6 @@ public class EPSONPrinterManager implements IPrinterManager, ReceiveListener {
             }
         }
 
-        Log.i("golf show", target);
 
         return target;
     }

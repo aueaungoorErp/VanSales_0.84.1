@@ -68,9 +68,7 @@ public class PrintPicture {
         byte temp = 0;
         for (i = 0; i < width; i++) {
 
-            System.out.println("进来了...I");
             for (j = 0; j < height; j++) {
-                System.out.println("进来了...J");
                 if (bmp.getPixel(i, j) != -1) {
                     temp |= (0x80 >> k);
                 } // end if
@@ -88,7 +86,6 @@ public class PrintPicture {
             }
 
         }
-        System.out.println("data" + data);
 
         if (width % 8 != 0) {
             i = height / 8;

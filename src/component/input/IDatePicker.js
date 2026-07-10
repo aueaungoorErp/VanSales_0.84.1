@@ -156,6 +156,8 @@ class IDatePicker extends Component {
       optionTextStyle={styles.selectorOptionText}
       selectedItemTextStyle={styles.selectorSelectedItemText}
       optionContainerStyle={styles.selectorOptionContainer}
+      overlayStyle={styles.selectorOverlay}
+      cancelContainerStyle={styles.selectorCancelContainer}
       cancelText="ยกเลิก"
       selectedKey={selectedKey}
     >
@@ -177,6 +179,8 @@ class IDatePicker extends Component {
       inputTextStyle,
       labelTextStyle,
       iconSize,
+      overlayCardStyle,
+      overlayChildrenWrapperStyle,
     } = this.props;
     const yearItems = this._buildSelectorItems(
       this._generateYearItems(),
@@ -237,9 +241,12 @@ class IDatePicker extends Component {
           onClose={() => {
             this._setState('visible', false);
           }}
-          childrenWrapperStyle={{ backgroundColor: 'transparent' }}
+          childrenWrapperStyle={[
+            { backgroundColor: 'transparent' },
+            overlayChildrenWrapperStyle,
+          ]}
         >
-          <View style={styles.overlayCard}>
+          <View style={[styles.overlayCard, overlayCardStyle]}>
             <View style={styles.overlayHeader}>
               <Text style={styles.overlayTitle} allowFontScaling={false}>
                 เลือกวันที่
@@ -354,6 +361,15 @@ const styles = StyleSheet.create({
   },
   selectorOptionContainer: {
     backgroundColor: '#F7FAF8',
+  },
+  selectorOverlay: {
+    justifyContent: 'flex-start',
+    paddingTop: hp('13%'),
+    paddingHorizontal: 18,
+    backgroundColor: 'rgba(18, 24, 21, 0.18)',
+  },
+  selectorCancelContainer: {
+    paddingHorizontal: 18,
   },
   selectorOptionText: {
     color: '#6C8478',

@@ -326,32 +326,26 @@ export const getMasterDataWareLocations = () => (dispatch) => {
 
 
 // export const searchMasterDataBankFileList = (GUID) => (dispatch) => {
-// // console.log("searchMasterDataBankFileList >>> 2" , GUID);
 
 
 //   return new Promise((resolve, reject) => {
 //     dispatch({type: types.MASTER_DATA_SEARCH_BANK_FILE_LIST});
 //     searchMasterDataBankFileListApi(GUID)
 //       .then((v) => {
-//         // console.log("searchMasterDataBankFileList >>> 33" , v );
 //        // const {RESULT_DATA, STATUS, ERROR_MESSAGES} = v;
 //         const {ResponseData, ResponseCode , ReasonString} = v;
-//         // console.log(JSON.parse(ResponseData));
 //         let responseData = JSON.parse(ResponseData)
 
-//         // console.log("searchMasterDataBankFileList >>> 34" , responseData.Bk000201 );
 
 //         if (ResponseCode === '200') {
 //           const RESULT =  responseData.Bk000201;
 
-//           // console.log("searchMasterDataBankFileList >>> 222" , RESULT );
 
 //           if (ResponseData && RESULT && RESULT.length > 0) {
 //             dispatch({
 //               type: types.MASTER_DATA_SEARCH_BANK_FILE_LIST_SUCCESS,
 //               payload: RESULT,
 //             });
-//             // console.log("searchMasterDataBankFileList >>> v" , v );
 //             resolve(v);
        
          
@@ -432,9 +426,7 @@ export const getMasterDataWareLocations = () => (dispatch) => {
 //       {name: 'provinces.db', createFromLocation: 1},
 //       () => {
 //         db.transaction((tx) => {
-//           // console.log('tx ', tx);
 //           tx.executeSql('SELECT * FROM Provinces', [], (tx, result) => {
-//             // console.log('SELECT * FROM Provinces ' , result);
 //             let dataLength = result.rows.length;
 
 //             var temp = [];
@@ -443,7 +435,6 @@ export const getMasterDataWareLocations = () => (dispatch) => {
 //               temp.push(result.rows.item(i));
 //             }
 
-//             // console.log('SELECT * FROM Provinces ' , temp);
 
 
 
@@ -477,7 +468,6 @@ export const getMasterDataWareLocations = () => (dispatch) => {
 //       {name: 'provinces.db', createFromLocation: 2},
 //       () => {
 //         db.transaction((tx) => {
-//           console.log(
 //             'customer.item.TEMP_CUS.PROVINCE ',
 //             customer.item.TEMP_CUS.PROVINCE,
 //           );
@@ -487,7 +477,6 @@ export const getMasterDataWareLocations = () => (dispatch) => {
 //               "'",
 //             [],
 //             (tx, result) => {
-//               console.log('getMasterDataDistricts result', result);
 //               let dataLength = result.rows.length;
 
 //               var temp = [];
@@ -528,7 +517,6 @@ export const getMasterDataWareLocations = () => (dispatch) => {
 //       {name: 'provinces.db', createFromLocation: 2},
 //       () => {
 //         db.transaction((tx) => {
-//           console.log(
 //             'customer.item.TEMP_CUS.ADDRESS3 ',
 //             customer.item.TEMP_CUS.ADDRESS3,
 //           );
@@ -538,7 +526,6 @@ export const getMasterDataWareLocations = () => (dispatch) => {
 //               "'",
 //             [],
 //             (tx, result) => {
-//               console.log('getMasterDataSubDistricts result', result);
 //               let dataLength = result.rows.length;
 
 //               var temp = [];
@@ -657,7 +644,6 @@ export const getMasterDataWareLocations = () => (dispatch) => {
 
 // //         if (STATUS === '00') {
 // //           const {RESULT} = RESULT_DATA;
-// //           console.log('RESULT ', RESULT);
 // //           if (RESULT_DATA && RESULT && RESULT.length > 0) {
 // //             dispatch({
 // //               type:
@@ -715,7 +701,6 @@ export const getMasterDataWareLocations = () => (dispatch) => {
 // };
 
 // export const getMasterDataBankAccounts = () => (dispatch) => {
-//   //console.log("types.MASTER_DATA_GET_BANK_ACCOUNTS")
 //   return new Promise((resolve, reject) => {
 //     dispatch({type: types.MASTER_DATA_GET_BANK_ACCOUNTS});
 //     getMasterDataBankAccountsApi()

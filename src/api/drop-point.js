@@ -1,21 +1,13 @@
 import Request from '../utils/Request';
 import * as appConfig from '../../appConfig';
-import {
-  lookupErpV3Api,
-  parseResDataToJson,
-  updateErpV3Api,
-  RptServerErpV3Api,
-  executiveErpV3Api,
-} from './bPlusApi';
+import { lookupErpV3Api, parseResDataToJson, updateErpV3Api, RptServerErpV3Api, executiveErpV3Api } from './bPlusApi';
 import { getLoginGuID } from '../utils/Token';
 import { BPAPUS_FUNCTION_WH_CODE } from '../constant/bPlusApi';
-
 export const getWareLocationStockBalance = (id, vanConfig, overrideWlKey) => {
   return new Promise(async (resolve, reject) => {
     const LoginGUID = await getLoginGuID();
     let filter = '';
     const wlKey = overrideWlKey || vanConfig.VANCNF_WL;
-    console.log('getWareLocationStockBalance wlKey=', wlKey);
     //if (vanConfig.VANCNF_ENQ_WL == 2)
     {
       let dataObj2 = {
@@ -23,40 +15,32 @@ export const getWareLocationStockBalance = (id, vanConfig, overrideWlKey) => {
         'BPAPUS-LOGIN-GUID': LoginGUID,
         'BPAPUS-FUNCTION': BPAPUS_FUNCTION_WH_CODE,
         'BPAPUS-PARAM': '',
-        'BPAPUS-FILTER': "and WL_KEY = '" + wlKey + "'", //  OR WL_CODE = '01' '  OR WL_CODE = '1001'",
+        'BPAPUS-FILTER': "and WL_KEY = '" + wlKey + "'",
+        //  OR WL_CODE = '01' '  OR WL_CODE = '1001'",
         'BPAPUS-ORDERBY': '',
         'BPAPUS-OFFSET': '0',
-        'BPAPUS-FETCH': '0',
+        'BPAPUS-FETCH': '0'
       };
-      await lookupErpV3Api(dataObj2)
-        .then(v => {
-          const { ResponseData, ResponseCode, ReasonString } = v.data;
-          if (ResponseCode == 200) {
-            // console.log(JSON.parse(ResponseData));
+      await lookupErpV3Api(dataObj2).then(v => {
+        const {
+          ResponseData,
+          ResponseCode,
+          ReasonString
+        } = v.data;
+        if (ResponseCode == 200) {
 
-            let responseData = JSON.parse(ResponseData);
+          let responseData = JSON.parse(ResponseData);
 
-            // let WL_CODE = responseData.Wh000220
-            //   ? responseData.Wh000220[0].WL_CODE
-            //   : null;
-            // filter = "and WL_CODE = '" + WL_CODE + "'";
+          // let WL_CODE = responseData.Wh000220
+          //   ? responseData.Wh000220[0].WL_CODE
+          //   : null;
+          // filter = "and WL_CODE = '" + WL_CODE + "'";
 
-            let WL_CODES = responseData.Wh000220
-              ? responseData.Wh000220.map(item => item.WL_CODE)
-              : [];
-            filter =
-              WL_CODES.length > 0
-                ? "and WL_CODE IN ('" + WL_CODES.join("','") + "')"
-                : null;
-          } else {
-            console.log('ERROR lookupErpV3Api Wh000220', ReasonString);
-          }
-        })
-        .catch(err => {
-          console.log('ERROR lookupErpV3Api', err);
-        });
+          let WL_CODES = responseData.Wh000220 ? responseData.Wh000220.map(item => item.WL_CODE) : [];
+          filter = WL_CODES.length > 0 ? "and WL_CODE IN ('" + WL_CODES.join("','") + "')" : null;
+        } else {}
+      }).catch(err => {});
     }
-
     const bodyRequest = {
       'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,
       'BPAPUS-LOGIN-GUID': LoginGUID,
@@ -65,16 +49,12 @@ export const getWareLocationStockBalance = (id, vanConfig, overrideWlKey) => {
       'BPAPUS-FILTER': filter,
       'BPAPUS-ORDERBY': '',
       'BPAPUS-OFFSET': '0',
-      'BPAPUS-FETCH': '0',
+      'BPAPUS-FETCH': '0'
     };
-
-    Request.instanceV3
-      .post(`/ShowPrice`, bodyRequest)
-      .then(v => {
-        resolve(v.data);
-      })
-      .catch(err => {
-        reject(err);
-      });
+    Request.instanceV3.post(`/ShowPrice`, bodyRequest).then(v => {
+      resolve(v.data);
+    }).catch(err => {
+      reject(err);
+    });
   });
 };

@@ -4,7 +4,6 @@ import { getLoginGuID} from '../utils/Token';
 
 export const productCategorySearchListApi = (criteria) => {
   return new Promise(async (resolve, reject) => {
-    //console.log('criteria ==>', criteria);
     const LoginGUID = await getLoginGuID();
     const bodyRequest = {
       'BPAPUS-BPAPSV': appConfig.BPAPUS_BPAPSV,

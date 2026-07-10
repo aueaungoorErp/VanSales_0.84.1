@@ -64,7 +64,6 @@ export const checkDistance = (arInfo, lat, lnt, range) => (dispatch) => {
     // checkDistanceApi(arKey, lat, lnt)
     //   .then((v) => {
     //     const {RESULT_DATA, STATUS, ERROR_MESSAGES} = v;
-    //     console.log('v', v);
     //     if (STATUS === '00') {
     //       const {VERIFIED, VANCNF_RANGECHECKIN} = RESULT_DATA;
     //       if (VERIFIED) resolve(VERIFIED);

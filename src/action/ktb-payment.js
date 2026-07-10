@@ -16,7 +16,6 @@ export const checkStatusService = (data) => async (dispatch) => {
 
 export const auth = () => async (dispatch) => {
   const userToken = await getUserToken();
-  // console.log('userToken: ', userToken);
   const mac = await DeviceInfo.getMACAddress();
   const uid = await DeviceInfo.getUniqueId();
   const data = {

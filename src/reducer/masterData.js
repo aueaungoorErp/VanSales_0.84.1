@@ -108,7 +108,6 @@ export const masterData = (state = initialState, action) => {
         case types.MASTER_DATA_GET_PROVINCE_LIST_ITEMS: 
             return { ...state, isLoading: true, isNotFound: false, isError: false }
         case types.MASTER_DATA_GET_PROVINCE_LIST_ITEMS_SUCCESS: 
-        // console.log("Reducer triggered:", action);  // ห้ามลบ
             return { 
                 ...state, 
                 province: {...state.province, listItems: action.payload},

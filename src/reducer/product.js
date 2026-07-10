@@ -1,12 +1,11 @@
 import * as types from '../constant/product';
-
 const initialState = {
   criteria: {
     GOODS_CODE: null,
     ICDEPT_KEY: null,
     KEYWORD: null,
     OFFSET: 1,
-    LIMIT: 15,
+    LIMIT: 15
   },
   item: {
     // VGOODS_KEY: null,
@@ -42,7 +41,7 @@ const initialState = {
     TRD_LOT_NO: null,
     TRD_SERIAL: null,
     TMP_GOOD_QTY: null,
-    TMP_GOOD_MODEL:2
+    TMP_GOOD_MODEL: 2
   },
   // item: {
   //     SKUALT_KEY: null,
@@ -65,51 +64,82 @@ const initialState = {
   isLoading: false,
   isError: false,
   isModalOpen: false,
-  disabledButton: true,
+  disabledButton: true
 };
-
 export const product = (state = initialState, action) => {
   switch (action.type) {
     case types.PRODUCT_SET_INITIAL_STATE:
-      return {...initialState};
+      return {
+        ...initialState
+      };
     case types.PRODUCT_SET_INITIAL_STATE_IGNORE_MODAL:
-      return {...initialState, isModalOpen: state.isModalOpen};
+      return {
+        ...initialState,
+        isModalOpen: state.isModalOpen
+      };
     case types.PRODUCT_CLEAR_LIST:
-      return {...state, listItems: []};
-    case types.PRODUCT_SET_CRITERIA:
-      return {...state, criteria: action.payload};
-    case types.PRODUCT_SET_KEYWORD:
-      return {...state, criteria: {...state.criteria, KEYWORD: action.payload}};
-    case types.PRODUCT_SET_CRITERIA_GOODS_CODE:
-      console.log('setGoodsCodeCriteria >> 2 ' , action.payload)
       return {
         ...state,
-        criteria: {...state.criteria, GOODS_CODE: action.payload},
+        listItems: []
+      };
+    case types.PRODUCT_SET_CRITERIA:
+      return {
+        ...state,
+        criteria: action.payload
+      };
+    case types.PRODUCT_SET_KEYWORD:
+      return {
+        ...state,
+        criteria: {
+          ...state.criteria,
+          KEYWORD: action.payload
+        }
+      };
+    case types.PRODUCT_SET_CRITERIA_GOODS_CODE:
+      return {
+        ...state,
+        criteria: {
+          ...state.criteria,
+          GOODS_CODE: action.payload
+        }
       };
     case types.PRODUCT_CLEAR_ITEM:
-      return {...state, item: initialState.item};
+      return {
+        ...state,
+        item: initialState.item
+      };
     case types.PRODUCT_SEARCH_LIST:
-      return {...state, isLoading: true, isNotFound: false, isError: false};
+      return {
+        ...state,
+        isLoading: true,
+        isNotFound: false,
+        isError: false
+      };
     case types.PRODUCT_SEARCH_LIST_SUCCESS:
       return {
         ...state,
-        listItems:action.payload && action.payload.length > 0 ? state.listItems.concat(action.payload) : state.listItems,
+        listItems: action.payload && action.payload.length > 0 ? state.listItems.concat(action.payload) : state.listItems,
         isLoading: false,
-        isNotFound: !action.payload,
+        isNotFound: !action.payload
       };
     case types.PRODUCT_SEARCH_LIST_FAIL:
-      return {...state, isLoading: false, isError: true};
+      return {
+        ...state,
+        isLoading: false,
+        isError: true
+      };
     case types.PRODUCT_SEARCH_BY_SKU_ALT_LIST_SUCCESS:
       return {
         ...state,
         listItems: action.payload,
         isLoading: false,
-        isNotFound: !action.payload,
+        isNotFound: !action.payload
       };
     case types.PRODUCT_SET_ITEM:
-      const {type, item} = action.payload;
-      // console.log("type 55 ",type);
-      // console.log("item 55",item);
+      const {
+        type,
+        item
+      } = action.payload;
       let productItem = {};
       if (type === 'add') {
         productItem = {
@@ -124,60 +154,137 @@ export const product = (state = initialState, action) => {
           VTRD_SH_VALUES: null,
           TRD_LOT_NO: null,
           TRD_SERIAL: null,
-           //TMP_GOOD_QTY: null,
-          TMP_GOOD_MODEL:3
+          //TMP_GOOD_QTY: null,
+          TMP_GOOD_MODEL: 3
         };
       } else if (type === 'edit') {
-        productItem = {...item};
-        console.log(productItem);
+        productItem = {
+          ...item
+        };
       }
-
-      return {...state, item: productItem};
+      return {
+        ...state,
+        item: productItem
+      };
     case types.PRODUCT_SET_ITEM_FOR_EDIT:
-      return {...state, item: action.payload};
+      return {
+        ...state,
+        item: action.payload
+      };
     case types.PRODUCT_SET_ITEM_QTY:
-      return {...state, item: {...state.item, GOODS_QTY: action.payload}};
+      return {
+        ...state,
+        item: {
+          ...state.item,
+          GOODS_QTY: action.payload
+        }
+      };
     case types.PRODUCT_SET_ITEM_TOTAL_PRICE:
-      return {...state, item: {...state.item, GOODS_TOTAL_PRC: action.payload}};
+      return {
+        ...state,
+        item: {
+          ...state.item,
+          GOODS_TOTAL_PRC: action.payload
+        }
+      };
     case types.PRODUCT_SET_ITEM_NET_PRICE:
-      return {...state, item: {...state.item, GOODS_NET_PRC: action.payload}};
+      return {
+        ...state,
+        item: {
+          ...state.item,
+          GOODS_NET_PRC: action.payload
+        }
+      };
     case types.PRODUCT_SET_ITEM_DISCOUNT:
-      return {...state, item: {...state.item, GOODS_DISCOUNT: action.payload }};
+      return {
+        ...state,
+        item: {
+          ...state.item,
+          GOODS_DISCOUNT: action.payload
+        }
+      };
     case types.PRODUCT_SET_ITEM_TOTAL_DISCOUNT:
       return {
         ...state,
-        item: {...state.item, GOODS_TOTAL_DISCOUNT: action.payload},
+        item: {
+          ...state.item,
+          GOODS_TOTAL_DISCOUNT: action.payload
+        }
       };
     case types.PRODUCT_SET_ITEM_FREE:
-      return {...state, item: {...state.item, GOODS_FREE: action.payload}};
+      return {
+        ...state,
+        item: {
+          ...state.item,
+          GOODS_FREE: action.payload
+        }
+      };
     case types.PRODUCT_SET_MODAL:
-      return {...state, isModalOpen: action.payload};
+      return {
+        ...state,
+        isModalOpen: action.payload
+      };
     case types.PRODUCT_SET_ERROR:
-      return {...state, isError: action.payload};
+      return {
+        ...state,
+        isError: action.payload
+      };
     case types.PRODUCT_SKU_ALT_SEARCH_LIST:
-      return {...state, isLoading: true, isNotFound: false, isError: false};
+      return {
+        ...state,
+        isLoading: true,
+        isNotFound: false,
+        isError: false
+      };
     case types.PRODUCT_SKU_ALT_SEARCH_LIST_SUCCESS:
       return {
         ...state,
         skuAltListItems: action.payload,
         isLoading: false,
-        isNotFound: !action.payload,
+        isNotFound: !action.payload
       };
     case types.PRODUCT_SKU_ALT_SEARCH_LIST_FAIL:
-      return {...state, isLoading: false, isError: true};
+      return {
+        ...state,
+        isLoading: false,
+        isError: true
+      };
     case types.PRODUCT_SET_SCR_LIST_ITEMS:
-      return {...state, scrListItems: action.payload};
+      return {
+        ...state,
+        scrListItems: action.payload
+      };
     case types.PRODUCT_ADD_OR_EDIT_SCR_CHOOSE_ITEMS:
-      return {...state, scrChooseItems: action.payload};
+      return {
+        ...state,
+        scrChooseItems: action.payload
+      };
     case types.PRODUCT_SET_DISABLED_BUTTON:
-      return {...state, disabledButton: action.payload};
+      return {
+        ...state,
+        disabledButton: action.payload
+      };
     case types.PRODUCT_SET_LIST_ITEMS:
-      return {...state, listItems: action.payload};
-
+      return {
+        ...state,
+        listItems: action.payload
+      };
     case types.PRODUCT_SET_ITEM_LOT:
-      return {...state, item: {...state.item, TRD_LOT_NO: action.payload}};
+      return {
+        ...state,
+        item: {
+          ...state.item,
+          TRD_LOT_NO: action.payload
+        }
+      };
     case types.PRODUCT_SET_ITEM_SERIAL:
-      return {...state, item: {...state.item, TRD_SERIAL: action.payload}};
+      return {
+        ...state,
+        item: {
+          ...state.item,
+          TRD_SERIAL: action.payload
+        }
+      };
     default:
       return state;
   }

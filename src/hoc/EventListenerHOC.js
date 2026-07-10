@@ -177,7 +177,6 @@ const EventListenerHOC = Component => {
               }
             }
 
-            // console.log('ACCESS', accessTimeToken)
             if (moment().valueOf() - accessTimeToken > 900000) {
               Navigator.navigate('Splash');
             }
@@ -185,8 +184,6 @@ const EventListenerHOC = Component => {
             // Navigator.navigate('Splash')
           }
 
-          // console.log('nextAppState', nextAppState)
-          // console.log('appState', this.props.appState)
 
           if (this.props.appState.state === 'active') {
             await setAccessTimeToken(moment().valueOf().toString());

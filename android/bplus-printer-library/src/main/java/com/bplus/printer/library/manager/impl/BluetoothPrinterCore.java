@@ -95,7 +95,6 @@ public class BluetoothPrinterCore {
     }
 
     private synchronized void setState(int state) {
-        if (D) Log.d(TAG, "setState() " + mState + " -> " + state);
         mState = state;
 
         addText(MsgTypes.STATE, state);
@@ -132,7 +131,6 @@ public class BluetoothPrinterCore {
      * @param device  The BluetoothDevice to connect
      */
     public synchronized void connect(BluetoothDevice device) {
-        Log.i("golf", "connect to:" + device);
         addText("connecting to " + device);
         mDevice = device;
         // Cancel any thread attempting to make a connection
@@ -164,7 +162,6 @@ public class BluetoothPrinterCore {
             mmDevice = device;
             BluetoothSocket tmp = null;
 
-            Log.i("golf", "ConnectThread");
             // Get a BluetoothSocket for a connection with the
             // given BluetoothDevice
             try {
@@ -177,7 +174,6 @@ public class BluetoothPrinterCore {
         }
 
         public void run() {
-            Log.i(TAG, "BEGIN mConnectThread");
             setName("ConnectThread");
 
             // Always cancel discovery because it will slow down a connection
@@ -197,7 +193,6 @@ public class BluetoothPrinterCore {
                     Log.e(TAG, "unable to close() socket during connection failure", e2);
                 }
                 // Start the service over to restart listening mode
-                Log.i("errors", "ddd");
                 BluetoothPrinterCore.this.start();
                 return;
             }
@@ -230,7 +225,6 @@ public class BluetoothPrinterCore {
         private final OutputStream mmOutStream;
 
         public ConnectedThread(BluetoothSocket socket) {
-            Log.d(TAG, "create ConnectedThread");
             mmSocket = socket;
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
@@ -248,7 +242,6 @@ public class BluetoothPrinterCore {
         }
 
         public void run() {
-            Log.i(TAG, "BEGIN mConnectedThread");
             byte[] buffer = new byte[1024];
             int bytes;
 
@@ -289,8 +282,6 @@ public class BluetoothPrinterCore {
      * @param device  The BluetoothDevice that has been connected
      */
     public synchronized void connected(BluetoothSocket socket, BluetoothDevice device) {
-        Log.i("golf", "connected");
-        if (D) Log.d(TAG, "connected");
 
         // Cancel the thread that completed the connection
         if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
@@ -311,7 +302,6 @@ public class BluetoothPrinterCore {
 
         setState(PrinterConst.STATE_CONNECTED);
 
-        Log.i("golf", "setState" + getState());
     }
     /**
      * Indicate that the connection was lost and notify the UI Activity.
@@ -345,7 +335,6 @@ public class BluetoothPrinterCore {
 
 
     void log(String msg){
-        if(D) Log.d(TAG, msg);
     }
 
     void addText(String s){

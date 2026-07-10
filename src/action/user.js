@@ -42,7 +42,6 @@ export const login = userLogin => async dispatch => {
 };
 
 export const registerV3 = (username, password) => async dispatch => {
-  // console.log("username, password ",username, password);
   return await registerV3Api(username, password);
 };
 

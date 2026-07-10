@@ -78,7 +78,6 @@ class IDatePicker extends Component {
     }
 
     _onDateChange = (value) => {
-        console.log('_onDateChange', value)
         this._setState('date', value)
     }
     
@@ -86,7 +85,6 @@ class IDatePicker extends Component {
         await this._setState('month', getMonthNumberFromMonthName(this._monthSelectItems, value))
         await this._setState('dateNo', generatedayForPicker(this.state.month, this.state.year))
         await this._setState('date', this.state.date)
-        console.log('_onMonthChange', this.state.dateNo.length, this.state.date)
     }
 
     _onYearChange = async (value) => {

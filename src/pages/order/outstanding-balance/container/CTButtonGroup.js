@@ -2,45 +2,20 @@ import React from 'react';
 import { Alert, Keyboard, Text, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import { PAYMENT_CALL_BACK_END_POINT } from '../../../../../appConfig';
-import {
-  customerCreatePayment,
-  customerPreProcessPayment,
-  customerProcessPayment,
-  setCreateInitialState,
-  setPrePocessHeader,
-} from '../../../../action/outstanding-balance';
-import {
-  authForGetAccessToken,
-  requestQrCodeSCB,
-} from '../../../../action/qrcode-payment';
+import { customerCreatePayment, customerPreProcessPayment, customerProcessPayment, setCreateInitialState, setPrePocessHeader } from '../../../../action/outstanding-balance';
+import { authForGetAccessToken, requestQrCodeSCB } from '../../../../action/qrcode-payment';
 import { systemCheck } from '../../../../action/setting';
-import {
-  MainTheme,
-  orderOutStandingCreateStepButtonGroup,
-  orderOutStandingKeyStepButtonGroup,
-  orderOutStandingPreProcessButtonGroup,
-  orderOutStandingSummaryStepButtonGroup,
-} from '../../../../constant/lov';
-import {
-  BluetoothFinder,
-  BplusPrinting,
-  printPaymentReceipt,
-} from '../../../../module';
+import { MainTheme, orderOutStandingCreateStepButtonGroup, orderOutStandingKeyStepButtonGroup, orderOutStandingPreProcessButtonGroup, orderOutStandingSummaryStepButtonGroup } from '../../../../constant/lov';
+import { BluetoothFinder, BplusPrinting, printPaymentReceipt } from '../../../../module';
 import Navigator from '../../../../services/Navigator';
 import { getSettingConfig, getUserToken } from '../../../../utils/Token';
-import {
-  validateOutstandingBalancePayment,
-  validateOutstandingBalancePaymentCheque,
-} from '../../../../utils/validation';
+import { validateOutstandingBalancePayment, validateOutstandingBalancePaymentCheque } from '../../../../utils/validation';
 import ButtonGroup from '../presenter/ButtonGroup';
-
 class CTButtonGroup extends React.Component {
   _isMounted = false;
   _listItems = orderOutStandingPreProcessButtonGroup;
-
   constructor(props) {
     super(props);
-
     this.state = {
       errorMessage: null,
       isLoading: false,
@@ -49,43 +24,34 @@ class CTButtonGroup extends React.Component {
       TxUID: null,
       qrCode: null,
       qrLogo: require('../../../../images/Icon_App.png'),
-      userToken: null,
+      userToken: null
     };
-
     this._setButtonGroup();
   }
-
   componentDidMount = props => {
     this._isMounted = true;
     this._getUserToken();
   };
-
   componentWillUnmount = props => {
     this._isMounted = false;
   };
-
   _setState = async (key, value) => {
-    this._isMounted &&
-      (await this.setState(oldState => {
-        return {
-          [key]: value,
-        };
-      }));
+    this._isMounted && (await this.setState(oldState => {
+      return {
+        [key]: value
+      };
+    }));
   };
-
   _getUserToken = async () => {
     const userToken = await getUserToken();
-
     if (userToken) {
-      this._isMounted &&
-        (await this.setState(oldState => {
-          return {
-            userToken: userToken,
-          };
-        }));
+      this._isMounted && (await this.setState(oldState => {
+        return {
+          userToken: userToken
+        };
+      }));
     }
   };
-
   _goToBluetoothSetting = () => {
     BluetoothFinder.checkBluetoothEnable(value => {
       // alert(value.result)
@@ -94,71 +60,43 @@ class CTButtonGroup extends React.Component {
       }
     });
   };
-
   _setButtonGroup = () => {
-    const { routes, index } = Navigator.getCurrentRoute();
-    const { routeName } = routes[index];
-
-    if (routeName === 'OrderOutstandingBalance')
-      this._listItems = orderOutStandingPreProcessButtonGroup;
-    else if (routeName === 'OrderOutstandingBalanceKeyStep')
-      this._listItems = orderOutStandingKeyStepButtonGroup;
-    else if (routeName === 'OrderOutstandingBalanceCreateStep')
-      this._listItems = orderOutStandingCreateStepButtonGroup;
-    else if (routeName === 'OrderOutstandingBalanceSummaryStep')
-      this._listItems = orderOutStandingSummaryStepButtonGroup;
+    const {
+      routes,
+      index
+    } = Navigator.getCurrentRoute();
+    const {
+      routeName
+    } = routes[index];
+    if (routeName === 'OrderOutstandingBalance') this._listItems = orderOutStandingPreProcessButtonGroup;else if (routeName === 'OrderOutstandingBalanceKeyStep') this._listItems = orderOutStandingKeyStepButtonGroup;else if (routeName === 'OrderOutstandingBalanceCreateStep') this._listItems = orderOutStandingCreateStepButtonGroup;else if (routeName === 'OrderOutstandingBalanceSummaryStep') this._listItems = orderOutStandingSummaryStepButtonGroup;
   };
-
   _onPress = async item => {
     if (item.methodType === 'function') {
-      if (item.methodName === 'pre-process')
-        await this._customerPreProcessPayment();
-      else if (item.methodName === 'process')
-        await this._customerProcessPayment();
-      else if (item.methodName === 'create')
-        await this._customerCreatePayment();
-      else if (item.methodName === 'back') Navigator.back();
-      else if (item.methodName === 'create-step-clear') this._createStepClear();
-      else if (item.methodName === 'print-receipt') this._printPaymentReceipt();
+      if (item.methodName === 'pre-process') await this._customerPreProcessPayment();else if (item.methodName === 'process') await this._customerProcessPayment();else if (item.methodName === 'create') await this._customerCreatePayment();else if (item.methodName === 'back') Navigator.back();else if (item.methodName === 'create-step-clear') this._createStepClear();else if (item.methodName === 'print-receipt') this._printPaymentReceipt();
     } else if (item.methodType === 'newPage') {
       Navigator.navigate(item.screen);
     }
-
     Keyboard.dismiss();
   };
-
   _printPaymentReceipt = async () => {
     if (this.props.bluetooth.state !== 'connected') {
       this._bluetoothAlertDialog();
       return;
     }
-
     try {
       this._setState('errorMessage', null);
       this._setState('loadingMessage', 'กำลังพิมพ์ใบเสร็จ...');
-
       if (this.props.bluetooth.state == 'connected') {
         const userToken = await getUserToken();
         const config = await getSettingConfig();
         const response = await this.props.systemCheck(config);
-
         if (response.STATUS === '00') {
-          const { RESPONSE_DATETIME } = response;
-
+          const {
+            RESPONSE_DATETIME
+          } = response;
           let printTime = RESPONSE_DATETIME.split('T');
           printTime = printTime[1].split('.');
-
-          BplusPrinting.printPaymentReceipt(
-            this.props.order.header,
-            this.props.outstandingBalance.create.header,
-            this.props.outstandingBalance.create.listItems,
-            userToken.VANCONFIG,
-            userToken.COMPANYINFO,
-            this.props.customer.item.INFO,
-            printTime[0],
-            'ใบเสร็จรับเงิน',
-          );
-
+          BplusPrinting.printPaymentReceipt(this.props.order.header, this.props.outstandingBalance.create.header, this.props.outstandingBalance.create.listItems, userToken.VANCONFIG, userToken.COMPANYINFO, this.props.customer.item.INFO, printTime[0], 'ใบเสร็จรับเงิน');
           Navigator.navigate('OrderChoice');
         } else if (response.STATUS === '10' && response.ERROR_MESSAGES[0]) {
           this._setState('errorMessage', response.ERROR_MESSAGES[0]);
@@ -168,39 +106,25 @@ class CTButtonGroup extends React.Component {
     } catch (error) {
       this._setState('errorMessage', error.message);
     }
-
     _printPaymentReceipt = async () => {
       if (this.props.bluetooth.state !== 'connected') {
         this._bluetoothAlertDialog();
         return;
       }
-
       try {
         this._setState('errorMessage', null);
         this._setState('loadingMessage', 'กำลังพิมพ์ใบเสร็จ...');
-
         if (this.props.bluetooth.state == 'connected') {
           const userToken = await getUserToken();
           const config = await getSettingConfig();
           const response = await this.props.systemCheck(config);
-
           if (response.STATUS === '00') {
-            const { RESPONSE_DATETIME } = response;
-
+            const {
+              RESPONSE_DATETIME
+            } = response;
             let printTime = RESPONSE_DATETIME.split('T');
             printTime = printTime[1].split('.');
-
-            printPaymentReceipt(
-              this.props.order.header,
-              this.props.outstandingBalance.create.header,
-              this.props.outstandingBalance.create.listItems,
-              userToken.VANCONFIG,
-              userToken.COMPANYINFO,
-              this.props.customer.item.INFO,
-              printTime[0],
-              'ใบเสร็จรับเงิน',
-            );
-
+            printPaymentReceipt(this.props.order.header, this.props.outstandingBalance.create.header, this.props.outstandingBalance.create.listItems, userToken.VANCONFIG, userToken.COMPANYINFO, this.props.customer.item.INFO, printTime[0], 'ใบเสร็จรับเงิน');
             Navigator.navigate('OrderChoice');
           } else if (response.STATUS === '10' && response.ERROR_MESSAGES[0]) {
             this._setState('errorMessage', response.ERROR_MESSAGES[0]);
@@ -210,92 +134,58 @@ class CTButtonGroup extends React.Component {
       } catch (error) {
         this._setState('errorMessage', error.message);
       }
-
       this._setState('loadingMessage', '');
     };
-
-    _bluetoothAlertDialog = () =>
-      Alert.alert(
-        'ประกาศ',
-        'เนื่องจากไม่ได้ทำการ Connect printer ต้องการจะไปที่หน้า Bluetooth setting หรือไม่',
-        [
-          { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
-          { text: 'ยืนยัน', onPress: () => this._goToBluetoothSetting() },
-        ],
-        { cancelable: false },
-      );
-
+    _bluetoothAlertDialog = () => Alert.alert('ประกาศ', 'เนื่องจากไม่ได้ทำการ Connect printer ต้องการจะไปที่หน้า Bluetooth setting หรือไม่', [{
+      text: 'ยกเลิก',
+      onPress: () => {},
+      style: 'cancel'
+    }, {
+      text: 'ยืนยัน',
+      onPress: () => this._goToBluetoothSetting()
+    }], {
+      cancelable: false
+    });
     _customerPreProcessPayment = async () => {
       try {
         this._setState('errorMessage', null);
         this._setState('loadingMessage', 'กำลังโหลดข้อมูล...');
-
         await this.props.customerPreProcessPayment();
         Navigator.navigate('OrderOutstandingBalanceKeyStep');
       } catch (error) {
         this._setState('errorMessage', error);
       }
-
       this._setState('loadingMessage', '');
     };
-
     this._setState('loadingMessage', '');
   };
-
   _customerCreatePayment = async () => {
     let totalPay = 0;
-
-    let validate = validateOutstandingBalancePayment(
-      this.props.outstandingBalance.create.checkedItems,
-      'cash',
-      'เงินสด',
-    );
-
+    let validate = validateOutstandingBalancePayment(this.props.outstandingBalance.create.checkedItems, 'cash', 'เงินสด');
     if (typeof validate.errorMessage !== 'undefined') {
       this._setState('errorMessage', validate.errorMessage);
       return;
     }
-
     totalPay = totalPay + validate.successResult;
-
-    validate = validateOutstandingBalancePayment(
-      this.props.outstandingBalance.create.checkedItems,
-      'transfer',
-      'การโอน',
-    );
-
+    validate = validateOutstandingBalancePayment(this.props.outstandingBalance.create.checkedItems, 'transfer', 'การโอน');
     if (typeof validate.errorMessage !== 'undefined') {
       this._setState('errorMessage', validate.errorMessage);
       return;
     }
-
     totalPay = totalPay + validate.successResult;
-
-    validate = validateOutstandingBalancePayment(
-      this.props.outstandingBalance.create.checkedItems,
-      'qrcode',
-      'QRCode',
-    );
-
+    validate = validateOutstandingBalancePayment(this.props.outstandingBalance.create.checkedItems, 'qrcode', 'QRCode');
     if (typeof validate.errorMessage !== 'undefined') {
       this._setState('errorMessage', validate.errorMessage);
       return;
     }
-
     totalPay = totalPay + validate.successResult;
-
-    validate = validateOutstandingBalancePaymentCheque(
-      this.props.outstandingBalance.create.checkedItems.cheques,
-    );
-
+    validate = validateOutstandingBalancePaymentCheque(this.props.outstandingBalance.create.checkedItems.cheques);
     if (typeof validate.errorMessage !== 'undefined') {
       this._setState('errorMessage', validate.errorMessage);
       return;
     }
-
     totalPay = totalPay + validate.successResult;
 
-    // console.log('totalPay cheque', totalPay)
     // if (this.props.outstandingBalance.process.header.VPH_PAY_AMT > totalPay) {
     //     this._setState('errorMessage', 'ยอดเงินการชำระไม่ถูกต้อง')
     //     return
@@ -304,35 +194,26 @@ class CTButtonGroup extends React.Component {
     if (this.props.outstandingBalance.create.checkedItems.qrcode.checked) {
       this._setState('isLoading', true);
       this._setState('errorMessage', null);
-
       try {
         const latestUserToken = await getUserToken();
         const activeUserToken = latestUserToken || this.state.userToken;
-
         if (latestUserToken) {
           await this._setState('userToken', latestUserToken);
         }
-
-        const userName =
-          activeUserToken?.VANCONFIG?.VANCNF_BANK_QRCODE_USERNAME;
-        const userPassword =
-          activeUserToken?.VANCONFIG?.VANCNF_BANK_QRCODE_PASSWORD;
-
+        const userName = activeUserToken?.VANCONFIG?.VANCNF_BANK_QRCODE_USERNAME;
+        const userPassword = activeUserToken?.VANCONFIG?.VANCNF_BANK_QRCODE_PASSWORD;
         if (!userName || !userPassword) {
-          this._setState(
-            'errorMessage',
-            'ไม่พบ QR Code username/password ใน VANCONFIG กรุณา login ใหม่หรือตรวจสอบ config เครื่อง',
-          );
+          this._setState('errorMessage', 'ไม่พบ QR Code username/password ใน VANCONFIG กรุณา login ใหม่หรือตรวจสอบ config เครื่อง');
           this._setState('isLoading', false);
           return;
         }
-
         const auth = await this.props.authForGetAccessToken({
           userName,
-          userPassword,
+          userPassword
         });
-        const { data } = auth;
-
+        const {
+          data
+        } = auth;
         if (data) {
           await this.props.customerCreatePayment(1, this.state.TxUID);
           this._requestQrCodeSCB(data);
@@ -340,90 +221,69 @@ class CTButtonGroup extends React.Component {
       } catch (error) {
         this._setState('errorMessage', error);
       }
-
       this._setState('isLoading', false);
     } else {
       this._processCustomerCreatePayment();
     }
   };
-
   _processCustomerCreatePayment = async () => {
     try {
       this._setState('errorMessage', null);
       this._setState('loadingMessage', 'กำลังโหลดข้อมูล...');
       await this.props.customerCreatePayment(2, this.state.TxUID);
-
       Navigator.navigate('OrderOutstandingBalanceSummaryStep');
     } catch (error) {
       this._setState('errorMessage', error);
     }
-
     this._setState('loadingMessage', '');
   };
-
   _requestQrCodeSCB = async obj => {
     this._setState('errorMessage', null);
-
     try {
-      const qrcode = await this.props.requestQrCodeSCB(
-        obj,
-        this.props.outstandingBalance.create.checkedItems.qrcode.pay,
-      );
-      const { isError, data } = qrcode;
-      console.log('qrcode', qrcode);
+      const qrcode = await this.props.requestQrCodeSCB(obj, this.props.outstandingBalance.create.checkedItems.qrcode.pay);
+      const {
+        isError,
+        data
+      } = qrcode;
       if (!isError) {
         await this._setState('qrCode', data.qrCode);
         await this._setState('isQRCodeDialogOpen', true);
-        console.log(
-          'PAYMENT_CALL_BACK_END_POINT',
-          PAYMENT_CALL_BACK_END_POINT + `?TxUID=${data.partnerTxnUid}`,
-        );
-        const ws = new WebSocket(
-          PAYMENT_CALL_BACK_END_POINT + `?TxUID=${data.partnerTxnUid}`,
-        );
-
-        ws.onopen = () => {
-          console.log('onopen');
-        };
-
+        const ws = new WebSocket(PAYMENT_CALL_BACK_END_POINT + `?TxUID=${data.partnerTxnUid}`);
+        ws.onopen = () => {};
         ws.onmessage = async e => {
           // a message was received
-          console.log('onmessage', e.data);
+
           const data = JSON.parse(e.data);
           await this._setState('TxUID', data.TxUID);
           await this._processCustomerCreatePayment();
           ws.close();
         };
-
         ws.onerror = e => {
           // an error occurred
-          console.log('onerror', e);
+
           ws.close();
           throw new Error(e.message);
         };
-
         ws.onclose = async e => {
           // connection closed
           await this._setState('isQRCodeDialogOpen', false);
-          console.log('onerror', e.code, e.reason);
         };
       }
     } catch (error) {
       this._setState('errorMessage', error);
     }
   };
-
   _customerProcessPayment = async () => {
     try {
       this._setState('errorMessage', null);
       this._setState('loadingMessage', 'กำลังโหลดข้อมูล...');
-
-      const { header, listItems } = this.props.outstandingBalance.preProcess;
-
+      const {
+        header,
+        listItems
+      } = this.props.outstandingBalance.preProcess;
       const VPH_CASH_AMT = listItems.reduce((acc, currentValue) => {
         return acc + parseFloat(currentValue.VPD_PAY);
       }, 0);
-
       if (VPH_CASH_AMT <= 0) throw 'ยอดการชำระต้องมากกว่า 0';
       header.VPH_CASH_AMT = VPH_CASH_AMT;
       await this.props.setPrePocessHeader(header);
@@ -432,95 +292,45 @@ class CTButtonGroup extends React.Component {
     } catch (error) {
       this._setState('errorMessage', error);
     }
-
     this._setState('loadingMessage', '');
   };
-
   _createStepClear = async () => {
     await this.props.setCreateInitialState();
   };
-
   _renderItem = (item, key) => {
-    return (
-      <TouchableOpacity
-        key={key}
-        style={[
-          item.buttonStyle,
-          item.containerStyle,
-          {
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingVertical: 12,
-            paddingHorizontal: 16,
-          },
-          item.title === 'พิมพ์ใบเสร็จ' &&
-          this.state.userToken !== null &&
-          this.state.userToken.VANCONFIG !== null &&
-          this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== null &&
-          this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 2 &&
-          this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 3
-            ? true
-            : false
-            ? { backgroundColor: MainTheme.colorNonary }
-            : null,
-        ]}
-        onPress={() => {
-          this._onPress(item);
-        }}
-        disabled={
-          item.title === 'พิมพ์ใบเสร็จ' &&
-          this.state.userToken !== null &&
-          this.state.userToken.VANCONFIG !== null &&
-          this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== null &&
-          this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 2 &&
-          this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 3
-            ? true
-            : false
-        }
-        activeOpacity={0.7}
-      >
+    return <TouchableOpacity key={key} style={[item.buttonStyle, item.containerStyle, {
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 16
+    }, item.title === 'พิมพ์ใบเสร็จ' && this.state.userToken !== null && this.state.userToken.VANCONFIG !== null && this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== null && this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 2 && this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 3 ? true : false ? {
+      backgroundColor: MainTheme.colorNonary
+    } : null]} onPress={() => {
+      this._onPress(item);
+    }} disabled={item.title === 'พิมพ์ใบเสร็จ' && this.state.userToken !== null && this.state.userToken.VANCONFIG !== null && this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== null && this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 2 && this.state.userToken.VANCONFIG.VANCNF_FRM_ALLCONFIG !== 3 ? true : false} activeOpacity={0.7}>
         <Text style={item.titleStyle}>{item.title}</Text>
-      </TouchableOpacity>
-    );
+      </TouchableOpacity>;
   };
-
   render() {
-    return (
-      <ButtonGroup
-        renderItem={this._renderItem}
-        listItems={this._listItems}
-        setState={this._setState}
-        errorMessage={this.state.errorMessage}
-        loadingMessage={this.state.loadingMessage}
-        isQRCodeDialogOpen={this.state.isQRCodeDialogOpen}
-        qrCode={this.state.qrCode}
-        qrLogo={this.state.qrLogo}
-        qrCodePay={this.props.outstandingBalance.create.checkedItems.qrcode.pay}
-      />
-    );
+    return <ButtonGroup renderItem={this._renderItem} listItems={this._listItems} setState={this._setState} errorMessage={this.state.errorMessage} loadingMessage={this.state.loadingMessage} isQRCodeDialogOpen={this.state.isQRCodeDialogOpen} qrCode={this.state.qrCode} qrLogo={this.state.qrLogo} qrCodePay={this.props.outstandingBalance.create.checkedItems.qrcode.pay} />;
   }
 }
-
 const mapStateToProps = state => ({
   bluetooth: state.bluetooth,
   customer: state.customer,
   order: state.order,
-  outstandingBalance: state.outstandingBalance,
+  outstandingBalance: state.outstandingBalance
 });
-
 const mapDispatchToProps = dispatch => {
   return {
     customerPreProcessPayment: () => dispatch(customerPreProcessPayment()),
     customerProcessPayment: () => dispatch(customerProcessPayment()),
     setPrePocessHeader: data => dispatch(setPrePocessHeader(data)),
     setCreateInitialState: () => dispatch(setCreateInitialState()),
-    customerCreatePayment: (forceSubmit, TxUID) =>
-      dispatch(customerCreatePayment(forceSubmit, TxUID)),
+    customerCreatePayment: (forceSubmit, TxUID) => dispatch(customerCreatePayment(forceSubmit, TxUID)),
     authForGetAccessToken: auth => dispatch(authForGetAccessToken(auth)),
-    requestQrCodeSCB: (data, amount) =>
-      dispatch(requestQrCodeSCB(data, amount)),
-    systemCheck: data => dispatch(systemCheck(data)),
+    requestQrCodeSCB: (data, amount) => dispatch(requestQrCodeSCB(data, amount)),
+    systemCheck: data => dispatch(systemCheck(data))
   };
 };
-
 export default connect(mapStateToProps, mapDispatchToProps)(CTButtonGroup);

@@ -51,7 +51,6 @@ export const searchProductCateGoryList = (
           : false,
     };
 
-    //console.log('productCategorySearchListApi', criteria);
     productCategorySearchListApi(criteria)
       .then((v) => {
         const { ReasonString, ResponseCode, ResponseData } = v;
@@ -63,7 +62,6 @@ export const searchProductCateGoryList = (
             let pickerItems = [];
 
             if (vanCNFEnabledAllic == 2) {
-              //console.log('vanCNFEnabledAllic ', vanCNFEnabledAllic);
               pickerItems.push({
                 ICDEPT_KEY: null,
                 ICDEPT_THAIDESC: 'ทั้งหมด',
@@ -84,7 +82,6 @@ export const searchProductCateGoryList = (
                 pickerItems.push(objItem);
               });
             }
-            // console.log(
             //   'productCategorySearchListApi pickerItems ',
             //   pickerItems,
             // );

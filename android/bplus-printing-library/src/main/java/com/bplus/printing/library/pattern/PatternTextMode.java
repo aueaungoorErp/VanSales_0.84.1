@@ -51,8 +51,6 @@ public class PatternTextMode {
         public boolean testPrinter(Map<String, Object> vanConfig) throws Exception {
                 if (!_printerCoreManager.isConnected())
                         return false;
-                System.out.println("s= " + vanConfig.get("VANCNF_FRM_WIDTH").getClass());
-                Log.d("MyTagGoesHere", "This is my log message at the debug level here");
                 _printerCoreManager.setPaperWidth(((Double) vanConfig.get("VANCNF_FRM_WIDTH")).intValue());
                 // Bitmap logoData = BitmapFactory.decodeResource(_context.getResources(),
                 // com.bplus.printer.library.R.drawable.b_plus);
@@ -167,16 +165,8 @@ public class PatternTextMode {
                 if (!_printerCoreManager.isConnected())
                         return false;
 
-                System.out.println("header1= " + header);
-                System.out.println("items2= " + items);
-                System.out.println("summary3= " + summary);
-                System.out.println("customer= " + customer);
-                System.out.println("vanConfig= " + vanConfig);
-                System.out.println("cashpaymentMethods== " + cashpaymentMethods);
 
 
-                // System.out.println("s= " + vanConfig.get("VANCNF_FRM_WIDTH").intValue());
-                // System.out.println("s= " + vanConfig.get("VANCNF_FRM_WIDTH").intValue());
                 _printerCoreManager.setPaperWidth(((Double) vanConfig.get("VANCNF_FRM_WIDTH")).intValue());
 
                 _printerCoreManager.setBold(false);
@@ -433,7 +423,6 @@ public class PatternTextMode {
                         }
 
                         _printerCoreManager.addFeedLine(1);
-                        System.out.println(paymentType.equals("transfer"));
 
                         if (!paymentType.equals("transfer")) {
                                 _printerCoreManager.addText(customer.get("AR_NAME").toString(), 1,
@@ -452,13 +441,9 @@ public class PatternTextMode {
                         } else {
                                 Map<String, Object> FROM = (Map<String, Object>) customer.get("FROM");
                                 Map<String, Object> TO = (Map<String, Object>) customer.get("TO");
-                                System.out.println("จาก " + FROM.get("WL_NAME").toString());
-                                System.out.println("ถึง " + TO.get("WL_NAME").toString());
 
                                 String fromWL_NAME = "จาก " + FROM.get("WL_NAME").toString();
                                 String toWL_NAME = "ถึง " + TO.get("WL_NAME").toString();
-                                System.out.println(fromWL_NAME);
-                                System.out.println(toWL_NAME);
 
                                 _printerCoreManager.addText(fromWL_NAME, 1, PrinterConst.ALIGN_LEFT, false);
                                 _printerCoreManager.flushText();
@@ -579,11 +564,8 @@ public class PatternTextMode {
                         String[] dateStr = new String[2];
                         if (header.get("VDI_DATE") != null) {
 
-                            System.out.println(header.get("VDI_DATE"));
-                            System.out.println("1. " + header.get("VDI_DATE").toString().split("T"));
 
                             dateStr = header.get("VDI_DATE").toString().split("T");
-                            System.out.println(dateStr[0].split(":"));
 
                             dateStr = dateStr[0].split(":");
                         }
@@ -594,9 +576,6 @@ public class PatternTextMode {
                         Calendar calender = Calendar.getInstance();
                         Date receiptdate = new Date();
                         if (dateStr != null) {
-                            System.out.println(dateStr);
-                            System.out.println(receiptdate);
-                            System.out.println(dateStr[0]);
 
                             // receiptdate = dateFormat.parse(dateStr[0]);
                         }
@@ -620,7 +599,6 @@ public class PatternTextMode {
                         Map<String, Object> xheader2 = (Map<String, Object>) xheader.get("header");
 
                         String vdiUserRef = (String) xheader2.get("VDI_USER_REF");
-                        //System.out.println("Bazz +" + vdiUserRef);
 
                         if (vdiUserRef != null && !vdiUserRef.trim().equals("")) {
                             _printerCoreManager.addText("เลขที่ "
@@ -661,19 +639,16 @@ public class PatternTextMode {
                                                                 PrinterConst.ALIGN_LEFT);
                                                 _printerCoreManager.flushText();
 
-                                                System.out.println("DISC.gel ...");
 
                                                 Double DISC = (Double) Double
                                                                 .parseDouble(item.get("TRD_DSC_KEYIN").toString());
 
-                                                System.out.println("DISC.gel ..." + DISC);
 
                                                 String tmp_disc = "";
 
                                                 tmp_disc = decimalWithoutCommas
                                                                 .format(item.get("TRD_QTY"));
                                                 ;
-                                                System.out.println("DISC.gel ..." + DISC);
 
                                                 _printerCoreManager.addText(
                                                                 tmp_disc + "@"
@@ -704,8 +679,6 @@ public class PatternTextMode {
                                                                 .get("TRD_DSC_KEYIN")
                                                                 .toString()) > 0 ? "ลด" : "");
 
-                                                System.out.println("disc_t ..." + disc_t);
-                                                System.out.println("disc ..." + disc);
 
                                                 if (disc_t != "") {
 
@@ -838,8 +811,6 @@ public class PatternTextMode {
                                         Double disBill1 = (Double) Double
                                                         .parseDouble("0");
 
-                                        System.out.println("OrderProdSum.gel ...");
-                                        System.out.println("OrderProdSum.get ..."
                                                         + OrderProdSum.get("DIS_BILL_1").toString().isEmpty());
 
                                         if (OrderProdSum.get("DIS_BILL_1") != null
@@ -1066,15 +1037,10 @@ public class PatternTextMode {
 
                                 // if (paymentType.equals("quotation")) {
                                 //         // AROE = (Map<String, Object>) summary.get("AROE");
-                                //         System.out.println("header1= " + header);
-                                //         System.out.println("items2= " + items);
-                                //         System.out.println("summary3= " + summary);
 
                                 //         Map<String, Object> OrderProdSum = (Map<String, Object>) header
                                 //                         .get("orderProductSummary");
 
-                                //         System.out.println("OrderProdSum= " + OrderProdSum);
-                                //         System.out.println("OrderProdSum2= " + (Double) Double.parseDouble(
                                 //                         OrderProdSum.get("totalPrice").toString()));
 
                                 //         B_AMT = OrderProdSum.get("totalPrice") != null
@@ -1095,8 +1061,6 @@ public class PatternTextMode {
                                                 PrinterConst.ALIGN_RIGHT);
                                 _printerCoreManager.flushText();
 
-                                System.out.println("vanConfigShowVatCS= " + vanConfigShowVatCS);
-                                System.out.println("vanConfigShowVatCS intValue= " + vanConfigShowVatCS.intValue());
 
                                 if (vanConfigShowVatCS.intValue() == 1) {
 
@@ -1129,7 +1093,6 @@ public class PatternTextMode {
                             Map<String, Object> cashpaymentMethod = (Map<String, Object>) cashpaymentMethods;
                             if (cashpaymentMethod != null && !cashpaymentMethod.isEmpty()) {
                                 
-                                System.out.println("paymentMethods====1 cashpaymentMethod==== " + cashpaymentMethod);
 
                                 Double cashAmount = null;
                                 Double bankAmount = null;
@@ -1223,7 +1186,6 @@ public class PatternTextMode {
                                                 .get("header");
                                 String[] vdiShipDateStrArr = headerProcessed.get("VDI_SHIP_DATE").toString().split(":");
 
-                                System.out.println("vdiShipDateStrArr= " + vdiShipDateStrArr);
 
                                 String vdiDate = convertStrDateToPatternDateThaiYear(vdiShipDateStrArr[0],
                                                 "yyyyMMddHHmm", "dd/MM/yyyy");
@@ -1460,7 +1422,6 @@ public class PatternTextMode {
                 // 1, PrinterConst.ALIGN_LEFT);
                 // _printerCoreManager.flushText();
 
-                System.out.println("items= " + items);
 
                 for (int i = 0; i < items.length; i++) {
                         Map<String, Object> item = (Map<String, Object>) items[i];
@@ -1474,7 +1435,6 @@ public class PatternTextMode {
                         for (int j = 0; j < rows.length; j++) {
                                 Map<String, Object> row = (Map<String, Object>) rows[j];
 
-                                System.out.println("rows[j]= " + rows[j]);
 
                                 _printerCoreManager.addText(
                                                 (row.get("ICCAT_NAME") != null
@@ -1898,7 +1858,6 @@ public class PatternTextMode {
                         _printerCoreManager.addText("รวมทั้งสิ้น", 1, PrinterConst.ALIGN_LEFT);
                         _printerCoreManager.flushText();
 
-                        // System.out.println("s= " + data.get("SUMMARY_SECTION"));
 
                         // Map<String, Object> summarySection = (Map<String, Object>)
                         // data.get("SUMMARY_SECTION");
@@ -2202,8 +2161,6 @@ public class PatternTextMode {
 
                                         Object[] deepRowLevel2 = (Object[]) rowLv1.get("ITEMS");
 
-                                        System.out.println(deepRowLevel2);
-                                        System.out.println("length >> " + deepRowLevel2.length);
 
                                         for (int l = 0; l < deepRowLevel2.length; l++) {
                                                 Map<String, Object> rowLv2 = (Map<String, Object>) deepRowLevel2[l];
@@ -3371,7 +3328,6 @@ public class PatternTextMode {
                         if ((companyNameArr.length - 1) == k) {
                                 companyName = brachPrefix + companyName;
                         }
-                        Log.i("companyName", companyName);
                         _printerCoreManager.addText(companyName, 50, PrinterConst.ALIGN_CENTER, false);
                         _printerCoreManager.flushText();
 

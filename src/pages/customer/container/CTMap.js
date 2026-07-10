@@ -222,7 +222,6 @@ class CTMap extends React.Component {
     _goToGoogleMaps = (item) => {
         //http://maps.google.com/maps?saddr=My+Location&daddr=${item.coordinate.latitude},${item.coordinate.longitude}
         const url = `http://maps.google.com/maps?daddr=${item.coordinate.latitude},${item.coordinate.longitude}`
-        // console.log(url)
         Linking.openURL(url)
     }
 

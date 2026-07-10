@@ -4,151 +4,155 @@ import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { ListItem } from '../../../component/elements';
 import ListItems from '../presenter/ListItems';
-
-import {
-    clearProductList,
-    searchProductBySkuAlt,
-    searchProductList,
-    setError,
-    setGoodsCodeCriteria,
-    setKeyword,
-    setModal,
-    setProduct,
-} from '../../../action/product';
+import { clearProductList, searchProductBySkuAlt, searchProductList, setError, setGoodsCodeCriteria, setKeyword, setModal, setProduct } from '../../../action/product';
 import { mainDivider } from '../../../constant/lov';
 import Navigate from '../../../services/Navigator';
 import { getUserToken } from '../../../utils/Token';
 class CTListItems extends Component {
   constructor(props) {
     super(props);
-    console.log('this.props.screen ', this.props.screen);
-    console.log('this.props.actionType ', this.props.actionType);
-    this.props.screen === 'ProductAddTo' && this.props.actionType === 'add_scr'
-      ? null
-      : this.props.clearProductList();
-
+    this.props.screen === 'ProductAddTo' && this.props.actionType === 'add_scr' ? null : this.props.clearProductList();
     this._onRefresh();
   }
-
   state = {
-    hasReachedEnd: false, // เริ่มต้นสถานะว่าไม่ได้ไปถึงจุดสุดท้าย
+    hasReachedEnd: false // เริ่มต้นสถานะว่าไม่ได้ไปถึงจุดสุดท้าย
   };
-
-  _renderProductItem = (item) => {
-    return (
-      <ListItem
-        containerStyle={mainDivider}
-        bottomDivider
-        onPress={() => {
-          this._onItemPress(item);
-        }}
-      >
+  _renderProductItem = item => {
+    return <ListItem containerStyle={mainDivider} bottomDivider onPress={() => {
+      this._onItemPress(item);
+    }}>
         <ListItem.Content>
-          <View style={{ flexDirection: 'row' }}>
-            <View style={{ flex: 1, flexDirection: 'column' }}>
-              <Text style={{ fontSize: hp('2%'), color: '#000066' }} allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row'
+        }}>
+            <View style={{
+            flex: 1,
+            flexDirection: 'column'
+          }}>
+              <Text style={{
+              fontSize: hp('2%'),
+              color: '#000066'
+            }} allowFontScaling={false}>
                 {item.ICDEPT_THAIDESC}
               </Text>
-              <Text style={{ fontSize: hp('2%'), color: 'blue' }} allowFontScaling={false}>
+              <Text style={{
+              fontSize: hp('2%'),
+              color: 'blue'
+            }} allowFontScaling={false}>
                 {item.GOODS_CODE}
               </Text>
-              <Text style={{ fontSize: hp('2%'), color: '#000066', }} allowFontScaling={false}>
+              <Text style={{
+              fontSize: hp('2%'),
+              color: '#000066'
+            }} allowFontScaling={false}>
                 {item.GOODS_NAME ? item.GOODS_NAME : item.SKU_NAME}
               </Text>
             </View>
-            <View style={{ flex: 1, flexDirection: 'column' }}>
-              <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>
+            <View style={{
+            flex: 1,
+            flexDirection: 'column'
+          }}>
+              <Text style={{
+              fontSize: hp('2%')
+            }} allowFontScaling={false}>
                 ราคา{' '}
-                {item.ARPLU_U_PRC.toFixed(2).replace(
-                  /\B(?=(\d{3})+(?!\d))/g,
-                  ',',
-                )}{' '}
+                {item.ARPLU_U_PRC.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}{' '}
                 บาท
               </Text>
-              <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>
+              <Text style={{
+              fontSize: hp('2%')
+            }} allowFontScaling={false}>
                 บรรจุ {item.UTQ_NAME}{' '}
               </Text>
-              <Text style={{ fontSize: hp('2%'), color: 'red', textAlignVertical: 'bottom' }} allowFontScaling={false}>
-                คงเหลือ {
-                  Math.floor(item.good_inVan_qty / item.UTQ_QTY)
-                    .toFixed(0).replace(
-                      /\B(?=(\d{3})+(?!\d))/g,
-                      ',',
-                    )}{
-                  item.UTQ_QTY == 1 ? '' : '.' +
-                    ('0' +
-                      Math.abs(item.good_inVan_qty) -
-                      ((Math.floor(Math.abs(item.good_inVan_qty) / item.UTQ_QTY).toFixed(0)) * item.UTQ_QTY)
-                    )
-                      .toFixed(0)
-                      .padStart(('' + item.UTQ_QTY).length, '0')
-                }{' '}{item.UTQ_NAME}{' '}
+              <Text style={{
+              fontSize: hp('2%'),
+              color: 'red',
+              textAlignVertical: 'bottom'
+            }} allowFontScaling={false}>
+                คงเหลือ {Math.floor(item.good_inVan_qty / item.UTQ_QTY).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}{item.UTQ_QTY == 1 ? '' : '.' + ('0' + Math.abs(item.good_inVan_qty) - Math.floor(Math.abs(item.good_inVan_qty) / item.UTQ_QTY).toFixed(0) * item.UTQ_QTY).toFixed(0).padStart(('' + item.UTQ_QTY).length, '0')}{' '}{item.UTQ_NAME}{' '}
               </Text>
             </View>
           </View>
         </ListItem.Content>
-      </ListItem>
-    );
+      </ListItem>;
   };
-
-  _renderStockItem = (item) => {
-    return (
-      <ListItem
-        onPress={() => {
-          this._onItemPress(item);
-        }}
-      >
+  _renderStockItem = item => {
+    return <ListItem onPress={() => {
+      this._onItemPress(item);
+    }}>
         <ListItem.Content>
-          <View style={{ flexDirection: 'row' }}>
-            <View style={{ flex: 1, flexDirection: 'column' }}>
-              <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row'
+        }}>
+            <View style={{
+            flex: 1,
+            flexDirection: 'column'
+          }}>
+              <Text style={{
+              fontSize: hp('2%')
+            }} allowFontScaling={false}>
                 {item.ICDEPT_THAIDESC}
               </Text>
-              <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>
+              <Text style={{
+              fontSize: hp('2%')
+            }} allowFontScaling={false}>
                 {item.SKU_CODE}
               </Text>
-              <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>
+              <Text style={{
+              fontSize: hp('2%')
+            }} allowFontScaling={false}>
                 {item.SKU_NAME}
               </Text>
             </View>
-            <View style={{ flex: 1, flexDirection: 'column' }}>
+            <View style={{
+            flex: 1,
+            flexDirection: 'column'
+          }}>
             </View>
           </View>
         </ListItem.Content>
-      </ListItem>
-    );
+      </ListItem>;
   };
-
-  _renderSkuAltItem = (item) => {
-    return (
-      <ListItem
-        containerStyle={mainDivider}
-        onPress={() => {
-          this._onItemPress(item);
-        }}
-      >
+  _renderSkuAltItem = item => {
+    return <ListItem containerStyle={mainDivider} onPress={() => {
+      this._onItemPress(item);
+    }}>
         <ListItem.Content>
-          <View style={{ flexDirection: 'row' }}>
-            <View style={{ flex: 1, flexDirection: 'column' }}>
-              <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row'
+        }}>
+            <View style={{
+            flex: 1,
+            flexDirection: 'column'
+          }}>
+              <Text style={{
+              fontSize: hp('2%')
+            }} allowFontScaling={false}>
                 {item.ICDEPT_THAIDESC}
               </Text>
-              <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>
+              <Text style={{
+              fontSize: hp('2%')
+            }} allowFontScaling={false}>
                 {item.SKUALT_CODE}
               </Text>
-              <Text style={{ fontSize: hp('2%') }} allowFontScaling={false}>
+              <Text style={{
+              fontSize: hp('2%')
+            }} allowFontScaling={false}>
                 {item.SKUALT_NAME}
               </Text>
             </View>
-            <View style={{ flex: 1, flexDirection: 'column' }}>
+            <View style={{
+            flex: 1,
+            flexDirection: 'column'
+          }}>
             </View>
           </View>
         </ListItem.Content>
-      </ListItem>
-    );
+      </ListItem>;
   };
-
-  _renderItem = ({ item }) => {
+  _renderItem = ({
+    item
+  }) => {
     if (this.props.screen === 'ProductAddTo') {
       if (this.props.actionType === 'add_scr') {
         return this._renderSkuAltItem(item);
@@ -160,9 +164,7 @@ class CTListItems extends Component {
       return this._renderProductItem(item);
     }
   };
-
-  _onItemPress = async (item) => {
-    //console.log("_onItemPress item",item);
+  _onItemPress = async item => {
     if (this.props.screen) {
       if (this.props.screen === 'ProductAddTo') {
         if (this.props.actionType == 'add_scr') {
@@ -172,11 +174,9 @@ class CTListItems extends Component {
           this.props.setProduct('add', item);
           this.props.setGoodsCodeCriteria(item.GOODS_CODE);
           this.props.setModal(false);
-          this.props.inputQtyRef
-            ? setTimeout(() => {
-              this.props.inputQtyRef.focus();
-            }, 200)
-            : null;
+          this.props.inputQtyRef ? setTimeout(() => {
+            this.props.inputQtyRef.focus();
+          }, 200) : null;
         }
       } else if (this.props.screen === 'Stock') {
         this.props.setProduct('add', item);
@@ -184,60 +184,37 @@ class CTListItems extends Component {
       }
     }
   };
-
   _onRefresh = async () => {
     try {
-    console.log('_onRefresh screen=', this.props.screen, 'actionType=', this.props.actionType);
-    this.props.productCategory.item = {};
-
-    this.props.screen === 'ProductAddTo' && this.props.actionType === 'add_scr' ? null : this.props.clearProductList();
-    console.log('ตรวจสอบตรงนี้ >> 1');
-    await this.props.setKeyword(
-      this.state.textSearch ? this.state.textSearch.trim() : null,
-    );
-    console.log('_onRefresh: calling searchProductList...');
-    await this.props.searchProductList(this.props.screen, false);
-    console.log('_onRefresh: searchProductList completed');
+      this.props.productCategory.item = {};
+      this.props.screen === 'ProductAddTo' && this.props.actionType === 'add_scr' ? null : this.props.clearProductList();
+      await this.props.setKeyword(this.state.textSearch ? this.state.textSearch.trim() : null);
+      await this.props.searchProductList(this.props.screen, false);
     } catch (err) {
       console.log('_onRefresh ERROR:', err && err.message ? err.message : err);
     }
   };
-
-
-
-  _onScroll = async (event) => {
-
-    const { layoutMeasurement, contentSize, contentOffset } = event.nativeEvent;
-
-
-    console.log('_onScroll', layoutMeasurement);
-    console.log('_onScroll', layoutMeasurement.height);
-    console.log('_onScroll', this.props.screen);
-
-
-    const { VANCONFIG } = await getUserToken();
+  _onScroll = async event => {
+    const {
+      layoutMeasurement,
+      contentSize,
+      contentOffset
+    } = event.nativeEvent;
+    const {
+      VANCONFIG
+    } = await getUserToken();
     if (VANCONFIG.VANCNF_SKU_LIMIT === 1 || VANCONFIG.VANCNF_SKU_LIMIT === 2) {
       const frameHeight = layoutMeasurement.height;
       const contentHeight = contentSize.height;
       const maxOffset = 0.95 * parseInt(contentHeight - frameHeight);
       const currentOffset = parseInt(contentOffset.y);
-      console.log('ตรวจสอบตรงนี้ >> 2');
-      currentOffset >= maxOffset && !this.props.product.isLoading
-        ? this.props.searchProductList(this.props.screen, true)
-        : null;
+      currentOffset >= maxOffset && !this.props.product.isLoading ? this.props.searchProductList(this.props.screen, true) : null;
     }
   };
-
-
 
   // _onScroll = async (event) => {
 
   //   const { layoutMeasurement, contentSize,contentOffset } = event.nativeEvent;
-
-
-  //      console.log('_onScroll'  , layoutMeasurement);
-  //      console.log('_onScroll' ,  layoutMeasurement.height );
-  //      console.log('_onScroll' ,  this.props.screen );
 
 
   //      const {VANCONFIG} = await getUserToken();
@@ -256,16 +233,7 @@ class CTListItems extends Component {
   //   }
   // };
 
-
-
-
-
-
   // _onScroll = async (event) => {
-  //   console.log('_onScroll');
-  //   console.log('_onScroll' ,  event.nativeEvent.layoutMeasurement.height );
-  //   console.log('_onScroll' ,  this.props.screen );
-
 
   //   const {VANCONFIG} = await getUserToken();
   //   if (VANCONFIG.VANCNF_SKU_LIMIT != 4) {
@@ -284,59 +252,29 @@ class CTListItems extends Component {
   };
 
   // ฟังก์ชันที่ใช้ในการอัพเดทสถานะ `hasReachedEnd` 
-  updateHasReachedEnd = (isEnd) => {
-    this.setState({ hasReachedEnd: isEnd });
+  updateHasReachedEnd = isEnd => {
+    this.setState({
+      hasReachedEnd: isEnd
+    });
   };
-
   render() {
-    console.log('CTListItems render', this.props.product.listItems.length);
-    console.log('CTListItems DEBUG: product.isLoading=', this.props.product.isLoading, 'productCategory.isLoading=', this.props.productCategory.isLoading);
-    console.log('CTListItems DEBUG: product.isError=', this.props.product.isError, 'product.isNotFound=', this.props.product.isNotFound);
-    console.log('CTListItems DEBUG: productCategory.isError=', this.props.productCategory.isError, 'productCategory.listItems=', Array.isArray(this.props.productCategory.listItems) ? this.props.productCategory.listItems.length : 'NOT_ARRAY');
-    return (
-      <ListItems
-        listItems={
-          this.props.actionType === 'add_scr'
-            ? this.props.product.skuAltListItems
-            : this.props.product.listItems
-        }
-        renderItem={this._renderItem}
-        isNotFound={
-          this.props.product.isNotFound &&
-          this.props.product.listItems.length == 0
-        }
-        isError={
-          (this.props.product.isError && this.props.product.listItems.length == 0) ||
-          this.props.productCategory.isError
-        }
-        isSnackBarVisible={
-          this.props.product.isError && this.props.product.listItems.length > 0
-        }
-        refreshing={
-          this.props.product.isLoading || this.props.productCategory.isLoading
-        }
-        onRefresh={this._onRefresh}
-        onScroll={this.props.actionType === 'add_scr' ? null : this._onScroll}
-        actionHandler={this._actionHandler}
-      // setErrorMessage={this._setState}
-      // errorMessage={this.state.errorMessage}
-      // isLoading={this.state.isLoading}
-      />
-    );
+    return <ListItems listItems={this.props.actionType === 'add_scr' ? this.props.product.skuAltListItems : this.props.product.listItems} renderItem={this._renderItem} isNotFound={this.props.product.isNotFound && this.props.product.listItems.length == 0} isError={this.props.product.isError && this.props.product.listItems.length == 0 || this.props.productCategory.isError} isSnackBarVisible={this.props.product.isError && this.props.product.listItems.length > 0} refreshing={this.props.product.isLoading || this.props.productCategory.isLoading} onRefresh={this._onRefresh} onScroll={this.props.actionType === 'add_scr' ? null : this._onScroll} actionHandler={this._actionHandler}
+    // setErrorMessage={this._setState}
+    // errorMessage={this.state.errorMessage}
+    // isLoading={this.state.isLoading}
+    />;
   }
 }
-
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   product: state.product,
-  productCategory: state.productCategory,
+  productCategory: state.productCategory
 });
-
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
     setProduct: (type, item) => {
       dispatch(setProduct(type, item));
     },
-    setModal: (bool) => {
+    setModal: bool => {
       dispatch(setModal(bool));
     },
     clearProductList: () => {
@@ -345,19 +283,18 @@ const mapDispatchToProps = (dispatch) => {
     searchProductList: (screen, nextPage) => {
       dispatch(searchProductList(screen, nextPage));
     },
-    setError: (bool) => {
+    setError: bool => {
       dispatch(setError(bool));
     },
-    setGoodsCodeCriteria: (value) => {
+    setGoodsCodeCriteria: value => {
       dispatch(setGoodsCodeCriteria(value));
     },
-    searchProductBySkuAlt: (key) => {
+    searchProductBySkuAlt: key => {
       dispatch(searchProductBySkuAlt(key));
     },
-    setKeyword: (value) => {
+    setKeyword: value => {
       dispatch(setKeyword(value));
-    },
+    }
   };
 };
-
 export default connect(mapStateToProps, mapDispatchToProps)(CTListItems);

@@ -26,7 +26,6 @@ class CTChoices extends Component {
   componentDidMount = async (props) => {
     this._isMounted = true;
     await this._getUserToken();
-    // console.log(customerChoices[1]);
     await this._setState('customerChoices', customerChoices);
   };
 

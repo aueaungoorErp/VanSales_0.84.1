@@ -3,12 +3,19 @@ import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { MainTheme, mainDivider } from '../constant/lov';
 import { decimal2digitWithCommas } from '../utils/FormatUtil';
-
-const ListItem = ({title, containerStyle, bottomDivider}) => (
-  <View style={[{paddingVertical: 8, paddingHorizontal: 10}, containerStyle, bottomDivider && {borderBottomWidth: 1, borderBottomColor: '#e1e8ee'}]}>
+const ListItem = ({
+  title,
+  containerStyle,
+  bottomDivider
+}) => <View style={[{
+  paddingVertical: 8,
+  paddingHorizontal: 10
+}, containerStyle, bottomDivider && {
+  borderBottomWidth: 1,
+  borderBottomColor: '#e1e8ee'
+}]}>
     {title}
-  </View>
-);
+  </View>;
 const fontDefault = '1.7%';
 const REPORT_HEADER_BACKGROUND = MainTheme.colorPrimary;
 const REPORT_HEADER_TEXT = MainTheme.colorSecondary;
@@ -18,20 +25,20 @@ const salesOrderByCategoryStyles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingVertical: 14,
-    paddingHorizontal: 14,
+    paddingHorizontal: 14
   },
   headerTextPrimary: {
     flex: 1.5,
     color: MainTheme.colorSecondary,
     fontSize: hp('1.7%'),
-    fontWeight: '700',
+    fontWeight: '700'
   },
   headerTextNumeric: {
     flex: 1,
     textAlign: 'right',
     color: MainTheme.colorSecondary,
     fontSize: hp('1.7%'),
-    fontWeight: '700',
+    fontWeight: '700'
   },
   groupCard: {
     padding: 0,
@@ -40,7 +47,7 @@ const salesOrderByCategoryStyles = StyleSheet.create({
     borderColor: '#E3E8E6',
     borderRadius: 16,
     overflow: 'hidden',
-    marginBottom: 12,
+    marginBottom: 12
   },
   groupHeader: {
     flexDirection: 'row',
@@ -48,34 +55,34 @@ const salesOrderByCategoryStyles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#D9EBDD',
+    borderBottomColor: '#D9EBDD'
   },
   groupHeaderText: {
     flex: 1,
     color: REPORT_HEADER_TEXT,
     fontSize: hp(fontDefault),
-    fontWeight: '700',
+    fontWeight: '700'
   },
   dataRow: {
     flexDirection: 'row',
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F0',
+    borderBottomColor: '#EEF2F0'
   },
   dataRowLast: {
-    borderBottomWidth: 0,
+    borderBottomWidth: 0
   },
   dataPrimaryText: {
     flex: 1.5,
     fontSize: hp('1.7%'),
-    color: '#1F2F28',
+    color: '#1F2F28'
   },
   dataNumericText: {
     flex: 1,
     textAlign: 'right',
     fontSize: hp('1.7%'),
-    color: '#33423A',
+    color: '#33423A'
   },
   groupSummaryRow: {
     flexDirection: 'row',
@@ -83,27 +90,27 @@ const salesOrderByCategoryStyles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderTopWidth: 1,
-    borderTopColor: '#E7DFC0',
+    borderTopColor: '#E7DFC0'
   },
   groupSummaryPrimaryText: {
     flex: 1.5,
     fontSize: hp('1.7%'),
     color: '#5F5422',
-    fontWeight: '700',
+    fontWeight: '700'
   },
   groupSummaryNumericText: {
     flex: 1,
     textAlign: 'right',
     fontSize: hp('1.7%'),
     color: '#5F5422',
-    fontWeight: '700',
+    fontWeight: '700'
   },
   summaryCard: {
     backgroundColor: '#F7FBF8',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#DDE8E2',
-    overflow: 'hidden',
+    overflow: 'hidden'
   },
   summaryTitleRow: {
     flexDirection: 'row',
@@ -111,13 +118,13 @@ const salesOrderByCategoryStyles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#D9EBDD',
+    borderBottomColor: '#D9EBDD'
   },
   summaryTitleText: {
     flex: 1,
     color: REPORT_HEADER_TEXT,
     fontSize: hp('1.7%'),
-    fontWeight: '700',
+    fontWeight: '700'
   },
   summaryDataRow: {
     flexDirection: 'row',
@@ -125,2415 +132,1978 @@ const salesOrderByCategoryStyles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F0',
+    borderBottomColor: '#EEF2F0'
   },
   summaryFooterRow: {
     flexDirection: 'row',
     backgroundColor: '#FBE8EA',
     paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 14
   },
   summaryFooterPrimaryText: {
     flex: 1.5,
     color: MainTheme.colorFourteendary,
     fontSize: hp('1.7%'),
-    fontWeight: '700',
+    fontWeight: '700'
   },
   summaryFooterNumericText: {
     flex: 1,
     textAlign: 'right',
     color: MainTheme.colorFourteendary,
     fontSize: hp('1.7%'),
-    fontWeight: '700',
-  },
+    fontWeight: '700'
+  }
 });
 // report #1
 export const salesOrderByCategory = {
   header: () => {
-    return (
-      <ListItem
-        title={
-          <View style={{flexDirection: 'row'}}>
-            <Text
-              style={salesOrderByCategoryStyles.headerTextPrimary}
-              allowFontScaling={false}>
+    return <ListItem title={<View style={{
+      flexDirection: 'row'
+    }}>
+            <Text style={salesOrderByCategoryStyles.headerTextPrimary} allowFontScaling={false}>
               ประเภทสินค้า
             </Text>
-            <Text
-              style={salesOrderByCategoryStyles.headerTextNumeric}
-              allowFontScaling={false}>
+            <Text style={salesOrderByCategoryStyles.headerTextNumeric} allowFontScaling={false}>
               จำนวนรวม
             </Text>
-             <Text
-              style={salesOrderByCategoryStyles.headerTextNumeric}
-              allowFontScaling={false}>
+             <Text style={salesOrderByCategoryStyles.headerTextNumeric} allowFontScaling={false}>
               จำนวนแถม
             </Text>
-            <Text
-              style={salesOrderByCategoryStyles.headerTextNumeric}
-              allowFontScaling={false}>
+            <Text style={salesOrderByCategoryStyles.headerTextNumeric} allowFontScaling={false}>
               ยอดขาย
             </Text>
-          </View>
-        }
-        containerStyle={salesOrderByCategoryStyles.headerContainer}
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={salesOrderByCategoryStyles.headerContainer} titleNumberOfLines={1} />;
   },
-  renderItem: ({item}) => {
-    return (
-      <ListItem
-        title={
-          <View>
+  renderItem: ({
+    item
+  }) => {
+    return <ListItem title={<View>
             <View style={salesOrderByCategoryStyles.groupHeader}>
-              <Text
-                style={salesOrderByCategoryStyles.groupHeaderText}
-                allowFontScaling={false}>
+              <Text style={salesOrderByCategoryStyles.groupHeaderText} allowFontScaling={false}>
                 วันที่ {item.GROUP_NAME}
               </Text>
             </View>
-            {item.ITEMS.map((row, i) => (
-              <View
-                style={[
-                  salesOrderByCategoryStyles.dataRow,
-                  i === item.ITEMS.length - 1 ? salesOrderByCategoryStyles.dataRowLast : null,
-                ]}
-                key={i}>
-                <Text
-                  style={salesOrderByCategoryStyles.dataPrimaryText}
-                  allowFontScaling={false}>
+            {item.ITEMS.map((row, i) => <View style={[salesOrderByCategoryStyles.dataRow, i === item.ITEMS.length - 1 ? salesOrderByCategoryStyles.dataRowLast : null]} key={i}>
+                <Text style={salesOrderByCategoryStyles.dataPrimaryText} allowFontScaling={false}>
                   {row.ICCAT_NAME}
                 </Text>
-                <Text
-                  style={salesOrderByCategoryStyles.dataNumericText}
-                  allowFontScaling={false}>
+                <Text style={salesOrderByCategoryStyles.dataNumericText} allowFontScaling={false}>
                   {row.SKUQTY}
                 </Text>
-                <Text
-                  style={salesOrderByCategoryStyles.dataNumericText}
-                  allowFontScaling={false}>
+                <Text style={salesOrderByCategoryStyles.dataNumericText} allowFontScaling={false}>
                   {row.SKUQFREE}
                 </Text>
-                <Text
-                  style={salesOrderByCategoryStyles.dataNumericText}
-                  allowFontScaling={false}>
+                <Text style={salesOrderByCategoryStyles.dataNumericText} allowFontScaling={false}>
                   {decimal2digitWithCommas(parseFloat(row.SKUAMT))}
                 </Text>
-              </View>
-            ))}
+              </View>)}
             <View style={salesOrderByCategoryStyles.groupSummaryRow}>
-              <Text
-                style={salesOrderByCategoryStyles.groupSummaryPrimaryText}
-                allowFontScaling={false}>
+              <Text style={salesOrderByCategoryStyles.groupSummaryPrimaryText} allowFontScaling={false}>
                 รวม
               </Text>
-              <Text
-                style={salesOrderByCategoryStyles.groupSummaryNumericText}
-                allowFontScaling={false}>
+              <Text style={salesOrderByCategoryStyles.groupSummaryNumericText} allowFontScaling={false}>
                 {item.GROUP_SUM_QTY}
               </Text>
-               <Text
-                style={salesOrderByCategoryStyles.groupSummaryNumericText}
-                allowFontScaling={false}>
+               <Text style={salesOrderByCategoryStyles.groupSummaryNumericText} allowFontScaling={false}>
                 {item.GROUP_SUM_QFREE}
               </Text>
-              <Text
-                style={salesOrderByCategoryStyles.groupSummaryNumericText}
-                allowFontScaling={false}>
+              <Text style={salesOrderByCategoryStyles.groupSummaryNumericText} allowFontScaling={false}>
                 {decimal2digitWithCommas(parseFloat(item.GROUP_SUM_AMT))}
               </Text>
             </View>
-          </View>
-        }
-        containerStyle={salesOrderByCategoryStyles.groupCard}
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={salesOrderByCategoryStyles.groupCard} titleNumberOfLines={1} />;
   },
-  footerRenderItem: (item) => {
+  footerRenderItem: item => {
     const summarySection = item?.SUMMARY_SECTION || {};
     const summaryItems = summarySection.ITEMS || [];
-
-    return (
-      <View style={salesOrderByCategoryStyles.summaryCard}>
+    return <View style={salesOrderByCategoryStyles.summaryCard}>
         <View style={salesOrderByCategoryStyles.summaryTitleRow}>
-          <Text
-            style={salesOrderByCategoryStyles.summaryTitleText}
-            allowFontScaling={false}>
+          <Text style={salesOrderByCategoryStyles.summaryTitleText} allowFontScaling={false}>
             รวมทั้งสิ้น
           </Text>
         </View>
-        {item.SUMMARY_SECTION.map((item, i) => (
-          <View
-            style={salesOrderByCategoryStyles.summaryDataRow}
-            key={i}>
-            <Text
-              style={salesOrderByCategoryStyles.dataPrimaryText}
-              allowFontScaling={false}>
+        {item.SUMMARY_SECTION.map((item, i) => <View style={salesOrderByCategoryStyles.summaryDataRow} key={i}>
+            <Text style={salesOrderByCategoryStyles.dataPrimaryText} allowFontScaling={false}>
               {item.ITEM_NAME}
             </Text>
-            <Text
-              style={salesOrderByCategoryStyles.dataNumericText}
-              allowFontScaling={false}>
+            <Text style={salesOrderByCategoryStyles.dataNumericText} allowFontScaling={false}>
               {item.ITEM_QTY}
             </Text>
-             <Text
-              style={salesOrderByCategoryStyles.dataNumericText}
-              allowFontScaling={false}>
+             <Text style={salesOrderByCategoryStyles.dataNumericText} allowFontScaling={false}>
               {item.ITEM_QFREE}
             </Text>
-            <Text
-              style={salesOrderByCategoryStyles.dataNumericText}
-              allowFontScaling={false}>
+            <Text style={salesOrderByCategoryStyles.dataNumericText} allowFontScaling={false}>
               {decimal2digitWithCommas(parseFloat(item.ITEM_AMT))}
             </Text>
-          </View>
-        ))}
+          </View>)}
         <View style={salesOrderByCategoryStyles.summaryFooterRow}>
-          <Text
-            style={salesOrderByCategoryStyles.summaryFooterPrimaryText}
-            allowFontScaling={false}>
+          <Text style={salesOrderByCategoryStyles.summaryFooterPrimaryText} allowFontScaling={false}>
             รวม
           </Text>
-          <Text
-            style={salesOrderByCategoryStyles.summaryFooterNumericText}
-            allowFontScaling={false}>
+          <Text style={salesOrderByCategoryStyles.summaryFooterNumericText} allowFontScaling={false}>
             {item.SUM_QTY}
           </Text>
-           <Text
-            style={salesOrderByCategoryStyles.summaryFooterNumericText}
-            allowFontScaling={false}>
+           <Text style={salesOrderByCategoryStyles.summaryFooterNumericText} allowFontScaling={false}>
             {item.SUM_QFREE}
           </Text>
-          <Text
-            style={salesOrderByCategoryStyles.summaryFooterNumericText}
-            allowFontScaling={false}>
+          <Text style={salesOrderByCategoryStyles.summaryFooterNumericText} allowFontScaling={false}>
             {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
           </Text>
         </View>
-      </View>
-    );
+      </View>;
   },
-  footer: (item) => {
-    return (
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: MainTheme.colorThirteendary,
-          padding: 15,
-        }}>
-        <Text
-          style={{
-            flex: 1,
-            color: MainTheme.colorFourteendary,
-            fontSize: hp('1.7%'),
-          }}
-          allowFontScaling={false}>
+  footer: item => {
+    return <View style={{
+      flexDirection: 'row',
+      backgroundColor: MainTheme.colorThirteendary,
+      padding: 15
+    }}>
+        <Text style={{
+        flex: 1,
+        color: MainTheme.colorFourteendary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
           รวม
         </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp('1.7%'),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
           {item.SUM_QTY}
         </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp('1.7%'),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
           {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
         </Text>
-      </View>
-    );
+      </View>;
   },
   horizontalScreen: 'none',
   footerSummary: false,
-  footerItem: true,
+  footerItem: true
 };
 
 // report #2
 export const salesOrderByProduct = {
   header: () => {
-    return (
-      <ListItem
-        title={
-          Dimensions.get('window').width > 450 ? (
-            <View style={{flexDirection: 'row'}}>
-              <Text
-                style={{
-                  flex: 1,
-                  color: MainTheme.colorSecondary,
-                  fontSize: hp('1.7%'),
-                }}
-                allowFontScaling={false}>
+    return <ListItem title={Dimensions.get('window').width > 450 ? <View style={{
+      flexDirection: 'row'
+    }}>
+              <Text style={{
+        flex: 1,
+        color: MainTheme.colorSecondary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
                 ชื่อสินค้า
               </Text>
-              <Text
-                style={{
-                  flex: 1,
-                  textAlign: 'right',
-                  color: MainTheme.colorSecondary,
-                  fontSize: hp('1.7%'),
-                }}
-                allowFontScaling={false}>
+              <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
                 จำนวนขาย
               </Text>
-              <Text
-                style={{
-                  flex: 1,
-                  textAlign: 'right',
-                  color: MainTheme.colorSecondary,
-                  fontSize: hp('1.7%'),
-                }}
-                allowFontScaling={false}>
+              <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
                 จำนวนแถม
               </Text>
-              <Text
-                style={{
-                  flex: 1,
-                  textAlign: 'right',
-                  color: MainTheme.colorSecondary,
-                  fontSize: hp('1.7%'),
-                }}
-                allowFontScaling={false}>
+              <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
                 ยอดขาย
               </Text>
-            </View>
-          ) : (
-            <View style={{flexDirection: 'row'}}>
-              <Text
-                style={{
-                  width: 200,
-                  color: MainTheme.colorSecondary,
-                  fontSize: hp('1.7%'),
-                }}>
+            </View> : <View style={{
+      flexDirection: 'row'
+    }}>
+              <Text style={{
+        width: 200,
+        color: MainTheme.colorSecondary,
+        fontSize: hp('1.7%')
+      }}>
                 ชื่อสินค้า
               </Text>
-              <Text
-                style={{
-                  width: 150,
-                  textAlign: 'right',
-                  color: MainTheme.colorSecondary,
-                  fontSize: hp('1.7%'),
-                }}
-                allowFontScaling={false}>
+              <Text style={{
+        width: 150,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
                 จำนวนขาย
               </Text>
-              <Text
-                style={{
-                  width: 150,
-                  textAlign: 'right',
-                  color: MainTheme.colorSecondary,
-                  fontSize: hp('1.7%'),
-                }}
-                allowFontScaling={false}>
+              <Text style={{
+        width: 150,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
                 จำนวนแถม
               </Text>
-              <Text
-                style={{
-                  width: 150,
-                  textAlign: 'right',
-                  color: MainTheme.colorSecondary,
-                  fontSize: hp('1.7%'),
-                }}
-                allowFontScaling={false}>
+              <Text style={{
+        width: 150,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
                 ยอดขาย
               </Text>
-            </View>
-          )
-        }
-        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
-        titleNumberOfLines={1}
-      />
-    );
+            </View>} containerStyle={{
+      backgroundColor: REPORT_HEADER_BACKGROUND
+    }} titleNumberOfLines={1} />;
   },
-  renderItem: ({item}) => {
-    console.log(JSON.stringify(item));
-    return (
-      <ListItem
-        title={
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: REPORT_HEADER_BACKGROUND,
-                paddingVertical: 15,
-                paddingHorizontal: 5,
-              }}>
-              <Text
-                style={{
-                  flex: 1,
-                  color: REPORT_HEADER_TEXT,
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+  renderItem: ({
+    item
+  }) => {
+    return <ListItem title={<View>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        paddingVertical: 15,
+        paddingHorizontal: 5
+      }}>
+              <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 วันที่ {item.GROUP_NAME}
               </Text>
             </View>
 
             {item.ITEMS.map((row, i) => {
-              // console.log("row ",row);
-              return Dimensions.get('window').width > 450 ? (
-                <View style={{flexDirection: 'row', padding: 15}} key={i}>
-                  <Text
-                    style={{flex: 1, fontSize: hp('1.7%')}}
-                    allowFontScaling={false}>
+        return Dimensions.get('window').width > 450 ? <View style={{
+          flexDirection: 'row',
+          padding: 15
+        }} key={i}>
+                  <Text style={{
+            flex: 1,
+            fontSize: hp('1.7%')
+          }} allowFontScaling={false}>
                     {row.SKU_NAME}
                   </Text>
-                  <Text
-                    style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                    allowFontScaling={false}>
+                  <Text style={{
+            flex: 1,
+            textAlign: 'right',
+            fontSize: hp('1.7%')
+          }} allowFontScaling={false}>
                     {row.SKUSELLQTY}
                   </Text>
-                  <Text
-                    style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                    allowFontScaling={false}>
+                  <Text style={{
+            flex: 1,
+            textAlign: 'right',
+            fontSize: hp('1.7%')
+          }} allowFontScaling={false}>
                     {row.SKUFREEQTY}
                   </Text>
-                  <Text
-                    style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                    allowFontScaling={false}>
+                  <Text style={{
+            flex: 1,
+            textAlign: 'right',
+            fontSize: hp('1.7%')
+          }} allowFontScaling={false}>
                     {decimal2digitWithCommas(parseFloat(row.SKUAMT))}
                   </Text>
-                </View>
-              ) : (
-                <View style={{flexDirection: 'row', padding: 15}} key={i}>
-                  <Text
-                    style={{width: 200, fontSize: hp('1.7%')}}
-                    allowFontScaling={false}>
-                    {row.SKU_NAME}
-                  </Text>
-                  <Text
-                    style={{
-                      width: 150,
-                      textAlign: 'right',
-                      fontSize: hp('1.7%'),
-                    }}
-                    allowFontScaling={false}>
-                    {row.SKUSELLQTY}
-                  </Text>
-                  <Text
-                    style={{
-                      width: 150,
-                      textAlign: 'right',
-                      fontSize: hp('1.7%'),
-                    }}
-                    allowFontScaling={false}>
-                    {row.SKUFREEQTY}
-                  </Text>
-                  <Text
-                    style={{
-                      width: 150,
-                      textAlign: 'right',
-                      fontSize: hp('1.7%'),
-                    }}
-                    allowFontScaling={false}>
-                    {decimal2digitWithCommas(parseFloat(row.SKUAMT))}
-                  </Text>
-                </View>
-              );
-            })}
-
-            {Dimensions.get('window').width > 450 ? (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  backgroundColor: '#E5E4E2',
-                  padding: 15,
-                }}>
-                <Text
-                  style={{flex: 1, fontSize: hp('1.7%')}}
-                  allowFontScaling={false}>
-                  รวม
-                </Text>
-                <Text
-                  style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                  allowFontScaling={false}>
-                  {item.GROUP_SUM_QTY}
-                </Text>
-                <Text
-                  style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                  allowFontScaling={false}>
-                  {item.GROUP_SUM_FREE_QTY}
-                </Text>
-                <Text
-                  style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                  allowFontScaling={false}>
-                  {decimal2digitWithCommas(parseFloat(item.GROUP_SUM_AMT))}
-                </Text>
-              </View>
-            ) : (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  backgroundColor: '#E5E4E2',
-                  padding: 15,
-                }}>
-                <Text
-                  style={{width: 200, fontSize: hp('1.7%')}}
-                  allowFontScaling={false}>
-                  รวม
-                </Text>
-                <Text
-                  style={{width: 150, textAlign: 'right', fontSize: hp('1.7%')}}
-                  allowFontScaling={false}>
-                  {item.GROUP_SUM_QTY}
-                </Text>
-                <Text
-                  style={{width: 150, textAlign: 'right', fontSize: hp('1.7%')}}
-                  allowFontScaling={false}>
-                  {item.GROUP_SUM_FREE_QTY}
-                </Text>
-                <Text
-                  style={{width: 150, textAlign: 'right', fontSize: hp('1.7%')}}
-                  allowFontScaling={false}>
-                  {decimal2digitWithCommas(parseFloat(item.GROUP_SUM_AMT))}
-                </Text>
-              </View>
-            )}
-          </View>
-        }
-        containerStyle={[{padding: 0}, mainDivider]}
-        // bottomDivider
-        titleNumberOfLines={1}
-      />
-    );
-  },
-  footerRenderItem: (item) => {
-
-    return Dimensions.get('window').width > 450 ? (
-      <View>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: REPORT_HEADER_BACKGROUND,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: REPORT_HEADER_TEXT,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
-            รวมทั้งสิ้น
-          </Text>
-        </View>
-        {item.ITEMS.SUMMARY_SECTION.map((item, i) => (
-          <View
-            style={{
-              flexDirection: 'row',
-              backgroundColor: MainTheme.colorThirteendary,
-              padding: 15,
-            }}
-            key={i}>
-            <Text
-              style={{flex: 1, color: MainTheme.colorFourteendary}}
-              allowFontScaling={false}>
-              {item.ITEM_NAME}
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp('1.7%'),
-              }}
-              allowFontScaling={false}>
-              {item.ITEM_SELL_QTY}
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp('1.7%'),
-              }}
-              allowFontScaling={false}>
-              {item.ITEM_FREE_QTY}
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp('1.7%'),
-              }}
-              allowFontScaling={false}>
-              {decimal2digitWithCommas(parseFloat(item.ITEM_AMT))}
-            </Text>
-          </View>
-        ))}
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{flex: 1, color: MainTheme.colorFourteendary}}
-            allowFontScaling={false}>
-            รวม
-          </Text>
-          <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
-            {item.SUM_QTY}
-          </Text>
-          <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
-            {item.SUM_FREE_QTY}
-          </Text>
-          <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
-            {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
-          </Text>
-        </View>
-      </View>
-    ) : (
-      <View>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: REPORT_HEADER_BACKGROUND,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: REPORT_HEADER_TEXT,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
-            รวมทั้งสิ้น
-          </Text>
-        </View>
-        {item.SUMMARY_SECTION.map((item, i) => (
-          <View
-            style={{
-              flexDirection: 'row',
-              backgroundColor: MainTheme.colorThirteendary,
-              padding: 15,
-            }}
-            key={i}>
-            <Text
-              style={{
-                width: 200,
-                color: MainTheme.colorFourteendary,
-                fontSize: hp('1.7%'),
-              }}
-              allowFontScaling={false}>
-              {item.ITEM_NAME}
-            </Text>
-            <Text
-              style={{
-                width: 150,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp('1.7%'),
-              }}
-              allowFontScaling={false}>
-              {item.ITEM_SELL_QTY}
-            </Text>
-            <Text
-              style={{
-                width: 150,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp('1.7%'),
-              }}
-              allowFontScaling={false}>
-              {item.ITEM_FREE_QTY}
-            </Text>
-            <Text
-              style={{
-                width: 150,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp('1.7%'),
-              }}
-              allowFontScaling={false}>
-              {decimal2digitWithCommas(parseFloat(item.ITEM_AMT))}
-            </Text>
-          </View>
-        ))}
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              width: 200,
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
-            รวม
-          </Text>
-          <Text
-            style={{
-              width: 150,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
-            {item.SUM_QTY}
-          </Text>
-          <Text
-            style={{
-              width: 150,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
-            {item.SUM_FREE_QTY}
-          </Text>
-          <Text
-            style={{
-              width: 150,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
-            {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
-          </Text>
-        </View>
-      </View>
-    );
-  },
-  footer: (item) => {
-    return Dimensions.get('window').width > 450 ? (
-      <View
-        style={{
+                </View> : <View style={{
           flexDirection: 'row',
-          backgroundColor: MainTheme.colorThirteendary,
-          padding: 15,
-        }}>
-        <Text
-          style={{flex: 1, color: MainTheme.colorFourteendary}}
-          allowFontScaling={false}>
-          รวมทั้งสิ้น
-        </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp('1.7%'),
-          }}
-          allowFontScaling={false}>
-          {item.SUM_QTY}
-        </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp('1.7%'),
-          }}
-          allowFontScaling={false}>
-          {item.SUM_FREE_QTY}
-        </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp('1.7%'),
-          }}
-          allowFontScaling={false}>
-          {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
-        </Text>
-      </View>
-    ) : (
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: MainTheme.colorThirteendary,
-          padding: 15,
-        }}>
-        <Text
-          style={{
+          padding: 15
+        }} key={i}>
+                  <Text style={{
             width: 200,
-            color: MainTheme.colorFourteendary,
-            fontSize: hp('1.7%'),
-          }}
-          allowFontScaling={false}>
+            fontSize: hp('1.7%')
+          }} allowFontScaling={false}>
+                    {row.SKU_NAME}
+                  </Text>
+                  <Text style={{
+            width: 150,
+            textAlign: 'right',
+            fontSize: hp('1.7%')
+          }} allowFontScaling={false}>
+                    {row.SKUSELLQTY}
+                  </Text>
+                  <Text style={{
+            width: 150,
+            textAlign: 'right',
+            fontSize: hp('1.7%')
+          }} allowFontScaling={false}>
+                    {row.SKUFREEQTY}
+                  </Text>
+                  <Text style={{
+            width: 150,
+            textAlign: 'right',
+            fontSize: hp('1.7%')
+          }} allowFontScaling={false}>
+                    {decimal2digitWithCommas(parseFloat(row.SKUAMT))}
+                  </Text>
+                </View>;
+      })}
+
+            {Dimensions.get('window').width > 450 ? <View style={{
+        flexDirection: 'row',
+        backgroundColor: '#E5E4E2',
+        padding: 15
+      }}>
+                <Text style={{
+          flex: 1,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+                  รวม
+                </Text>
+                <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+                  {item.GROUP_SUM_QTY}
+                </Text>
+                <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+                  {item.GROUP_SUM_FREE_QTY}
+                </Text>
+                <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+                  {decimal2digitWithCommas(parseFloat(item.GROUP_SUM_AMT))}
+                </Text>
+              </View> : <View style={{
+        flexDirection: 'row',
+        backgroundColor: '#E5E4E2',
+        padding: 15
+      }}>
+                <Text style={{
+          width: 200,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+                  รวม
+                </Text>
+                <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+                  {item.GROUP_SUM_QTY}
+                </Text>
+                <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+                  {item.GROUP_SUM_FREE_QTY}
+                </Text>
+                <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+                  {decimal2digitWithCommas(parseFloat(item.GROUP_SUM_AMT))}
+                </Text>
+              </View>}
+          </View>} containerStyle={[{
+      padding: 0
+    }, mainDivider]}
+    // bottomDivider
+    titleNumberOfLines={1} />;
+  },
+  footerRenderItem: item => {
+    return Dimensions.get('window').width > 450 ? <View>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+            รวมทั้งสิ้น
+          </Text>
+        </View>
+        {item.ITEMS.SUMMARY_SECTION.map((item, i) => <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }} key={i}>
+            <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary
+        }} allowFontScaling={false}>
+              {item.ITEM_NAME}
+            </Text>
+            <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+              {item.ITEM_SELL_QTY}
+            </Text>
+            <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+              {item.ITEM_FREE_QTY}
+            </Text>
+            <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+              {decimal2digitWithCommas(parseFloat(item.ITEM_AMT))}
+            </Text>
+          </View>)}
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary
+        }} allowFontScaling={false}>
+            รวม
+          </Text>
+          <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+            {item.SUM_QTY}
+          </Text>
+          <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+            {item.SUM_FREE_QTY}
+          </Text>
+          <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+            {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
+          </Text>
+        </View>
+      </View> : <View>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+            รวมทั้งสิ้น
+          </Text>
+        </View>
+        {item.SUMMARY_SECTION.map((item, i) => <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }} key={i}>
+            <Text style={{
+          width: 200,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+              {item.ITEM_NAME}
+            </Text>
+            <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+              {item.ITEM_SELL_QTY}
+            </Text>
+            <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+              {item.ITEM_FREE_QTY}
+            </Text>
+            <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+              {decimal2digitWithCommas(parseFloat(item.ITEM_AMT))}
+            </Text>
+          </View>)}
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          width: 200,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+            รวม
+          </Text>
+          <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+            {item.SUM_QTY}
+          </Text>
+          <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+            {item.SUM_FREE_QTY}
+          </Text>
+          <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
+            {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
+          </Text>
+        </View>
+      </View>;
+  },
+  footer: item => {
+    return Dimensions.get('window').width > 450 ? <View style={{
+      flexDirection: 'row',
+      backgroundColor: MainTheme.colorThirteendary,
+      padding: 15
+    }}>
+        <Text style={{
+        flex: 1,
+        color: MainTheme.colorFourteendary
+      }} allowFontScaling={false}>
           รวมทั้งสิ้น
         </Text>
-        <Text
-          style={{
-            width: 150,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp('1.7%'),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
           {item.SUM_QTY}
         </Text>
-        <Text
-          style={{
-            width: 150,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp('1.7%'),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
           {item.SUM_FREE_QTY}
         </Text>
-        <Text
-          style={{
-            width: 150,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp('1.7%'),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
           {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
         </Text>
-      </View>
-    );
+      </View> : <View style={{
+      flexDirection: 'row',
+      backgroundColor: MainTheme.colorThirteendary,
+      padding: 15
+    }}>
+        <Text style={{
+        width: 200,
+        color: MainTheme.colorFourteendary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
+          รวมทั้งสิ้น
+        </Text>
+        <Text style={{
+        width: 150,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
+          {item.SUM_QTY}
+        </Text>
+        <Text style={{
+        width: 150,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
+          {item.SUM_FREE_QTY}
+        </Text>
+        <Text style={{
+        width: 150,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
+          {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
+        </Text>
+      </View>;
   },
   horizontalScreen: 'phone',
   footerSummary: false,
-  footerItem: true,
+  footerItem: true
 };
 
 // report #3
 export const salesOrderByArline = {
   header: () => {
-    return (
-      <ListItem
-        title={
-          <View style={{flexDirection: 'row'}}>
-            <Text
-              style={{
-                flex: 1.5,
-                color: MainTheme.colorSecondary,
-                fontSize: hp('1.7%'),
-              }}
-              allowFontScaling={false}>
+    return <ListItem title={<View style={{
+      flexDirection: 'row'
+    }}>
+            <Text style={{
+        flex: 1.5,
+        color: MainTheme.colorSecondary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
               สายลูกค้า
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp('1.7%'),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
               จำนวนรวม
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp('1.7%'),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
               จำนวนแถม
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp('1.7%'),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp('1.7%')
+      }} allowFontScaling={false}>
               ยอดรวม
             </Text>
-          </View>
-        }
-        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={{
+      backgroundColor: REPORT_HEADER_BACKGROUND
+    }} titleNumberOfLines={1} />;
   },
-  renderItem: ({item}) => {
-    return (
-      <ListItem
-        title={
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: REPORT_HEADER_BACKGROUND,
-                paddingVertical: 15,
-                paddingHorizontal: 5,
-              }}>
-              <Text
-                style={{
-                  flex: 1,
-                  color: REPORT_HEADER_TEXT,
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+  renderItem: ({
+    item
+  }) => {
+    return <ListItem title={<View>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        paddingVertical: 15,
+        paddingHorizontal: 5
+      }}>
+              <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 วันที่ {item.GROUP_NAME}
               </Text>
             </View>
 
-            {item.ITEMS.map((row, i) => (
-              <View style={{flexDirection: 'row', padding: 15}} key={i}>
-                <Text
-                  style={{flex: 1.5, fontSize: hp('1.7%')}}
-                  allowFontScaling={false}>
+            {item.ITEMS.map((row, i) => <View style={{
+        flexDirection: 'row',
+        padding: 15
+      }} key={i}>
+                <Text style={{
+          flex: 1.5,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
                   {row.ARL_NAME}
                 </Text>
-                <Text
-                  style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                  allowFontScaling={false}>
+                <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
                   {row.SKUSELLQTY}
                 </Text>
-                 <Text
-                  style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                  allowFontScaling={false}>
+                 <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
                   {row.SKUQFREE}
                 </Text>
-                <Text
-                  style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                  allowFontScaling={false}>
+                <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
                   {decimal2digitWithCommas(parseFloat(row.SKUAMT))}
                 </Text>
-              </View>
-            ))}
+              </View>)}
 
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: '#E5E4E2',
-                padding: 15,
-              }}>
-              <Text
-                style={{flex: 1.5, fontSize: hp('1.7%')}}
-                allowFontScaling={false}>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: '#E5E4E2',
+        padding: 15
+      }}>
+              <Text style={{
+          flex: 1.5,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
                 รวม
               </Text>
-              <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                allowFontScaling={false}>
+              <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
                 {item.GROUP_SUM_QTY}
               </Text>
-              <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                allowFontScaling={false}>
+              <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
                 {item.GROUP_SUM_QFREE}
               </Text>
-              <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                allowFontScaling={false}>
+              <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
                 {decimal2digitWithCommas(parseFloat(item.GROUP_SUM_AMT))}
               </Text>
             </View>
-          </View>
-        }
-        containerStyle={[{padding: 0}, mainDivider]}
-        bottomDivider
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={[{
+      padding: 0
+    }, mainDivider]} bottomDivider titleNumberOfLines={1} />;
   },
-  footerRenderItem: (item) => {
+  footerRenderItem: item => {
     const summarySection = item?.SUMMARY_SECTION || {};
     const summaryItems = summarySection.ITEMS || [];
-
-    return (
-      <View>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: REPORT_HEADER_BACKGROUND,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: REPORT_HEADER_TEXT,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
+    return <View>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
             รวมทั้งสิ้น
           </Text>
         </View>
-        {item.SUMMARY_SECTION.map((item, i) => (
-          <View
-            style={{
-              flexDirection: 'row',
-              backgroundColor: MainTheme.colorThirteendary,
-              padding: 15,
-            }}
-            key={i}>
-            <Text
-              style={{
-                flex: 1.5,
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+        {item.SUMMARY_SECTION.map((item, i) => <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }} key={i}>
+            <Text style={{
+          flex: 1.5,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_NAME}
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_QTY}
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_QFREE}
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {decimal2digitWithCommas(parseFloat(item.ITEM_AMT))}
             </Text>
-          </View>
-        ))}
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1.5,
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          </View>)}
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1.5,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             รวม 
           </Text>
-          <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {item.SUM_QTY}
           </Text>
-           <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+           <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {item.SUM_QFREE}
           </Text>
-          <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
           </Text>
         </View>
-      </View>
-    );
+      </View>;
   },
-  footer: (item) => {
-    return (
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: MainTheme.colorThirteendary,
-          padding: 15,
-        }}>
-        <Text
-          style={{
-            flex: 1,
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+  footer: item => {
+    return <View style={{
+      flexDirection: 'row',
+      backgroundColor: MainTheme.colorThirteendary,
+      padding: 15
+    }}>
+        <Text style={{
+        flex: 1,
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           รวมทั้งสิ้น
         </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.SUM_QTY}
         </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
         </Text>
-      </View>
-    );
+      </View>;
   },
   horizontalScreen: 'none',
   footerSummary: false,
-  footerItem: true,
+  footerItem: true
 };
 
 // report #4
 export const salesOrderByDocType = {
   header: () => {
-    return (
-      <ListItem
-        title={
-          <View style={{flexDirection: 'row'}}>
-            <Text
-              style={{
-                flex: 1,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+    return <ListItem title={<View style={{
+      flexDirection: 'row'
+    }}>
+            <Text style={{
+        flex: 1,
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               ประเภทเอกสาร
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               จำนวนบิล
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               ยอดขาย
             </Text>
-          </View>
-        }
-        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={{
+      backgroundColor: REPORT_HEADER_BACKGROUND
+    }} titleNumberOfLines={1} />;
   },
-  renderItem: ({item}) => {
-    return (
-      <ListItem
-        title={
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: REPORT_HEADER_BACKGROUND,
-                padding: 15,
-              }}>
-              <Text
-                style={{
-                  flex: 1,
-                  color: REPORT_HEADER_TEXT,
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+  renderItem: ({
+    item
+  }) => {
+    return <ListItem title={<View>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+              <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 วันที่ {item.GROUP_NAME}
               </Text>
             </View>
 
-            {item.ITEMS.map((row, i) => (
-              <View style={{flexDirection: 'row', padding: 15}} key={i}>
-                <Text
-                  style={{flex: 1, fontSize: hp(fontDefault)}}
-                  allowFontScaling={false}>
+            {item.ITEMS.map((row, i) => <View style={{
+        flexDirection: 'row',
+        padding: 15
+      }} key={i}>
+                <Text style={{
+          flex: 1,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                   {row.DOCGROUP}
                 </Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    textAlign: 'right',
-                    fontSize: hp(fontDefault),
-                  }}
-                  allowFontScaling={false}>
+                <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                   {row.DOCOUNT}
                 </Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    textAlign: 'right',
-                    fontSize: hp(fontDefault),
-                  }}
-                  allowFontScaling={false}>
+                <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                   {decimal2digitWithCommas(parseFloat(row.SKUAMT))}
                 </Text>
-              </View>
-            ))}
+              </View>)}
 
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: '#E5E4E2',
-                padding: 15,
-              }}>
-              <Text
-                style={{flex: 1, fontSize: hp('1.7%')}}
-                allowFontScaling={false}>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: '#E5E4E2',
+        padding: 15
+      }}>
+              <Text style={{
+          flex: 1,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
                 รวม
               </Text>
-              <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                allowFontScaling={false}>
+              <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
                 {item.GROUP_SUMDOCOUNT}
               </Text>
-              <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                allowFontScaling={false}>
+              <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
                 {decimal2digitWithCommas(parseFloat(item.GROUP_SUM_AMT))}
               </Text>
             </View>
-          </View>
-        }
-        containerStyle={[{padding: 0}, mainDivider]}
-        bottomDivider
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={[{
+      padding: 0
+    }, mainDivider]} bottomDivider titleNumberOfLines={1} />;
   },
-  footerRenderItem: (item) => {
-    return (
-      <View style={{backgroundColor: REPORT_HEADER_BACKGROUND}}>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: REPORT_HEADER_BACKGROUND,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: REPORT_HEADER_TEXT,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
+  footerRenderItem: item => {
+    return <View style={{
+      backgroundColor: REPORT_HEADER_BACKGROUND
+    }}>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
             รวมทั้งสิ้น
           </Text>
         </View>
-        {item.SUMMARY_SECTION.map((item, i) => (
-          <View
-            style={{
-              flexDirection: 'row',
-              backgroundColor: MainTheme.colorThirteendary,
-              padding: 15,
-            }}
-            key={i}>
-            <Text
-              style={{
-                flex: 1,
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+        {item.SUMMARY_SECTION.map((item, i) => <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }} key={i}>
+            <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_NAME}
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_DO_COUNT}
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {decimal2digitWithCommas(parseFloat(item.ITEM_AMT))}
             </Text>
-          </View>
-        ))}
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          </View>)}
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             รวม
           </Text>
-          <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {item.SUM_DOCOUNT}
           </Text>
-          <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
           </Text>
         </View>
-      </View>
-    );
+      </View>;
   },
-  footer: (item) => {
-    return (
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: MainTheme.colorThirteendary,
-          padding: 15,
-        }}>
-        <Text
-          style={{
-            flex: 1,
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+  footer: item => {
+    return <View style={{
+      flexDirection: 'row',
+      backgroundColor: MainTheme.colorThirteendary,
+      padding: 15
+    }}>
+        <Text style={{
+        flex: 1,
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           รวม
         </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.SUM_DOCOUNT}
         </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
         </Text>
-      </View>
-    );
+      </View>;
   },
   horizontalScreen: 'none',
   footerSummary: false,
-  footerItem: true,
+  footerItem: true
 };
 
 // report #5
 export const salesOrderByPmt = {
   header: () => {
-    return (
-      <ListItem
-        title={
-          <View>
-            <View style={{flexDirection: 'row'}}>
-              <Text
-                style={{
-                  flex: 1,
-                  color: MainTheme.colorSecondary,
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+    return <ListItem title={<View>
+            <View style={{
+        flexDirection: 'row'
+      }}>
+              <Text style={{
+          flex: 1,
+          color: MainTheme.colorSecondary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 ประเภทชำระ
               </Text>
-              <Text
-                style={{
-                  flex: 1,
-                  textAlign: 'right',
-                  color: MainTheme.colorSecondary,
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+              <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorSecondary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 ยอดขาย
               </Text>
             </View>
-          </View>
-        }
-        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={{
+      backgroundColor: REPORT_HEADER_BACKGROUND
+    }} titleNumberOfLines={1} />;
   },
-  renderItem: ({item}) => {
-    return (
-      <ListItem
-        title={
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: REPORT_HEADER_BACKGROUND,
-                padding: 15,
-              }}>
-              <Text
-                style={{
-                  flex: 1,
-                  color: REPORT_HEADER_TEXT,
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+  renderItem: ({
+    item
+  }) => {
+    return <ListItem title={<View>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+              <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 วันที่ {item.GROUP_NAME}
               </Text>
             </View>
 
-            {item.ITEMS.map((row, i) => (
-              <View style={{flexDirection: 'row', padding: 15}} key={i}>
-                <Text
-                  style={{flex: 1, fontSize: hp(fontDefault)}}
-                  allowFontScaling={false}>
+            {item.ITEMS.map((row, i) => <View style={{
+        flexDirection: 'row',
+        padding: 15
+      }} key={i}>
+                <Text style={{
+          flex: 1,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                   {row.PMT_NAME}
                 </Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    textAlign: 'right',
-                    fontSize: hp(fontDefault),
-                  }}
-                  allowFontScaling={false}>
+                <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                   {row.PMTAMT}
                 </Text>
-              </View>
-            ))}
+              </View>)}
 
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: '#E5E4E2',
-                padding: 15,
-              }}>
-              <Text
-                style={{flex: 1, fontSize: hp('1.7%')}}
-                allowFontScaling={false}>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: '#E5E4E2',
+        padding: 15
+      }}>
+              <Text style={{
+          flex: 1,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
                 รวม
               </Text>
-              <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp('1.7%')}}
-                allowFontScaling={false}>
+              <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
                 {decimal2digitWithCommas(parseFloat(item.GROUP_AMT))}
               </Text>
             </View>
-          </View>
-        }
-        containerStyle={[{padding: 0}, mainDivider]}
-        bottomDivider
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={[{
+      padding: 0
+    }, mainDivider]} bottomDivider titleNumberOfLines={1} />;
   },
-  footerRenderItem: (item) => {
-    return (
-      <View style={{backgroundColor: REPORT_HEADER_BACKGROUND}}>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: REPORT_HEADER_BACKGROUND,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: REPORT_HEADER_TEXT,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
+  footerRenderItem: item => {
+    return <View style={{
+      backgroundColor: REPORT_HEADER_BACKGROUND
+    }}>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
             รวมทั้งสิ้น
           </Text>
         </View>
-        {item.SUMMARY_SECTION.ITEMS.map((item, i) => (
-          <View
-            style={{
-              flexDirection: 'row',
-              backgroundColor: MainTheme.colorThirteendary,
-              padding: 15,
-            }}
-            key={i}>
-            <Text
-              style={{
-                flex: 1,
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+        {item.SUMMARY_SECTION.ITEMS.map((item, i) => <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }} key={i}>
+            <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_NAME}
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_AMT}
             </Text>
-          </View>
-        ))}
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          </View>)}
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             รวม {item.SUM_COUNT} รายการ
           </Text>
-          <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
           </Text>
         </View>
-      </View>
-    );
+      </View>;
   },
-  footer: (item) => {
-    return (
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: REPORT_HEADER_BACKGROUND,
-          padding: 15,
-        }}>
-        <Text
-          style={{
-            flex: 1,
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+  footer: item => {
+    return <View style={{
+      flexDirection: 'row',
+      backgroundColor: REPORT_HEADER_BACKGROUND,
+      padding: 15
+    }}>
+        <Text style={{
+        flex: 1,
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           รวมทั้งสิ้น {item.SUM_COUNT} รายการ
         </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
         </Text>
-      </View>
-    );
+      </View>;
   },
   horizontalScreen: 'none',
   footerSummary: false,
-  footerItem: true,
+  footerItem: true
 };
 
 // report #6
 export const documentItems = {
   header: () => {
-    return (
-      <ListItem
-        title={
-          <View style={{flexDirection: 'row'}}>
-            <Text
-              style={{
-                width: 150,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+    return <ListItem title={<View style={{
+      flexDirection: 'row'
+    }}>
+            <Text style={{
+        width: 150,
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               เลขที่
             </Text>
-            <Text
-              style={{
-                width: 150,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 150,
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               ชื่อลูกค้า
             </Text>
-            <Text
-              style={{
-                width: 100,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 100,
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               {/* ชำระ */}
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               รายการ
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               ชิ้น
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               ยอดก่อนลด
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               ส่วนลด
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               ยอดขาย
             </Text>
-          </View>
-        }
-        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={{
+      backgroundColor: REPORT_HEADER_BACKGROUND
+    }} titleNumberOfLines={1} />;
   },
-  renderItem: ({item}) => {
-    //console.log('III ', JSON.stringify(item));
-    return (
-      <ListItem
-        title={
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: REPORT_HEADER_BACKGROUND,
-                padding: 15,
-              }}>
-              <Text
-                style={{
-                  flex: 1,
-                  color: REPORT_HEADER_TEXT,
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+  renderItem: ({
+    item
+  }) => {
+    return <ListItem title={<View>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+              <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 วันที่ {item.GROUP_NAME}
               </Text>
             </View>
 
             {item.ITEMS.map((row, i) => {
-              return (
-                <View key={i}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      backgroundColor: '#C2DFFF',
-                      padding: 15,
-                    }}>
-                    <Text
-                      style={{
-                        flex: 1,
-                        color: '#438D80',
-                        fontSize: hp(fontDefault),
-                      }}
-                      allowFontScaling={false}>
+        return <View key={i}>
+                  <View style={{
+            flexDirection: 'row',
+            backgroundColor: '#C2DFFF',
+            padding: 15
+          }}>
+                    <Text style={{
+              flex: 1,
+              color: '#438D80',
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                       {row.DOCGROUP}
                     </Text>
                   </View>
 
                   {row.ITEMS.map((row, key) => {
-                    return (
-                      <View
-                        key={key}
-                        style={{
-                          flexDirection: 'row',
-                          padding: 15,
-                        }}>
-                        <Text
-                          style={{width: 150, fontSize: hp(fontDefault)}}
-                          allowFontScaling={false}>
+            return <View key={key} style={{
+              flexDirection: 'row',
+              padding: 15
+            }}>
+                        <Text style={{
+                width: 150,
+                fontSize: hp(fontDefault)
+              }} allowFontScaling={false}>
                           {row.DI_REF}
                         </Text>
-                        <Text
-                          style={{width: 150, fontSize: hp(fontDefault)}}
-                          allowFontScaling={false}>
+                        <Text style={{
+                width: 150,
+                fontSize: hp(fontDefault)
+              }} allowFontScaling={false}>
                           {row.AR_NAME}
                         </Text>
-                        <Text
-                          style={{width: 100, fontSize: hp(fontDefault)}}
-                          allowFontScaling={false}>
+                        <Text style={{
+                width: 100,
+                fontSize: hp(fontDefault)
+              }} allowFontScaling={false}>
                           {/* {row.PAYNAME} */}
                         </Text>
-                        <Text
-                          style={{
-                            width: 100,
-                            textAlign: 'right',
-                            fontSize: hp(fontDefault),
-                          }}
-                          allowFontScaling={false}>
+                        <Text style={{
+                width: 100,
+                textAlign: 'right',
+                fontSize: hp(fontDefault)
+              }} allowFontScaling={false}>
                           {row.TRH_N_ITEMS}
                         </Text>
-                        <Text
-                          style={{
-                            width: 100,
-                            textAlign: 'right',
-                            fontSize: hp(fontDefault),
-                          }}
-                          allowFontScaling={false}>
+                        <Text style={{
+                width: 100,
+                textAlign: 'right',
+                fontSize: hp(fontDefault)
+              }} allowFontScaling={false}>
                           {row.TRH_N_QTY}
                         </Text>
-                        <Text
-                          style={{
-                            width: 100,
-                            textAlign: 'right',
-                            fontSize: hp(fontDefault),
-                          }}
-                          allowFontScaling={false}>
+                        <Text style={{
+                width: 100,
+                textAlign: 'right',
+                fontSize: hp(fontDefault)
+              }} allowFontScaling={false}>
                           {decimal2digitWithCommas(parseFloat(row.ARD_G_KEYIN))}
                         </Text>
-                        <Text
-                          style={{
-                            width: 100,
-                            textAlign: 'right',
-                            fontSize: hp(fontDefault),
-                          }}
-                          allowFontScaling={false}>
-                          {decimal2digitWithCommas(
-                            parseFloat(row.ARD_TDSC_KEYINV),
-                          )}
+                        <Text style={{
+                width: 100,
+                textAlign: 'right',
+                fontSize: hp(fontDefault)
+              }} allowFontScaling={false}>
+                          {decimal2digitWithCommas(parseFloat(row.ARD_TDSC_KEYINV))}
                         </Text>
-                        <Text
-                          style={{
-                            width: 100,
-                            textAlign: 'right',
-                            fontSize: hp(fontDefault),
-                          }}
-                          allowFontScaling={false}>
+                        <Text style={{
+                width: 100,
+                textAlign: 'right',
+                fontSize: hp(fontDefault)
+              }} allowFontScaling={false}>
                           {decimal2digitWithCommas(parseFloat(row.ARD_A_AMT))}
                         </Text>
-                      </View>
-                    );
-                  })}
-                </View>
-              );
-            })}
-          </View>
-        }
-        containerStyle={[{padding: 0}, mainDivider]}
-        bottomDivider
-        titleNumberOfLines={1}
-      />
-    );
+                      </View>;
+          })}
+                </View>;
+      })}
+          </View>} containerStyle={[{
+      padding: 0
+    }, mainDivider]} bottomDivider titleNumberOfLines={1} />;
   },
-  footerRenderItem: (item) => {
-   // console.log('footerRenderItem2', JSON.stringify(item));
-    return (
-      <View>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: REPORT_HEADER_BACKGROUND,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: REPORT_HEADER_TEXT,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
+  footerRenderItem: item => {
+    return <View>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
             รวมทั้งสิ้น
           </Text>
         </View>
 
-        {item?.SUMMARY_SECTION.GROUP?.map((item, i) => (
-          <View
-            style={{
-              flexDirection: 'row',
-              backgroundColor: MainTheme.colorThirteendary,
-              padding: 15,
-            }}
-            key={i}>
-            <Text
-              style={{width: 250, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+        {item?.SUMMARY_SECTION.GROUP?.map((item, i) => <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }} key={i}>
+            <Text style={{
+          width: 250,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.GROUP_NAME}
             </Text>
-            <Text
-              style={{width: 50, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}></Text>
-            <Text
-              style={{width: 100, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}></Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          width: 50,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}></Text>
+            <Text style={{
+          width: 100,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}></Text>
+            <Text style={{
+          width: 100,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.GROUP_ITEM_TRH_N_ITEMS}
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          width: 100,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.GROUP_ITEM_TRH_N_QTY}
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          width: 100,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {decimal2digitWithCommas(parseFloat(item.GROUP_ITEM_ARD_G_KEYIN))}
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
-              {decimal2digitWithCommas(
-                parseFloat(item.GROUP_ITEM_ARD_TDSC_KEYINV),
-              )}
+            <Text style={{
+          width: 100,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
+              {decimal2digitWithCommas(parseFloat(item.GROUP_ITEM_ARD_TDSC_KEYINV))}
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          width: 100,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {decimal2digitWithCommas(parseFloat(item.GROUP_ITEM_AMT))}
             </Text>
-          </View>
-        ))}
+          </View>)}
 
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{width: 150, fontSize: hp(fontDefault)}}
-            allowFontScaling={false}>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          width: 150,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             รวม
           </Text>
-          <Text
-            style={{width: 150, fontSize: hp(fontDefault)}}
-            allowFontScaling={false}></Text>
-          <Text
-            style={{width: 100, fontSize: hp(fontDefault)}}
-            allowFontScaling={false}></Text>
-          <Text
-            style={{
-              width: 100,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          width: 150,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}></Text>
+          <Text style={{
+          width: 100,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}></Text>
+          <Text style={{
+          width: 100,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {item.SUMMARY_SECTION.SUM_TRH_N_QTY}
           </Text>
-          <Text
-            style={{
-              width: 100,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          width: 100,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {item.SUMMARY_SECTION.SUM_TRH_N_ITEMS}
           </Text>
-          <Text
-            style={{
-              width: 100,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
-            {decimal2digitWithCommas(
-              parseFloat(item.SUMMARY_SECTION.SUM_ARD_G_KEYIN),
-            )}
+          <Text style={{
+          width: 100,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
+            {decimal2digitWithCommas(parseFloat(item.SUMMARY_SECTION.SUM_ARD_G_KEYIN))}
           </Text>
-          <Text
-            style={{
-              width: 100,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
-            {decimal2digitWithCommas(
-              parseFloat(item.SUMMARY_SECTION.SUM_ARD_TDSC_KEYINV),
-            )}
+          <Text style={{
+          width: 100,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
+            {decimal2digitWithCommas(parseFloat(item.SUMMARY_SECTION.SUM_ARD_TDSC_KEYINV))}
           </Text>
-          <Text
-            style={{
-              width: 100,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          width: 100,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {decimal2digitWithCommas(parseFloat(item.SUMMARY_SECTION.SUM_AMT))}
           </Text>
         </View>
-      </View>
-    );
+      </View>;
   },
-  footer: (item) => {
-    return (
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: MainTheme.colorThirteendary,
-          padding: 15,
-        }}>
+  footer: item => {
+    return <View style={{
+      flexDirection: 'row',
+      backgroundColor: MainTheme.colorThirteendary,
+      padding: 15
+    }}>
         {/* <Text style={{ width: 100, color: MainTheme.colorFourteendary, fontSize: hp(fontDefault) }} allowFontScaling={false} >รวมทั้งสิ้น</Text> */}
-        <Text
-          style={{width: 150, fontSize: hp(fontDefault)}}
-          allowFontScaling={false}></Text>
-        <Text
-          style={{width: 200, fontSize: hp(fontDefault)}}
-          allowFontScaling={false}></Text>
-        <Text
-          style={{width: 100, fontSize: hp(fontDefault)}}
-          allowFontScaling={false}></Text>
-        <Text
-          style={{
-            width: 100,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        width: 150,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}></Text>
+        <Text style={{
+        width: 200,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}></Text>
+        <Text style={{
+        width: 100,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}></Text>
+        <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.SUM_TRH_N_QTY}
         </Text>
-        <Text
-          style={{
-            width: 100,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.SUM_QTY}
         </Text>
-        <Text
-          style={{
-            width: 100,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.SUM_ARD_G_KEYIN}
         </Text>
-        <Text
-          style={{
-            width: 100,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.SUM_ARD_TDSC_KEYINV}
         </Text>
-        <Text
-          style={{
-            width: 100,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {decimal2digitWithCommas(parseFloat(item.SUM_AMT))}
         </Text>
-      </View>
-    );
+      </View>;
   },
   horizontalScreen: 'both',
   footerSummary: false,
-  footerItem: true,
+  footerItem: true
 };
 
 // report #6.5
 export const documentItemsDetails = {
   header: () => {
-    return (
-      <ListItem
-        title={
-          <View style={{flexDirection: 'row'}}>
-            <Text
-              style={{
-                width: 150,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+    return <ListItem title={<View style={{
+      flexDirection: 'row'
+    }}>
+            <Text style={{
+        width: 150,
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               เลขที่
             </Text>
-            <Text
-              style={{
-                width: 150,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 150,
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               ชื่อลูกค้า
             </Text>
-            <Text
-              style={{
-                width: 150,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 150,
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               รหัสลูกค้า
             </Text>
-            <Text
-              style={{
-                width: 150,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 150,
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               รหัสซื้อขาย
             </Text>
-            <Text
-              style={{
-                width: 200,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 200,
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               รายละเอียด
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               จำนวน
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               แถม
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               ราคา@
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               ส่วนลดรายการ
             </Text>
-            <Text
-              style={{
-                width: 100,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               ยอดเงิน
             </Text>
-          </View>
-        }
-        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={{
+      backgroundColor: REPORT_HEADER_BACKGROUND
+    }} titleNumberOfLines={1} />;
   },
-  renderItem: ({item}) => {
-    return (
-      <ListItem
-        title={
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: REPORT_HEADER_BACKGROUND,
-                padding: 15,
-              }}>
-              <Text
-                style={{
-                  flex: 1,
-                  color: REPORT_HEADER_TEXT,
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+  renderItem: ({
+    item
+  }) => {
+    return <ListItem title={<View>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+              <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 วันที่ {item.GROUP_NAME}
               </Text>
             </View>
 
-            {item.ITEMS.map((row, i) => (
-              <View key={i}>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    backgroundColor: '#C2DFFF',
-                    padding: 15,
-                  }}>
-                  <Text
-                    style={{
-                      flex: 1,
-                      color: '#438D80',
-                      fontSize: hp(fontDefault),
-                    }}
-                    allowFontScaling={false}>
+            {item.ITEMS.map((row, i) => <View key={i}>
+                <View style={{
+          flexDirection: 'row',
+          backgroundColor: '#C2DFFF',
+          padding: 15
+        }}>
+                  <Text style={{
+            flex: 1,
+            color: '#438D80',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
                     {row.DOCGROUP}
                   </Text>
                 </View>
-                {row.ITEMS.map((row, key) => (
-                  <>
-                    <View
-                      key={key}
-                      style={{
-                        flexDirection: 'row',
-                        padding: 15,
-                      }}>
-                      <Text
-                        style={{width: 150, fontSize: hp(fontDefault)}}
-                        allowFontScaling={false}>
+                {row.ITEMS.map((row, key) => <>
+                    <View key={key} style={{
+            flexDirection: 'row',
+            padding: 15
+          }}>
+                      <Text style={{
+              width: 150,
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                         {row.DOCGROUP}
                       </Text>
-                      <Text
-                        style={{width: 150, fontSize: hp(fontDefault)}}
-                        allowFontScaling={false}>
+                      <Text style={{
+              width: 150,
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                         {row.AR_NAME}
                       </Text>
-                      <Text
-                        style={{width: 150, fontSize: hp(fontDefault)}}
-                        allowFontScaling={false}>
+                      <Text style={{
+              width: 150,
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                         {row.AR_CODE}
                       </Text>
                     </View>
-                    {row.ITEMS.map((row, key) => (
-                      <View
-                        key={key}
-                        style={{
-                          flexDirection: 'row',
-                          padding: 15,
-                        }}>
-                        <Text
-                          style={{width: 150, fontSize: hp(fontDefault)}}
-                          allowFontScaling={false}></Text>
-                        <Text
-                          style={{width: 150, fontSize: hp(fontDefault)}}
-                          allowFontScaling={false}></Text>
-                        <Text
-                          style={{width: 150, fontSize: hp(fontDefault)}}
-                          allowFontScaling={false}></Text>
-                        <Text
-                          style={{width: 150, fontSize: hp(fontDefault)}}
-                          allowFontScaling={false}>
+                    {row.ITEMS.map((row, key) => <View key={key} style={{
+            flexDirection: 'row',
+            padding: 15
+          }}>
+                        <Text style={{
+              width: 150,
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}></Text>
+                        <Text style={{
+              width: 150,
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}></Text>
+                        <Text style={{
+              width: 150,
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}></Text>
+                        <Text style={{
+              width: 150,
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                           {row.TRD_KEYIN}
                         </Text>
-                        <Text
-                          style={{width: 200, fontSize: hp(fontDefault)}}
-                          allowFontScaling={false}>
+                        <Text style={{
+              width: 200,
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                           {row.TRD_SH_NAME}
                         </Text>
-                        <Text
-                          style={{
-                            width: 100,
-                            textAlign: 'right',
-                            fontSize: hp(fontDefault),
-                          }}
-                          allowFontScaling={false}>
+                        <Text style={{
+              width: 100,
+              textAlign: 'right',
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                           {row.TRD_SH_QTY == 0 ? ' ' : row.TRD_SH_QTY}
                         </Text>
-                        <Text
-                          style={{
-                            width: 100,
-                            textAlign: 'right',
-                            fontSize: hp(fontDefault),
-                          }}
-                          allowFontScaling={false}>
+                        <Text style={{
+              width: 100,
+              textAlign: 'right',
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                           {row.TRD_Q_FREE == 0 ? ' ' : row.TRD_Q_FREE}
                         </Text>
-                        <Text
-                          style={{
-                            width: 100,
-                            textAlign: 'right',
-                            fontSize: hp(fontDefault),
-                          }}
-                          allowFontScaling={false}>
+                        <Text style={{
+              width: 100,
+              textAlign: 'right',
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                           {row.TRD_SH_UPRC == 0 ? ' ' : row.TRD_SH_UPRC}
                         </Text>
-                        <Text
-                          style={{
-                            width: 100,
-                            textAlign: 'right',
-                            fontSize: hp(fontDefault),
-                          }}
-                          allowFontScaling={false}>
-                          {row.TRD_DSC_KEYINV == 0
-                            ? ' '
-                            : decimal2digitWithCommas(
-                                parseFloat(row.TRD_DSC_KEYINV),
-                              )}
+                        <Text style={{
+              width: 100,
+              textAlign: 'right',
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
+                          {row.TRD_DSC_KEYINV == 0 ? ' ' : decimal2digitWithCommas(parseFloat(row.TRD_DSC_KEYINV))}
                         </Text>
-                        <Text
-                          style={{
-                            width: 100,
-                            textAlign: 'right',
-                            fontSize: hp(fontDefault),
-                          }}
-                          allowFontScaling={false}>
+                        <Text style={{
+              width: 100,
+              textAlign: 'right',
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                           {decimal2digitWithCommas(parseFloat(row.TRD_SH_GAMT))}
                         </Text>
-                      </View>
-                    ))}
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        paddingHorizontal: 15,
-                        justifyContent: 'space-between',
-                      }}>
-                      <Text
-                        style={{width: 150, fontSize: hp(fontDefault)}}
-                        allowFontScaling={false}>
+                      </View>)}
+                    <View style={{
+            flexDirection: 'row',
+            paddingHorizontal: 15,
+            justifyContent: 'space-between'
+          }}>
+                      <Text style={{
+              width: 150,
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                         มูลค่ารวมก่อนลด
                       </Text>
-                      <Text
-                        style={{
-                          alignSelf: 'flex-end',
-                          fontSize: hp(fontDefault),
-                        }}
-                        allowFontScaling={false}>
+                      <Text style={{
+              alignSelf: 'flex-end',
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                         {decimal2digitWithCommas(parseFloat(row.ARD_G_KEYIN))}
                       </Text>
                     </View>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        paddingHorizontal: 15,
-
-                        justifyContent: 'space-between',
-                      }}>
-                      <Text
-                        style={{width: 150, fontSize: hp(fontDefault)}}
-                        allowFontScaling={false}>
+                    <View style={{
+            flexDirection: 'row',
+            paddingHorizontal: 15,
+            justifyContent: 'space-between'
+          }}>
+                      <Text style={{
+              width: 150,
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                         ส่วนลดท้ายบิล
                       </Text>
-                      <Text
-                        style={{
-                          alignSelf: 'flex-end',
-                          fontSize: hp(fontDefault),
-                        }}
-                        allowFontScaling={false}>
-                        {decimal2digitWithCommas(
-                          parseFloat(row.ARD_TDSC_KEYINV),
-                        )}
+                      <Text style={{
+              alignSelf: 'flex-end',
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
+                        {decimal2digitWithCommas(parseFloat(row.ARD_TDSC_KEYINV))}
                       </Text>
                     </View>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        paddingHorizontal: 15,
-
-                        justifyContent: 'space-between',
-                      }}>
-                      <Text
-                        style={{width: 150, fontSize: hp(fontDefault)}}
-                        allowFontScaling={false}>
+                    <View style={{
+            flexDirection: 'row',
+            paddingHorizontal: 15,
+            justifyContent: 'space-between'
+          }}>
+                      <Text style={{
+              width: 150,
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                         ยอดสินค้า
                       </Text>
-                      <Text
-                        style={{
-                          alignSelf: 'flex-end',
-                          fontSize: hp(fontDefault),
-                        }}
-                        allowFontScaling={false}>
-                        {decimal2digitWithCommas(
-                          parseFloat(row.SUM_TRD_B_SELL),
-                        )}
+                      <Text style={{
+              alignSelf: 'flex-end',
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
+                        {decimal2digitWithCommas(parseFloat(row.SUM_TRD_B_SELL))}
                       </Text>
                     </View>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        paddingHorizontal: 15,
-
-                        justifyContent: 'space-between',
-                      }}>
-                      <Text
-                        style={{width: 150, fontSize: hp(fontDefault)}}
-                        allowFontScaling={false}>
+                    <View style={{
+            flexDirection: 'row',
+            paddingHorizontal: 15,
+            justifyContent: 'space-between'
+          }}>
+                      <Text style={{
+              width: 150,
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                         ยอด ภพ.
                       </Text>
-                      <Text
-                        style={{
-                          alignSelf: 'flex-end',
-                          fontSize: hp(fontDefault),
-                        }}
-                        allowFontScaling={false}>
+                      <Text style={{
+              alignSelf: 'flex-end',
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                         {row.SUM_TRD_B_VAT}
                       </Text>
                     </View>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        paddingHorizontal: 15,
-                        flex: 1,
-                        justifyContent: 'space-between',
-                      }}>
-                      <Text
-                        style={{width: 150, fontSize: hp(fontDefault)}}
-                        allowFontScaling={false}>
+                    <View style={{
+            flexDirection: 'row',
+            paddingHorizontal: 15,
+            flex: 1,
+            justifyContent: 'space-between'
+          }}>
+                      <Text style={{
+              width: 150,
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                         ยอดสุทธิ
                       </Text>
-                      <Text
-                        style={{
-                          alignSelf: 'flex-end',
-                          fontSize: hp(fontDefault),
-                          paddingVertical: 5,
-                        }}
-                        allowFontScaling={false}>
+                      <Text style={{
+              alignSelf: 'flex-end',
+              fontSize: hp(fontDefault),
+              paddingVertical: 5
+            }} allowFontScaling={false}>
                         {decimal2digitWithCommas(parseFloat(row.ARD_A_AMT))}
                       </Text>
                     </View>
-                  </>
-                ))}
+                  </>)}
 
                 {/* <View
                   style={{
@@ -2558,22 +2128,16 @@ export const documentItemsDetails = {
                     allowFontScaling={false}>
                     {row.ARD_A_AMT}
                   </Text>
-                </View> */}
-              </View>
-            ))}
-          </View>
-        }
-        containerStyle={[{padding: 0}, mainDivider]}
-        bottomDivider
-        titleNumberOfLines={1}
-      />
-    );
+                 </View> */}
+              </View>)}
+          </View>} containerStyle={[{
+      padding: 0
+    }, mainDivider]} bottomDivider titleNumberOfLines={1} />;
   },
-  footerRenderItem: (item) => {
+  footerRenderItem: item => {
     const summarySection = item?.SUMMARY_SECTION || {};
     const summaryItems = summarySection.ITEMS || [];
-    return (
-      <View>
+    return <View>
         {/* <View
           style={{
             flexDirection: 'row',
@@ -2589,7 +2153,7 @@ export const documentItemsDetails = {
             allowFontScaling={false}>
             รวมทั้งสิ้น
           </Text>
-        </View> */}
+         </View> */}
 
         {/* {item.SUMMARY_SECTION.ITEMS.map((item, i) => (
           <View
@@ -2613,8 +2177,7 @@ export const documentItemsDetails = {
             <Text
               style={{width: 200, fontSize: hp(fontDefault)}}
               allowFontScaling={false}></Text>
-
-            <Text
+              <Text
               style={{
                 width: 100,
                 textAlign: 'right',
@@ -2665,7 +2228,7 @@ export const documentItemsDetails = {
               {item.ITEM_AMT}
             </Text>
           </View>
-        ))} */}
+         ))} */}
 
         {/* <View
           style={{
@@ -2681,8 +2244,7 @@ export const documentItemsDetails = {
           <Text
             style={{width: 150, fontSize: hp(fontDefault)}}
             allowFontScaling={false}></Text>
-
-          <Text
+            <Text
             style={{width: 200, fontSize: hp(fontDefault)}}
             allowFontScaling={false}></Text>
           <Text
@@ -2738,123 +2300,105 @@ export const documentItemsDetails = {
             allowFontScaling={false}>
             {item.SUM_AMT}
           </Text>
-        </View> */}
-      </View>
-    );
+         </View> */}
+      </View>;
   },
-  footer: (item) => {
-    return (
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: MainTheme.colorThirteendary,
-          padding: 15,
-        }}>
+  footer: item => {
+    return <View style={{
+      flexDirection: 'row',
+      backgroundColor: MainTheme.colorThirteendary,
+      padding: 15
+    }}>
         {/* <Text style={{ width: 100, color: MainTheme.colorFourteendary, fontSize: hp(fontDefault) }} allowFontScaling={false} >รวมทั้งสิ้น</Text> */}
-        <Text
-          style={{width: 150, fontSize: hp(fontDefault)}}
-          allowFontScaling={false}></Text>
-        <Text
-          style={{width: 200, fontSize: hp(fontDefault)}}
-          allowFontScaling={false}></Text>
-        <Text
-          style={{width: 100, fontSize: hp(fontDefault)}}
-          allowFontScaling={false}></Text>
-        <Text
-          style={{
-            width: 100,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        width: 150,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}></Text>
+        <Text style={{
+        width: 200,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}></Text>
+        <Text style={{
+        width: 100,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}></Text>
+        <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.SUM_TRH_N_QTY}
         </Text>
-        <Text
-          style={{
-            width: 100,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.SUM_QTY}
         </Text>
-        <Text
-          style={{
-            width: 100,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.SUM_ARD_G_KEYIN}
         </Text>
-        <Text
-          style={{
-            width: 100,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.SUM_ARD_TDSC_KEYINV}
         </Text>
-        <Text
-          style={{
-            width: 100,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        width: 100,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.SUM_AMT}
         </Text>
-      </View>
-    );
+      </View>;
   },
   horizontalScreen: 'both',
   footerSummary: false,
-  footerItem: true,
+  footerItem: true
 };
 // report #7
 export const performanceByArlineItem = {
   header: () => {
-    return (
-      <ListItem
-        title={
-          <View style={{flexDirection: 'row'}}>
-            <Text
-              style={{
-                width: 150,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+    return <ListItem title={<View style={{
+      flexDirection: 'row'
+    }}>
+            <Text style={{
+        width: 150,
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               สายลูกค้า
             </Text>
-            <Text
-              style={{
-                width: 150,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 150,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               จำนวน
             </Text>
-            <Text
-              style={{
-                width: 150,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        width: 150,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               ขาย
             </Text>
             {/*
-            <Text
+             <Text
               style={{
                 width: 150,
                 textAlign: 'right',
@@ -2863,80 +2407,64 @@ export const performanceByArlineItem = {
               }}
               allowFontScaling={false}>
               เยี่ยม
-            </Text>
-            */}
-            <Text
-              style={{
-                width: 150,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+             </Text>
+             */}
+            <Text style={{
+        width: 150,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               สำราจ
             </Text>
-          </View>
-        }
-        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={{
+      backgroundColor: REPORT_HEADER_BACKGROUND
+    }} titleNumberOfLines={1} />;
   },
-  renderItem: ({item}) => {
-    return (
-      <ListItem
-        title={
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: REPORT_HEADER_BACKGROUND,
-                padding: 15,
-              }}>
-              <Text
-                style={{
-                  flex: 1,
-                  color: REPORT_HEADER_TEXT,
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+  renderItem: ({
+    item
+  }) => {
+    return <ListItem title={<View>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+              <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 วันที่ {item.GROUP_NAME}
               </Text>
             </View>
 
-            {item.ITEMS.map((row, i) =>
-              row.ITEMS.map((row, key) => (
-                <View
-                  key={key}
-                  style={{
-                    flexDirection: 'row',
-                    padding: 15,
-                  }}>
-                  <Text
-                    style={{width: 150, fontSize: hp(fontDefault)}}
-                    allowFontScaling={false}>
+            {item.ITEMS.map((row, i) => row.ITEMS.map((row, key) => <View key={key} style={{
+        flexDirection: 'row',
+        padding: 15
+      }}>
+                  <Text style={{
+          width: 150,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                     {row.ARL_NAME}
                   </Text>
-                  <Text
-                    style={{
-                      width: 150,
-                      textAlign: 'right',
-                      fontSize: hp(fontDefault),
-                    }}
-                    allowFontScaling={false}>
+                  <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                     {row.COUNTAR}
                   </Text>
-                  <Text
-                    style={{
-                      width: 150,
-                      textAlign: 'right',
-                      fontSize: hp(fontDefault),
-                    }}
-                    allowFontScaling={false}>
+                  <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                     {row.COUNTSELLBOOK}
                   </Text>
                   {/*
-                  <Text
+                   <Text
                     style={{
                       width: 150,
                       textAlign: 'right',
@@ -2944,52 +2472,44 @@ export const performanceByArlineItem = {
                     }}
                     allowFontScaling={false}>
                     {row.COUNTVISIT}
-                  </Text>
-                  */}
-                  <Text
-                    style={{
-                      width: 150,
-                      textAlign: 'right',
-                      fontSize: hp(fontDefault),
-                    }}
-                    allowFontScaling={false}>
+                   </Text>
+                   */}
+                  <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                     {row.COUNTSURVEY}
                   </Text>
-                </View>
-              )),
-            )}
+                </View>))}
 
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: '#E5E4E2',
-                padding: 15,
-              }}>
-              <Text
-                style={{width: 150, fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: '#E5E4E2',
+        padding: 15
+      }}>
+              <Text style={{
+          width: 150,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 รวมทั้งสิ้น
               </Text>
-              <Text
-                style={{
-                  width: 150,
-                  textAlign: 'right',
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+              <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 {item.SUM_COUNTAR}
               </Text>
-              <Text
-                style={{
-                  width: 150,
-                  textAlign: 'right',
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+              <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 {item.SUM_COUNTSELLBOOK}
               </Text>
               {/*
-              <Text
+               <Text
                 style={{
                   width: 150,
                   textAlign: 'right',
@@ -2997,81 +2517,64 @@ export const performanceByArlineItem = {
                 }}
                 allowFontScaling={false}>
                 {item.SUM_COUNTVISIT}
-              </Text>
-              */}
-              <Text
-                style={{
-                  width: 150,
-                  textAlign: 'right',
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+               </Text>
+               */}
+              <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 {item.SUM_COUNTSURVEY}
               </Text>
             </View>
-          </View>
-        }
-        containerStyle={[{padding: 0}, mainDivider]}
-        bottomDivider
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={[{
+      padding: 0
+    }, mainDivider]} bottomDivider titleNumberOfLines={1} />;
   },
-  renderItemPercent: ({item}) => {
-    return (
-      <ListItem
-        title={
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: REPORT_HEADER_BACKGROUND,
-                padding: 15,
-              }}>
-              <Text
-                style={{
-                  flex: 1,
-                  color: REPORT_HEADER_TEXT,
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+  renderItemPercent: ({
+    item
+  }) => {
+    return <ListItem title={<View>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+              <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 วันที่ {item.GROUP_NAME}
               </Text>
             </View>
 
-            {item.ITEMS.map((row, i) =>
-              row.ITEMS_PERCENT.map((row, key) => (
-                <View
-                  key={key}
-                  style={{
-                    flexDirection: 'row',
-                    padding: 15,
-                  }}>
-                  <Text
-                    style={{width: 150, fontSize: hp(fontDefault)}}
-                    allowFontScaling={false}>
+            {item.ITEMS.map((row, i) => row.ITEMS_PERCENT.map((row, key) => <View key={key} style={{
+        flexDirection: 'row',
+        padding: 15
+      }}>
+                  <Text style={{
+          width: 150,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                     {row.ARL_NAME}
                   </Text>
-                  <Text
-                    style={{
-                      width: 150,
-                      textAlign: 'right',
-                      fontSize: hp(fontDefault),
-                    }}
-                    allowFontScaling={false}>
+                  <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                     {row.COUNTAR_PERCENT}%
                   </Text>
-                  <Text
-                    style={{
-                      width: 150,
-                      textAlign: 'right',
-                      fontSize: hp(fontDefault),
-                    }}
-                    allowFontScaling={false}>
+                  <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                     {row.COUNTSELLBOOK_PERCENT}%
                   </Text>
                   {/*
-                  <Text
+                   <Text
                     style={{
                       width: 150,
                       textAlign: 'right',
@@ -3079,52 +2582,44 @@ export const performanceByArlineItem = {
                     }}
                     allowFontScaling={false}>
                     {row.COUNTVISIT_PERCENT}%
-                  </Text>
-                  */}
-                  <Text
-                    style={{
-                      width: 150,
-                      textAlign: 'right',
-                      fontSize: hp(fontDefault),
-                    }}
-                    allowFontScaling={false}>
+                   </Text>
+                   */}
+                  <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                     {row.COUNTSURVEY_PERCENT}%
                   </Text>
-                </View>
-              )),
-            )}
+                </View>))}
 
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: '#E5E4E2',
-                padding: 15,
-              }}>
-              <Text
-                style={{width: 150, fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: '#E5E4E2',
+        padding: 15
+      }}>
+              <Text style={{
+          width: 150,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 รวมทั้งสิ้น
               </Text>
-              <Text
-                style={{
-                  width: 150,
-                  textAlign: 'right',
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+              <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 {item.SUM_COUNTAR_PERCENT}
               </Text>
-              <Text
-                style={{
-                  width: 150,
-                  textAlign: 'right',
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+              <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 {item.SUM_COUNTSELLBOOK_PERCENT}%
               </Text>
               {/*
-              <Text
+               <Text
                 style={{
                   width: 150,
                   textAlign: 'right',
@@ -3132,95 +2627,76 @@ export const performanceByArlineItem = {
                 }}
                 allowFontScaling={false}>
                 {item.SUM_COUNTVISIT_PERCENT}%
-              </Text>
-              */}
-              <Text
-                style={{
-                  width: 150,
-                  textAlign: 'right',
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+               </Text>
+               */}
+              <Text style={{
+          width: 150,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 {item.SUM_COUNTSURVEY_PERCENT}%
               </Text>
             </View>
           </View>
-          // <View style={{flexDirection: 'row', padding: 15}}>
-          //     <Text style={{ width: 150, fontSize: hp(fontDefault) }} allowFontScaling={false} >{item.ARL_NAME}</Text>
-          //     <Text style={{ width: 150, textAlign: 'right', fontSize: hp(fontDefault) }} allowFontScaling={false} >{item.COUNTAR}%</Text>
-          //     <Text style={{ width: 150, textAlign: 'right', fontSize: hp(fontDefault) }} allowFontScaling={false} >{item.COUNTSELLBOOK}%</Text>
-          //     <Text style={{ width: 150, textAlign: 'right', fontSize: hp(fontDefault) }} allowFontScaling={false} >{item.COUNTVISIT}%</Text>
-          //     <Text style={{ width: 150, textAlign: 'right', fontSize: hp(fontDefault) }} allowFontScaling={false} >{item.COUNTSURVEY}%</Text>
-          // </View>
-        }
-        containerStyle={[{padding: 0}, mainDivider]}
-        bottomDivider
-        titleNumberOfLines={1}
-      />
-    );
+    // <View style={{flexDirection: 'row', padding: 15}}>
+    //     <Text style={{ width: 150, fontSize: hp(fontDefault) }} allowFontScaling={false} >{item.ARL_NAME}</Text>
+    //     <Text style={{ width: 150, textAlign: 'right', fontSize: hp(fontDefault) }} allowFontScaling={false} >{item.COUNTAR}%</Text>
+    //     <Text style={{ width: 150, textAlign: 'right', fontSize: hp(fontDefault) }} allowFontScaling={false} >{item.COUNTSELLBOOK}%</Text>
+    //     <Text style={{ width: 150, textAlign: 'right', fontSize: hp(fontDefault) }} allowFontScaling={false} >{item.COUNTVISIT}%</Text>
+    //     <Text style={{ width: 150, textAlign: 'right', fontSize: hp(fontDefault) }} allowFontScaling={false} >{item.COUNTSURVEY}%</Text>
+    // </View>
+    } containerStyle={[{
+      padding: 0
+    }, mainDivider]} bottomDivider titleNumberOfLines={1} />;
   },
-  footerRenderItem: (item) => {
+  footerRenderItem: item => {
     const summarySection = item?.SUMMARY_SECTION || {};
     const summaryItems = summarySection.ITEMS || [];
-
-    return (
-      <View>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
+    return <View>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
             รวมทั้งสิ้น
           </Text>
         </View>
 
-        {summaryItems.map((item, key) => (
-          <View
-            key={key}
-            style={{
-              flexDirection: 'row',
-              padding: 15,
-              backgroundColor: MainTheme.colorThirteendary,
-            }}>
-            <Text
-              style={{
-                width: 150,
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+        {summaryItems.map((item, key) => <View key={key} style={{
+        flexDirection: 'row',
+        padding: 15,
+        backgroundColor: MainTheme.colorThirteendary
+      }}>
+            <Text style={{
+          width: 150,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_NAME}
             </Text>
-            <Text
-              style={{
-                width: 150,
-                color: MainTheme.colorFourteendary,
-                textAlign: 'right',
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          width: 150,
+          color: MainTheme.colorFourteendary,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_COUNTAR}
             </Text>
-            <Text
-              style={{
-                width: 150,
-                color: MainTheme.colorFourteendary,
-                textAlign: 'right',
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          width: 150,
+          color: MainTheme.colorFourteendary,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_COUNTSELLBOOK}
             </Text>
             {/*
-            <Text
+             <Text
               style={{
                 width: 150,
                 color: MainTheme.colorFourteendary,
@@ -3229,58 +2705,48 @@ export const performanceByArlineItem = {
               }}
               allowFontScaling={false}>
               {item.ITEM_COUNTVISIT}
-            </Text>
-            */}
-            <Text
-              style={{
-                width: 150,
-                color: MainTheme.colorFourteendary,
-                textAlign: 'right',
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+             </Text>
+             */}
+            <Text style={{
+          width: 150,
+          color: MainTheme.colorFourteendary,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_COUNTSURVEY}
             </Text>
-          </View>
-        ))}
+          </View>)}
 
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              width: 150,
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          width: 150,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             รวม
           </Text>
-          <Text
-            style={{
-              width: 150,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {summarySection.SUM_COUNTAR}
           </Text>
-          <Text
-            style={{
-              width: 150,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {summarySection.SUM_COUNTSELLBOOK}
           </Text>
           {/*
-          <Text
+           <Text
             style={{
               width: 150,
               textAlign: 'right',
@@ -3289,83 +2755,66 @@ export const performanceByArlineItem = {
             }}
             allowFontScaling={false}>
             {summarySection.SUM_COUNTVISIT}
-          </Text>
-          */}
-          <Text
-            style={{
-              width: 150,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+           </Text>
+           */}
+          <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {summarySection.SUM_COUNTSURVEY}
           </Text>
         </View>
-      </View>
-    );
+      </View>;
   },
-  footerRenderItemPercent: (item) => {
+  footerRenderItemPercent: item => {
     const summarySectionPercent = item?.SUMMARY_SECTION_PERCENT || {};
     const summaryPercentItems = summarySectionPercent.ITEMS || [];
-
-    return (
-      <View>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
+    return <View>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
             รวมทั้งสิ้น
           </Text>
         </View>
-        {summaryPercentItems.map((item, key) => (
-          <View
-            key={key}
-            style={{
-              flexDirection: 'row',
-              padding: 15,
-              backgroundColor: MainTheme.colorThirteendary,
-            }}>
-            <Text
-              style={{
-                width: 150,
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+        {summaryPercentItems.map((item, key) => <View key={key} style={{
+        flexDirection: 'row',
+        padding: 15,
+        backgroundColor: MainTheme.colorThirteendary
+      }}>
+            <Text style={{
+          width: 150,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_NAME}
             </Text>
-            <Text
-              style={{
-                width: 150,
-                color: MainTheme.colorFourteendary,
-                textAlign: 'right',
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          width: 150,
+          color: MainTheme.colorFourteendary,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_COUNTAR_PERCENT}%
             </Text>
-            <Text
-              style={{
-                width: 150,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_COUNTSELLBOOK_PERCENT}%
             </Text>
             {/*
-            <Text
+             <Text
               style={{
                 width: 150,
                 textAlign: 'right',
@@ -3374,62 +2823,48 @@ export const performanceByArlineItem = {
               }}
               allowFontScaling={false}>
               {item.ITEM_COUNTVISIT_PERCENT}%
-            </Text>
-            */}
-            <Text
-              style={{
-                width: 150,
-                textAlign: 'right',
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+             </Text>
+             */}
+            <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_COUNTSURVEY_PERCENT}%
             </Text>
-          </View>
-        ))}
+          </View>)}
 
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              width: 150,
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          width: 150,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             รวม
           </Text>
-          <Text
-            style={{
-              width: 150,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
-            {summarySectionPercent.SUM_COUNTAR_PERCENT
-              ? summarySectionPercent.SUM_COUNTAR_PERCENT + '%'
-              : ''}
+          <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
+            {summarySectionPercent.SUM_COUNTAR_PERCENT ? summarySectionPercent.SUM_COUNTAR_PERCENT + '%' : ''}
           </Text>
-          <Text
-            style={{
-              width: 150,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
-            {summarySectionPercent.SUM_COUNTSELLBOOK_PERCENT
-              ? summarySectionPercent.SUM_COUNTSELLBOOK_PERCENT + '%'
-              : ''}
+          <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
+            {summarySectionPercent.SUM_COUNTSELLBOOK_PERCENT ? summarySectionPercent.SUM_COUNTSELLBOOK_PERCENT + '%' : ''}
           </Text>
           {/*
-          <Text
+           <Text
             style={{
               width: 150,
               textAlign: 'right',
@@ -3440,71 +2875,45 @@ export const performanceByArlineItem = {
             {summarySectionPercent.SUM_COUNTVISIT_PERCENT
               ? summarySectionPercent.SUM_COUNTVISIT_PERCENT + '%'
               : ''}
-          </Text>
-          */}
-          <Text
-            style={{
-              width: 150,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
-            {summarySectionPercent.SUM_COUNTSURVEY_PERCENT
-              ? summarySectionPercent.SUM_COUNTSURVEY_PERCENT + '%'
-              : ''}
+           </Text>
+           */}
+          <Text style={{
+          width: 150,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
+            {summarySectionPercent.SUM_COUNTSURVEY_PERCENT ? summarySectionPercent.SUM_COUNTSURVEY_PERCENT + '%' : ''}
           </Text>
         </View>
-      </View>
-    );
+      </View>;
   },
   footer: (displayType, item) => {
-    const countSellBookPercent =
-      item?.SUM_COUNTSELLBOOK_PERCENT !== undefined &&
-      item?.SUM_COUNTSELLBOOK_PERCENT !== null
-        ? item.SUM_COUNTSELLBOOK_PERCENT + '%'
-        : '';
-    const countVisitPercent =
-      item?.SUM_COUNTVISIT_PERCENT !== undefined &&
-      item?.SUM_COUNTVISIT_PERCENT !== null
-        ? item.SUM_COUNTVISIT_PERCENT + '%'
-        : '';
-    const countSurveyPercent =
-      item?.SUM_COUNTSURVEY_PERCENT !== undefined &&
-      item?.SUM_COUNTSURVEY_PERCENT !== null
-        ? item.SUM_COUNTSURVEY_PERCENT + '%'
-        : '';
-
-    return (
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: MainTheme.colorThirteendary,
-          padding: 15,
-        }}>
-        <Text
-          style={{
-            width: 150,
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+    const countSellBookPercent = item?.SUM_COUNTSELLBOOK_PERCENT !== undefined && item?.SUM_COUNTSELLBOOK_PERCENT !== null ? item.SUM_COUNTSELLBOOK_PERCENT + '%' : '';
+    const countVisitPercent = item?.SUM_COUNTVISIT_PERCENT !== undefined && item?.SUM_COUNTVISIT_PERCENT !== null ? item.SUM_COUNTVISIT_PERCENT + '%' : '';
+    const countSurveyPercent = item?.SUM_COUNTSURVEY_PERCENT !== undefined && item?.SUM_COUNTSURVEY_PERCENT !== null ? item.SUM_COUNTSURVEY_PERCENT + '%' : '';
+    return <View style={{
+      flexDirection: 'row',
+      backgroundColor: MainTheme.colorThirteendary,
+      padding: 15
+    }}>
+        <Text style={{
+        width: 150,
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           รวม
         </Text>
-        <Text
-          style={{
-            width: 150,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
-          {displayType === 0
-            ? item.SUM_COUNTSELLBOOK
-            : countSellBookPercent}
+        <Text style={{
+        width: 150,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
+          {displayType === 0 ? item.SUM_COUNTSELLBOOK : countSellBookPercent}
         </Text>
         {/*
-        <Text
+         <Text
           style={{
             width: 150,
             textAlign: 'right',
@@ -3515,998 +2924,961 @@ export const performanceByArlineItem = {
           {displayType === 0
             ? item.SUM_COUNTVISIT
             : countVisitPercent}
+         </Text>
+         */}
+        <Text style={{
+        width: 150,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
+          {displayType === 0 ? item.SUM_COUNTSURVEY : countSurveyPercent}
         </Text>
-        */}
-        <Text
-          style={{
-            width: 150,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
-          {displayType === 0
-            ? item.SUM_COUNTSURVEY
-            : countSurveyPercent}
-        </Text>
-      </View>
-    );
+      </View>;
   },
   horizontalScreen: 'both',
   footerSummary: false,
-  footerItem: true,
+  footerItem: true
 };
 
 // report #8
 export const peformanceByProductCategory = {
   header: () => {
-    return (
-      <ListItem
-        title={
-          <View style={{flexDirection: 'row'}}>
-            <Text
-              style={{
-                flex: 1,
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+    return <ListItem title={<View style={{
+      flexDirection: 'row'
+    }}>
+            <Text style={{
+        flex: 1,
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               หมวดสินค้า
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               รายการทั้งหมด
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'right',
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               รายการขาย
             </Text>
-          </View>
-        }
-        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={{
+      backgroundColor: REPORT_HEADER_BACKGROUND
+    }} titleNumberOfLines={1} />;
   },
-  renderItem: ({item}) => {
-    return (
-      <ListItem
-        title={
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: REPORT_HEADER_BACKGROUND,
-                padding: 15,
-              }}>
-              <Text
-                style={{
-                  flex: 1,
-                  color: REPORT_HEADER_TEXT,
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+  renderItem: ({
+    item
+  }) => {
+    return <ListItem title={<View>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+              <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 วันที่ {item.GROUP_NAME}
               </Text>
             </View>
-            {item.ITEMS.map((row, i) => (
-              <View style={{flexDirection: 'row', padding: 15}} key={i}>
-                <Text
-                  style={{flex: 1, fontSize: hp(fontDefault)}}
-                  allowFontScaling={false}>
+            {item.ITEMS.map((row, i) => <View style={{
+        flexDirection: 'row',
+        padding: 15
+      }} key={i}>
+                <Text style={{
+          flex: 1,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                   {row.ICDEPT_THAIDESC}
                 </Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    textAlign: 'right',
-                    fontSize: hp(fontDefault),
-                  }}
-                  allowFontScaling={false}>
+                <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                   {row.COUNTSKU}
                 </Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    textAlign: 'right',
-                    fontSize: hp(fontDefault),
-                  }}
-                  allowFontScaling={false}>
+                <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                   {row.COUNTSKM}
                 </Text>
-              </View>
-            ))}
-            <View
-              style={{
-                flexDirection: 'row',
-                padding: 15,
-                backgroundColor: '#E5E4E2',
-              }}>
-              <Text
-                style={{flex: 1, fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+              </View>)}
+            <View style={{
+        flexDirection: 'row',
+        padding: 15,
+        backgroundColor: '#E5E4E2'
+      }}>
+              <Text style={{
+          flex: 1,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 รวม
               </Text>
-              <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+              <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 {item.SUM_COUNTSKU}
               </Text>
-              <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+              <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 {item.SUM_COUNTSKM}
               </Text>
             </View>
-          </View>
-        }
-        containerStyle={[{padding: 0}, mainDivider]}
-        bottomDivider
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={[{
+      padding: 0
+    }, mainDivider]} bottomDivider titleNumberOfLines={1} />;
   },
-  renderItemPercent: ({item}) => {
-    return (
-      <ListItem
-        title={
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: REPORT_HEADER_BACKGROUND,
-                padding: 15,
-              }}>
-              <Text
-                style={{
-                  flex: 1,
-                  color: REPORT_HEADER_TEXT,
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+  renderItemPercent: ({
+    item
+  }) => {
+    return <ListItem title={<View>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+              <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 วันที่ {item.GROUP_NAME}
               </Text>
             </View>
-            {item.ITEMS_PERCENT.map((row, i) => (
-              <View style={{flexDirection: 'row', padding: 15}} key={i}>
-                <Text
-                  style={{flex: 1, fontSize: hp(fontDefault)}}
-                  allowFontScaling={false}>
+            {item.ITEMS_PERCENT.map((row, i) => <View style={{
+        flexDirection: 'row',
+        padding: 15
+      }} key={i}>
+                <Text style={{
+          flex: 1,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                   {row.ICDEPT_THAIDESC}
                 </Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    textAlign: 'right',
-                    fontSize: hp(fontDefault),
-                  }}
-                  allowFontScaling={false}>
+                <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                   {row.COUNTSKU}%
                 </Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    textAlign: 'right',
-                    fontSize: hp(fontDefault),
-                  }}
-                  allowFontScaling={false}>
+                <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                   {row.COUNTSKM}%
                 </Text>
-              </View>
-            ))}
-            <View
-              style={{
-                flexDirection: 'row',
-                padding: 15,
-                backgroundColor: '#E5E4E2',
-              }}>
-              <Text
-                style={{flex: 1, fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+              </View>)}
+            <View style={{
+        flexDirection: 'row',
+        padding: 15,
+        backgroundColor: '#E5E4E2'
+      }}>
+              <Text style={{
+          flex: 1,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 รวม
               </Text>
-              <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+              <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 {item.SUM_COUNTSKU_PERCENT}%
               </Text>
-              <Text
-                style={{flex: 1, textAlign: 'right', fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+              <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 {item.SUM_COUNTSKM_PERCENT}%
               </Text>
             </View>
-          </View>
-        }
-        containerStyle={[{padding: 0}, mainDivider]}
-        bottomDivider
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={[{
+      padding: 0
+    }, mainDivider]} bottomDivider titleNumberOfLines={1} />;
   },
-  footerRenderItem: (item) => {
-    return (
-      <View>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
+  footerRenderItem: item => {
+    return <View>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
             รวมทั้งสิ้น
           </Text>
         </View>
 
-        {item.SUMMARY_SECTION.ITEMS.map((item, key) => (
-          <View
-            key={key}
-            style={{
-              flexDirection: 'row',
-              padding: 15,
-              backgroundColor: MainTheme.colorThirteendary,
-            }}>
-            <Text
-              style={{
-                flex: 1,
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+        {item.SUMMARY_SECTION.ITEMS.map((item, key) => <View key={key} style={{
+        flexDirection: 'row',
+        padding: 15,
+        backgroundColor: MainTheme.colorThirteendary
+      }}>
+            <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_NAME}
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                color: MainTheme.colorFourteendary,
-                textAlign: 'right',
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_COUNTSKU}
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                color: MainTheme.colorFourteendary,
-                textAlign: 'right',
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_COUNTSKM}
             </Text>
-          </View>
-        ))}
+          </View>)}
 
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             รวม
           </Text>
-          <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {item.SUMMARY_SECTION.SUM_COUNTSKU}
           </Text>
-          <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {item.SUMMARY_SECTION.SUM_COUNTSKM}
           </Text>
         </View>
-      </View>
-    );
+      </View>;
   },
-  footerRenderItemPercent: (item) => {
-    return (
-      <View>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: MainTheme.colorFourteendary,
-              fontSize: hp('1.7%'),
-            }}
-            allowFontScaling={false}>
+  footerRenderItemPercent: item => {
+    return <View>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp('1.7%')
+        }} allowFontScaling={false}>
             รวมทั้งสิ้น
           </Text>
         </View>
 
-        {item.SUMMARY_SECTION.ITEMS.map((item, key) => (
-          <View
-            key={key}
-            style={{
-              flexDirection: 'row',
-              padding: 15,
-              backgroundColor: MainTheme.colorThirteendary,
-            }}>
-            <Text
-              style={{
-                flex: 1,
-                color: MainTheme.colorFourteendary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+        {item.SUMMARY_SECTION.ITEMS.map((item, key) => <View key={key} style={{
+        flexDirection: 'row',
+        padding: 15,
+        backgroundColor: MainTheme.colorThirteendary
+      }}>
+            <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_NAME}
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                color: MainTheme.colorFourteendary,
-                textAlign: 'right',
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_COUNTSKU_PERCENT}%
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                color: MainTheme.colorFourteendary,
-                textAlign: 'right',
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+            <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          textAlign: 'right',
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
               {item.ITEM_COUNTSKM_PERCENT}%
             </Text>
-          </View>
-        ))}
+          </View>)}
 
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: MainTheme.colorThirteendary,
-            padding: 15,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+        <View style={{
+        flexDirection: 'row',
+        backgroundColor: MainTheme.colorThirteendary,
+        padding: 15
+      }}>
+          <Text style={{
+          flex: 1,
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             รวม
           </Text>
-          <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {item.SUMMARY_SECTION.SUM_COUNTSKU_PERCENT}%
           </Text>
-          <Text
-            style={{
-              flex: 1,
-              textAlign: 'right',
-              color: MainTheme.colorFourteendary,
-              fontSize: hp(fontDefault),
-            }}
-            allowFontScaling={false}>
+          <Text style={{
+          flex: 1,
+          textAlign: 'right',
+          color: MainTheme.colorFourteendary,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {item.SUMMARY_SECTION.SUM_COUNTSKM_PERCENT}%
           </Text>
         </View>
-      </View>
-    );
+      </View>;
   },
   footer: (displayType, item) => {
-    return (
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: MainTheme.colorThirteendary,
-          padding: 15,
-        }}>
-        <Text
-          style={{
-            flex: 1,
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+    return <View style={{
+      flexDirection: 'row',
+      backgroundColor: MainTheme.colorThirteendary,
+      padding: 15
+    }}>
+        <Text style={{
+        flex: 1,
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           รวมทั้งสิ้น
         </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
-          {displayType === 0
-            ? item.SUM_COUNTSKU.toString()
-            : item.SUM_COUNTSKU_PERCENT.toFixed(2).replace(
-                /\B(?=(\d{3})+(?!\d))/g,
-                ',',
-              ) + '%'}
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
+          {displayType === 0 ? item.SUM_COUNTSKU.toString() : item.SUM_COUNTSKU_PERCENT.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '%'}
         </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
-          {displayType === 0
-            ? item.SUM_COUNTSKM.toString()
-            : item.SUM_COUNTSKM_PERCENT.toFixed(2).replace(
-                /\B(?=(\d{3})+(?!\d))/g,
-                ',',
-              ) + '%'}
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
+          {displayType === 0 ? item.SUM_COUNTSKM.toString() : item.SUM_COUNTSKM_PERCENT.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '%'}
         </Text>
-      </View>
-    );
+      </View>;
   },
   horizontalScreen: 'none',
   footerSummary: false,
-  footerItem: true,
+  footerItem: true
 };
 
 // report #9
 export const salesOrderBySaleman = {
   renderItem: (salesMan, item) => {
-    const displayValue = (value) =>
-      value === null || value === undefined ? null : value;
-    const displayMileageValue = (value) => {
+    const displayValue = value => value === null || value === undefined ? null : value;
+    const displayMileageValue = value => {
       const formatted = displayValue(value);
       return formatted === null ? '--' : formatted;
     };
-
-    return (
-      <View style={{flex: 1}}>
-        <View
-          style={{
-            paddingLeft: 15,
-            flexDirection: 'row',
-            backgroundColor: MainTheme.searchHeaderListItems,
-            height: 50,
-            alignItems: 'center',
-          }}>
-          <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+    return <View style={{
+      flex: 1
+    }}>
+        <View style={{
+        paddingLeft: 15,
+        flexDirection: 'row',
+        backgroundColor: MainTheme.searchHeaderListItems,
+        height: 50,
+        alignItems: 'center'
+      }}>
+          <Text style={{
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
             {' '}
             ชื่อพนักงาน{' '}
             {salesMan && salesMan.SLMN_NAME ? salesMan.SLMN_NAME : null}{' '}
           </Text>
         </View>
 
-        <ScrollView contentContainerStyle={{flexDirection: 'column'}}>
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+        <ScrollView contentContainerStyle={{
+        flexDirection: 'column'
+      }}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               บิลเริ่มต้น
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {' '}
               {item && item.F_TIME ? item.F_TIME : null}{' '}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               บิลสุดท้าย
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {' '}
               {item && item.E_TIME ? item.E_TIME : null}{' '}
             </Text>
           </View>
 
-          <View style={{borderTopWidth: 1, marginHorizontal: 5}}></View>
+          <View style={{
+          borderTopWidth: 1,
+          marginHorizontal: 5
+        }}></View>
 
-          {item?.BOOK?.SUM_AMT != null ? (
-            <View
-              style={{
-                flexDirection: 'row',
-                height: 40,
-                paddingHorizontal: 15,
-                alignItems: 'center',
-              }}>
-              <Text
-                style={{flex: 0.5, fontSize: 18, fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+          {item?.BOOK?.SUM_AMT != null ? <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+              <Text style={{
+            flex: 0.5,
+            fontSize: 18,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
                 ยอดจองรวม
               </Text>
-              <Text
-                style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+              <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
                 {displayValue(item?.BOOK?.SUM_AMT)}
               </Text>
-            </View>
-          ) : null}
+            </View> : null}
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               ส่วนลดต่อรายการรวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.BOOK?.SUM_ITEM_DSC)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               ส่วนลดท้ายบิลรวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.BOOK?.SUM_BILL_DSC)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               จำนวนบิลรวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.BOOK?.COUNT_DOC)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               จำนวนรายการจอง
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.BOOK?.SUM_PCS)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               จำนวนชิ้นรวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.BOOK?.SUM_QTY)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               จำนวนชิ้น (แถม) รวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.BOOK?.SUM_FREE_ITEM_QTY)}
             </Text>
           </View>
 
-          <View style={{borderTopWidth: 1, marginHorizontal: 5}}></View>
+          <View style={{
+          borderTopWidth: 1,
+          marginHorizontal: 5
+        }}></View>
 
-          {item?.SELL?.SUM_AMT != null ? (
-            <View
-              style={{
-                flexDirection: 'row',
-                height: 40,
-                paddingHorizontal: 15,
-                alignItems: 'center',
-              }}>
-              <Text
-                style={{flex: 0.5, fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+          {item?.SELL?.SUM_AMT != null ? <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+              <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
                 ยอดขายรวม
               </Text>
-              <Text
-                style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+              <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
                 {displayValue(item?.SELL?.SUM_AMT)}
               </Text>
-            </View>
-          ) : null}
+            </View> : null}
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               ส่วนลดต่อรายการรวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.SELL?.SUM_ITEM_DSC)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               ส่วนลดท้ายบิลรวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.SELL?.SUM_BILL_DSC)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               จำนวนบิลรวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.SELL?.COUNT_DOC)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               จำนวนรายการขาย
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.SELL?.SUM_PCS)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               จำนวนชิ้นรวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.SELL?.SUM_QTY)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               จำนวนชิ้น (แถม) รวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.SELL?.SUM_FREE_ITEM_QTY)}
             </Text>
           </View>
 
-          <View style={{borderTopWidth: 1, marginHorizontal: 5}}></View>
+          <View style={{
+          borderTopWidth: 1,
+          marginHorizontal: 5
+        }}></View>
 
-          {item?.RETURN?.SUM_AMT != null ? (
-            <View
-              style={{
-                flexDirection: 'row',
-                height: 40,
-                paddingHorizontal: 15,
-                alignItems: 'center',
-              }}>
-              <Text
-                style={{flex: 0.5, fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+          {item?.RETURN?.SUM_AMT != null ? <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+              <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
                 ยอดคืนรวม
               </Text>
-              <Text
-                style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-                allowFontScaling={false}>
+              <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
                 {displayValue(item?.RETURN?.SUM_AMT)}
               </Text>
-            </View>
-          ) : null}
+            </View> : null}
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               ส่วนลดต่อรายการรวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.RETURN?.SUM_ITEM_DSC)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               ส่วนลดท้ายบิลรวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.RETURN?.SUM_BILL_DSC)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               จำนวนบิลรวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.RETURN?.COUNT_DOC)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               จำนวนรายการคืน
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.RETURN?.SUM_PCS)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               จำนวนชิ้นรวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.RETURN?.SUM_QTY)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               จำนวนชิ้น (แถม) รวม
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.RETURN?.SUM_FREE_ITEM_QTY)}
             </Text>
           </View>
 
-          <View style={{borderTopWidth: 1, marginHorizontal: 5}}></View>
+          <View style={{
+          borderTopWidth: 1,
+          marginHorizontal: 5
+        }}></View>
 
           {/* <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
                         <Text style={{flex: 0.5, fontSize: 18}}>ราคาลดตามจำนวน</Text>
                         <Text style={{flex: 0.5, textAlign: 'right', fontSize: 18}}> {item && item.SUM_AMT ? item.SUM_AMT : null} </Text>
                     </View>
-
-                    <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
+                      <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
                         <Text style={{flex: 0.5, fontSize: 18}}>ซื้อจำนวนครบได้แถม</Text>
                         <Text style={{flex: 0.5, textAlign: 'right', fontSize: 18}}> {item && item.SUM_AMT ? item.SUM_AMT : null} </Text>
                     </View>
-
-                    <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
+                      <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
                         <Text style={{flex: 0.5, fontSize: 18}}>ซื้อทดแทนครบได้แถม</Text>
                         <Text style={{flex: 0.5, textAlign: 'right', fontSize: 18}}> {item && item.SUM_AMT ? item.SUM_AMT : null} </Text>
                     </View>
-
-                    <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
+                      <View style={{ flexDirection: 'row', height: 40, paddingHorizontal: 15, alignItems: 'center'}}>
                         <Text style={{flex: 0.5, fontSize: 18}}>ซื้อทดแทนครบได้แถมตามจำนวน</Text>
                         <Text style={{flex: 0.5, textAlign: 'right', fontSize: 18}}> {item && item.SUM_AMT ? item.SUM_AMT : null} </Text>
                     </View>
+                      <View style={{ borderTopWidth: 1, marginHorizontal: 5 }}></View> */}
 
-                    <View style={{ borderTopWidth: 1, marginHorizontal: 5 }}></View> */}
-
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               โอนเข้าลูกหนี้
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.TRANSFER_TO_AR)}
             </Text>
           </View>
@@ -4520,391 +3892,373 @@ export const salesOrderBySaleman = {
                         </Text>
                     </View> */}
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               ชำระเช็ค
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.PAID_BY_CHEQUE)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               ชำระเงินสด
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.PAID_BY_CASH)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               คืนเงินสด
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.SUM_CASH_RTN)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               เงินสดจากการขาย
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.CASH_FROM_SELL)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               เศษทอนไม่ได้
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayValue(item?.PGL)}
             </Text>
           </View>
 
-          <View style={{borderTopWidth: 1, marginHorizontal: 5}}></View>
+          <View style={{
+          borderTopWidth: 1,
+          marginHorizontal: 5
+        }}></View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               เลขไมล์ เริ่มต้น
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayMileageValue(item?.MILE_START)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center'
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               เลขไมล์ สิ้นสุด
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayMileageValue(item?.MILE_END)}
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-              paddingHorizontal: 15,
-              alignItems: 'center',
-              marginBottom: 30,
-            }}>
-            <Text
-              style={{flex: 0.5, fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+          <View style={{
+          flexDirection: 'row',
+          height: 40,
+          paddingHorizontal: 15,
+          alignItems: 'center',
+          marginBottom: 30
+        }}>
+            <Text style={{
+            flex: 0.5,
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               รวมระยะทาง(วิ่ง)
             </Text>
-            <Text
-              style={{flex: 0.5, textAlign: 'right', fontSize: hp(fontDefault)}}
-              allowFontScaling={false}>
+            <Text style={{
+            flex: 0.5,
+            textAlign: 'right',
+            fontSize: hp(fontDefault)
+          }} allowFontScaling={false}>
               {displayMileageValue(item?.DISTANCE)}
             </Text>
           </View>
         </ScrollView>
-      </View>
-    );
-  },
+      </View>;
+  }
 };
 
 // report #10
 export const stockBalanceByWL = {
   header: () => {
-    return (
-      <ListItem
-        title={
-          <View style={{paddingVertical: 4}}>
-            <Text
-              style={{
-                color: MainTheme.colorSecondary,
-                fontSize: hp(fontDefault),
-              }}
-              allowFontScaling={false}>
+    return <ListItem title={<View style={{
+      paddingVertical: 4
+    }}>
+            <Text style={{
+        color: MainTheme.colorSecondary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
               รายชื่อสินค้า / คงเหลือ / ค้างส่ง
             </Text>
-          </View>
-        }
-        containerStyle={{backgroundColor: REPORT_HEADER_BACKGROUND}}
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={{
+      backgroundColor: REPORT_HEADER_BACKGROUND
+    }} titleNumberOfLines={1} />;
   },
-  renderItem: ({item}) => {
+  renderItem: ({
+    item
+  }) => {
     const formatQty = (qty, unitName) => {
       const numericQty = parseFloat(String(qty ?? 0));
       const safeQty = Number.isFinite(numericQty) ? numericQty : 0;
-      const formattedQty = safeQty
-        .toFixed(0)
-        .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
+      const formattedQty = safeQty.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
       return unitName ? `${formattedQty} ${unitName}` : formattedQty;
     };
-
-    return (
-      <ListItem
-        title={
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: REPORT_HEADER_BACKGROUND,
-                padding: 15,
-              }}>
-              <Text
-                style={{
-                  flex: 1,
-                  color: REPORT_HEADER_TEXT,
-                  fontSize: hp(fontDefault),
-                }}
-                allowFontScaling={false}>
+    return <ListItem title={<View>
+            <View style={{
+        flexDirection: 'row',
+        backgroundColor: REPORT_HEADER_BACKGROUND,
+        padding: 15
+      }}>
+              <Text style={{
+          flex: 1,
+          color: REPORT_HEADER_TEXT,
+          fontSize: hp(fontDefault)
+        }} allowFontScaling={false}>
                 {item.WL_CODE} {item.WL_NAME}
               </Text>
             </View>
 
             {item.ITEMS.map((row, i) => {
-              const unitName =
-                row.PREFERRED_UTQ_NAME || row.SKU_K_UTQ_NAME || row.SKU_S_UTQ_NAME;
-              const remainQty = formatQty(row.WL_QTY_K, row.SKU_K_UTQ_NAME);
-              const pendingDeliver = formatQty(row.PENDING_SEND_QTY, unitName);
-
-              return (
-                <View
-                  key={i}
-                  style={{
-                    paddingHorizontal: 15,
-                    paddingVertical: 10,
-                    borderBottomWidth:
-                      i < item.ITEMS.length - 1 ? StyleSheet.hairlineWidth : 0,
-                    borderBottomColor: '#D8E0E5',
-                  }}>
-                  <View style={{paddingBottom: 6}}>
-                    <Text
-                      style={{
-                        fontSize: hp(fontDefault),
-                        color: MainTheme.colorPrimary,
-                      }}
-                      allowFontScaling={false}>
+        const unitName = row.PREFERRED_UTQ_NAME || row.SKU_K_UTQ_NAME || row.SKU_S_UTQ_NAME;
+        const remainQty = formatQty(row.WL_QTY_K, row.SKU_K_UTQ_NAME);
+        const pendingDeliver = formatQty(row.PENDING_SEND_QTY, unitName);
+        return <View key={i} style={{
+          paddingHorizontal: 15,
+          paddingVertical: 10,
+          borderBottomWidth: i < item.ITEMS.length - 1 ? StyleSheet.hairlineWidth : 0,
+          borderBottomColor: '#D8E0E5'
+        }}>
+                  <View style={{
+            paddingBottom: 6
+          }}>
+                    <Text style={{
+              fontSize: hp(fontDefault),
+              color: MainTheme.colorPrimary
+            }} allowFontScaling={false}>
                       {row.SKU_CODE} : {row.SKU_NAME}
                     </Text>
                   </View>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        flex: 1,
-                        alignItems: 'center',
-                      }}>
-                      <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                  <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+                    <View style={{
+              flexDirection: 'row',
+              flex: 1,
+              alignItems: 'center'
+            }}>
+                      <Text style={{
+                fontSize: hp(fontDefault)
+              }} allowFontScaling={false}>
                         คงเหลือ{' '}
                       </Text>
-                      <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                      <Text style={{
+                fontSize: hp(fontDefault)
+              }} allowFontScaling={false}>
                         {remainQty}
                       </Text>
                     </View>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        flex: 1,
-                        justifyContent: 'flex-end',
-                        alignItems: 'center',
-                      }}>
-                      <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                    <View style={{
+              flexDirection: 'row',
+              flex: 1,
+              justifyContent: 'flex-end',
+              alignItems: 'center'
+            }}>
+                      <Text style={{
+                fontSize: hp(fontDefault)
+              }} allowFontScaling={false}>
                         ค้างส่ง{' '}
                       </Text>
-                      <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                      <Text style={{
+                fontSize: hp(fontDefault)
+              }} allowFontScaling={false}>
                         {pendingDeliver}
                       </Text>
                     </View>
                   </View>
-                </View>
-              );
-            })}
+                </View>;
+      })}
 
-            <View
-              style={{
-                backgroundColor: '#E5E4E2',
-                padding: 15,
-              }}>
-              <Text
-                style={{
-                  fontSize: hp(fontDefault),
-                  color: MainTheme.colorPrimary,
-                  marginBottom: 8,
-                }}
-                allowFontScaling={false}>
+            <View style={{
+        backgroundColor: '#E5E4E2',
+        padding: 15
+      }}>
+              <Text style={{
+          fontSize: hp(fontDefault),
+          color: MainTheme.colorPrimary,
+          marginBottom: 8
+        }} allowFontScaling={false}>
                 รวมตำแหน่งเก็บ
               </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingVertical: 4,
-                }}>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    flex: 1,
-                    alignItems: 'center',
-                  }}>
-                  <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+              <View style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingVertical: 4
+        }}>
+                <View style={{
+            flexDirection: 'row',
+            flex: 1,
+            alignItems: 'center'
+          }}>
+                  <Text style={{
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                     คงเหลือ{' '}
                   </Text>
-                  <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                    {formatQty(
-                      item.SUM_WL_QTY_K,
-                      item.ITEMS?.[0]?.SKU_K_UTQ_NAME,
-                    )}
+                  <Text style={{
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
+                    {formatQty(item.SUM_WL_QTY_K, item.ITEMS?.[0]?.SKU_K_UTQ_NAME)}
                   </Text>
                 </View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    flex: 1,
-                    justifyContent: 'flex-end',
-                    alignItems: 'center',
-                  }}>
-                  <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
+                <View style={{
+            flexDirection: 'row',
+            flex: 1,
+            justifyContent: 'flex-end',
+            alignItems: 'center'
+          }}>
+                  <Text style={{
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
                     ค้างส่ง{' '}
                   </Text>
-                  <Text style={{fontSize: hp(fontDefault)}} allowFontScaling={false}>
-                    {formatQty(
-                      item.SUM_PENDING_SEND_QTY,
-                      item.ITEMS?.[0]?.PREFERRED_UTQ_NAME ||
-                        item.ITEMS?.[0]?.SKU_K_UTQ_NAME,
-                    )}
+                  <Text style={{
+              fontSize: hp(fontDefault)
+            }} allowFontScaling={false}>
+                    {formatQty(item.SUM_PENDING_SEND_QTY, item.ITEMS?.[0]?.PREFERRED_UTQ_NAME || item.ITEMS?.[0]?.SKU_K_UTQ_NAME)}
                   </Text>
                 </View>
               </View>
             </View>
-          </View>
-        }
-        containerStyle={[{padding: 0}, mainDivider]}
-        bottomDivider
-        titleNumberOfLines={1}
-      />
-    );
+          </View>} containerStyle={[{
+      padding: 0
+    }, mainDivider]} bottomDivider titleNumberOfLines={1} />;
   },
-  footer: (item) => {
-    return (
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: MainTheme.colorThirteendary,
-          padding: 15,
-        }}>
-        <Text
-          style={{
-            flex: 1,
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+  footer: item => {
+    return <View style={{
+      flexDirection: 'row',
+      backgroundColor: MainTheme.colorThirteendary,
+      padding: 15
+    }}>
+        <Text style={{
+        flex: 1,
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.GROUP_COUNT} รวมทั้งสิ้น{' '}
         </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.SUM_ALL_WL_QTY}
         </Text>
-        <Text
-          style={{
-            flex: 1,
-            textAlign: 'right',
-            color: MainTheme.colorFourteendary,
-            fontSize: hp(fontDefault),
-          }}
-          allowFontScaling={false}>
+        <Text style={{
+        flex: 1,
+        textAlign: 'right',
+        color: MainTheme.colorFourteendary,
+        fontSize: hp(fontDefault)
+      }} allowFontScaling={false}>
           {item.SUM_ALL_PENDING_SEND_QTY}
         </Text>
-      </View>
-    );
+      </View>;
   },
   horizontalScreen: 'none',
-  footerSummary: false,
+  footerSummary: false
 };
-
-

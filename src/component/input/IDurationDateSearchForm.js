@@ -160,6 +160,8 @@ class IDurationDateSearchForm extends Component {
                                 label='จาก'
                                 value={this.state.dateFrom}
                                 hideBorder
+                                overlayCardStyle={this.props.datePickerOverlayCardStyle}
+                                overlayChildrenWrapperStyle={this.props.datePickerOverlayWrapperStyle}
                                 {...dateFieldProps} />
                         </View>
 
@@ -172,6 +174,8 @@ class IDurationDateSearchForm extends Component {
                                                 label='ถึง'
                                                 value={this.state.dateTo}
                                                 hideBorder
+                                                overlayCardStyle={this.props.datePickerOverlayCardStyle}
+                                                overlayChildrenWrapperStyle={this.props.datePickerOverlayWrapperStyle}
                                                 {...dateToFieldProps} />
                                         : null
                                     }

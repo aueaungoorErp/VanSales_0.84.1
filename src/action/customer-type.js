@@ -31,13 +31,11 @@ export const searchCustomerTypeList = (vanCNFEnabledAllar) => (dispatch) => {
     searchCustomerTypeListApi()
       .then((v) => {
         const {ReasonString, ResponseCode, ResponseData} = v;
-        //console.log('searchCustomerTypeList v ', v);
 
         let responseData = JSON.parse(ResponseData);
         if (ResponseCode == 200) {
           const {RECORD_COUNT, OFFSET, FETCH, Ar000111} = responseData;
 
-          //console.log('searchCustomerTypeList responseData ', responseData);
           if (Ar000111 && Ar000111.length > 0) {
             let typePickerItems = [];
 

@@ -75,19 +75,15 @@ export const getDeviceUniqeId = async () => {
 //     /* Calling a function that is not defined in the code you posted. */
 //     let deviceId = null;
 
-//     // console.log('getDeviceUniqeId getSavedDeviceUniqueId', deviceId);
 
 //     if (!deviceId || deviceId == '') {
 //       deviceId = await DeviceInfo.getMACAddress();
-//       console.log('getDeviceUniqeId getMacAddress', deviceId);
 //     }
 //     if (!deviceId || deviceId == '') {
 //       deviceId = DeviceInfo.getUniqueId();
-//       console.log('getDeviceUniqeId getUniqueId', deviceId);
 //     }
 //     return deviceId;
 //   } catch (error) {
-//     console.log(error);
 //     return false;
 //   }
 // };

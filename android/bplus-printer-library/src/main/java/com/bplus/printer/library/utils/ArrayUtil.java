@@ -92,7 +92,6 @@ public class ArrayUtil {
                     break;
             }
         }
-        Log.i("length", "" + array.length);
         return array;
     }
 

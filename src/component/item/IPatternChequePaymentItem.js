@@ -1,153 +1,156 @@
-import _ from 'lodash'
-import React from 'react'
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import RNPickerSelect from 'react-native-picker-select'
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
-import AntDesign from 'react-native-vector-icons/AntDesign'
-import IDatePicker from '../../component/input/IDatePicker'
-import { MainTheme } from '../../constant/lov'
-
-const Item = ({ children, style }) => <View style={style}>{children}</View>
-
-const Input = React.forwardRef(({ value, style, ...props }, ref) => (
-    <TextInput
-        ref={ref}
-        value={value === null || value === undefined ? '' : String(value)}
-        style={style}
-        underlineColorAndroid="transparent"
-        {...props}
-    />
-))
-
+import _ from 'lodash';
+import React from 'react';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import IDatePicker from '../../component/input/IDatePicker';
+import { MainTheme } from '../../constant/lov';
+const Item = ({
+  children,
+  style
+}) => <View style={style}>{children}</View>;
+const Input = React.forwardRef(({
+  value,
+  style,
+  ...props
+}, ref) => <TextInput ref={ref} value={value === null || value === undefined ? '' : String(value)} style={style} underlineColorAndroid="transparent" {...props} />);
 class IPatternChequePaymentItem extends React.Component {
-    
-    constructor(props) {
-        super(props)
+  constructor(props) {
+    super(props);
+  }
+  shouldComponentUpdate = async (nextProps, nextState) => {
+    if (!_.isEqual(nextProps.item, this.props.item)) {
+      return true;
     }
-
-    shouldComponentUpdate = async (nextProps, nextState) => {
-        if (!_.isEqual(nextProps.item, this.props.item)) {
-            return true
-        }   
-        
-        return false
-    }
-
-    render() {
-        const { index, title, checkedItems, bankFiles, setCreateCheckedItemsCheque } = this.props
-        console.log('checkedItems', checkedItems)
-        return (
-            <View style={{ flex: 1}}>
+    return false;
+  };
+  render() {
+    const {
+      index,
+      title,
+      checkedItems,
+      bankFiles,
+      setCreateCheckedItemsCheque
+    } = this.props;
+    return <View style={{
+      flex: 1
+    }}>
                 <Item style={styles.checkBoxSection}>
-                    <Item style={{flex: 0.3, borderBottomWidth: 0}}>
-                        <TouchableOpacity 
-                            style={styles.checkBoxStyle}
-                            onPress={() => { setCreateCheckedItemsCheque ? setCreateCheckedItemsCheque(index, 'checked', !checkedItems.cheques[index].checked) : null }}
-                            activeOpacity={0.7}>
-                            <AntDesign 
-                                name={checkedItems.cheques[index].checked ? 'checksquare' : 'checksquareo'} 
-                                size={20} 
-                                color={checkedItems.cheques[index].checked ? MainTheme.colorTertiary : '#ccc'} 
-                                style={{marginRight: 8}} />
-                            <Text style={{ fontSize: hp('1.7%') }}>{title}</Text>
+                    <Item style={{
+          flex: 0.3,
+          borderBottomWidth: 0
+        }}>
+                        <TouchableOpacity style={styles.checkBoxStyle} onPress={() => {
+            setCreateCheckedItemsCheque ? setCreateCheckedItemsCheque(index, 'checked', !checkedItems.cheques[index].checked) : null;
+          }} activeOpacity={0.7}>
+                            <AntDesign name={checkedItems.cheques[index].checked ? 'checksquare' : 'checksquareo'} size={20} color={checkedItems.cheques[index].checked ? MainTheme.colorTertiary : '#ccc'} style={{
+              marginRight: 8
+            }} />
+                            <Text style={{
+              fontSize: hp('1.7%')
+            }}>{title}</Text>
                         </TouchableOpacity>
                     </Item>
 
-                    <View style={{flex: 0.7, borderBottomWidth: 0.3, borderColor: '#d6d7da', paddingRight: 0}}>
-                        <RNPickerSelect
-                            items={bankFiles}
-                            onValueChange={(value) => setCreateCheckedItemsCheque ? setCreateCheckedItemsCheque(index, 'bankFileItem', value) : null}
-                            disabled={!checkedItems.cheques[index].checked}
-                            style={{
-                                iconContainer: {
-                                    top: 5,
-                                    right: 0
-                                }, 
-                                inputAndroid: {
-                                    color: '#000000',
-                                }
-                            }}
-                            value={checkedItems.cheques[index].bankFileItem}
-                            placeholder={{
-                                label: 'เลือก',
-                                value: null
-                            }}
-                            textInputProps={{ underlineColorAndroid: 'cyan', underlineColor: 'yellow' }}
-                            useNativeAndroidPickerStyle={false}
-                            Icon={() => {
-                                return <AntDesign 
-                                            name='down' 
-                                            size={25} style= {{ color: MainTheme.colorPrimary, marginTop: 10 }} />
-                                        
-                            }} />
+                    <View style={{
+          flex: 0.7,
+          borderBottomWidth: 0.3,
+          borderColor: '#d6d7da',
+          paddingRight: 0
+        }}>
+                        <RNPickerSelect items={bankFiles} onValueChange={value => setCreateCheckedItemsCheque ? setCreateCheckedItemsCheque(index, 'bankFileItem', value) : null} disabled={!checkedItems.cheques[index].checked} style={{
+            iconContainer: {
+              top: 5,
+              right: 0
+            },
+            inputAndroid: {
+              color: '#000000'
+            }
+          }} value={checkedItems.cheques[index].bankFileItem} placeholder={{
+            label: 'เลือก',
+            value: null
+          }} textInputProps={{
+            underlineColorAndroid: 'cyan',
+            underlineColor: 'yellow'
+          }} useNativeAndroidPickerStyle={false} Icon={() => {
+            return <AntDesign name='down' size={25} style={{
+              color: MainTheme.colorPrimary,
+              marginTop: 10
+            }} />;
+          }} />
                     </View> 
                 </Item>
                 <Item style={styles.checkBoxSection}>
-                    <Item style={{flex: 0.3, borderBottomWidth: 0}}></Item>
-                    <View style={{flex: 0.7, borderBottomWidth: 0.3, borderColor: '#d6d7da'}}>
-                        <IDatePicker
-                            disabled={!checkedItems.cheques[index].checked}
-                            value={checkedItems.cheques[index].chequeDate}
-                            onDateChange={(value) => { setCreateCheckedItemsCheque ? setCreateCheckedItemsCheque(index, 'chequeDate', value) : null }} />
+                    <Item style={{
+          flex: 0.3,
+          borderBottomWidth: 0
+        }}></Item>
+                    <View style={{
+          flex: 0.7,
+          borderBottomWidth: 0.3,
+          borderColor: '#d6d7da'
+        }}>
+                        <IDatePicker disabled={!checkedItems.cheques[index].checked} value={checkedItems.cheques[index].chequeDate} onDateChange={value => {
+            setCreateCheckedItemsCheque ? setCreateCheckedItemsCheque(index, 'chequeDate', value) : null;
+          }} />
                     </View>
                 </Item>
                 <Item style={styles.checkBoxSection}>
-                    <Item style={{flex: 0.3, borderBottomWidth: 0}}>
+                    <Item style={{
+          flex: 0.3,
+          borderBottomWidth: 0
+        }}>
                         
                     </Item>
                     <Item style={styles.inputSection}>
-                        <Input 
-                            editable={checkedItems.cheques[index].checked}
-                            placeholder='เลขที่เช็ค' 
-                            placeholderTextColor={MainTheme.placeholerTextInput}
-                            value={checkedItems.cheques[index].chequeNo}
-                            maxLength={8}
-                            style={{ fontSize: 15, paddingVertical: 5, fontSize: hp('1.7%') }} 
-                            keyboardType='numeric'
-                            onChangeText={(value) => { setCreateCheckedItemsCheque ? setCreateCheckedItemsCheque(index, 'chequeNo', value) : null }} />
+                        <Input editable={checkedItems.cheques[index].checked} placeholder='เลขที่เช็ค' placeholderTextColor={MainTheme.placeholerTextInput} value={checkedItems.cheques[index].chequeNo} maxLength={8} style={{
+            fontSize: 15,
+            paddingVertical: 5,
+            fontSize: hp('1.7%')
+          }} keyboardType='numeric' onChangeText={value => {
+            setCreateCheckedItemsCheque ? setCreateCheckedItemsCheque(index, 'chequeNo', value) : null;
+          }} />
                     </Item>
                 </Item>
                 <Item style={styles.checkBoxSection}>
-                    <Item style={{flex: 0.3, borderBottomWidth: 0}}>
+                    <Item style={{
+          flex: 0.3,
+          borderBottomWidth: 0
+        }}>
                         
                     </Item>
                     <Item style={styles.inputSection}>
-                        <Input 
-                            editable={checkedItems.cheques[index].checked}
-                            placeholder='ยอดเงิน' 
-                            placeholderTextColor={MainTheme.placeholerTextInput}
-                            value={checkedItems.cheques[index].pay}
-                            style={{ fontSize: 15, paddingVertical: 5, fontSize: hp('1.7%') }} 
-                            keyboardType='numeric'
-                            onChangeText={(value) => { setCreateCheckedItemsCheque ? setCreateCheckedItemsCheque(index, 'pay', value) : null }} />
+                        <Input editable={checkedItems.cheques[index].checked} placeholder='ยอดเงิน' placeholderTextColor={MainTheme.placeholerTextInput} value={checkedItems.cheques[index].pay} style={{
+            fontSize: 15,
+            paddingVertical: 5,
+            fontSize: hp('1.7%')
+          }} keyboardType='numeric' onChangeText={value => {
+            setCreateCheckedItemsCheque ? setCreateCheckedItemsCheque(index, 'pay', value) : null;
+          }} />
                     </Item>
                 </Item>
-            </View>
-        )
-    }
+            </View>;
+  }
 }
-
-export default IPatternChequePaymentItem
-
+export default IPatternChequePaymentItem;
 const styles = StyleSheet.create({
-    container: {
-
-    },
-    checkBoxSection: {
-        borderBottomWidth: 0,
-        borderColor: '#d6d7da',
-        flexDirection: 'row',
-        marginRight: 10
-    },
-    checkBoxStyle: { 
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: MainTheme.colorSecondary, 
-        paddingVertical: 4,
-        marginRight: 0
-    },
-    inputSection: {
-        flex: 0.7
-    }
-})
+  container: {},
+  checkBoxSection: {
+    borderBottomWidth: 0,
+    borderColor: '#d6d7da',
+    flexDirection: 'row',
+    marginRight: 10
+  },
+  checkBoxStyle: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: MainTheme.colorSecondary,
+    paddingVertical: 4,
+    marginRight: 0
+  },
+  inputSection: {
+    flex: 0.7
+  }
+});
