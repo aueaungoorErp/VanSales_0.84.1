@@ -168,7 +168,7 @@ class CTChoiceGroup extends Component {
   };
   render() {
     return <>
-        <ChoiceGroup listItems={this._filterPermissionListItems()} renderItem={this._renderItem} numColumns={3} />
+        <ChoiceGroup listItems={this._filterPermissionListItems()} renderItem={this._renderItem} numColumns={2} />
         <Modal transparent animationType="fade" visible={this.state.isTimeDialogVisible} onRequestClose={this._closeTimeDialog}>
           <View style={styles.modalOverlay}>
             <View style={styles.dialogCard}>

@@ -3,10 +3,13 @@ import { Text, StyleSheet } from 'react-native'
 import { SuperGridSectionList } from 'react-native-super-grid'
 
 const IGrid = (props) => {
-    const { itemDimension, sections, renderItem, renderSectionHeader, style} = props
+    const { itemDimension, sections, renderItem, renderSectionHeader, style, maxItemsPerRow, spacing, fixed } = props
     return (
         <SuperGridSectionList
             itemDimension={itemDimension}
+            maxItemsPerRow={maxItemsPerRow}
+            spacing={spacing}
+            fixed={fixed}
             sections={sections}
             style={[styles.gridView, style && style.gridView ? style.gridView : null ]}
             renderItem={renderItem}
