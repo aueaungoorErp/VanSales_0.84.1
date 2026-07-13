@@ -4,7 +4,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 export const BluetoothItem = ({ item }) => (
     <View style={{paddingVertical: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: '#e1e8ee'}}>
         <View style={{flex: 1, flexDirection: 'row'}}>
-            <AntDesign name='bluetooth' size={20} color={MainTheme.colorPrimary} style={{marginRight: 10, alignSelf: 'center'}} />
+            <AntDesign name='scan1' size={20} color={MainTheme.colorPrimary} style={{marginRight: 10, alignSelf: 'center'}} />
             <View style={{flex: 1, flexDirection: 'column'}}>
                 <Text>{item.name}</Text>
                 <Text>{item.address}</Text>

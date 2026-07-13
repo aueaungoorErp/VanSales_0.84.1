@@ -4,6 +4,7 @@ import { isSensorAvailable } from '@sbaiahmed1/react-native-biometrics';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { VectorIcon } from '../../../utils/iconFactory';
 import { connect } from 'react-redux';
 import { findPersistedBiometricUser, hydrateUserBiometricState, persistBiometricPreference } from '../../../action/user';
 import { MainTheme, settingListItems } from '../../../constant/lov';
@@ -13,7 +14,6 @@ import Request from '../../../utils/Request';
 import { clearPassword, getCredentials, getSavedUsername, saveCredentials } from '../../../services/SecureCredentials';
 import { getBBLPaymentBaseUrl, getBBLQrPaymentEnabled, getBiometricLoginState, getLoginInfo, getSettingConfig, removeBiometricLoginState, removeLoginGuID, removeLoginInfo, removeUserToken, setAccessTimeToken, setBBLQrPaymentEnabled, setLoginInfo, setSettingConfig } from '../../../utils/Token';
 import ListItems from '../presenter/ListItems';
-import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 class CTListItems extends React.Component {
   constructor(props) {
     super(props);
@@ -72,7 +72,7 @@ class CTListItems extends React.Component {
   };
   _header = () => {
     return <View style={itemStyles.headerContainer}>
-        <AntDesign name="setting" size={24} color={MainTheme.colorPrimary} />
+        <VectorIcon name="setting" type="ant-design" size={24} color={MainTheme.colorPrimary} />
         <Text style={itemStyles.headerText} allowFontScaling={false}>
           การตั้งค่า
         </Text>
@@ -154,11 +154,19 @@ class CTListItems extends React.Component {
       return this._renderDefaultPattern(item);
     }
   };
+  _renderSettingIcon = (item, size = 22) => (
+    <VectorIcon
+      name={item.iconName}
+      type={item.iconType}
+      size={size}
+      color={MainTheme.colorPrimary}
+    />
+  );
   _renderDefaultPattern = item => {
     const canPress = this._canPressItem(item);
     return <TouchableOpacity style={itemStyles.row} onPress={() => this._onPress(item)} disabled={!canPress} activeOpacity={0.6}>
         <View style={itemStyles.iconContainer}>
-          {item.iconName === 'server' ? <MaterialDesignIcons name={item.iconName} color={MainTheme.colorPrimary} size={22} /> : <AntDesign name={item.iconName} size={22} color={MainTheme.colorPrimary} />}
+          {this._renderSettingIcon(item)}
         </View>
         <View style={itemStyles.textContainer}>
           <Text style={itemStyles.title} allowFontScaling={false}>
@@ -175,7 +183,7 @@ class CTListItems extends React.Component {
           {item.imgSrc ? <Image style={{
           width: 28,
           height: 28
-        }} resizeMode="contain" source={item.imgSrc} /> : <AntDesign name={item.iconName} size={22} color={MainTheme.colorPrimary} />}
+        }} resizeMode="contain" source={item.imgSrc} /> : this._renderSettingIcon(item)}
         </View>
         <View style={itemStyles.textContainer}>
           <Text style={itemStyles.title} allowFontScaling={false}>
@@ -212,7 +220,7 @@ class CTListItems extends React.Component {
     const isEnabled = !!this.state.biometricEnabled;
     return <View style={itemStyles.row}>
         <View style={itemStyles.iconContainer}>
-          <MaterialDesignIcons name={item.iconName} color={MainTheme.colorPrimary} size={24} />
+          <VectorIcon name={item.iconName} type={item.iconType} size={24} color={MainTheme.colorPrimary} />
         </View>
         <View style={itemStyles.textContainer}>
           <Text style={itemStyles.title} allowFontScaling={false}>
@@ -234,7 +242,7 @@ class CTListItems extends React.Component {
     const isEnabled = !!this.state.bblQrPaymentEnabled;
     return <View style={itemStyles.row}>
         <View style={itemStyles.iconContainer}>
-          <MaterialDesignIcons name={item.iconName} color={MainTheme.colorPrimary} size={24} />
+          <VectorIcon name={item.iconName} type={item.iconType} size={24} color={MainTheme.colorPrimary} />
         </View>
         <View style={itemStyles.textContainer}>
           <Text style={itemStyles.title} allowFontScaling={false}>

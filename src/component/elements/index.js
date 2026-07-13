@@ -4,7 +4,7 @@
  */
 import { Text, TouchableOpacity, View } from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { resolveVectorIconComponent } from '../../utils/iconFactory';
+import { resolveIconName, resolveIconType, resolveVectorIconComponent } from '../../utils/iconFactory';
 
 /**
  * ListItem - replaces react-native-elements ListItem
@@ -21,16 +21,20 @@ export const ListItem = ({
   onPress,
   ...rest
 }) => {
-  const LeftIconComponent = resolveVectorIconComponent(leftIcon?.type, AntDesign);
+  const resolvedType = leftIcon?.name
+    ? resolveIconType(leftIcon.name, leftIcon?.type)
+    : leftIcon?.type;
+  const LeftIconComponent = resolveVectorIconComponent(resolvedType, AntDesign);
 
   const content = (
     <>
       {leftIcon && leftIcon.name ? (
         <LeftIconComponent
-          name={leftIcon.name === 'bluetooth' ? 'scan1' : leftIcon.name}
+          name={resolveIconName(leftIcon.name)}
           size={leftIcon.size || 20}
           color={leftIcon.color || '#333'}
           style={{marginRight: 10}}
+          solid={leftIcon.solid}
         />
       ) : null}
       {children ? (
@@ -83,14 +87,16 @@ ListItem.Chevron = ({color, size, style, ...rest}) => (
 /**
  * Icon - replaces react-native-elements Icon
  */
-export const Icon = ({name, type, size, color, onPress, iconStyle, containerStyle, ...rest}) => {
-  const IconComponent = resolveVectorIconComponent(type, AntDesign);
+export const Icon = ({name, type, size, color, onPress, iconStyle, containerStyle, solid, ...rest}) => {
+  const IconComponent = resolveVectorIconComponent(resolveIconType(name, type), AntDesign);
   const iconComponent = (
     <IconComponent
-      name={name || 'questioncircleo'}
+      name={resolveIconName(name || 'questioncircleo')}
       size={size || 24}
       color={color || '#333'}
       style={iconStyle}
+      solid={solid}
+      {...rest}
     />
   );
 

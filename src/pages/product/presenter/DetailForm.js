@@ -1,4 +1,4 @@
-﻿import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
+﻿import { VectorIcon } from '../../../utils/iconFactory';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -90,8 +90,9 @@ const DetailForm = (props) => {
                   editable={goodsCodeEditable}
                   style={{flex: 1, textAlign: 'left', fontSize: 15}}
                 />
-                <MaterialDesignIcons
+                <VectorIcon
                   name="barcode-scan"
+                  type="material-design"
                   color={MainTheme.colorPrimary}
                   size={26}
                   style={styles.scanIcon}

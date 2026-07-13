@@ -1,18 +1,20 @@
 import React from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import AntDesign from 'react-native-vector-icons/AntDesign'
 import { MainTheme } from '../../constant/lov'
+import { VectorIcon } from '../../utils/iconFactory'
 
 const ErrorMessage = (props) => {
     const { isDisplaying, message, containerStyle, textStyle, iconName, iconType, iconColor, iconSize, type, onButtonPress, buttonTitle } = props
     const _message = 'Data not found'
 
     const IconProcess = () => {
-        return ( 
-            <AntDesign 
-                name={iconName ? iconName : 'search1'} 
-                color={iconColor ? iconColor : '#463E3F'} 
-                size={iconSize ? iconSize : 120} />
+        return (
+            <VectorIcon
+                name={iconName ? iconName : 'search1'}
+                type={iconType || 'ant-design'}
+                color={iconColor ? iconColor : '#463E3F'}
+                size={iconSize ? iconSize : 120}
+            />
         )
     }
 

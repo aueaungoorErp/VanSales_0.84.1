@@ -1,5 +1,5 @@
 //import React from 'react';
-import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
+import { VectorIcon } from '../../../../utils/iconFactory';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
@@ -546,7 +546,7 @@ const PaymentForm = props => {
       <Content>
         <View style={styles.titleSection}>
           <View style={styles.titleIconWrap}>
-            <MaterialDesignIcons name="credit-card-outline" color={MainTheme.colorSecondary} size={24} />
+            <VectorIcon name="credit-card-outline" type="material-design" color={MainTheme.colorSecondary} size={24} />
           </View>
 
           <View style={styles.titleCopyWrap}>

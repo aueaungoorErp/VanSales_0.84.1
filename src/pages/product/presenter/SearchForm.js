@@ -1,5 +1,5 @@
 import { Picker } from '@react-native-picker/picker';
-import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
+import { VectorIcon } from '../../../utils/iconFactory';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -60,8 +60,9 @@ const SearchForm = (props) => {
         <TouchableOpacity
           onPress={() => (onScanBarcodePress ? onScanBarcodePress() : null)}
           style={isStockSearch ? styles.stockIconButton : styles.iconButton}>
-          <MaterialDesignIcons
+          <VectorIcon
             name="barcode-scan"
+            type="material-design"
             size={isStockSearch ? 23 : 21}
             color={isStockSearch ? MainTheme.colorPrimary : MainTheme.colorTertiary}
           />

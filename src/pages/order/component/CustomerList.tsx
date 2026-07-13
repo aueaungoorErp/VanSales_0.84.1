@@ -220,7 +220,7 @@ const CustomerListBase: React.FC<CustomerListProps> = ({
               ) : null}
               {userToken.VANCONFIG.VANCNF_AR_LIMIT === 2 && item.IS_SKIP ? (
                 <AntDesign
-                  name="step-forward"
+                  name="stepforward"
                   color={MainTheme.colorPrimary}
                   size={26}
                 />

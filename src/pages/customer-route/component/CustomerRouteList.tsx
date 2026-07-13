@@ -275,7 +275,7 @@ const CustomerRouteListBase: React.FC<CustomerRouteListProps> = ({
             <View style={styles.bottomRow}>
               <View style={styles.leadingStatus}>
                 {userToken.VANCONFIG.VANCNF_AR_LIMIT === 2 && item.LAST_DO ? <AntDesign name="check" color={MainTheme.colorPrimary} size={22} /> : null}
-                {userToken.VANCONFIG.VANCNF_AR_LIMIT === 2 && item.IS_SKIP ? <AntDesign name="step-forward" color={MainTheme.colorPrimary} size={22} /> : null}
+                {userToken.VANCONFIG.VANCNF_AR_LIMIT === 2 && item.IS_SKIP ? <AntDesign name="stepforward" color={MainTheme.colorPrimary} size={22} /> : null}
               </View>
 
               <View style={styles.customerInfo}>
