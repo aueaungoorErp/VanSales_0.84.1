@@ -811,8 +811,6 @@ public class PatternTextMode {
                                         Double disBill1 = (Double) Double
                                                         .parseDouble("0");
 
-                                                        + OrderProdSum.get("DIS_BILL_1").toString().isEmpty());
-
                                         if (OrderProdSum.get("DIS_BILL_1") != null
                                                         && !OrderProdSum.get("DIS_BILL_1").toString().isEmpty()) {
                                                 disBill1 = (Double) Double
