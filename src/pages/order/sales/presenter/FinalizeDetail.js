@@ -28,6 +28,31 @@ const formatAmount = value => {
   }
   return parsedValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 };
+const pickerSelectStyles = {
+  iconContainer: {
+    top: 0,
+    bottom: 0,
+    right: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inputAndroid: {
+    color: '#000000',
+    minHeight: 40,
+    paddingVertical: 8,
+    paddingRight: 28,
+    textAlignVertical: 'center',
+  },
+  inputIOS: {
+    color: '#000000',
+    minHeight: 40,
+    paddingVertical: 8,
+    paddingRight: 28,
+  },
+};
+const PickerDownIcon = () => (
+  <AntDesign name="down" size={20} color={MainTheme.colorPrimary} />
+);
 const FinalizeDetail = props => {
   const {
     setVDIRemark,
@@ -154,26 +179,18 @@ const FinalizeDetail = props => {
                 </Text>
               </Form>
             </View>
-            {arOrderType !== 'โอนย้ายสินค้า' ? <View style={[styles.lineSection, {
-            marginTop: 10
-          }]}>
-                <Text style={{
-              fontSize: hp('1.7%'),
-              textAlign: 'right',
-              color: '#000000'
-            }}>
+            {arOrderType !== 'โอนย้ายสินค้า' ? <View style={styles.discountToggleRow}>
+                <Text style={styles.discountToggleLabel} allowFontScaling={false}>
                   ลด(%)
                 </Text>
 
-                <Switch trackColor={{
+                <View style={styles.discountToggleSwitchWrap}>
+                  <Switch trackColor={{
               false: '#D6D7DA',
               true: '#D6D7DA'
             }} thumbColor={'#47BA8F'} ios_backgroundColor="#3e3e3e" onValueChange={toggleSwitch} value={!DIS_COUNT_TYPE1} />
-                <Text style={{
-              fontSize: hp('1.7%'),
-              textAlign: 'right',
-              color: '#000000'
-            }}>
+                </View>
+                <Text style={styles.discountToggleLabel} allowFontScaling={false}>
                   ลด(บาท)
                 </Text>
               </View> : null}
@@ -399,22 +416,10 @@ const FinalizeDetail = props => {
                 color: '#9EA0A4'
               }} onValueChange={value => {
                 setReturnType ? setReturnType(value) : null;
-              }} style={{
-                iconContainer: {
-                  top: 5,
-                  right: 15
-                },
-                inputAndroid: {
-                  color: '#000000'
-                }
-              }} value={returnType} textInputProps={{
+              }} style={pickerSelectStyles} value={returnType} textInputProps={{
                 underlineColorAndroid: 'cyan',
                 underlineColor: 'yellow'
-              }} useNativeAndroidPickerStyle={false} Icon={() => {
-                return <AntDesign name="down" size={25} color={MainTheme.colorPrimary} style={{
-                  marginTop: 5
-                }} />;
-              }} />
+              }} useNativeAndroidPickerStyle={false} Icon={PickerDownIcon} />
                 </Form>
               </View> : null}
 
@@ -466,25 +471,13 @@ const FinalizeDetail = props => {
                 changePaymentType(value);
 
                 //  renderItem  =  {"buttonStyle": {"backgroundColor": "#FFFFFF", "borderColor": "#D9D9D9", "borderRadius": 0, "borderWidth": 0.3, "height": 60}, "containerStyle": {"flex": 1}, "methodName": "process", "methodType": "function", "screen": null, "size": 50, "title": "คำนวณ", "titleStyle": {"color": "#2FBA74"}};
-              }} style={{
-                iconContainer: {
-                  top: 5,
-                  right: 15
-                },
-                inputAndroid: {
-                  color: '#000000'
-                }
-              }} value={paymentType} placeholder={{
+              }} style={pickerSelectStyles} value={paymentType} placeholder={{
                 label: 'เลือก',
                 value: null
               }} textInputProps={{
                 underlineColorAndroid: 'cyan',
                 underlineColor: 'yellow'
-              }} useNativeAndroidPickerStyle={false} Icon={() => {
-                return <AntDesign name="down" size={25} color={MainTheme.colorPrimary} style={{
-                  marginTop: 5
-                }} />;
-              }} />
+              }} useNativeAndroidPickerStyle={false} Icon={PickerDownIcon} />
                 </Form>
               </View> : null}
           </View>
@@ -516,6 +509,19 @@ const styles = StyleSheet.create({
   lineSection: {
     flexDirection: 'row',
     alignItems: 'center'
+  },
+  discountToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    gap: 12,
+  },
+  discountToggleLabel: {
+    fontSize: hp('1.7%'),
+    color: '#000000',
+  },
+  discountToggleSwitchWrap: {
+    marginHorizontal: 4,
   },
   itemSection: {
     borderBottomColor: 'black',

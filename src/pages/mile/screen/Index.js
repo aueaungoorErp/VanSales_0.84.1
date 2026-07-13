@@ -1,5 +1,5 @@
 import React from 'react'
-import { Animated, View, StyleSheet, Keyboard } from 'react-native'
+import { Animated, View, StyleSheet, Keyboard, TouchableWithoutFeedback } from 'react-native'
 import { MainTheme } from '../../../constant/lov'
 import CTForm from '../container/CTForm'
 import CTHeader from '../../user/container/CTHeader'
@@ -70,15 +70,19 @@ class Index extends React.Component {
       
     render() {
         return (
-            <View style={styles.container}>
-                <Animated.View style={[ styles.header, { flex: this._headerHeight } ]}>
-                    <CTHeader />
-                </Animated.View>
-                <Animated.View style={{ flex: this._bodyHeight }}>
-                    <CTForm key={this.state.formSessionKey} />
-                </Animated.View>
-                <CTButtonGroup key={this.state.formSessionKey} />
-            </View>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                <View style={styles.container}>
+                    <Animated.View style={[styles.header, { flex: this._headerHeight }]}>
+                        <CTHeader />
+                    </Animated.View>
+                    <Animated.View style={[styles.body, { flex: this._bodyHeight }]}>
+                        <View style={styles.bodyContent}>
+                            <CTForm key={this.state.formSessionKey} />
+                        </View>
+                    </Animated.View>
+                    <CTButtonGroup key={this.state.formSessionKey} />
+                </View>
+            </TouchableWithoutFeedback>
         )
     }
 }
@@ -97,5 +101,11 @@ const styles = StyleSheet.create({
         backgroundColor: MainTheme.colorQuinary,
         justifyContent: 'center',
         alignItems: 'center'
-    }
+    },
+    body: {
+        width: '100%',
+    },
+    bodyContent: {
+        flex: 1,
+    },
 })

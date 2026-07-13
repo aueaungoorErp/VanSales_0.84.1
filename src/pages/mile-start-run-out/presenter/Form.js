@@ -47,7 +47,8 @@ export default Forms
 const styles = StyleSheet.create({
     container: {
         marginTop: 15,
-        padding: 5
+        padding: 5,
+        flex: 1,
     },
     row: {
         flexDirection: 'row',

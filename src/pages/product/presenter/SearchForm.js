@@ -1,7 +1,7 @@
-import { Picker } from '@react-native-picker/picker';
+import RNPickerSelect from 'react-native-picker-select';
 import { VectorIcon } from '../../../utils/iconFactory';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ISearchBar from '../../../component/input/ISearchBar';
 import { MainTheme } from '../../../constant/lov';
@@ -10,6 +10,40 @@ const Form = ({ style, children }) => <View style={style}>{children}</View>;
 
 const Item = ({ style, children }) => (
   <View style={[{ flexDirection: 'row', alignItems: 'center' }, style]}>{children}</View>
+);
+
+const getCategoryPickerStyles = (isStockSearch) => ({
+  iconContainer: {
+    top: 0,
+    bottom: 0,
+    right: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inputAndroid: {
+    color: '#21312A',
+    fontSize: 14,
+    minHeight: 48,
+    paddingVertical: 10,
+    paddingLeft: 4,
+    paddingRight: 28,
+    textAlignVertical: 'center',
+  },
+  inputIOS: {
+    color: '#21312A',
+    fontSize: 14,
+    minHeight: 48,
+    paddingVertical: 12,
+    paddingLeft: 4,
+    paddingRight: 28,
+  },
+  placeholder: {
+    color: isStockSearch ? '#587060' : '#5E6E66',
+  },
+});
+
+const CategoryPickerIcon = () => (
+  <AntDesign name="down" size={18} color={MainTheme.colorPrimary} />
 );
 
 const SearchForm = (props) => {
@@ -33,6 +67,16 @@ const SearchForm = (props) => {
   const shouldShowAllOption = !categoryItems.some(
     (item) => item && item.ICDEPT_KEY == null,
   );
+
+  const categoryPickerItems = [
+    ...(shouldShowAllOption
+      ? [{ label: 'ทั้งหมด', value: null }]
+      : []),
+    ...categoryItems.map((item) => ({
+      label: item.ICDEPT_THAIDESC,
+      value: item.ICDEPT_KEY,
+    })),
+  ];
 
   const actionButtons = (
     <>
@@ -78,27 +122,24 @@ const SearchForm = (props) => {
         <Item
           style={isStockSearch ? styles.stockPickerItem : styles.pickerItem}>
           <Form style={isStockSearch ? styles.stockForm : styles.form}>
-          
-            <Picker
-              style={isStockSearch ? styles.stockPicker : styles.picker}
-              selectedValue={category}
-              dropdownIconColor={isStockSearch ? 'transparent' : MainTheme.colorPrimary}
-              onValueChange={(value) => {
-                setProductCategory ? setProductCategory(value) : null;
-              }}>
-              {shouldShowAllOption ? (
-                <Picker.Item label="ทั้งหมด" value={null} color="#21312A" />
-              ) : null}
-              {categoryItems.map((item, index) => {
-                return (
-                  <Picker.Item
-                    key={index}
-                    label={item.ICDEPT_THAIDESC}
-                    value={item.ICDEPT_KEY}
-                  />
-                );
-              })}
-            </Picker>
+            <RNPickerSelect
+              items={categoryPickerItems}
+              value={category}
+              onValueChange={(nextValue) => {
+                setProductCategory ? setProductCategory(nextValue) : null;
+              }}
+              style={getCategoryPickerStyles(isStockSearch)}
+              useNativeAndroidPickerStyle={false}
+              placeholder={{
+                label: 'เลือกประเภท',
+                value: null,
+              }}
+              textInputProps={{
+                underlineColorAndroid: 'transparent',
+                ...(Platform.OS === 'ios' ? { pointerEvents: 'none' } : {}),
+              }}
+              Icon={CategoryPickerIcon}
+            />
           </Form>
         </Item>
       </View>
@@ -226,14 +267,14 @@ const styles = StyleSheet.create({
   form: {
     margin: 0,
     padding: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   stockForm: {
     margin: 0,
     padding: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   pickerRow: {
     flexDirection: 'row',
@@ -245,13 +286,14 @@ const styles = StyleSheet.create({
   },
   pickerItem: {
     flex: 1,
-    minHeight: 50,
+    minHeight: 48,
     borderWidth: 1,
     borderColor: '#DCE6E0',
     borderRadius: 14,
     backgroundColor: '#F8FBF9',
     paddingHorizontal: 8,
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   pickerLeadingIcon: {
     marginLeft: 4,
@@ -271,6 +313,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FBF9',
     paddingHorizontal: 8,
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   stockPickerLeadingIcon: {
     marginLeft: 4,
@@ -282,20 +325,6 @@ const styles = StyleSheet.create({
   // pickerContainer: {
   //   flex: 0.8
   // },
-  picker: {
-    height: 50,
-    marginLeft: 0,
-    flex: 1,
-    color: '#21312A',
-    marginTop: -2,
-  },
-  stockPicker: {
-    height: 50,
-    marginLeft: 0,
-    flex: 1,
-    color: '#21312A',
-    marginTop: -3,
-  },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
