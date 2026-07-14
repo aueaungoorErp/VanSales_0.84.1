@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Platform } from 'react-native';
 import { PERMISSIONS, requestMultiple, RESULTS } from 'react-native-permissions';
 import { connect } from 'react-redux';
 import { intialState, intialStateConfig, setItemList, setModel, setModelList, setPrintingType as setPrintingTypeAction, setState } from '../../../action/bluetooth';
@@ -19,13 +20,14 @@ class CTForm extends Component {
   };
   _requestPermissionsAndInit = async () => {
     try {
-      const statuses = await requestMultiple([PERMISSIONS.ANDROID.BLUETOOTH_CONNECT, PERMISSIONS.ANDROID.BLUETOOTH_SCAN]);
+      if (Platform.OS === 'android') {
+        const statuses = await requestMultiple([PERMISSIONS.ANDROID.BLUETOOTH_CONNECT, PERMISSIONS.ANDROID.BLUETOOTH_SCAN]);
+        const connectStatus = statuses[PERMISSIONS.ANDROID.BLUETOOTH_CONNECT];
+        if (connectStatus === RESULTS.GRANTED || connectStatus === RESULTS.UNAVAILABLE) {
+          this._fetchBluetoothList();
+        }
+      }
       this._getModelPrinters();
-      const connectStatus = statuses[PERMISSIONS.ANDROID.BLUETOOTH_CONNECT];
-      const scanStatus = statuses[PERMISSIONS.ANDROID.BLUETOOTH_SCAN];
-      if (connectStatus === RESULTS.GRANTED || connectStatus === RESULTS.UNAVAILABLE) {
-        this._fetchBluetoothList();
-      } else {}
     } catch (err) {
       console.warn('Error requesting bluetooth permissions:', err);
       this._getModelPrinters();
@@ -52,6 +54,10 @@ class CTForm extends Component {
   };
   _getBluetoothList = async () => {
     if (!BluetoothFinder) {
+      return;
+    }
+    if (Platform.OS !== 'android') {
+      this._fetchBluetoothList();
       return;
     }
     try {
