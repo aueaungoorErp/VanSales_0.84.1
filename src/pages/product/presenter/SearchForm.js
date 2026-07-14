@@ -85,7 +85,7 @@ const SearchForm = (props) => {
       }} style={isStockSearch ? styles.stockIconButtonPrimary : styles.iconButton}>
         <AntDesign
           name="search1"
-          size={isStockSearch ? 22 : 20}
+          size={isStockSearch ? 19 : 20}
           color={isStockSearch ? MainTheme.colorSecondary : MainTheme.colorQuaternary}
         />
       </TouchableOpacity>
@@ -95,7 +95,7 @@ const SearchForm = (props) => {
       }} style={isStockSearch ? styles.stockIconButton : styles.iconButton}>
         <AntDesign
           name="sync"
-          size={isStockSearch ? 22 : 20}
+          size={isStockSearch ? 19 : 20}
           color={isStockSearch ? MainTheme.colorPrimary : MainTheme.colorTertiary}
         />
       </TouchableOpacity>
@@ -107,7 +107,7 @@ const SearchForm = (props) => {
           <VectorIcon
             name="barcode-scan"
             type="material-design"
-            size={isStockSearch ? 23 : 21}
+            size={isStockSearch ? 20 : 21}
             color={isStockSearch ? MainTheme.colorPrimary : MainTheme.colorTertiary}
           />
         </TouchableOpacity>
@@ -402,8 +402,8 @@ const styles = StyleSheet.create({
     borderColor: '#D7DFE5',
   },
   stockIconButtonPrimary: {
-    width: 42,
-    height: 42,
+    width: 38,
+    height: 38,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -412,8 +412,8 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   stockIconButton: {
-    width: 42,
-    height: 42,
+    width: 38,
+    height: 38,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',

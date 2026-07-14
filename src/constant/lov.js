@@ -63,7 +63,7 @@ export const BluetoothModels = {
 export const MOBILE5INCH = 370;
 
 //export const APP_VERSION_FULL = '3.0.10.0 (18/05/2023)';
-export const APP_VERSION_FULL = '4.0.0  (13/07/2026)';
+export const APP_VERSION_FULL = '4.0.0  (14/07/2026)';
 export const APP_VERSION = '4.0.0';
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1476,6 +1476,7 @@ export const reportMenu = [
     pattern: 'A',
     seachForm: 'A',
   },
+
   {
     title: strings('report.payment_type_summary_report'),
     screen: 'ReportSummary',
