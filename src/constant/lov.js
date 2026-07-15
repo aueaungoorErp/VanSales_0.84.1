@@ -1477,6 +1477,7 @@ export const reportMenu = [
     seachForm: 'A',
   },
 
+  /*
   {
     title: strings('report.payment_type_summary_report'),
     screen: 'ReportSummary',
@@ -1484,6 +1485,7 @@ export const reportMenu = [
     pattern: 'A',
     seachForm: 'A',
   },
+  */
   {
     title: strings('report.sales_detail_report_by_document'),
     screen: 'ReportSummary',
@@ -1499,6 +1501,7 @@ export const reportMenu = [
     seachForm: 'A',
   },
   //----------------------
+  /*
   {
     title: strings('report.performance_reports_based_on_customer_lines'),
     screen: 'ReportSummary',
@@ -1506,6 +1509,7 @@ export const reportMenu = [
     pattern: 'B',
     seachForm: 'A',
   },
+  */
   {
     title: strings('report.performance_report_by_product_category'),
     screen: 'ReportSummary',
