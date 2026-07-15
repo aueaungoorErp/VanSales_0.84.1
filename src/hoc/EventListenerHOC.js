@@ -4,7 +4,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import moment from 'moment';
-import { BplusPrinting, BluetoothFinder } from '../module';
+import { BplusPrinting, BluetoothFinder, isNativeBluetoothAvailable } from '../module';
 import { stateChange } from '../../src/action/screen';
 import {
   setState,
@@ -106,6 +106,14 @@ const EventListenerHOC = Component => {
 
     _autoConnectBluetooth = async () => {
       const printingType = await getPrintingType();
+
+      if (!isNativeBluetoothAvailable) {
+        if (printingType === 'BLUETOOTH') {
+          await setPrintingType('PDF');
+          this.props.setPrintingType('PDF');
+        }
+        return;
+      }
 
       if (printingType === 'BLUETOOTH') {
         this.props.setPrintingType('BLUETOOTH');

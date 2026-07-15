@@ -1607,7 +1607,7 @@ export const manualListItems = [
   },
   {
     title: '18.ข้อมูลลูกค้า',
-    source: 'bundle-assets://pdf/17.pdf',
+    source: 'bundle-assets://pdf/18.pdf',
   },
   {
     title: '19.การตั้งค่า',

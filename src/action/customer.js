@@ -5,6 +5,7 @@ import * as appConfig from '../../appConfig';
 import { closeCustomerAccountApi, customerSearchArLineListV3Api, customerSearchListApi, customerSearchListV3Api, customerSkipApi, executiveV3Api, getARL_KEY99, getARLV3Api, getArPricetabApi, getCustArprbKEYApi, NewArFileV3Api, readErpV3Api, searchCustomerNearByApi, updateErpV3Api } from '../api/customer';
 import * as types from '../constant/customer';
 import { getLoginGuID, getUserToken } from '../utils/Token';
+import { logCustomerCreditSelection } from '../utils/customerCreditLog';
 const hasKongInName = item => String(item?.AR_NAME || '').toLowerCase().includes('kong');
 const formatElapsedMs = startedAt => `${Date.now() - startedAt} ms`;
 const normalizeCustomerDetail = async (detailItem, VANCONFIG) => {
@@ -92,6 +93,11 @@ export const findCustomerById = id => dispatch => {
         dispatch({
           type: types.CUSTOMER_SET_ARSUMMARY,
           payload: arSummaryData
+        });
+        logCustomerCreditSelection({
+          arKey: id,
+          arSummary: arSummaryData,
+          vanConfig: VANCONFIG,
         });
         const date = moment().format('YYYYMMDD');
         const bodyRequest2 = {

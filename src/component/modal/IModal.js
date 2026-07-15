@@ -26,7 +26,7 @@ const IModal = (props) => {
         children } = props;
     const insets = useSafeAreaInsets()
     const topPadding = getModalTopPadding(insets.top)
-c
+
     const renderDom = (
 
         <Modal
